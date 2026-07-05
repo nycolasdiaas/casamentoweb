@@ -36,6 +36,11 @@ yarn-error.log*
 # vercel
 .vercel
 
+# guest data backups (contains personal data, never commit)
+/backups
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+.vercel
