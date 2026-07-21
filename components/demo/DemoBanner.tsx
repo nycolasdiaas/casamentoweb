@@ -9,7 +9,7 @@ export default function DemoBanner({ pkg }: { pkg: WeddingPackage }) {
         · {pkg.price}
       </p>
       <Link
-        href="/pacotes"
+        href="/"
         className="font-serif text-xs underline underline-offset-2 hover:text-(--color-gold)"
       >
         Ver todos os pacotes

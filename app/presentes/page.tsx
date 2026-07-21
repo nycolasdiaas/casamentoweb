@@ -45,7 +45,7 @@ export default async function GiftsPage() {
 
       <footer className="flex justify-center pt-4">
         <Link
-          href="/"
+          href="/isabelle-e-nycolas"
           className="font-serif text-xs text-(--color-olive) underline"
         >
           Voltar ao convite
