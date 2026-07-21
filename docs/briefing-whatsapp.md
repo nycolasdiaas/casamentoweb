@@ -21,7 +21,7 @@ Copie e cole. `*texto*` vira **negrito** no WhatsApp. Troque os `[colchetes]`.
 > ✨ *Para Sempre* — R$ 1.500 (o mais escolhido)
 > Tudo do anterior + lista de presentes com Pix *sem nenhuma taxa* (100% cai na conta de vocês) + endereço personalizado + álbum pós-festa: depois do casamento o site vira o registro de vocês, pra sempre.
 >
-> Podem ver exemplos reais aqui: [LINK DO SITE]/pacotes
+> Podem ver exemplos reais aqui: [LINK DO SITE]
 >
 > Qual combina mais com vocês? Se quiserem, me contam a data que eu já confirmo o prazo! 😊
 

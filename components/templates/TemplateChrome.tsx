@@ -37,7 +37,7 @@ export default function TemplateChrome({
             color: ink,
           }}
         >
-          <Link href="/pacotes" className="underline underline-offset-2">
+          <Link href="/" className="underline underline-offset-2">
             ← Pacotes
           </Link>
           <span className="tracking-[0.15em] uppercase">

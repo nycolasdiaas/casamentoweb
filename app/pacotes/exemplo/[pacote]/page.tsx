@@ -161,7 +161,7 @@ export default async function DemoPage({
           Pacote {pkg.name} · {pkg.price} · {pkg.deliveryTime.toLowerCase()}
         </p>
         <Link
-          href="/pacotes"
+          href="/"
           className="font-serif text-xs tracking-[0.15em] uppercase border border-(--color-gold) text-(--color-olive) px-8 py-3 transition-colors hover:bg-(--color-blush)"
         >
           Comparar os pacotes
