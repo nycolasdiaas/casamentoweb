@@ -5,7 +5,7 @@ import type { PackageTier } from "@/lib/packages";
 
 export type OrderInput = {
   packageTier: PackageTier;
-  templateStyle: string;
+  templateStyle?: string | null;
   primaryColor?: string;
   secondaryColor?: string;
   fontStyle?: string;

@@ -69,8 +69,12 @@ function parseOrderForm(formData: FormData) {
   if (!PACKAGES.some((pkg) => pkg.tier === packageTier)) {
     return { error: "Escolha um pacote." as const };
   }
-  if (!TEMPLATE_STYLES.some((style) => style.id === templateStyle)) {
-    return { error: "Escolha um estilo de template." as const };
+  // Template é opcional: vazio = casal monta do zero com cores/fonte próprias
+  if (
+    templateStyle !== "" &&
+    !TEMPLATE_STYLES.some((style) => style.id === templateStyle)
+  ) {
+    return { error: "Estilo de template inválido." as const };
   }
 
   const primaryColor = formData.get("primaryColor")?.toString().trim() ?? "";
@@ -81,7 +85,7 @@ function parseOrderForm(formData: FormData) {
   return {
     input: {
       packageTier: packageTier as PackageTier,
-      templateStyle,
+      templateStyle: templateStyle || null,
       primaryColor: isHexColor(primaryColor) ? primaryColor : undefined,
       secondaryColor: isHexColor(secondaryColor) ? secondaryColor : undefined,
       fontStyle: isFontStyle(fontStyle) ? fontStyle : undefined,

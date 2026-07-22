@@ -29,6 +29,13 @@
       "when": 1784761891505,
       "tag": "0003_demonic_prodigy",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1784762578474,
+      "tag": "0004_aromatic_doorman",
+      "breakpoints": true
     }
   ]
 }

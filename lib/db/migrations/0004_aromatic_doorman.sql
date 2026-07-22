@@ -1,0 +1,1 @@
+ALTER TABLE "orders" ALTER COLUMN "template_style" DROP NOT NULL;

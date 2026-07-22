@@ -48,7 +48,8 @@ export const orders = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     packageTier: packageTierEnum("package_tier").notNull(),
-    templateStyle: text("template_style").notNull(),
+    // null = casal preferiu montar do zero com as cores/fontes próprias
+    templateStyle: text("template_style"),
     // personalização visual escolhida pelo casal (hex/estilo livres)
     primaryColor: text("primary_color"),
     secondaryColor: text("secondary_color"),
