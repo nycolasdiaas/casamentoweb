@@ -7,6 +7,10 @@ import {
   Archivo,
   Great_Vibes,
   Playfair_Display,
+  Dancing_Script,
+  Poiret_One,
+  Josefin_Sans,
+  Amatic_SC,
 } from "next/font/google";
 import {
   saveOrderAction,
@@ -19,18 +23,26 @@ import {
   FONT_STYLES,
   type FontStyleId,
 } from "@/lib/customization";
-import { CONTACT } from "@/lib/site";
+import { CONTACT, WHATSAPP_LINK } from "@/lib/site";
 
 const fontClassica = Cormorant_Garamond({ subsets: ["latin"], weight: "500" });
 const fontModerna = Archivo({ subsets: ["latin"], weight: "600" });
 const fontRomantica = Great_Vibes({ subsets: ["latin"], weight: "400" });
 const fontEditorial = Playfair_Display({ subsets: ["latin"], weight: "600" });
+const fontManuscrita = Dancing_Script({ subsets: ["latin"], weight: "600" });
+const fontArtdeco = Poiret_One({ subsets: ["latin"], weight: "400" });
+const fontMinimalista = Josefin_Sans({ subsets: ["latin"], weight: "300" });
+const fontBoho = Amatic_SC({ subsets: ["latin"], weight: "700" });
 
 const FONT_PREVIEW_CLASS: Record<FontStyleId, string> = {
   classica: fontClassica.className,
   moderna: fontModerna.className,
   romantica: fontRomantica.className,
   editorial: fontEditorial.className,
+  manuscrita: fontManuscrita.className,
+  artdeco: fontArtdeco.className,
+  minimalista: fontMinimalista.className,
+  boho: fontBoho.className,
 };
 
 const FONT_PREVIEW_SIZE: Record<FontStyleId, string> = {
@@ -38,6 +50,10 @@ const FONT_PREVIEW_SIZE: Record<FontStyleId, string> = {
   moderna: "text-xl",
   romantica: "text-3xl",
   editorial: "text-2xl",
+  manuscrita: "text-3xl",
+  artdeco: "text-2xl tracking-wide",
+  minimalista: "text-xl tracking-[0.15em]",
+  boho: "text-3xl tracking-wide",
 };
 
 export type OrderData = {
@@ -281,6 +297,20 @@ export default function OrderForm({
           </p>
         </div>
 
+        <div className="rounded-xl border border-(--color-olive)/30 bg-(--color-blush) p-4 flex items-start gap-3">
+          <span aria-hidden className="text-lg leading-none">
+            🎨
+          </span>
+          <p className="text-sm text-(--color-olive) leading-relaxed">
+            <span className="font-semibold">
+              Aqui vocês podem tudo: 100% personalizável.
+            </span>{" "}
+            As opções abaixo são só atalhos. Se quiserem uma cor, uma fonte ou
+            um detalhe que não está aqui, é só escrever no campo de
+            observações — a gente faz do jeito de vocês, sem custo extra.
+          </p>
+        </div>
+
         {/* Ponto de partida */}
         <div className="flex flex-col gap-2">
           <p className="text-sm font-medium">
@@ -361,7 +391,8 @@ export default function OrderForm({
           <p className="text-sm font-medium">
             Tipografia{" "}
             <span className="font-normal text-xs text-(--color-muted)">
-              o jeito da letra nos títulos
+              o jeito da letra nos títulos — ou peçam a de vocês nas
+              observações
             </span>
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -401,16 +432,28 @@ export default function OrderForm({
           <p className="text-sm font-medium">
             Observações de estilo{" "}
             <span className="font-normal text-xs text-(--color-muted)">
-              o que não pode faltar (ou não pode ter)
+              peçam o que quiserem — aqui não tem limite
             </span>
           </p>
           <textarea
             name="styleNotes"
-            rows={3}
+            rows={4}
             defaultValue={order?.styleNotes ?? ""}
-            placeholder="Ex: queremos flores em aquarela, nada de rosa, tema praia, dourado só nos detalhes..."
+            placeholder="Escrevam à vontade: uma cor específica, uma fonte que viram por aí, tema praia ou campo, flores em aquarela, nada de rosa, um detalhe que sonharam... a gente monta do jeito de vocês."
             className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm resize-y focus:border-(--color-gold) focus:outline-none"
           />
+          <p className="text-xs text-(--color-muted)">
+            Quer algo que não está no site? {""}
+            <a
+              href={WHATSAPP_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-(--color-olive) underline underline-offset-2"
+            >
+              Chama a gente no WhatsApp
+            </a>{" "}
+            que a gente resolve.
+          </p>
         </div>
       </div>
 

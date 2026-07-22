@@ -14,7 +14,15 @@ export const COLOR_PRESETS: { name: string; hex: string }[] = [
   { name: "Champanhe", hex: "#e8d9b5" },
 ];
 
-export type FontStyleId = "classica" | "moderna" | "romantica" | "editorial";
+export type FontStyleId =
+  | "classica"
+  | "moderna"
+  | "romantica"
+  | "editorial"
+  | "manuscrita"
+  | "artdeco"
+  | "minimalista"
+  | "boho";
 
 export const FONT_STYLES: {
   id: FontStyleId;
@@ -40,6 +48,26 @@ export const FONT_STYLES: {
     id: "editorial",
     name: "Editorial",
     description: "Alto contraste, capa de revista",
+  },
+  {
+    id: "manuscrita",
+    name: "Manuscrita",
+    description: "Escrita à mão, intimista",
+  },
+  {
+    id: "artdeco",
+    name: "Art Déco",
+    description: "Geométrica, glamour dos anos 20",
+  },
+  {
+    id: "minimalista",
+    name: "Minimalista",
+    description: "Fina e espaçada, discreta",
+  },
+  {
+    id: "boho",
+    name: "Boho",
+    description: "Serifada com personalidade, rústica",
   },
 ];
 
