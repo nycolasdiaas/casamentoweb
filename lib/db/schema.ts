@@ -16,6 +16,54 @@ export const rsvpStatusEnum = pgEnum("rsvp_status", [
   "declined",
 ]);
 
+export const packageTierEnum = pgEnum("package_tier", [
+  "convite",
+  "site",
+  "para-sempre",
+]);
+
+export const orderStatusEnum = pgEnum("order_status", ["draft", "submitted"]);
+
+// Contas dos casais clientes da plataforma (não confundir com o admin do
+// site de um casamento, que usa senha única de ambiente).
+export const users = pgTable("users", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  // formato "salt:hash" (scrypt), ver lib/auth/password.ts
+  passwordHash: text("password_hash").notNull(),
+  whatsapp: text("whatsapp"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+// Um pedido por casal: pacote + template escolhidos e o material do
+// briefing. "draft" enquanto edita; "submitted" quando envia pra produção.
+export const orders = pgTable(
+  "orders",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    packageTier: packageTierEnum("package_tier").notNull(),
+    templateStyle: text("template_style").notNull(),
+    coupleNames: text("couple_names"),
+    weddingDate: text("wedding_date"),
+    photosLink: text("photos_link"),
+    notes: text("notes"),
+    status: orderStatusEnum("status").notNull().default("draft"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index("idx_orders_user_id").on(table.userId)]
+);
+
 export const groups = pgTable("groups", {
   id: uuid("id").primaryKey().defaultRandom(),
   slug: text("slug").notNull().unique(),
@@ -92,4 +140,12 @@ export const giftContributionsRelations = relations(
 
 export const guestsRelations = relations(guests, ({ one }) => ({
   group: one(groups, { fields: [guests.groupId], references: [groups.id] }),
+}));
+
+export const usersRelations = relations(users, ({ many }) => ({
+  orders: many(orders),
+}));
+
+export const ordersRelations = relations(orders, ({ one }) => ({
+  user: one(users, { fields: [orders.userId], references: [users.id] }),
 }));

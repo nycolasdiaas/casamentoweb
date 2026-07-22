@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { PACKAGES, type PackageTier } from "@/lib/packages";
 
@@ -20,10 +20,14 @@ export function usePackageTier(): [PackageTier, (tier: PackageTier) => void] {
   const searchParams = useSearchParams();
   const urlTier = parseTier(searchParams.get("pacote"));
   const [manualTier, setManualTier] = useState<PackageTier | null>(null);
+  const [lastUrlTier, setLastUrlTier] = useState(urlTier);
 
-  useEffect(() => {
+  // Reset da escolha manual quando a URL muda — padrão oficial do React de
+  // "derived state" durante o render, em vez de setState dentro de effect.
+  if (lastUrlTier !== urlTier) {
+    setLastUrlTier(urlTier);
     setManualTier(null);
-  }, [urlTier]);
+  }
 
   return [manualTier ?? urlTier, setManualTier];
 }

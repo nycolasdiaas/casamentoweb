@@ -88,7 +88,7 @@ const FAQ: [string, string][] = [
   ],
   [
     "Como funciona a personalização?",
-    "Tudo por mensagem no WhatsApp: vocês mandam as fotos, a história e as preferências de cor e estilo na própria conversa (fotos em alta qualidade podem ir por link do Google Drive). A gente monta, envia a prévia por link e vocês pedem os ajustes respondendo a mensagem. Nenhum editor, nenhum formulário, nada técnico.",
+    "Vocês criam a conta, escolhem o pacote e o template, e mandam o material pela plataforma: fotos por link (Google Drive, Dropbox...), história e preferências. A gente monta, envia a prévia pelo WhatsApp e vocês pedem os ajustes respondendo a mensagem. Nenhum editor, nada técnico.",
   ],
   [
     "O que precisamos enviar?",
@@ -129,12 +129,18 @@ export default function PackagesPage() {
             <a href="#faq" className="hidden sm:inline hover:underline underline-offset-4">
               Dúvidas
             </a>
-            <a
-              href="#contato"
+            <Link
+              href="/conta/entrar"
+              className="hover:underline underline-offset-4"
+            >
+              Entrar
+            </Link>
+            <Link
+              href="/conta/criar"
               className="bg-(--color-olive) text-white text-xs font-medium tracking-wide px-4 py-2 rounded-full hover:bg-(--color-olive)/90 transition-colors"
             >
-              Fale conosco
-            </a>
+              Começar agora
+            </Link>
           </div>
         </nav>
       </header>
@@ -153,8 +159,8 @@ export default function PackagesPage() {
               Convite digital, confirmação de presença e lista de presentes com
               Pix — sem mensalidade e sem taxa sobre os presentes. E o melhor:
               <strong className="font-semibold"> zero dor de cabeça</strong> —
-              vocês mandam as fotos e a história por mensagem no WhatsApp, e a
-              gente cuida de absolutamente todo o resto.
+              vocês escolhem o template, mandam as fotos e a história em
+              minutos, e a gente cuida de absolutamente todo o resto.
             </p>
             <div className="flex flex-wrap justify-center lg:justify-start gap-3 pt-2">
               <a
@@ -228,8 +234,8 @@ export default function PackagesPage() {
               <ul className="flex flex-col gap-3 text-sm">
                 {[
                   "Escolhem o pacote e o estilo visual",
-                  "Mandam fotos, história e informações pelo WhatsApp",
-                  "Aprovam a prévia (e pedem ajustes na mesma conversa)",
+                  "Mandam fotos (por link) e a história aqui na plataforma",
+                  "Aprovam a prévia pelo WhatsApp (ajustes na mesma conversa)",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 leading-snug">
                     <span aria-hidden className="text-(--color-gold)">✦</span>
@@ -539,11 +545,19 @@ export default function PackagesPage() {
                     {pkg.deliveryTime}
                   </p>
                   <Link
-                    href={`/pacotes/estilos/classico?pacote=${pkg.tier}`}
+                    href="/conta/criar"
                     className={`text-center text-sm font-medium px-6 py-3 rounded-full transition-colors ${
                       pkg.highlight
                         ? "bg-white text-(--color-olive) hover:bg-(--color-paper)"
-                        : "border border-(--color-olive)/30 hover:bg-(--color-blush)"
+                        : "bg-(--color-olive) text-white hover:bg-(--color-olive)/90"
+                    }`}
+                  >
+                    Começar agora
+                  </Link>
+                  <Link
+                    href={`/pacotes/estilos/classico?pacote=${pkg.tier}`}
+                    className={`text-center text-xs font-medium underline underline-offset-4 ${
+                      pkg.highlight ? "text-white/80" : "text-(--color-olive)/70"
                     }`}
                   >
                     Ver exemplo
@@ -563,9 +577,9 @@ export default function PackagesPage() {
           </h2>
           <ol className="grid grid-cols-1 sm:grid-cols-4 gap-8 max-w-4xl mx-auto w-full">
             {[
-              ["1", "Chamem no WhatsApp", "escolham o pacote e o estilo — a gente guia a conversa"],
-              ["2", "Mandem tudo pelo zap", "fotos, história e detalhes da festa, na própria conversa"],
-              ["3", "Aprovem a prévia", "recebem o link, pedem ajustes por mensagem — 1 rodada inclusa"],
+              ["1", "Criem a conta", "escolham o pacote e o estilo do template de vocês"],
+              ["2", "Mandem o material", "fotos por link, história e data — tudo aqui, em minutos"],
+              ["3", "Confirmem no WhatsApp", "a gente fecha os detalhes e envia a prévia — 1 rodada de ajustes inclusa"],
               ["4", "Só compartilhar", "site no ar — domínio, hospedagem e técnica por nossa conta"],
             ].map(([step, title, text]) => (
               <li key={step} className="flex flex-col items-center gap-2 text-center">

@@ -1,0 +1,74 @@
+"use client";
+
+import Link from "next/link";
+import { useActionState } from "react";
+import { Inter } from "next/font/google";
+import { signinAction } from "@/app/actions/account-actions";
+import { SITE_NAME } from "@/lib/site";
+
+const inter = Inter({ subsets: ["latin"] });
+
+export default function SigninPage() {
+  const [state, action, pending] = useActionState(
+    async (_prev: { error?: string } | undefined, formData: FormData) => {
+      return signinAction(formData);
+    },
+    undefined
+  );
+
+  return (
+    <main
+      className={`${inter.className} flex-1 flex items-center justify-center bg-(--color-paper) px-6 py-16 text-(--color-olive)`}
+    >
+      <div className="w-full max-w-sm flex flex-col gap-6">
+        <div className="text-center flex flex-col gap-2">
+          <p className="text-xs font-medium tracking-[0.25em] uppercase text-(--color-gold)">
+            {SITE_NAME}
+          </p>
+          <h1 className="text-2xl font-bold tracking-tight">Entrar</h1>
+        </div>
+
+        <form action={action} className="flex flex-col gap-3">
+          <input
+            type="email"
+            name="email"
+            placeholder="E-mail"
+            required
+            className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm focus:border-(--color-gold) focus:outline-none"
+          />
+          <input
+            type="password"
+            name="password"
+            placeholder="Senha"
+            required
+            className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm focus:border-(--color-gold) focus:outline-none"
+          />
+
+          {state?.error && (
+            <p className="text-sm text-red-700">{state.error}</p>
+          )}
+
+          <button
+            type="submit"
+            disabled={pending}
+            className="mt-1 rounded-full bg-(--color-olive) text-white py-3.5 text-sm font-medium transition-colors hover:bg-(--color-olive)/90 disabled:opacity-50"
+          >
+            {pending ? "Entrando..." : "Entrar"}
+          </button>
+        </form>
+
+        <p className="text-center text-sm text-(--color-olive)/70">
+          Ainda não têm conta?{" "}
+          <Link href="/conta/criar" className="underline underline-offset-4">
+            Criar conta
+          </Link>
+        </p>
+        <p className="text-center">
+          <Link href="/" className="text-xs text-(--color-muted) underline underline-offset-4">
+            ← Voltar aos pacotes
+          </Link>
+        </p>
+      </div>
+    </main>
+  );
+}
