@@ -1,16 +1,20 @@
 import Link from "next/link";
 import { WHATSAPP_LINK } from "@/lib/site";
+import { PACKAGES, type PackageTier } from "@/lib/packages";
 import type { ReactNode } from "react";
 
 // Moldura comum das 3 prévias de template: fundo escuro "letterbox", cartão
 // central de até 480px (como as prévias foram desenhadas, pensando em
-// celular), barra de navegação fixa e CTA de WhatsApp no rodapé.
+// celular), barra de navegação fixa com o seletor de pacote (mesma prévia
+// muda de seções conforme o pacote escolhido) e CTA de WhatsApp no rodapé.
 export default function TemplateChrome({
   styleName,
   outerBg,
   cardBg,
   ink,
   accent,
+  tier,
+  onTierChange,
   children,
 }: {
   styleName: string;
@@ -18,6 +22,8 @@ export default function TemplateChrome({
   cardBg: string;
   ink: string;
   accent: string;
+  tier: PackageTier;
+  onTierChange: (tier: PackageTier) => void;
   children: ReactNode;
 }) {
   return (
@@ -30,19 +36,45 @@ export default function TemplateChrome({
         style={{ background: cardBg }}
       >
         <div
-          className="sticky top-0 z-50 flex items-center justify-between px-4 py-2.5 text-[11px]"
+          className="sticky top-0 z-50 flex flex-col gap-2.5 px-4 py-2.5 text-[11px]"
           style={{
             background: cardBg,
             borderBottom: `1px solid ${accent}66`,
             color: ink,
           }}
         >
-          <Link href="/" className="underline underline-offset-2">
-            ← Pacotes
-          </Link>
-          <span className="tracking-[0.15em] uppercase">
-            {styleName} · exemplo
-          </span>
+          <div className="flex items-center justify-between">
+            <Link href="/" className="underline underline-offset-2">
+              ← Pacotes
+            </Link>
+            <span className="tracking-[0.15em] uppercase">{styleName}</span>
+          </div>
+
+          <div className="flex gap-1.5">
+            {PACKAGES.map((pkg) => {
+              const active = pkg.tier === tier;
+              return (
+                <button
+                  key={pkg.tier}
+                  type="button"
+                  onClick={() => onTierChange(pkg.tier)}
+                  className="flex-1 text-center leading-tight py-1.5 rounded-full border transition-colors"
+                  style={{
+                    background: active ? accent : "transparent",
+                    borderColor: active ? accent : `${ink}33`,
+                    color: active ? cardBg : ink,
+                    opacity: active ? 1 : 0.7,
+                  }}
+                >
+                  {pkg.name}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-center opacity-70">
+            {PACKAGES.find((pkg) => pkg.tier === tier)?.price} · prévia deste
+            pacote no template {styleName}
+          </p>
         </div>
 
         {children}

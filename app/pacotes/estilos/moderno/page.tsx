@@ -1,12 +1,14 @@
 "use client";
 
+import { Suspense } from "react";
 import { Archivo, IBM_Plex_Mono } from "next/font/google";
 import TemplateChrome from "@/components/templates/TemplateChrome";
 import PhotoSlot from "@/components/templates/PhotoSlot";
 import FakeQrCanvas from "@/components/templates/FakeQrCanvas";
 import { useWeddingDemoState } from "@/components/templates/useWeddingDemoState";
+import { usePackageTier } from "@/components/templates/usePackageTier";
 import { buildDemoPixCode } from "@/lib/demoPix";
-import { DEMO_COUPLE } from "@/lib/packages";
+import { DEMO_COUPLE, tierIncludes } from "@/lib/packages";
 
 const display = Archivo({
   subsets: ["latin"],
@@ -44,6 +46,18 @@ const SEED_MESSAGES = [
 ];
 
 export default function ModernoTemplatePage() {
+  return (
+    <Suspense fallback={null}>
+      <ModernoTemplateInner />
+    </Suspense>
+  );
+}
+
+function ModernoTemplateInner() {
+  const [tier, setTier] = usePackageTier();
+  const hasRsvp = tierIncludes(tier, "site");
+  const hasGifts = tierIncludes(tier, "para-sempre");
+
   const s = useWeddingDemoState({
     storageKey: "tc-demo-moderno",
     targetDate: DEMO_COUPLE.date,
@@ -61,6 +75,8 @@ export default function ModernoTemplatePage() {
         cardBg="#fafafa"
         ink="#1c1c1c"
         accent={ACCENT}
+        tier={tier}
+        onTierChange={setTier}
       >
         <div className="font-[family-name:var(--font-display)] text-[#1c1c1c]">
           {/* 1. Capa / Save the Date */}
@@ -296,7 +312,8 @@ export default function ModernoTemplatePage() {
             ))}
           </section>
 
-          {/* 5. RSVP */}
+          {/* 5. RSVP — a partir do pacote Site do Casamento */}
+          {hasRsvp && (
           <section className="px-5 pt-2 pb-14">
             <div className="flex items-center gap-3 mb-6">
               <span
@@ -404,8 +421,10 @@ export default function ModernoTemplatePage() {
               </div>
             )}
           </section>
+          )}
 
-          {/* 6. Lista de presentes */}
+          {/* 6. Lista de presentes — só no Para Sempre */}
+          {hasGifts && (
           <section className="px-5 pt-2 pb-14">
             <div className="flex items-center gap-3 mb-6">
               <span
@@ -458,8 +477,10 @@ export default function ModernoTemplatePage() {
               ))}
             </div>
           </section>
+          )}
 
-          {/* 7. Mural de recados */}
+          {/* 7. Mural de recados — a partir do pacote Site do Casamento */}
+          {hasRsvp && (
           <section className="px-5 pt-2 pb-14">
             <div className="flex items-center gap-3 mb-6">
               <span
@@ -537,8 +558,10 @@ export default function ModernoTemplatePage() {
               </div>
             </div>
           </section>
+          )}
 
-          {/* 8. Álbum pós-festa */}
+          {/* 8. Álbum pós-festa — só no Para Sempre */}
+          {hasGifts && (
           <section className="pt-2">
             <div className="flex items-center gap-3 mx-5 mb-5.5">
               <span
@@ -612,6 +635,7 @@ export default function ModernoTemplatePage() {
               </div>
             )}
           </section>
+          )}
 
           {/* 9. Rodapé */}
           <footer className="bg-[#1c1c1c] text-[#fafafa] px-5 pt-11 pb-9 -mt-px">

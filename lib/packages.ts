@@ -19,7 +19,7 @@ export const PACKAGES: WeddingPackage[] = [
     tier: "convite",
     name: "Convite",
     tagline: "O convite digital que substitui o impresso",
-    price: "R$ 350",
+    price: "R$ 9,90",
     description:
       "Uma página elegante com as fotos e a história do casal, pronta para enviar no grupo da família e dos amigos.",
     features: [
@@ -36,7 +36,7 @@ export const PACKAGES: WeddingPackage[] = [
     tier: "site",
     name: "Site do Casamento",
     tagline: "Convite + confirmação de presença",
-    price: "R$ 800",
+    price: "R$ 29,90",
     description:
       "Tudo do pacote Convite, mais Save the Date e confirmação de presença online — vocês sabem exatamente quem vai.",
     features: [
@@ -53,7 +53,7 @@ export const PACKAGES: WeddingPackage[] = [
     tier: "para-sempre",
     name: "Para Sempre",
     tagline: "O site completo que vira memória permanente",
-    price: "R$ 1.500",
+    price: "R$ 99,90",
     priceNote: "o mais escolhido",
     description:
       "A experiência completa: lista de presentes com Pix sem nenhuma taxa, endereço personalizado e um álbum que se abre depois da festa — o registro do casamento para sempre.",

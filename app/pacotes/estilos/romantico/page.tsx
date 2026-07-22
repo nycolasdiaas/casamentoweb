@@ -1,12 +1,14 @@
 "use client";
 
+import { Suspense } from "react";
 import { Great_Vibes, Lora } from "next/font/google";
 import TemplateChrome from "@/components/templates/TemplateChrome";
 import PhotoSlot from "@/components/templates/PhotoSlot";
 import FakeQrCanvas from "@/components/templates/FakeQrCanvas";
 import { useWeddingDemoState } from "@/components/templates/useWeddingDemoState";
+import { usePackageTier } from "@/components/templates/usePackageTier";
 import { buildDemoPixCode } from "@/lib/demoPix";
-import { DEMO_COUPLE } from "@/lib/packages";
+import { DEMO_COUPLE, tierIncludes } from "@/lib/packages";
 
 const script = Great_Vibes({
   subsets: ["latin"],
@@ -69,6 +71,18 @@ function DotDivider() {
 }
 
 export default function RomanticoTemplatePage() {
+  return (
+    <Suspense fallback={null}>
+      <RomanticoTemplateInner />
+    </Suspense>
+  );
+}
+
+function RomanticoTemplateInner() {
+  const [tier, setTier] = usePackageTier();
+  const hasRsvp = tierIncludes(tier, "site");
+  const hasGifts = tierIncludes(tier, "para-sempre");
+
   const s = useWeddingDemoState({
     storageKey: "tc-demo-romantico",
     targetDate: DEMO_COUPLE.date,
@@ -86,6 +100,8 @@ export default function RomanticoTemplatePage() {
         cardBg="#fdf2f4"
         ink="#7c4a55"
         accent="#d9a3ae"
+        tier={tier}
+        onTierChange={setTier}
       >
         <div className="font-[family-name:var(--font-body)] text-[#7c4a55]">
           {/* 1. Capa / Save the Date */}
@@ -353,7 +369,8 @@ export default function RomanticoTemplatePage() {
             </div>
           </section>
 
-          {/* 5. RSVP */}
+          {/* 5. RSVP — a partir do pacote Site do Casamento */}
+          {hasRsvp && (
           <section className="px-6.5 pt-14 pb-15">
             <div className="text-center mb-5.5">
               <div className="font-[family-name:var(--font-script)] text-[44px] leading-tight text-[#7c4a55]">
@@ -443,8 +460,10 @@ export default function RomanticoTemplatePage() {
               </div>
             )}
           </section>
+          )}
 
-          {/* 6. Lista de presentes */}
+          {/* 6. Lista de presentes — só no Para Sempre */}
+          {hasGifts && (
           <section className="px-6.5 pt-12 pb-14 bg-[#fbe9ec]">
             <div className="text-center mb-5.5">
               <div className="font-[family-name:var(--font-script)] text-[44px] leading-tight text-[#7c4a55]">
@@ -480,8 +499,10 @@ export default function RomanticoTemplatePage() {
               ))}
             </div>
           </section>
+          )}
 
-          {/* 7. Mural de recados */}
+          {/* 7. Mural de recados — a partir do pacote Site do Casamento */}
+          {hasRsvp && (
           <section className="px-6.5 pt-14 pb-15">
             <div className="text-center mb-5.5">
               <div className="font-[family-name:var(--font-script)] text-[44px] leading-tight text-[#7c4a55]">
@@ -572,8 +593,10 @@ export default function RomanticoTemplatePage() {
               </div>
             </div>
           </section>
+          )}
 
-          {/* 8. Álbum pós-festa */}
+          {/* 8. Álbum pós-festa — só no Para Sempre */}
+          {hasGifts && (
           <section className="px-6.5 pt-12 pb-14 bg-[#fbe9ec]">
             <div className="text-center mb-5.5">
               <div className="font-[family-name:var(--font-script)] text-[44px] leading-tight text-[#7c4a55]">
@@ -661,6 +684,7 @@ export default function RomanticoTemplatePage() {
               </div>
             )}
           </section>
+          )}
 
           {/* 9. Rodapé */}
           <footer className="relative bg-[#7c4a55] text-[#fdf2f4] text-center px-6.5 pt-14 pb-12 overflow-hidden">

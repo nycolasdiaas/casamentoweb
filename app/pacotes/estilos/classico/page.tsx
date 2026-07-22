@@ -1,12 +1,14 @@
 "use client";
 
-import { Cormorant_Garamond, EB_Garamond, Pinyon_Script } from "next/font/google";
+import { Suspense } from "react";
+import { Cormorant_Garamond, Lora, Pinyon_Script } from "next/font/google";
 import TemplateChrome from "@/components/templates/TemplateChrome";
 import PhotoSlot from "@/components/templates/PhotoSlot";
 import FakeQrCanvas from "@/components/templates/FakeQrCanvas";
 import { useWeddingDemoState } from "@/components/templates/useWeddingDemoState";
+import { usePackageTier } from "@/components/templates/usePackageTier";
 import { buildDemoPixCode } from "@/lib/demoPix";
-import { DEMO_COUPLE } from "@/lib/packages";
+import { DEMO_COUPLE, tierIncludes } from "@/lib/packages";
 
 const display = Cormorant_Garamond({
   subsets: ["latin"],
@@ -14,7 +16,7 @@ const display = Cormorant_Garamond({
   style: ["normal", "italic"],
   variable: "--font-display",
 });
-const body = EB_Garamond({
+const body = Lora({
   subsets: ["latin"],
   weight: ["400", "500"],
   style: ["normal", "italic"],
@@ -49,6 +51,18 @@ const SEED_MESSAGES = [
 ];
 
 export default function ClassicoTemplatePage() {
+  return (
+    <Suspense fallback={null}>
+      <ClassicoTemplateInner />
+    </Suspense>
+  );
+}
+
+function ClassicoTemplateInner() {
+  const [tier, setTier] = usePackageTier();
+  const hasRsvp = tierIncludes(tier, "site");
+  const hasGifts = tierIncludes(tier, "para-sempre");
+
   const s = useWeddingDemoState({
     storageKey: "tc-demo-classico",
     targetDate: DEMO_COUPLE.date,
@@ -68,6 +82,8 @@ export default function ClassicoTemplatePage() {
         cardBg="#f2efe7"
         ink="#3d4a36"
         accent="#b8985f"
+        tier={tier}
+        onTierChange={setTier}
       >
         <div className="font-[family-name:var(--font-body)] text-[#3d4a36]">
           {/* 1. Capa / Save the Date */}
@@ -311,7 +327,8 @@ export default function ClassicoTemplatePage() {
             </div>
           </section>
 
-          {/* 5. RSVP */}
+          {/* 5. RSVP — a partir do pacote Site do Casamento */}
+          {hasRsvp && (
           <section className="px-7 py-16">
             <div className="text-center mb-6">
               <div className="font-[family-name:var(--font-script)] text-[29px] text-[#b8985f] leading-tight">
@@ -408,8 +425,10 @@ export default function ClassicoTemplatePage() {
               </div>
             )}
           </section>
+          )}
 
-          {/* 6. Lista de presentes */}
+          {/* 6. Lista de presentes — só no Para Sempre */}
+          {hasGifts && (
           <section className="bg-[#ebefe3] px-7 py-16 border-y border-[#b8985f]/35">
             <div className="text-center mb-6">
               <div className="font-[family-name:var(--font-script)] text-[29px] text-[#b8985f] leading-tight">
@@ -450,8 +469,10 @@ export default function ClassicoTemplatePage() {
               ))}
             </div>
           </section>
+          )}
 
-          {/* 7. Mural de recados */}
+          {/* 7. Mural de recados — a partir do pacote Site do Casamento */}
+          {hasRsvp && (
           <section className="px-7 py-16">
             <div className="text-center mb-6">
               <div className="font-[family-name:var(--font-script)] text-[29px] text-[#b8985f] leading-tight">
@@ -534,8 +555,10 @@ export default function ClassicoTemplatePage() {
               </div>
             </div>
           </section>
+          )}
 
-          {/* 8. Álbum pós-festa */}
+          {/* 8. Álbum pós-festa — só no Para Sempre */}
+          {hasGifts && (
           <section className="bg-[#ebefe3] px-7 py-16 border-t border-[#b8985f]/35">
             <div className="text-center mb-6">
               <div className="font-[family-name:var(--font-script)] text-[29px] text-[#b8985f] leading-tight">
@@ -628,6 +651,7 @@ export default function ClassicoTemplatePage() {
               </div>
             )}
           </section>
+          )}
 
           {/* 9. Rodapé */}
           <footer className="bg-[#3d4a36] text-[#f2efe7] text-center px-7 pt-14 pb-11">

@@ -21,41 +21,6 @@ export const metadata: Metadata = {
     "Convite digital, confirmação de presença e lista de presentes com Pix sem taxa. Escolha o pacote ideal para o seu casamento.",
 };
 
-const SHOWCASE = [
-  {
-    title: "Isabelle & Nycolas",
-    subtitle: "Site real, no ar agora",
-    badge: "No ar",
-    href: "/isabelle-e-nycolas",
-    initials: "I & N",
-    gradient: "from-(--color-blush) to-(--color-paper)",
-  },
-  {
-    title: "Exemplo: Convite",
-    subtitle: "Landing page do casal",
-    badge: "Exemplo",
-    href: "/pacotes/exemplo/convite",
-    initials: "A & P",
-    gradient: "from-amber-100 to-(--color-paper)",
-  },
-  {
-    title: "Exemplo: Site do Casamento",
-    subtitle: "Com confirmação de presença",
-    badge: "Exemplo",
-    href: "/pacotes/exemplo/site",
-    initials: "A & P",
-    gradient: "from-rose-100 to-(--color-paper)",
-  },
-  {
-    title: "Exemplo: Para Sempre",
-    subtitle: "Completo, com presentes e álbum",
-    badge: "Exemplo",
-    href: "/pacotes/exemplo/para-sempre",
-    initials: "A & P",
-    gradient: "from-emerald-100 to-(--color-paper)",
-  },
-];
-
 const STYLE_FONT_CLASS: Record<string, string> = {
   classico: "font-script",
   moderno: "font-semibold tracking-tight",
@@ -107,7 +72,7 @@ const COMPARISON: [string, string, string][] = [
 const FAQ: [string, string][] = [
   [
     "Quanto custa e tem mensalidade?",
-    "São três pacotes com preço fechado: Convite (R$ 350), Site do Casamento (R$ 800) e Para Sempre (R$ 1.500). Pagamento único — sem mensalidade e sem surpresa.",
+    "São três pacotes com preço fechado: Convite (R$ 9,90), Site do Casamento (R$ 29,90) e Para Sempre (R$ 99,90). Pagamento único — sem mensalidade e sem surpresa.",
   ],
   [
     "Vocês cobram taxa sobre os presentes?",
@@ -155,8 +120,8 @@ export default function PackagesPage() {
             </span>
           </p>
           <div className="flex items-center gap-5 text-sm">
-            <a href="#exemplos" className="hidden sm:inline hover:underline underline-offset-4">
-              Exemplos
+            <a href="#estilos" className="hidden sm:inline hover:underline underline-offset-4">
+              Estilos
             </a>
             <a href="#pacotes" className="hidden sm:inline hover:underline underline-offset-4">
               Pacotes
@@ -300,55 +265,7 @@ export default function PackagesPage() {
         </div>
       </section>
 
-      {/* Produtos criados */}
-      <section id="exemplos" className="scroll-mt-20">
-        <div className="max-w-6xl mx-auto w-full px-6 py-20 flex flex-col gap-10">
-          <div className="flex flex-col gap-3 text-center">
-            <h2 className="text-3xl font-bold tracking-tight">
-              Sites que já criamos
-            </h2>
-            <p className="text-(--color-olive)/70 max-w-lg mx-auto">
-              Navegue nos exemplos como se fosse um convidado — cada um mostra
-              exatamente o que o pacote entrega.
-            </p>
-          </div>
-
-          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {SHOWCASE.map((item) => (
-              <li key={item.href} className="flex">
-                <Link
-                  href={item.href}
-                  className="flex-1 flex flex-col rounded-xl border border-(--color-gold)/40 overflow-hidden bg-white shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
-                >
-                  <div className="flex items-center gap-1.5 bg-(--color-paper) px-3 py-2 border-b border-(--color-gold)/30">
-                    <span className="size-2 rounded-full bg-(--color-gold)/50" />
-                    <span className="size-2 rounded-full bg-(--color-gold)/50" />
-                    <span className="size-2 rounded-full bg-(--color-gold)/50" />
-                  </div>
-                  <div
-                    className={`flex flex-col items-center justify-center gap-1 aspect-[4/3] bg-gradient-to-br ${item.gradient}`}
-                  >
-                    <span className="font-script text-3xl text-(--color-gold)">
-                      {item.initials}
-                    </span>
-                    <span className="text-[10px] tracking-[0.2em] uppercase text-(--color-muted)">
-                      {item.badge}
-                    </span>
-                  </div>
-                  <div className="flex flex-col gap-0.5 p-4">
-                    <p className="text-sm font-semibold">{item.title}</p>
-                    <p className="text-xs text-(--color-olive)/60">
-                      {item.subtitle}
-                    </p>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      {/* Estilos */}
+      {/* Estilos e exemplos, unificados */}
       <section id="estilos" className="scroll-mt-20 bg-(--color-paper)">
         <div className="max-w-6xl mx-auto w-full px-6 py-20 flex flex-col gap-10">
           <div className="flex flex-col gap-3 text-center">
@@ -361,9 +278,32 @@ export default function PackagesPage() {
                 100% personalizável
               </strong>
               : cores, fontes, fotos, textos e seções, tudo ajustado até ficar
-              com a cara do casal. Nenhum site sai igual ao outro.
+              com a cara do casal. Nenhum site sai igual ao outro. Dentro de
+              cada estilo dá pra ver os 3 pacotes em ação, seção por seção.
             </p>
           </div>
+
+          <Link
+            href="/isabelle-e-nycolas"
+            className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-xl border border-(--color-gold)/40 bg-white p-5 max-w-2xl mx-auto w-full transition-all hover:shadow-md hover:-translate-y-0.5"
+          >
+            <div className="flex items-center gap-4 min-w-0">
+              <span className="flex items-center justify-center size-12 rounded-full bg-(--color-blush) font-script text-xl text-(--color-gold) shrink-0">
+                I &amp; N
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold">
+                  Isabelle &amp; Nycolas
+                </p>
+                <p className="text-xs text-(--color-olive)/60">
+                  Não é exemplo: o site real de um casal, no ar agora
+                </p>
+              </div>
+            </div>
+            <span className="text-xs font-medium text-(--color-olive) underline underline-offset-4 shrink-0">
+              Ver site →
+            </span>
+          </Link>
 
           <ul className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {TEMPLATE_STYLES.map((style) => (
@@ -599,7 +539,7 @@ export default function PackagesPage() {
                     {pkg.deliveryTime}
                   </p>
                   <Link
-                    href={`/pacotes/exemplo/${pkg.tier}`}
+                    href={`/pacotes/estilos/classico?pacote=${pkg.tier}`}
                     className={`text-center text-sm font-medium px-6 py-3 rounded-full transition-colors ${
                       pkg.highlight
                         ? "bg-white text-(--color-olive) hover:bg-(--color-paper)"

@@ -12,13 +12,13 @@ Copie e cole. `*texto*` vira **negrito** no WhatsApp. Troque os `[colchetes]`.
 >
 > Temos 3 pacotes:
 >
-> 💌 *Convite* — R$ 350
+> 💌 *Convite* — R$ 9,90
 > Página linda com fotos, história, data e local. O convite digital pra mandar pra todo mundo. Pronto em até 3 dias.
 >
-> 💍 *Site do Casamento* — R$ 800
+> 💍 *Site do Casamento* — R$ 29,90
 > Tudo do Convite + confirmação de presença: cada família recebe um link e vocês acompanham quem vai num painel. Pronto em até 5 dias.
 >
-> ✨ *Para Sempre* — R$ 1.500 (o mais escolhido)
+> ✨ *Para Sempre* — R$ 99,90 (o mais escolhido)
 > Tudo do anterior + lista de presentes com Pix *sem nenhuma taxa* (100% cai na conta de vocês) + endereço personalizado + álbum pós-festa: depois do casamento o site vira o registro de vocês, pra sempre.
 >
 > Podem ver exemplos reais aqui: [LINK DO SITE]
