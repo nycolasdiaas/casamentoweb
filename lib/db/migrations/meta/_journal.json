@@ -22,6 +22,13 @@
       "when": 1784758348409,
       "tag": "0002_gigantic_aqueduct",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1784761891505,
+      "tag": "0003_demonic_prodigy",
+      "breakpoints": true
     }
   ]
 }

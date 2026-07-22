@@ -12,6 +12,7 @@ import { createUser, getUserByEmail } from "@/lib/repositories/users";
 import { upsertOrder, submitOrder } from "@/lib/repositories/orders";
 import { PACKAGES, type PackageTier } from "@/lib/packages";
 import { TEMPLATE_STYLES } from "@/lib/templates";
+import { isFontStyle, isHexColor } from "@/lib/customization";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -72,10 +73,19 @@ function parseOrderForm(formData: FormData) {
     return { error: "Escolha um estilo de template." as const };
   }
 
+  const primaryColor = formData.get("primaryColor")?.toString().trim() ?? "";
+  const secondaryColor =
+    formData.get("secondaryColor")?.toString().trim() ?? "";
+  const fontStyle = formData.get("fontStyle")?.toString() ?? "";
+
   return {
     input: {
       packageTier: packageTier as PackageTier,
       templateStyle,
+      primaryColor: isHexColor(primaryColor) ? primaryColor : undefined,
+      secondaryColor: isHexColor(secondaryColor) ? secondaryColor : undefined,
+      fontStyle: isFontStyle(fontStyle) ? fontStyle : undefined,
+      styleNotes: formData.get("styleNotes")?.toString().trim() || undefined,
       coupleNames: formData.get("coupleNames")?.toString().trim() || undefined,
       weddingDate: formData.get("weddingDate")?.toString().trim() || undefined,
       photosLink: formData.get("photosLink")?.toString().trim() || undefined,

@@ -6,6 +6,10 @@ import type { PackageTier } from "@/lib/packages";
 export type OrderInput = {
   packageTier: PackageTier;
   templateStyle: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  fontStyle?: string;
+  styleNotes?: string;
   coupleNames?: string;
   weddingDate?: string;
   photosLink?: string;

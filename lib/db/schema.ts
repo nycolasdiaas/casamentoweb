@@ -49,6 +49,11 @@ export const orders = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     packageTier: packageTierEnum("package_tier").notNull(),
     templateStyle: text("template_style").notNull(),
+    // personalização visual escolhida pelo casal (hex/estilo livres)
+    primaryColor: text("primary_color"),
+    secondaryColor: text("secondary_color"),
+    fontStyle: text("font_style"),
+    styleNotes: text("style_notes"),
     coupleNames: text("couple_names"),
     weddingDate: text("wedding_date"),
     photosLink: text("photos_link"),
