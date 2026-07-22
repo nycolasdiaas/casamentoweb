@@ -27,6 +27,12 @@ export default async function AdminPage() {
           >
             Lista de presentes
           </Link>
+          <Link
+            href="/admin/pedidos"
+            className="font-serif text-xs text-(--color-olive) underline"
+          >
+            Pedidos de sites
+          </Link>
         </nav>
       </div>
 
