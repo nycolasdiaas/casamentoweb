@@ -32,7 +32,7 @@ describe("loginAction", () => {
     await expect(loginAction(formData)).rejects.toThrow("NEXT_REDIRECT");
 
     expect(cookieStore.has(COOKIE_NAME)).toBe(true);
-    expect(redirect).toHaveBeenCalledWith("/admin");
+    expect(redirect).toHaveBeenCalledWith("/admin/pedidos");
   });
 
   it("does not set a cookie or redirect on wrong password", async () => {

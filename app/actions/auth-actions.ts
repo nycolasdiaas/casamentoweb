@@ -25,7 +25,7 @@ export async function loginAction(formData: FormData) {
   }
 
   await createSessionCookie();
-  redirect("/admin");
+  redirect("/admin/pedidos");
 }
 
 export async function logoutAction() {
