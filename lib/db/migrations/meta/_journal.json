@@ -36,6 +36,13 @@
       "when": 1784762578474,
       "tag": "0004_aromatic_doorman",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1784848512233,
+      "tag": "0005_parallel_ma_gnuci",
+      "breakpoints": true
     }
   ]
 }

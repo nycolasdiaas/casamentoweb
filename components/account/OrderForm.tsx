@@ -24,6 +24,7 @@ import {
   type FontStyleId,
 } from "@/lib/customization";
 import { CONTACT, WHATSAPP_LINK } from "@/lib/site";
+import type { OrderStatus } from "@/lib/orderStatus";
 
 const fontClassica = Cormorant_Garamond({ subsets: ["latin"], weight: "500" });
 const fontModerna = Archivo({ subsets: ["latin"], weight: "600" });
@@ -67,7 +68,7 @@ export type OrderData = {
   weddingDate: string | null;
   photosLink: string | null;
   notes: string | null;
-  status: "draft" | "submitted";
+  status: OrderStatus;
 };
 
 function ColorField({
@@ -190,7 +191,8 @@ export default function OrderForm({
     order ? order.templateStyle ?? "" : "classico"
   );
 
-  const isSubmitted = state?.submitted || order?.status === "submitted";
+  const isSubmitted =
+    state?.submitted || (order ? order.status !== "draft" : false);
 
   if (isSubmitted && order) {
     const pkg = PACKAGES.find((p) => p.tier === order.packageTier);
@@ -211,18 +213,25 @@ export default function OrderForm({
           Pedido enviado!
         </h2>
         <p className="text-sm text-(--color-olive)/75 max-w-sm leading-relaxed">
-          Recebemos tudo. Último passo: chamem a gente no WhatsApp pra
-          confirmar e combinar a entrega — é por lá que vocês recebem a
-          prévia.
+          Recebemos tudo! Agora é com a gente. Acompanhem cada etapa — da
+          produção à prévia e ao site no ar — na página Meus pedidos.
         </p>
-        <a
-          href={`https://wa.me/${CONTACT.whatsappNumber}?text=${message}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="rounded-full bg-[#25D366] text-white text-sm font-medium px-8 py-3.5 transition-transform hover:scale-105"
-        >
-          Confirmar no WhatsApp
-        </a>
+        <div className="flex flex-col items-center gap-3 w-full">
+          <Link
+            href="/conta/pedidos"
+            className="rounded-full bg-(--color-olive) text-white text-sm font-medium px-8 py-3.5 transition-transform hover:scale-105"
+          >
+            Acompanhar meu pedido
+          </Link>
+          <a
+            href={`https://wa.me/${CONTACT.whatsappNumber}?text=${message}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-(--color-olive)/70 underline underline-offset-4 hover:text-(--color-olive)"
+          >
+            Ou confirmar no WhatsApp
+          </a>
+        </div>
         <div className="text-xs text-(--color-muted) border-t border-(--color-gold)/30 pt-4 w-full max-w-sm flex flex-col items-center gap-1.5">
           <p>
             {pkg?.name} · {pkg?.price}

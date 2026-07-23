@@ -35,14 +35,22 @@ export default async function AccountPage() {
           <Link href="/" className="text-lg font-semibold tracking-tight">
             {SITE_NAME}
           </Link>
-          <form action={signoutAction}>
-            <button
-              type="submit"
+          <div className="flex items-center gap-4">
+            <Link
+              href="/conta/pedidos"
               className="text-xs text-(--color-olive)/70 underline underline-offset-4 hover:text-(--color-olive)"
             >
-              Sair
-            </button>
-          </form>
+              Meus pedidos
+            </Link>
+            <form action={signoutAction}>
+              <button
+                type="submit"
+                className="text-xs text-(--color-olive)/70 underline underline-offset-4 hover:text-(--color-olive)"
+              >
+                Sair
+              </button>
+            </form>
+          </div>
         </div>
       </header>
 

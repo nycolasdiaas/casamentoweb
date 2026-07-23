@@ -7,6 +7,8 @@ export type WeddingPackage = {
   name: string;
   tagline: string;
   price: string;
+  // valor em centavos, usado na cobrança (AbacatePay trabalha em centavos)
+  priceCents: number;
   priceNote?: string;
   description: string;
   features: string[];
@@ -20,6 +22,7 @@ export const PACKAGES: WeddingPackage[] = [
     name: "Convite",
     tagline: "O convite digital que substitui o impresso",
     price: "R$ 9,90",
+    priceCents: 990,
     description:
       "Uma página elegante com as fotos e a história do casal, pronta para enviar no grupo da família e dos amigos.",
     features: [
@@ -37,6 +40,7 @@ export const PACKAGES: WeddingPackage[] = [
     name: "Site do Casamento",
     tagline: "Convite + confirmação de presença",
     price: "R$ 29,90",
+    priceCents: 2990,
     description:
       "Tudo do pacote Convite, mais Save the Date e confirmação de presença online — vocês sabem exatamente quem vai.",
     features: [
@@ -54,6 +58,7 @@ export const PACKAGES: WeddingPackage[] = [
     name: "Para Sempre",
     tagline: "O site completo que vira memória permanente",
     price: "R$ 99,90",
+    priceCents: 9990,
     priceNote: "o mais escolhido",
     description:
       "A experiência completa: lista de presentes com Pix sem nenhuma taxa, endereço personalizado e um álbum que se abre depois da festa — o registro do casamento para sempre.",

@@ -1,12 +1,13 @@
 import { getPackage, type PackageTier } from "@/lib/packages";
 import { getTemplateStyle } from "@/lib/templates";
 import { FONT_STYLES } from "@/lib/customization";
+import type { OrderStatus } from "@/lib/orderStatus";
 
 // Representação de um pedido para produção. É este objeto que vira o JSON
 // mostrado no admin e que se soma ao prompt-base para gerar o site.
 export type OrderForPrompt = {
   id: string;
-  status: "draft" | "submitted";
+  status: OrderStatus;
   packageTier: PackageTier;
   templateStyle: string | null;
   primaryColor: string | null;

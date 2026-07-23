@@ -22,7 +22,14 @@ export const packageTierEnum = pgEnum("package_tier", [
   "para-sempre",
 ]);
 
-export const orderStatusEnum = pgEnum("order_status", ["draft", "submitted"]);
+export const orderStatusEnum = pgEnum("order_status", [
+  "draft", // rascunho, ainda editando
+  "submitted", // enviado pela plataforma, aguardando a gente começar
+  "in_production", // em produção
+  "preview_ready", // prévia pronta pro casal ver
+  "paid", // pagamento confirmado
+  "published", // site no ar, pedido finalizado
+]);
 
 // Contas dos casais clientes da plataforma (não confundir com o admin do
 // site de um casamento, que usa senha única de ambiente).
@@ -60,6 +67,15 @@ export const orders = pgTable(
     photosLink: text("photos_link"),
     notes: text("notes"),
     status: orderStatusEnum("status").notNull().default("draft"),
+    // Campos preenchidos pelo admin durante a produção do site.
+    previewUrl: text("preview_url"), // link da prévia pro casal ver
+    siteUrl: text("site_url"), // link do site final no ar
+    priceCents: integer("price_cents"), // valor a cobrar (null = usa o do pacote)
+    adminMessage: text("admin_message"), // recado do admin exibido pro casal
+    // Cobrança AbacatePay.
+    paymentId: text("payment_id"),
+    paymentUrl: text("payment_url"),
+    paymentStatus: text("payment_status"), // PENDING/PAID/... (espelho do AbacatePay)
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

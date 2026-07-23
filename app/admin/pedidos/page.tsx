@@ -23,19 +23,33 @@ export default async function AdminOrdersPage() {
 
   const cards: AdminOrder[] = orders.map((order) => {
     const forPrompt = order as unknown as OrderForPrompt;
+    const pkg = getPackage(order.packageTier);
     return {
       id: order.id,
       status: order.status,
       coupleName: order.coupleNames ?? order.user.name,
-      packageName: getPackage(order.packageTier)?.name ?? order.packageTier,
+      packageName: pkg?.name ?? order.packageTier,
       whatsapp: order.user.whatsapp,
       updatedAt: dateFmt.format(new Date(order.updatedAt)),
       json: JSON.stringify(orderToJson(forPrompt), null, 2),
       fullPrompt: buildFullPrompt(forPrompt),
+      previewUrl: order.previewUrl,
+      siteUrl: order.siteUrl,
+      priceCents: order.priceCents,
+      adminMessage: order.adminMessage,
+      paymentStatus: order.paymentStatus,
+      defaultPriceCents: pkg?.priceCents ?? 0,
     };
   });
 
-  const submitted = cards.filter((c) => c.status === "submitted");
+  const inProgress = cards.filter(
+    (c) =>
+      c.status === "submitted" ||
+      c.status === "in_production" ||
+      c.status === "preview_ready" ||
+      c.status === "paid"
+  );
+  const published = cards.filter((c) => c.status === "published");
   const drafts = cards.filter((c) => c.status === "draft");
 
   return (
@@ -91,20 +105,33 @@ export default async function AdminOrdersPage() {
         <div className="flex flex-col gap-8">
           <section className="flex flex-col gap-3">
             <h2 className="font-serif text-sm tracking-[0.1em] uppercase text-(--color-gold)">
-              Enviados ({submitted.length})
+              Em andamento ({inProgress.length})
             </h2>
-            {submitted.length === 0 ? (
+            {inProgress.length === 0 ? (
               <p className="font-serif text-xs text-(--color-muted)">
-                Nenhum pedido enviado ainda.
+                Nenhum pedido em produção agora.
               </p>
             ) : (
               <ul className="flex flex-col gap-3">
-                {submitted.map((order) => (
+                {inProgress.map((order) => (
                   <OrderCard key={order.id} order={order} />
                 ))}
               </ul>
             )}
           </section>
+
+          {published.length > 0 && (
+            <section className="flex flex-col gap-3">
+              <h2 className="font-serif text-sm tracking-[0.1em] uppercase text-(--color-gold)">
+                No ar ({published.length})
+              </h2>
+              <ul className="flex flex-col gap-3">
+                {published.map((order) => (
+                  <OrderCard key={order.id} order={order} />
+                ))}
+              </ul>
+            </section>
+          )}
 
           {drafts.length > 0 && (
             <section className="flex flex-col gap-3">
