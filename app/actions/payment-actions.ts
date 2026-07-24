@@ -7,15 +7,19 @@ import { getOrderByUserId, setOrderPayment } from "@/lib/repositories/orders";
 import { getPackage } from "@/lib/packages";
 import { createCharge, isPaymentConfigured } from "@/lib/payments/abacatepay";
 import { getBaseUrl } from "@/lib/baseUrl";
+import { isValidCPF, onlyDigits } from "@/lib/cpf";
 
 type PaymentResult = { error?: string } | undefined;
 
 /**
  * Inicia o pagamento do pedido do casal via AbacatePay e redireciona para o
  * checkout hospedado. Em caso de erro, volta uma mensagem para a tela.
- * Sem parâmetros: é usada com useActionState, que ignora prevState/formData.
+ * Recebe o CPF do pagador pelo formulário (exigido pelo PIX; não é gravado).
  */
-export async function startPaymentAction(): Promise<PaymentResult> {
+export async function startPaymentAction(
+  _prevState: PaymentResult,
+  formData: FormData
+): Promise<PaymentResult> {
   const userId = await getSessionUserId();
   if (!userId) redirect("/conta/entrar");
 
@@ -28,6 +32,11 @@ export async function startPaymentAction(): Promise<PaymentResult> {
       error:
         "O pagamento online ainda não está ativo. Fale com a gente no WhatsApp para concluir.",
     };
+  }
+
+  const taxId = onlyDigits(formData.get("payerTaxId")?.toString() ?? "");
+  if (!isValidCPF(taxId)) {
+    return { error: "Digite um CPF válido para gerar o pagamento por PIX." };
   }
 
   const user = await getUserById(userId);
@@ -57,6 +66,7 @@ export async function startPaymentAction(): Promise<PaymentResult> {
         name: order.coupleNames ?? user?.name,
         email: user?.email,
         cellphone: user?.whatsapp ?? undefined,
+        taxId,
       },
     });
   } catch {
