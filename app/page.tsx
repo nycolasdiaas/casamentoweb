@@ -12,6 +12,7 @@ import {
 } from "@/lib/site";
 import HeroPreview from "@/components/landing/HeroPreview";
 import FloatingWhatsApp from "@/components/landing/FloatingWhatsApp";
+import { getSessionUserId } from "@/lib/auth/userSession";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -104,7 +105,9 @@ const FAQ: [string, string][] = [
   ],
 ];
 
-export default function PackagesPage() {
+export default async function PackagesPage() {
+  const isLoggedIn = Boolean(await getSessionUserId());
+
   return (
     <div
       className={`${inter.className} flex-1 flex flex-col bg-white text-(--color-olive)`}
@@ -129,18 +132,29 @@ export default function PackagesPage() {
             <a href="#faq" className="hidden sm:inline hover:underline underline-offset-4">
               Dúvidas
             </a>
-            <Link
-              href="/conta/entrar"
-              className="hover:underline underline-offset-4"
-            >
-              Entrar
-            </Link>
-            <Link
-              href="/conta/criar"
-              className="bg-(--color-olive) text-white text-xs font-medium tracking-wide px-4 py-2 rounded-full hover:bg-(--color-olive)/90 transition-colors"
-            >
-              Começar agora
-            </Link>
+            {isLoggedIn ? (
+              <Link
+                href="/conta"
+                className="bg-(--color-olive) text-white text-xs font-medium tracking-wide px-4 py-2 rounded-full hover:bg-(--color-olive)/90 transition-colors"
+              >
+                Minha conta
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/conta/entrar"
+                  className="hover:underline underline-offset-4"
+                >
+                  Entrar
+                </Link>
+                <Link
+                  href="/conta/criar"
+                  className="bg-(--color-olive) text-white text-xs font-medium tracking-wide px-4 py-2 rounded-full hover:bg-(--color-olive)/90 transition-colors"
+                >
+                  Começar agora
+                </Link>
+              </>
+            )}
           </div>
         </nav>
       </header>
