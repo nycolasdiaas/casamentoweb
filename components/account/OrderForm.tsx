@@ -4,13 +4,39 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import {
   Cormorant_Garamond,
-  Archivo,
-  Great_Vibes,
   Playfair_Display,
+  EB_Garamond,
+  Lora,
+  Libre_Baskerville,
+  Bodoni_Moda,
+  DM_Serif_Display,
+  Prata,
+  Marcellus,
+  Cardo,
+  Cinzel,
+  Italiana,
+  Spectral,
+  Gilda_Display,
+  Crimson_Text,
+  Great_Vibes,
   Dancing_Script,
-  Poiret_One,
+  Parisienne,
+  Sacramento,
+  Allura,
+  Pinyon_Script,
+  Alex_Brush,
+  Tangerine,
+  Petit_Formal_Script,
+  Yellowtail,
+  Style_Script,
+  Kaushan_Script,
   Josefin_Sans,
+  Poiret_One,
+  Montserrat,
+  Jost,
+  Raleway,
   Amatic_SC,
+  Caveat,
 } from "next/font/google";
 import {
   saveOrderAction,
@@ -21,41 +47,100 @@ import { TEMPLATE_STYLES } from "@/lib/templates";
 import {
   COLOR_PRESETS,
   FONT_STYLES,
+  FONT_CATEGORY_LABELS,
   type FontStyleId,
+  type FontCategory,
 } from "@/lib/customization";
-import { CONTACT, WHATSAPP_LINK } from "@/lib/site";
+import { WHATSAPP_LINK } from "@/lib/site";
 import type { OrderStatus } from "@/lib/orderStatus";
 
-const fontClassica = Cormorant_Garamond({ subsets: ["latin"], weight: "500" });
-const fontModerna = Archivo({ subsets: ["latin"], weight: "600" });
-const fontRomantica = Great_Vibes({ subsets: ["latin"], weight: "400" });
-const fontEditorial = Playfair_Display({ subsets: ["latin"], weight: "600" });
-const fontManuscrita = Dancing_Script({ subsets: ["latin"], weight: "600" });
-const fontArtdeco = Poiret_One({ subsets: ["latin"], weight: "400" });
-const fontMinimalista = Josefin_Sans({ subsets: ["latin"], weight: "300" });
-const fontBoho = Amatic_SC({ subsets: ["latin"], weight: "700" });
+// Cada fonte carregada com um peso que existe no Google Fonts.
+const cormorant = Cormorant_Garamond({ subsets: ["latin"], weight: "500" });
+const playfair = Playfair_Display({ subsets: ["latin"], weight: "600" });
+const ebGaramond = EB_Garamond({ subsets: ["latin"], weight: "500" });
+const lora = Lora({ subsets: ["latin"], weight: "500" });
+const libreBaskerville = Libre_Baskerville({ subsets: ["latin"], weight: "400" });
+const bodoni = Bodoni_Moda({ subsets: ["latin"], weight: "500" });
+const dmSerif = DM_Serif_Display({ subsets: ["latin"], weight: "400" });
+const prata = Prata({ subsets: ["latin"], weight: "400" });
+const marcellus = Marcellus({ subsets: ["latin"], weight: "400" });
+const cardo = Cardo({ subsets: ["latin"], weight: "400" });
+const cinzel = Cinzel({ subsets: ["latin"], weight: "500" });
+const italiana = Italiana({ subsets: ["latin"], weight: "400" });
+const spectral = Spectral({ subsets: ["latin"], weight: "500" });
+const gilda = Gilda_Display({ subsets: ["latin"], weight: "400" });
+const crimson = Crimson_Text({ subsets: ["latin"], weight: "400" });
+const greatVibes = Great_Vibes({ subsets: ["latin"], weight: "400" });
+const dancing = Dancing_Script({ subsets: ["latin"], weight: "600" });
+const parisienne = Parisienne({ subsets: ["latin"], weight: "400" });
+const sacramento = Sacramento({ subsets: ["latin"], weight: "400" });
+const allura = Allura({ subsets: ["latin"], weight: "400" });
+const pinyon = Pinyon_Script({ subsets: ["latin"], weight: "400" });
+const alexBrush = Alex_Brush({ subsets: ["latin"], weight: "400" });
+const tangerine = Tangerine({ subsets: ["latin"], weight: "400" });
+const petitFormal = Petit_Formal_Script({ subsets: ["latin"], weight: "400" });
+const yellowtail = Yellowtail({ subsets: ["latin"], weight: "400" });
+const styleScript = Style_Script({ subsets: ["latin"], weight: "400" });
+const kaushan = Kaushan_Script({ subsets: ["latin"], weight: "400" });
+const josefin = Josefin_Sans({ subsets: ["latin"], weight: "300" });
+const poiret = Poiret_One({ subsets: ["latin"], weight: "400" });
+const montserrat = Montserrat({ subsets: ["latin"], weight: "500" });
+const jost = Jost({ subsets: ["latin"], weight: "400" });
+const raleway = Raleway({ subsets: ["latin"], weight: "400" });
+const amatic = Amatic_SC({ subsets: ["latin"], weight: "700" });
+const caveat = Caveat({ subsets: ["latin"], weight: "600" });
 
 const FONT_PREVIEW_CLASS: Record<FontStyleId, string> = {
-  classica: fontClassica.className,
-  moderna: fontModerna.className,
-  romantica: fontRomantica.className,
-  editorial: fontEditorial.className,
-  manuscrita: fontManuscrita.className,
-  artdeco: fontArtdeco.className,
-  minimalista: fontMinimalista.className,
-  boho: fontBoho.className,
+  cormorant: cormorant.className,
+  playfair: playfair.className,
+  "eb-garamond": ebGaramond.className,
+  lora: lora.className,
+  "libre-baskerville": libreBaskerville.className,
+  bodoni: bodoni.className,
+  "dm-serif": dmSerif.className,
+  prata: prata.className,
+  marcellus: marcellus.className,
+  cardo: cardo.className,
+  cinzel: cinzel.className,
+  italiana: italiana.className,
+  spectral: spectral.className,
+  gilda: gilda.className,
+  crimson: crimson.className,
+  "great-vibes": greatVibes.className,
+  dancing: dancing.className,
+  parisienne: parisienne.className,
+  sacramento: sacramento.className,
+  allura: allura.className,
+  pinyon: pinyon.className,
+  "alex-brush": alexBrush.className,
+  tangerine: tangerine.className,
+  "petit-formal": petitFormal.className,
+  yellowtail: yellowtail.className,
+  "style-script": styleScript.className,
+  kaushan: kaushan.className,
+  josefin: josefin.className,
+  poiret: poiret.className,
+  montserrat: montserrat.className,
+  jost: jost.className,
+  raleway: raleway.className,
+  amatic: amatic.className,
+  caveat: caveat.className,
 };
 
-const FONT_PREVIEW_SIZE: Record<FontStyleId, string> = {
-  classica: "text-2xl",
-  moderna: "text-xl",
-  romantica: "text-3xl",
-  editorial: "text-2xl",
+// Tamanho do preview por categoria (scripts pedem mais corpo).
+const CATEGORY_PREVIEW_SIZE: Record<FontCategory, string> = {
+  serifa: "text-2xl",
   manuscrita: "text-3xl",
-  artdeco: "text-2xl tracking-wide",
-  minimalista: "text-xl tracking-[0.15em]",
-  boho: "text-3xl tracking-wide",
+  sans: "text-xl tracking-wide",
+  rustica: "text-3xl tracking-wide",
 };
+
+const FONT_CATEGORY_ORDER: FontCategory[] = [
+  "serifa",
+  "manuscrita",
+  "sans",
+  "rustica",
+];
 
 export type OrderData = {
   packageTier: PackageTier;
@@ -168,13 +253,7 @@ type ActionResult =
   | { error?: string; saved?: boolean; submitted?: boolean }
   | undefined;
 
-export default function OrderForm({
-  userName,
-  order,
-}: {
-  userName: string;
-  order: OrderData | null;
-}) {
+export default function OrderForm({ order }: { order: OrderData | null }) {
   const [state, action, pending] = useActionState(
     async (_prev: ActionResult, formData: FormData): Promise<ActionResult> => {
       const intent = formData.get("intent")?.toString();
@@ -190,79 +269,6 @@ export default function OrderForm({
   const [templateStyle, setTemplateStyle] = useState<string>(
     order ? order.templateStyle ?? "" : "classico"
   );
-
-  const isSubmitted =
-    state?.submitted || (order ? order.status !== "draft" : false);
-
-  if (isSubmitted && order) {
-    const pkg = PACKAGES.find((p) => p.tier === order.packageTier);
-    const style = TEMPLATE_STYLES.find((s) => s.id === order.templateStyle);
-    const message = encodeURIComponent(
-      `Oi! Acabamos de enviar nosso pedido pela plataforma 💚\n` +
-        `Casal: ${order.coupleNames ?? userName}\n` +
-        `Pacote: ${pkg?.name ?? order.packageTier} · Template: ${style?.name ?? order.templateStyle}` +
-        (order.weddingDate ? `\nData: ${order.weddingDate}` : "")
-    );
-
-    return (
-      <div className="flex flex-col items-center gap-5 rounded-2xl border border-(--color-gold)/40 bg-white p-8 text-center">
-        <p className="text-2xl" aria-hidden>
-          💚
-        </p>
-        <h2 className="text-xl font-bold tracking-tight">
-          Pedido enviado!
-        </h2>
-        <p className="text-sm text-(--color-olive)/75 max-w-sm leading-relaxed">
-          Recebemos tudo! Agora é com a gente. Acompanhem cada etapa — da
-          produção à prévia e ao site no ar — na página Meus pedidos.
-        </p>
-        <div className="flex flex-col items-center gap-3 w-full">
-          <Link
-            href="/conta/pedidos"
-            className="rounded-full bg-(--color-olive) text-white text-sm font-medium px-8 py-3.5 transition-transform hover:scale-105"
-          >
-            Acompanhar meu pedido
-          </Link>
-          <a
-            href={`https://wa.me/${CONTACT.whatsappNumber}?text=${message}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-(--color-olive)/70 underline underline-offset-4 hover:text-(--color-olive)"
-          >
-            Ou confirmar no WhatsApp
-          </a>
-        </div>
-        <div className="text-xs text-(--color-muted) border-t border-(--color-gold)/30 pt-4 w-full max-w-sm flex flex-col items-center gap-1.5">
-          <p>
-            {pkg?.name} · {pkg?.price}
-            {style ? ` · base ${style.name}` : " · estilo do zero"}
-          </p>
-          {(order.primaryColor || order.secondaryColor) && (
-            <p className="flex items-center gap-1.5">
-              Cores:
-              {[order.primaryColor, order.secondaryColor]
-                .filter((c): c is string => Boolean(c))
-                .map((color) => (
-                  <span
-                    key={color}
-                    className="inline-block size-3.5 rounded-full border border-black/10 align-middle"
-                    style={{ backgroundColor: color }}
-                  />
-                ))}
-            </p>
-          )}
-          {order.fontStyle && (
-            <p>
-              Tipografia:{" "}
-              {FONT_STYLES.find((f) => f.id === order.fontStyle)?.name ??
-                order.fontStyle}
-            </p>
-          )}
-          {order.photosLink && <p>Fotos: link recebido ✓</p>}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <form action={action} className="flex flex-col gap-8">
@@ -400,39 +406,56 @@ export default function OrderForm({
           <p className="text-sm font-medium">
             Tipografia{" "}
             <span className="font-normal text-xs text-(--color-muted)">
-              o jeito da letra nos títulos — ou peçam a de vocês nas
-              observações
+              {FONT_STYLES.length} opções — role para ver todas, ou peçam a de
+              vocês nas observações
             </span>
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {FONT_STYLES.map((font) => (
-              <label
-                key={font.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 cursor-pointer transition-colors has-checked:border-(--color-olive) has-checked:bg-(--color-blush)"
-              >
-                <span className="flex items-center gap-2.5">
-                  <input
-                    type="radio"
-                    name="fontStyle"
-                    value={font.id}
-                    defaultChecked={order?.fontStyle === font.id}
-                    className="accent-(--color-olive)"
-                  />
-                  <span className="flex flex-col">
-                    <span className="text-sm font-semibold">{font.name}</span>
-                    <span className="text-xs text-(--color-muted)">
-                      {font.description}
-                    </span>
-                  </span>
-                </span>
-                <span
-                  aria-hidden
-                  className={`${FONT_PREVIEW_CLASS[font.id]} ${FONT_PREVIEW_SIZE[font.id]} text-(--color-olive) leading-none shrink-0`}
-                >
-                  Ana &amp; Pedro
-                </span>
-              </label>
-            ))}
+          <div className="max-h-[28rem] overflow-y-auto rounded-xl border border-(--color-gold)/30 bg-(--color-paper)/40 p-3 flex flex-col gap-5">
+            {FONT_CATEGORY_ORDER.map((category) => {
+              const fontsInCategory = FONT_STYLES.filter(
+                (f) => f.category === category
+              );
+              if (fontsInCategory.length === 0) return null;
+              return (
+                <div key={category} className="flex flex-col gap-2">
+                  <p className="text-xs font-semibold uppercase tracking-[0.1em] text-(--color-gold) sticky top-0 bg-(--color-paper) py-1">
+                    {FONT_CATEGORY_LABELS[category]}
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {fontsInCategory.map((font) => (
+                      <label
+                        key={font.id}
+                        className="flex items-center justify-between gap-3 rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 cursor-pointer transition-colors has-checked:border-(--color-olive) has-checked:bg-(--color-blush)"
+                      >
+                        <span className="flex items-center gap-2.5 min-w-0">
+                          <input
+                            type="radio"
+                            name="fontStyle"
+                            value={font.id}
+                            defaultChecked={order?.fontStyle === font.id}
+                            className="accent-(--color-olive)"
+                          />
+                          <span className="flex flex-col min-w-0">
+                            <span className="text-sm font-semibold truncate">
+                              {font.name}
+                            </span>
+                            <span className="text-xs text-(--color-muted) truncate">
+                              {font.description}
+                            </span>
+                          </span>
+                        </span>
+                        <span
+                          aria-hidden
+                          className={`${FONT_PREVIEW_CLASS[font.id]} ${CATEGORY_PREVIEW_SIZE[font.category]} text-(--color-olive) leading-none shrink-0`}
+                        >
+                          Ana &amp; Pedro
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 

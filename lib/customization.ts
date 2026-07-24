@@ -14,61 +14,96 @@ export const COLOR_PRESETS: { name: string; hex: string }[] = [
   { name: "Champanhe", hex: "#e8d9b5" },
 ];
 
+// Categorias só para agrupar visualmente as fontes no pedido.
+export type FontCategory = "serifa" | "manuscrita" | "sans" | "rustica";
+
 export type FontStyleId =
-  | "classica"
-  | "moderna"
-  | "romantica"
-  | "editorial"
-  | "manuscrita"
-  | "artdeco"
-  | "minimalista"
-  | "boho";
+  | "cormorant"
+  | "playfair"
+  | "eb-garamond"
+  | "lora"
+  | "libre-baskerville"
+  | "bodoni"
+  | "dm-serif"
+  | "prata"
+  | "marcellus"
+  | "cardo"
+  | "cinzel"
+  | "italiana"
+  | "spectral"
+  | "gilda"
+  | "crimson"
+  | "great-vibes"
+  | "dancing"
+  | "parisienne"
+  | "sacramento"
+  | "allura"
+  | "pinyon"
+  | "alex-brush"
+  | "tangerine"
+  | "petit-formal"
+  | "yellowtail"
+  | "style-script"
+  | "kaushan"
+  | "josefin"
+  | "poiret"
+  | "montserrat"
+  | "jost"
+  | "raleway"
+  | "amatic"
+  | "caveat";
+
+export const FONT_CATEGORY_LABELS: Record<FontCategory, string> = {
+  serifa: "Serifadas elegantes",
+  manuscrita: "Caligráficas e manuscritas",
+  sans: "Sem serifa (modernas)",
+  rustica: "Rústicas e descontraídas",
+};
 
 export const FONT_STYLES: {
   id: FontStyleId;
   name: string;
   description: string;
+  category: FontCategory;
 }[] = [
-  {
-    id: "classica",
-    name: "Clássica",
-    description: "Serifada elegante, atemporal",
-  },
-  {
-    id: "moderna",
-    name: "Moderna",
-    description: "Sem serifa, limpa e atual",
-  },
-  {
-    id: "romantica",
-    name: "Romântica",
-    description: "Caligráfica, delicada",
-  },
-  {
-    id: "editorial",
-    name: "Editorial",
-    description: "Alto contraste, capa de revista",
-  },
-  {
-    id: "manuscrita",
-    name: "Manuscrita",
-    description: "Escrita à mão, intimista",
-  },
-  {
-    id: "artdeco",
-    name: "Art Déco",
-    description: "Geométrica, glamour dos anos 20",
-  },
-  {
-    id: "minimalista",
-    name: "Minimalista",
-    description: "Fina e espaçada, discreta",
-  },
-  {
-    id: "boho",
-    name: "Boho",
-    description: "Serifada com personalidade, rústica",
-  },
+  // Serifadas elegantes
+  { id: "cormorant", name: "Cormorant Garamond", description: "Serifada fina e sofisticada", category: "serifa" },
+  { id: "playfair", name: "Playfair Display", description: "Alto contraste, editorial", category: "serifa" },
+  { id: "eb-garamond", name: "EB Garamond", description: "Clássica e atemporal", category: "serifa" },
+  { id: "lora", name: "Lora", description: "Legível e acolhedora", category: "serifa" },
+  { id: "libre-baskerville", name: "Libre Baskerville", description: "Tradicional, de livro", category: "serifa" },
+  { id: "bodoni", name: "Bodoni Moda", description: "Dramática, ar de moda", category: "serifa" },
+  { id: "dm-serif", name: "DM Serif Display", description: "Marcante e elegante", category: "serifa" },
+  { id: "prata", name: "Prata", description: "Refinada, art nouveau", category: "serifa" },
+  { id: "marcellus", name: "Marcellus", description: "Romana clássica", category: "serifa" },
+  { id: "cardo", name: "Cardo", description: "Humanista e suave", category: "serifa" },
+  { id: "cinzel", name: "Cinzel", description: "Maiúsculas monumentais", category: "serifa" },
+  { id: "italiana", name: "Italiana", description: "Fina e alongada", category: "serifa" },
+  { id: "spectral", name: "Spectral", description: "Serifada contemporânea", category: "serifa" },
+  { id: "gilda", name: "Gilda Display", description: "Delicada, didone", category: "serifa" },
+  { id: "crimson", name: "Crimson Text", description: "Serifada de leitura", category: "serifa" },
+  // Caligráficas e manuscritas
+  { id: "great-vibes", name: "Great Vibes", description: "Caligráfica clássica", category: "manuscrita" },
+  { id: "dancing", name: "Dancing Script", description: "Caligráfica descontraída", category: "manuscrita" },
+  { id: "parisienne", name: "Parisienne", description: "Manuscrita romântica", category: "manuscrita" },
+  { id: "sacramento", name: "Sacramento", description: "Monolinha delicada", category: "manuscrita" },
+  { id: "allura", name: "Allura", description: "Caligráfica fluida", category: "manuscrita" },
+  { id: "pinyon", name: "Pinyon Script", description: "Formal e ornamentada", category: "manuscrita" },
+  { id: "alex-brush", name: "Alex Brush", description: "Pincel elegante", category: "manuscrita" },
+  { id: "tangerine", name: "Tangerine", description: "Fina e clássica", category: "manuscrita" },
+  { id: "petit-formal", name: "Petit Formal Script", description: "Formal e delicada", category: "manuscrita" },
+  { id: "yellowtail", name: "Yellowtail", description: "Pincel retrô", category: "manuscrita" },
+  { id: "style-script", name: "Style Script", description: "Manuscrita moderna", category: "manuscrita" },
+  { id: "kaushan", name: "Kaushan Script", description: "Pincel inclinado", category: "manuscrita" },
+  // Sem serifa (modernas)
+  { id: "josefin", name: "Josefin Sans", description: "Geométrica e leve", category: "sans" },
+  { id: "poiret", name: "Poiret One", description: "Art déco geométrica", category: "sans" },
+  { id: "montserrat", name: "Montserrat", description: "Limpa e atual", category: "sans" },
+  { id: "jost", name: "Jost", description: "Minimalista geométrica", category: "sans" },
+  { id: "raleway", name: "Raleway", description: "Fina e elegante", category: "sans" },
+  // Rústicas e descontraídas
+  { id: "amatic", name: "Amatic SC", description: "Alta e fina, rústica", category: "rustica" },
+  { id: "caveat", name: "Caveat", description: "Escrita à mão", category: "rustica" },
 ];
 
 export function isFontStyle(value: string): value is FontStyleId {

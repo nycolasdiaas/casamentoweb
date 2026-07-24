@@ -106,7 +106,7 @@ export async function saveOrderAction(formData: FormData) {
   if ("error" in parsed) return { error: parsed.error };
 
   await upsertOrder(userId, parsed.input);
-  revalidatePath("/conta");
+  revalidatePath("/conta/pedido");
   return { saved: true };
 }
 
@@ -119,6 +119,8 @@ export async function submitOrderAction(formData: FormData) {
 
   await upsertOrder(userId, parsed.input);
   await submitOrder(userId);
+  // Volta para o início (hub), que passa a mostrar o pedido em andamento.
   revalidatePath("/conta");
-  return { submitted: true };
+  revalidatePath("/conta/pedidos");
+  redirect("/conta");
 }
