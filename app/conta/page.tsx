@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getSessionUserId } from "@/lib/auth/userSession";
 import { getUserById } from "@/lib/repositories/users";
-import { getOrderByUserId } from "@/lib/repositories/orders";
+import { listOrdersByUserId } from "@/lib/repositories/orders";
 import AccountShell from "@/components/account/AccountShell";
 import { STATUS_META } from "@/lib/orderStatus";
 import { getPackage } from "@/lib/packages";
@@ -66,7 +66,8 @@ export default async function AccountHubPage() {
   const user = await getUserById(userId);
   if (!user) redirect("/conta/entrar");
 
-  const order = await getOrderByUserId(userId);
+  const orders = await listOrdersByUserId(userId);
+  const latest = orders[0] ?? null;
 
   return (
     <AccountShell active="inicio">
@@ -75,48 +76,13 @@ export default async function AccountHubPage() {
           Olá, {user.name} 💚
         </h1>
         <p className="text-sm text-(--color-olive)/70 max-w-lg">
-          Bem-vindos ao painel de vocês. Aqui vocês montam o pedido, acompanham
+          Bem-vindos ao painel de vocês. Aqui vocês montam pedidos, acompanham
           a produção e chegam até o site no ar.
         </p>
       </div>
 
-      {/* Destaque conforme o estado do pedido */}
-      {order && order.status !== "draft" ? (
-        <section className="rounded-2xl border border-(--color-gold)/40 bg-white p-6 flex flex-col gap-3">
-          <span className="text-xs uppercase tracking-[0.1em] text-(--color-gold)">
-            Seu pedido
-          </span>
-          <p className="text-lg font-semibold">
-            {STATUS_META[order.status].icon} {STATUS_META[order.status].short}
-          </p>
-          <p className="text-sm text-(--color-olive)/70">
-            {getPackage(order.packageTier)?.name ?? order.packageTier}
-            {order.coupleNames ? ` · ${order.coupleNames}` : ""}
-          </p>
-          <Link
-            href="/conta/pedidos"
-            className="self-start rounded-full bg-(--color-olive) text-white px-6 py-3 text-sm font-medium transition-transform hover:scale-105"
-          >
-            Acompanhar meu pedido
-          </Link>
-        </section>
-      ) : order ? (
-        <section className="rounded-2xl border border-(--color-gold)/40 bg-white p-6 flex flex-col gap-3">
-          <span className="text-xs uppercase tracking-[0.1em] text-(--color-gold)">
-            Rascunho em aberto
-          </span>
-          <p className="text-sm text-(--color-olive)/70 max-w-md">
-            Vocês começaram a montar o pedido mas ainda não enviaram. Continuem
-            de onde pararam.
-          </p>
-          <Link
-            href="/conta/pedido"
-            className="self-start rounded-full bg-(--color-olive) text-white px-6 py-3 text-sm font-medium transition-transform hover:scale-105"
-          >
-            Continuar meu pedido
-          </Link>
-        </section>
-      ) : (
+      {/* Destaque conforme o pedido mais recente */}
+      {!latest ? (
         <section className="rounded-2xl border border-(--color-olive)/30 bg-(--color-blush) p-6 flex flex-col gap-3">
           <span className="text-xs uppercase tracking-[0.1em] text-(--color-gold)">
             Comecem por aqui
@@ -129,11 +95,44 @@ export default async function AccountHubPage() {
             resto. Nada é cobrado para montar o pedido.
           </p>
           <Link
-            href="/conta/pedido"
+            href="/conta/pedido/novo"
             className="self-start rounded-full bg-(--color-olive) text-white px-8 py-3 text-sm font-medium transition-transform hover:scale-105"
           >
             Fazer meu pedido
           </Link>
+        </section>
+      ) : (
+        <section className="rounded-2xl border border-(--color-gold)/40 bg-white p-6 flex flex-col gap-3">
+          <span className="text-xs uppercase tracking-[0.1em] text-(--color-gold)">
+            {orders.length > 1 ? "Pedido mais recente" : "Seu pedido"}
+          </span>
+          <p className="text-lg font-semibold">
+            {STATUS_META[latest.status].icon} {STATUS_META[latest.status].short}
+          </p>
+          <p className="text-sm text-(--color-olive)/70">
+            {getPackage(latest.packageTier)?.name ?? latest.packageTier}
+            {latest.coupleNames ? ` · ${latest.coupleNames}` : ""}
+          </p>
+          <div className="flex flex-wrap gap-3 pt-1">
+            <Link
+              href={
+                latest.status === "draft"
+                  ? `/conta/pedido/${latest.id}`
+                  : `/conta/pedidos/${latest.id}`
+              }
+              className="rounded-full bg-(--color-olive) text-white px-6 py-3 text-sm font-medium transition-transform hover:scale-105"
+            >
+              {latest.status === "draft"
+                ? "Continuar meu pedido"
+                : "Acompanhar meu pedido"}
+            </Link>
+            <Link
+              href="/conta/pedido/novo"
+              className="rounded-full border border-(--color-olive)/30 px-6 py-3 text-sm font-medium transition-colors hover:bg-(--color-blush)"
+            >
+              Fazer novo pedido
+            </Link>
+          </div>
         </section>
       )}
 
@@ -143,7 +142,11 @@ export default async function AccountHubPage() {
           href="/conta/pedidos"
           icon="📦"
           title="Meus pedidos"
-          desc="Acompanhem cada etapa"
+          desc={
+            orders.length > 0
+              ? `${orders.length} pedido${orders.length > 1 ? "s" : ""} · acompanhar`
+              : "Acompanhem cada etapa"
+          }
         />
         <HubCard
           href="/#estilos"

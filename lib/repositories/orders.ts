@@ -17,28 +17,16 @@ export type OrderInput = {
   notes?: string;
 };
 
-/** Pedido mais recente do casal (um pedido por casal no fluxo atual). */
-export async function getOrderByUserId(userId: string) {
-  const order = await db.query.orders.findFirst({
+/** Todos os pedidos do casal, do mais recente ao mais antigo. */
+export async function listOrdersByUserId(userId: string) {
+  return db.query.orders.findMany({
     where: eq(orders.userId, userId),
-    orderBy: [desc(orders.createdAt)],
+    orderBy: [desc(orders.updatedAt)],
   });
-  return order ?? null;
 }
 
-/** Cria o pedido do casal ou atualiza o existente (rascunho ou não). */
-export async function upsertOrder(userId: string, input: OrderInput) {
-  const existing = await getOrderByUserId(userId);
-
-  if (existing) {
-    const [updated] = await db
-      .update(orders)
-      .set({ ...input, updatedAt: new Date() })
-      .where(eq(orders.id, existing.id))
-      .returning();
-    return updated;
-  }
-
+/** Cria um novo pedido (rascunho) para o casal. */
+export async function createOrder(userId: string, input: OrderInput) {
   const [created] = await db
     .insert(orders)
     .values({ userId, ...input })
@@ -46,16 +34,29 @@ export async function upsertOrder(userId: string, input: OrderInput) {
   return created;
 }
 
-export async function submitOrder(userId: string) {
-  const existing = await getOrderByUserId(userId);
-  if (!existing) return null;
+/** Atualiza o conteúdo de um pedido existente (usado só em rascunhos). */
+export async function updateOrder(orderId: string, input: OrderInput) {
+  const [updated] = await db
+    .update(orders)
+    .set({ ...input, updatedAt: new Date() })
+    .where(eq(orders.id, orderId))
+    .returning();
+  return updated ?? null;
+}
 
+/** Marca um pedido específico como enviado. */
+export async function submitOrderById(orderId: string) {
   const [updated] = await db
     .update(orders)
     .set({ status: "submitted", updatedAt: new Date() })
-    .where(eq(orders.id, existing.id))
+    .where(eq(orders.id, orderId))
     .returning();
-  return updated;
+  return updated ?? null;
+}
+
+/** Cancela = remove o pedido (só permitido antes da produção). */
+export async function deleteOrder(orderId: string) {
+  await db.delete(orders).where(eq(orders.id, orderId));
 }
 
 /** Acha o pedido dono de uma cobrança AbacatePay (usado no webhook). */

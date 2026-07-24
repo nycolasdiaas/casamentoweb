@@ -53,6 +53,7 @@ export async function POST(request: Request) {
     const order = await getOrderByPaymentId(billingId);
     if (order) {
       await markOrderPaid(order.id);
+      revalidatePath(`/conta/pedidos/${order.id}`);
       revalidatePath("/conta/pedidos");
       revalidatePath("/admin/pedidos");
     }

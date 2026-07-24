@@ -253,7 +253,13 @@ type ActionResult =
   | { error?: string; saved?: boolean; submitted?: boolean }
   | undefined;
 
-export default function OrderForm({ order }: { order: OrderData | null }) {
+export default function OrderForm({
+  order,
+  orderId,
+}: {
+  order: OrderData | null;
+  orderId: string | null;
+}) {
   const [state, action, pending] = useActionState(
     async (_prev: ActionResult, formData: FormData): Promise<ActionResult> => {
       const intent = formData.get("intent")?.toString();
@@ -272,6 +278,7 @@ export default function OrderForm({ order }: { order: OrderData | null }) {
 
   return (
     <form action={action} className="flex flex-col gap-8">
+      <input type="hidden" name="orderId" value={orderId ?? ""} />
       {/* Pacote */}
       <div className="flex flex-col gap-3">
         <p className="text-sm font-semibold">1. Pacote</p>

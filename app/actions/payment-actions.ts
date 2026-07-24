@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { getSessionUserId } from "@/lib/auth/userSession";
 import { getUserById } from "@/lib/repositories/users";
-import { getOrderByUserId, setOrderPayment } from "@/lib/repositories/orders";
+import { getOrderById, setOrderPayment } from "@/lib/repositories/orders";
 import { getPackage } from "@/lib/packages";
 import { createCharge, isPaymentConfigured } from "@/lib/payments/abacatepay";
 import { getBaseUrl } from "@/lib/baseUrl";
@@ -23,9 +23,10 @@ export async function startPaymentAction(
   const userId = await getSessionUserId();
   if (!userId) redirect("/conta/entrar");
 
-  const order = await getOrderByUserId(userId);
-  if (!order) redirect("/conta");
-  if (order.paymentStatus === "PAID") redirect("/conta/pedidos");
+  const orderId = formData.get("orderId")?.toString() ?? "";
+  const order = orderId ? await getOrderById(orderId) : null;
+  if (!order || order.userId !== userId) redirect("/conta/pedidos");
+  if (order.paymentStatus === "PAID") redirect(`/conta/pedidos/${order.id}`);
 
   if (!isPaymentConfigured()) {
     return {
@@ -60,8 +61,8 @@ export async function startPaymentAction(
       description: order.coupleNames
         ? `Site de casamento de ${order.coupleNames}`
         : undefined,
-      returnUrl: `${base}/conta/pedidos`,
-      completionUrl: `${base}/conta/pedidos?pago=1`,
+      returnUrl: `${base}/conta/pedidos/${order.id}`,
+      completionUrl: `${base}/conta/pedidos/${order.id}?pago=1`,
       customer: {
         name: order.coupleNames ?? user?.name,
         email: user?.email,

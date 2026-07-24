@@ -9,7 +9,14 @@ import {
   getSessionUserId,
 } from "@/lib/auth/userSession";
 import { createUser, getUserByEmail } from "@/lib/repositories/users";
-import { upsertOrder, submitOrder } from "@/lib/repositories/orders";
+import {
+  createOrder,
+  updateOrder,
+  submitOrderById,
+  deleteOrder,
+  getOrderById,
+} from "@/lib/repositories/orders";
+import { canCancelOrder } from "@/lib/orderStatus";
 import { PACKAGES, type PackageTier } from "@/lib/packages";
 import { TEMPLATE_STYLES } from "@/lib/templates";
 import { isFontStyle, isHexColor } from "@/lib/customization";
@@ -98,6 +105,14 @@ function parseOrderForm(formData: FormData) {
   };
 }
 
+// Retorna o pedido se ele existe E pertence ao casal logado; senão null.
+async function getOwnedOrder(userId: string, orderId: string) {
+  if (!orderId) return null;
+  const order = await getOrderById(orderId);
+  if (!order || order.userId !== userId) return null;
+  return order;
+}
+
 export async function saveOrderAction(formData: FormData) {
   const userId = await getSessionUserId();
   if (!userId) redirect("/conta/entrar");
@@ -105,9 +120,23 @@ export async function saveOrderAction(formData: FormData) {
   const parsed = parseOrderForm(formData);
   if ("error" in parsed) return { error: parsed.error };
 
-  await upsertOrder(userId, parsed.input);
-  revalidatePath("/conta/pedido");
-  return { saved: true };
+  const orderId = formData.get("orderId")?.toString() ?? "";
+  const existing = await getOwnedOrder(userId, orderId);
+
+  if (existing) {
+    if (existing.status !== "draft") {
+      return { error: "Este pedido já foi enviado e não pode ser editado." };
+    }
+    await updateOrder(existing.id, parsed.input);
+    revalidatePath(`/conta/pedido/${existing.id}`);
+    return { saved: true };
+  }
+
+  // Primeiro salvamento de um pedido novo: cria e leva para a tela de edição
+  // (que já tem o id) para os próximos salvamentos atualizarem o mesmo.
+  const created = await createOrder(userId, parsed.input);
+  revalidatePath("/conta/pedidos");
+  redirect(`/conta/pedido/${created.id}`);
 }
 
 export async function submitOrderAction(formData: FormData) {
@@ -117,10 +146,38 @@ export async function submitOrderAction(formData: FormData) {
   const parsed = parseOrderForm(formData);
   if ("error" in parsed) return { error: parsed.error };
 
-  await upsertOrder(userId, parsed.input);
-  await submitOrder(userId);
-  // Volta para o início (hub), que passa a mostrar o pedido em andamento.
+  const orderId = formData.get("orderId")?.toString() ?? "";
+  const existing = await getOwnedOrder(userId, orderId);
+
+  if (existing) {
+    if (existing.status !== "draft") {
+      return { error: "Este pedido já foi enviado." };
+    }
+    await updateOrder(existing.id, parsed.input);
+    await submitOrderById(existing.id);
+  } else {
+    const created = await createOrder(userId, parsed.input);
+    await submitOrderById(created.id);
+  }
+
+  // Volta para o início (hub), que lista os pedidos com o andamento.
   revalidatePath("/conta");
   revalidatePath("/conta/pedidos");
   redirect("/conta");
+}
+
+export async function cancelOrderAction(formData: FormData) {
+  const userId = await getSessionUserId();
+  if (!userId) redirect("/conta/entrar");
+
+  const orderId = formData.get("orderId")?.toString() ?? "";
+  const order = await getOwnedOrder(userId, orderId);
+  // Só cancela o que é do casal e ainda não entrou em produção.
+  if (order && canCancelOrder(order.status)) {
+    await deleteOrder(order.id);
+  }
+
+  revalidatePath("/conta");
+  revalidatePath("/conta/pedidos");
+  redirect("/conta/pedidos");
 }

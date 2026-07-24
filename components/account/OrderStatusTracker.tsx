@@ -28,8 +28,10 @@ function formatBRL(cents: number): string {
 
 export default function OrderStatusTracker({
   order,
+  orderId,
 }: {
   order: TrackerOrder;
+  orderId: string;
 }) {
   const pkg = getPackage(order.packageTier);
   const amountCents = order.priceCents ?? pkg?.priceCents ?? 0;
@@ -132,7 +134,10 @@ export default function OrderStatusTracker({
                           </p>
                         ) : (
                           <div className="w-full max-w-xs">
-                            <PaymentButton amountLabel={amountLabel} />
+                            <PaymentButton
+                              orderId={orderId}
+                              amountLabel={amountLabel}
+                            />
                           </div>
                         )}
                       </div>

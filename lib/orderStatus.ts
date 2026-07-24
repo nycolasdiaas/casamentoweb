@@ -94,3 +94,11 @@ export const STATUS_META: Record<OrderStatus, StatusMeta> = {
 export function trackerStepIndex(status: OrderStatus): number {
   return (TRACKER_STEPS as readonly OrderStatus[]).indexOf(status);
 }
+
+/**
+ * Só dá para cancelar antes de entrar em produção: rascunho ou pedido
+ * recebido mas ainda não iniciado.
+ */
+export function canCancelOrder(status: OrderStatus): boolean {
+  return status === "draft" || status === "submitted";
+}

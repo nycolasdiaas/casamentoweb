@@ -4,11 +4,18 @@ import { useActionState } from "react";
 import { startPaymentAction } from "@/app/actions/payment-actions";
 import { CONTACT } from "@/lib/site";
 
-export default function PaymentButton({ amountLabel }: { amountLabel: string }) {
+export default function PaymentButton({
+  orderId,
+  amountLabel,
+}: {
+  orderId: string;
+  amountLabel: string;
+}) {
   const [state, action, pending] = useActionState(startPaymentAction, undefined);
 
   return (
     <form action={action} className="flex flex-col items-center gap-3 w-full">
+      <input type="hidden" name="orderId" value={orderId} />
       <label className="flex flex-col gap-1 w-full text-left">
         <span className="text-xs text-(--color-olive)/70">
           CPF do pagador{" "}
