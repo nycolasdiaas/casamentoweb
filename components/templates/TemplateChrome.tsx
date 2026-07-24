@@ -43,11 +43,16 @@ export default function TemplateChrome({
             color: ink,
           }}
         >
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <Link href="/" className="underline underline-offset-2">
               ← Pacotes
             </Link>
-            <span className="tracking-[0.15em] uppercase">{styleName}</span>
+            <div className="flex items-center gap-3">
+              <Link href="/conta" className="underline underline-offset-2">
+                Minha conta
+              </Link>
+              <span className="tracking-[0.15em] uppercase">{styleName}</span>
+            </div>
           </div>
 
           <div className="flex gap-1.5">
