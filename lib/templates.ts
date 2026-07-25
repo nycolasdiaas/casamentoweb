@@ -4,7 +4,9 @@ export type TemplateStyleId =
   | "classico"
   | "moderno"
   | "romantico"
-  | "toscana";
+  | "toscana"
+  | "film"
+  | "editorial";
 
 export type TemplateStyle = {
   id: TemplateStyleId;
@@ -41,6 +43,20 @@ export const TEMPLATE_STYLES: TemplateStyle[] = [
     description:
       "Rústico chique italiano: oliva e dourado, capa full-bleed, caligrafia Italianno.",
     swatches: ["#f3eddd", "#33351f", "#9c8654"],
+  },
+  {
+    id: "film",
+    name: "Film",
+    description:
+      "Clima de filme: terracota e âmbar, fotos em colagem, caligrafia Great Vibes.",
+    swatches: ["#f3ebda", "#3c3227", "#a5603a"],
+  },
+  {
+    id: "editorial",
+    name: "Editorial",
+    description:
+      "Preto e branco de revista: data gigante, grid preciso, Archivo + Cormorant.",
+    swatches: ["#f5f3ef", "#141414", "#7c7c78"],
   },
 ];
 

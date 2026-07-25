@@ -88,10 +88,13 @@ function ModernoTemplateInner() {
             </div>
 
             <div className="pt-8 px-5 flex gap-2.5">
-              <h1 className="m-0 flex-1 font-black text-[80px] sm:text-[96px] leading-[0.88] tracking-[-0.035em] uppercase">
+              {/* clamp() em vez de breakpoint fixo: em telas bem estreitas
+                  (320px) "PEDRO" em 80px não cabia ao lado do texto vertical
+                  ao lado e estourava a página. */}
+              <h1 className="m-0 flex-1 min-w-0 font-black text-[clamp(60px,20vw,96px)] leading-[0.88] tracking-[-0.035em] uppercase">
                 Ana
                 <span
-                  className="block text-[50px] sm:text-[60px] leading-[0.95]"
+                  className="block text-[clamp(38px,12.5vw,60px)] leading-[0.95]"
                   style={{ color: ACCENT }}
                 >
                   &amp;

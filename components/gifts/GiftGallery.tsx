@@ -23,11 +23,11 @@ export default function GiftGallery({ categories }: { categories: Category[] }) 
     <div className="flex flex-col gap-10">
       {categories.map(({ category, gifts }) => (
         <section key={category} className="flex flex-col gap-4">
-          <div className="flex items-center gap-4">
-            <h2 className="font-script text-xl text-(--color-olive) shrink-0">
+          <div className="flex items-center gap-4 flex-wrap">
+            <h2 className="font-script text-xl text-(--color-olive)">
               {category}
             </h2>
-            <div className="flex-1 border-t border-(--color-gold)" />
+            <div className="flex-1 min-w-8 border-t border-(--color-gold)" />
           </div>
 
           <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

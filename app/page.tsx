@@ -27,6 +27,8 @@ const STYLE_FONT_CLASS: Record<string, string> = {
   moderno: "font-semibold tracking-tight",
   romantico: "font-script",
   toscana: "font-script",
+  film: "font-script",
+  editorial: "font-semibold tracking-tight",
 };
 
 const FEATURES = [

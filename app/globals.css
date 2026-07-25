@@ -17,3 +17,12 @@ body {
   background: var(--color-paper);
   color: var(--color-olive);
 }
+
+/* Rede de segurança: nenhuma página deve rolar na horizontal. "clip" (não
+   "hidden") porque hidden ainda deixa scrollWidth reportar o conteúdo
+   vazado; clip corta de verdade. Não afeta áreas com rolagem própria
+   (overflow-x: auto), como o seletor de modelo nas prévias de template. */
+html,
+body {
+  overflow-x: clip;
+}

@@ -55,31 +55,36 @@ export default function TemplateChrome({
             </Link>
           </div>
 
-          {/* Trocar de modelo sem sair da prévia (mantém o pacote atual) */}
+          {/* Trocar de modelo sem sair da prévia (mantém o pacote atual).
+              min-w-0 é essencial: sem ele, um item flex não encolhe abaixo do
+              conteúdo e a linha estoura a tela em aparelhos estreitos — a
+              rolagem horizontal (overflow-x-auto) é o fallback nesse caso. */}
           <div className="flex items-center gap-2">
             <span className="shrink-0 w-12 tracking-[0.12em] uppercase text-[9px] opacity-55">
               Modelo
             </span>
-            <div className="flex-1 flex gap-1.5">
-              {TEMPLATE_STYLES.map((t) => {
-                const active = t.id === styleId;
-                return (
-                  <Link
-                    key={t.id}
-                    href={`/pacotes/estilos/${t.id}?pacote=${tier}`}
-                    aria-current={active ? "page" : undefined}
-                    className="flex-1 text-center leading-tight py-1.5 rounded-full border transition-colors"
-                    style={{
-                      background: active ? ink : "transparent",
-                      borderColor: active ? ink : `${ink}33`,
-                      color: active ? cardBg : ink,
-                      opacity: active ? 1 : 0.7,
-                    }}
-                  >
-                    {t.name}
-                  </Link>
-                );
-              })}
+            <div className="flex-1 min-w-0 overflow-x-auto">
+              <div className="flex gap-1.5 w-max">
+                {TEMPLATE_STYLES.map((t) => {
+                  const active = t.id === styleId;
+                  return (
+                    <Link
+                      key={t.id}
+                      href={`/pacotes/estilos/${t.id}?pacote=${tier}`}
+                      aria-current={active ? "page" : undefined}
+                      className="shrink-0 whitespace-nowrap text-center leading-tight px-3 py-1.5 rounded-full border transition-colors"
+                      style={{
+                        background: active ? ink : "transparent",
+                        borderColor: active ? ink : `${ink}33`,
+                        color: active ? cardBg : ink,
+                        opacity: active ? 1 : 0.7,
+                      }}
+                    >
+                      {t.name}
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
@@ -88,26 +93,28 @@ export default function TemplateChrome({
             <span className="shrink-0 w-12 tracking-[0.12em] uppercase text-[9px] opacity-55">
               Pacote
             </span>
-            <div className="flex-1 flex gap-1.5">
-              {PACKAGES.map((pkg) => {
-                const active = pkg.tier === tier;
-                return (
-                  <button
-                    key={pkg.tier}
-                    type="button"
-                    onClick={() => onTierChange(pkg.tier)}
-                    className="flex-1 text-center leading-tight py-1.5 rounded-full border transition-colors"
-                    style={{
-                      background: active ? accent : "transparent",
-                      borderColor: active ? accent : `${ink}33`,
-                      color: active ? cardBg : ink,
-                      opacity: active ? 1 : 0.7,
-                    }}
-                  >
-                    {pkg.name}
-                  </button>
-                );
-              })}
+            <div className="flex-1 min-w-0 overflow-x-auto">
+              <div className="flex gap-1.5 w-max">
+                {PACKAGES.map((pkg) => {
+                  const active = pkg.tier === tier;
+                  return (
+                    <button
+                      key={pkg.tier}
+                      type="button"
+                      onClick={() => onTierChange(pkg.tier)}
+                      className="shrink-0 whitespace-nowrap text-center leading-tight px-3 py-1.5 rounded-full border transition-colors"
+                      style={{
+                        background: active ? accent : "transparent",
+                        borderColor: active ? accent : `${ink}33`,
+                        color: active ? cardBg : ink,
+                        opacity: active ? 1 : 0.7,
+                      }}
+                    >
+                      {pkg.name}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
           <p className="text-center opacity-70">
