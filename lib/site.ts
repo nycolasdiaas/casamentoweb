@@ -19,15 +19,10 @@ export const WHATSAPP_LINK = `https://wa.me/${CONTACT.whatsappNumber}?text=${enc
   "Oi! Quero um site de casamento"
 )}`;
 
-// Depoimentos. IMPORTANTE: a frase abaixo é um PLACEHOLDER genérico só para
-// a seção não ficar quebrada — troque pela frase REAL da Isabelle e do
-// Nycolas assim que tiver. Depoimento inventado não sustenta confiança e não
-// deve ficar no ar de forma permanente.
-export const TESTIMONIALS = [
-  {
-    couple: "Isabelle & Nycolas",
-    detail: "Casamento em outubro de 2026 · pacote Para Sempre",
-    quote:
-      "Ficou tudo com a nossa cara e sem dor de cabeça nenhuma — a gente só mandou as fotos e a história, e eles cuidaram do resto.",
-  },
-];
+// Depoimentos. NUNCA invente depoimento: peça a frase real ao casal e
+// adicione aqui. Vazio = a seção de depoimentos fica oculta na landing.
+export const TESTIMONIALS: {
+  couple: string;
+  detail: string;
+  quote: string;
+}[] = [];

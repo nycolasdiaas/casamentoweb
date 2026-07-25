@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { listGroupsWithGuests } from "@/lib/repositories/groups";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 import GroupForm from "@/components/admin/GroupForm";
 import GroupList from "@/components/admin/GroupList";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
+  await requireAdmin();
   const groups = await listGroupsWithGuests();
 
   return (

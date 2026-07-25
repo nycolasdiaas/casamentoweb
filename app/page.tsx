@@ -465,35 +465,38 @@ export default async function PackagesPage() {
         </div>
       </section>
 
-      {/* Depoimentos */}
-      <section>
-        <div className="max-w-6xl mx-auto w-full px-6 py-20 flex flex-col gap-10">
-          <h2 className="text-3xl font-bold tracking-tight text-center">
-            Quem já casou com a gente
-          </h2>
-          <ul className="flex flex-wrap justify-center gap-6">
-            {TESTIMONIALS.map((testimonial) => (
-              <li
-                key={testimonial.couple}
-                className="flex flex-col gap-4 max-w-md rounded-xl border border-(--color-gold)/40 bg-white p-8"
-              >
-                <span aria-hidden className="font-script text-4xl text-(--color-gold) leading-none">
-                  &ldquo;
-                </span>
-                <p className="text-sm leading-relaxed text-(--color-olive)/80 italic">
-                  {testimonial.quote}
-                </p>
-                <div className="pt-2 border-t border-(--color-gold)/30">
-                  <p className="font-semibold text-sm">{testimonial.couple}</p>
-                  <p className="text-xs text-(--color-muted)">
-                    {testimonial.detail}
+      {/* Depoimentos — só aparece quando houver um depoimento real
+          (TESTIMONIALS vazio hoje; nunca inventar frase de casal). */}
+      {TESTIMONIALS.length > 0 && (
+        <section>
+          <div className="max-w-6xl mx-auto w-full px-6 py-20 flex flex-col gap-10">
+            <h2 className="text-3xl font-bold tracking-tight text-center">
+              Quem já casou com a gente
+            </h2>
+            <ul className="flex flex-wrap justify-center gap-6">
+              {TESTIMONIALS.map((testimonial) => (
+                <li
+                  key={testimonial.couple}
+                  className="flex flex-col gap-4 max-w-md rounded-xl border border-(--color-gold)/40 bg-white p-8"
+                >
+                  <span aria-hidden className="font-script text-4xl text-(--color-gold) leading-none">
+                    &ldquo;
+                  </span>
+                  <p className="text-sm leading-relaxed text-(--color-olive)/80 italic">
+                    {testimonial.quote}
                   </p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
+                  <div className="pt-2 border-t border-(--color-gold)/30">
+                    <p className="font-semibold text-sm">{testimonial.couple}</p>
+                    <p className="text-xs text-(--color-muted)">
+                      {testimonial.detail}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
 
       {/* Pacotes */}
       <section id="pacotes" className="scroll-mt-20 bg-(--color-paper)">

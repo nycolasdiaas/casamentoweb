@@ -43,6 +43,13 @@
       "when": 1784848512233,
       "tag": "0005_parallel_ma_gnuci",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1784944729126,
+      "tag": "0006_cuddly_network",
+      "breakpoints": true
     }
   ]
 }

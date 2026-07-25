@@ -6,11 +6,13 @@ vi.mock("next/cache", () => ({
 
 const sessionState = { valid: true };
 vi.mock("@/lib/auth/session", () => ({
-  verifySessionCookie: vi.fn(async () => sessionState.valid),
+  getSessionAdminId: vi.fn(async () =>
+    sessionState.valid ? "11111111-1111-1111-1111-111111111111" : null
+  ),
 }));
 
 import { db } from "@/lib/db/client";
-import { gifts, giftContributions } from "@/lib/db/schema";
+import { gifts, giftContributions, loginAttempts } from "@/lib/db/schema";
 import {
   createGiftAction,
   updateGiftAction,
@@ -30,11 +32,13 @@ beforeEach(async () => {
   sessionState.valid = true;
   await db.delete(giftContributions);
   await db.delete(gifts);
+  await db.delete(loginAttempts);
 });
 
 afterAll(async () => {
   await db.delete(giftContributions);
   await db.delete(gifts);
+  await db.delete(loginAttempts);
 });
 
 describe("createGiftAction", () => {

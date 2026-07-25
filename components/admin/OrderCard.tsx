@@ -4,6 +4,14 @@ import { useState } from "react";
 import { STATUS_META, type OrderStatus } from "@/lib/orderStatus";
 import AdminOrderControls from "./AdminOrderControls";
 
+export type AuditEntry = {
+  adminName: string;
+  field: string;
+  oldValue: string | null;
+  newValue: string | null;
+  when: string;
+};
+
 export type AdminOrder = {
   id: string;
   status: OrderStatus;
@@ -19,6 +27,7 @@ export type AdminOrder = {
   adminMessage: string | null;
   paymentStatus: string | null;
   defaultPriceCents: number;
+  auditLog: AuditEntry[];
 };
 
 function CopyButton({ label, text }: { label: string; text: string }) {
@@ -70,6 +79,7 @@ function StatusBadge({ status }: { status: OrderStatus }) {
 export default function OrderCard({ order }: { order: AdminOrder }) {
   const [openJson, setOpenJson] = useState(false);
   const [openManage, setOpenManage] = useState(false);
+  const [openHistory, setOpenHistory] = useState(false);
 
   return (
     <li className="border border-(--color-gold)/50 bg-white">
@@ -103,8 +113,45 @@ export default function OrderCard({ order }: { order: AdminOrder }) {
           >
             {openJson ? "ocultar" : "ver JSON"}
           </button>
+          <button
+            type="button"
+            onClick={() => setOpenHistory((v) => !v)}
+            className="font-serif text-xs tracking-[0.05em] text-(--color-olive) underline"
+          >
+            {openHistory
+              ? "ocultar histórico"
+              : `histórico (${order.auditLog.length})`}
+          </button>
         </div>
       </div>
+
+      {openHistory && (
+        <div className="border-t border-(--color-gold)/40 bg-(--color-paper) p-4">
+          {order.auditLog.length === 0 ? (
+            <p className="font-serif text-xs text-(--color-muted)">
+              Nenhuma alteração registrada ainda.
+            </p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {order.auditLog.map((entry, i) => (
+                <li
+                  key={i}
+                  className="font-serif text-xs text-(--color-olive)/85 leading-relaxed"
+                >
+                  <span className="font-semibold">{entry.adminName}</span>{" "}
+                  mudou <span className="italic">{entry.field}</span>
+                  {": "}
+                  <span className="text-(--color-muted)">
+                    {entry.oldValue ?? "vazio"}
+                  </span>{" "}
+                  → {entry.newValue ?? "vazio"}
+                  <span className="text-(--color-muted)"> · {entry.when}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       {openManage && (
         <AdminOrderControls

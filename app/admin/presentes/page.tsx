@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { listGifts, listContributions } from "@/lib/repositories/gifts";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 import GiftAdmin from "@/components/admin/GiftAdmin";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminGiftsPage() {
+  await requireAdmin();
   const [gifts, contributions] = await Promise.all([
     listGifts(),
     listContributions(),

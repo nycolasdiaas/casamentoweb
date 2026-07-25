@@ -21,6 +21,17 @@ async function hmacHex(secret: string, payload: string): Promise<string> {
     .join("");
 }
 
+// Edge runtime não tem crypto.timingSafeEqual do Node — comparação manual
+// em tempo constante (percorre tudo sempre, não sai cedo na 1ª diferença).
+function timingSafeEqualHex(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
 async function verifySignedCookie(
   value: string | undefined,
   extractExpiresAt: (payload: string) => number
@@ -36,7 +47,7 @@ async function verifySignedCookie(
   if (!secret) return false;
 
   const expectedSignature = await hmacHex(secret, payload);
-  if (signature !== expectedSignature) return false;
+  if (!timingSafeEqualHex(signature, expectedSignature)) return false;
 
   const expiresAt = extractExpiresAt(payload);
   if (!Number.isFinite(expiresAt) || expiresAt < Date.now()) return false;
@@ -50,9 +61,10 @@ export async function proxy(request: NextRequest) {
   if (pathname.startsWith("/admin")) {
     if (pathname === "/admin/login") return NextResponse.next();
 
+    // payload da sessão de admin: "adminId:expiresAt"
     const isValid = await verifySignedCookie(
       request.cookies.get(COOKIE_NAME)?.value,
-      (payload) => Number(payload)
+      (payload) => Number(payload.split(":")[1])
     );
     if (!isValid) {
       return NextResponse.redirect(new URL("/admin/login", request.url));

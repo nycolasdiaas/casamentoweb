@@ -19,9 +19,19 @@ export default function AdminLoginPage() {
         </h1>
 
         <input
+          type="email"
+          name="email"
+          placeholder="E-mail"
+          autoComplete="username"
+          required
+          className="border border-(--color-gold) px-4 py-3 font-serif text-sm"
+        />
+
+        <input
           type="password"
           name="password"
           placeholder="Senha"
+          autoComplete="current-password"
           required
           className="border border-(--color-gold) px-4 py-3 font-serif text-sm"
         />

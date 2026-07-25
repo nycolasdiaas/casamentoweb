@@ -9,6 +9,8 @@ import {
   getSessionUserId,
 } from "@/lib/auth/userSession";
 import { createUser, getUserByEmail } from "@/lib/repositories/users";
+import { getAdminByEmail } from "@/lib/repositories/admins";
+import { createSessionCookie as createAdminSessionCookie } from "@/lib/auth/session";
 import {
   createOrder,
   updateOrder,
@@ -20,10 +22,15 @@ import { canCancelOrder } from "@/lib/orderStatus";
 import { PACKAGES, type PackageTier } from "@/lib/packages";
 import { TEMPLATE_STYLES } from "@/lib/templates";
 import { isFontStyle, isHexColor } from "@/lib/customization";
+import { checkRateLimit, getClientIp, RATE_LIMIT_MESSAGE } from "@/lib/rateLimit";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function signupAction(formData: FormData) {
+  const ip = await getClientIp();
+  const { allowed } = await checkRateLimit(`signup:${ip}`);
+  if (!allowed) return { error: RATE_LIMIT_MESSAGE };
+
   const name = formData.get("name")?.toString().trim() ?? "";
   const email = formData.get("email")?.toString().trim().toLowerCase() ?? "";
   const password = formData.get("password")?.toString() ?? "";
@@ -31,8 +38,8 @@ export async function signupAction(formData: FormData) {
 
   if (name.length < 2) return { error: "Conta o nome de vocês pra gente 😊" };
   if (!EMAIL_PATTERN.test(email)) return { error: "E-mail inválido." };
-  if (password.length < 6) {
-    return { error: "A senha precisa de pelo menos 6 caracteres." };
+  if (password.length < 8) {
+    return { error: "A senha precisa de pelo menos 8 caracteres." };
   }
 
   const existing = await getUserByEmail(email);
@@ -43,7 +50,7 @@ export async function signupAction(formData: FormData) {
   const user = await createUser({
     name,
     email,
-    passwordHash: hashPassword(password),
+    passwordHash: await hashPassword(password),
     whatsapp: whatsapp || undefined,
   });
 
@@ -51,17 +58,46 @@ export async function signupAction(formData: FormData) {
   redirect("/conta");
 }
 
+// Hash descartável (senha aleatória) para gastar o mesmo tempo de scrypt
+// quando o e-mail não existe — evita distinguir "conta inexistente" de
+// "senha errada" por diferença de tempo de resposta.
+const DUMMY_HASH =
+  "0000000000000000000000000000000000000000000000000000000000000000:" +
+  "0000000000000000000000000000000000000000000000000000000000000000" +
+  "0000000000000000000000000000000000000000000000000000000000000000";
+
 export async function signinAction(formData: FormData) {
   const email = formData.get("email")?.toString().trim().toLowerCase() ?? "";
   const password = formData.get("password")?.toString() ?? "";
 
+  const ip = await getClientIp();
+  const [ipOk, emailOk] = await Promise.all([
+    checkRateLimit(`signin:${ip}`),
+    email ? checkRateLimit(`signin-email:${email}`) : Promise.resolve({ allowed: true }),
+  ]);
+  if (!ipOk.allowed || !emailOk.allowed) return { error: RATE_LIMIT_MESSAGE };
+
+  // Mesma tela serve casal e admin: tenta conta de casal primeiro, depois
+  // admin — cada um cai na sua sessão (cookie diferente) e área própria.
   const user = email ? await getUserByEmail(email) : null;
-  if (!user || !verifyPassword(password, user.passwordHash)) {
-    return { error: "E-mail ou senha incorretos." };
+  if (user && (await verifyPassword(password, user.passwordHash))) {
+    await createUserSessionCookie(user.id);
+    redirect("/conta");
   }
 
-  await createUserSessionCookie(user.id);
-  redirect("/conta");
+  const admin = email ? await getAdminByEmail(email) : null;
+  if (admin && (await verifyPassword(password, admin.passwordHash))) {
+    await createAdminSessionCookie(admin.id);
+    redirect("/admin/pedidos");
+  }
+
+  // Nenhuma conta bateu. Se o e-mail nem existe, roda um scrypt descartável
+  // para o tempo de resposta ser indistinguível de "senha errada".
+  if (!user && !admin) {
+    await verifyPassword(password, DUMMY_HASH);
+  }
+
+  return { error: "E-mail ou senha incorretos." };
 }
 
 export async function signoutAction() {

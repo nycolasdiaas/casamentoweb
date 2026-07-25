@@ -1,12 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { verifySessionCookie } from "@/lib/auth/session";
+import { getSessionAdminId } from "@/lib/auth/session";
 import { createGroup, deleteGroup } from "@/lib/repositories/groups";
 
 async function requireAdminSession() {
-  const valid = await verifySessionCookie();
-  if (!valid) {
+  const adminId = await getSessionAdminId();
+  if (!adminId) {
     throw new Error("Unauthorized");
   }
 }

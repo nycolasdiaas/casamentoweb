@@ -50,7 +50,15 @@ export async function startPaymentAction(
     };
   }
 
-  const base = await getBaseUrl();
+  let base: string;
+  try {
+    base = await getBaseUrl();
+  } catch {
+    return {
+      error:
+        "Configuração de pagamento incompleta. Fale com a gente no WhatsApp para concluir.",
+    };
+  }
 
   let charge;
   try {

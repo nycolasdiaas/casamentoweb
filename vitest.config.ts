@@ -16,7 +16,6 @@ export default defineConfig({
     env: {
       ADMIN_SESSION_SECRET:
         process.env.ADMIN_SESSION_SECRET ?? "test-secret-do-not-use-in-prod",
-      ADMIN_PASSWORD: process.env.ADMIN_PASSWORD ?? "test-password",
       DATABASE_URL: process.env.DATABASE_URL_TEST ?? "",
       DATABASE_SCHEMA: "test",
     },

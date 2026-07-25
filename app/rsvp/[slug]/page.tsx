@@ -22,7 +22,7 @@ export default async function RsvpPage({
       <RsvpCard
         groupLabel={group.label ?? undefined}
         guests={group.guests}
-        onRespond={submitRsvpAction}
+        onRespond={submitRsvpAction.bind(null, slug)}
       />
     </main>
   );

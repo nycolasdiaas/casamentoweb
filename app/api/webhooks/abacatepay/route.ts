@@ -1,5 +1,7 @@
+import crypto from "crypto";
 import { revalidatePath } from "next/cache";
 import { getOrderByPaymentId, markOrderPaid } from "@/lib/repositories/orders";
+import { getChargeStatus } from "@/lib/payments/abacatepay";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +36,13 @@ export async function POST(request: Request) {
   }
 
   const url = new URL(request.url);
-  if (url.searchParams.get("webhookSecret") !== secret) {
+  const provided = url.searchParams.get("webhookSecret") ?? "";
+  const providedBuffer = Buffer.from(provided);
+  const secretBuffer = Buffer.from(secret);
+  const isValid =
+    providedBuffer.length === secretBuffer.length &&
+    crypto.timingSafeEqual(providedBuffer, secretBuffer);
+  if (!isValid) {
     return new Response("unauthorized", { status: 401 });
   }
 
@@ -51,11 +59,17 @@ export async function POST(request: Request) {
 
   if (isPaid && billingId) {
     const order = await getOrderByPaymentId(billingId);
+    // Não confia só na string do evento: reconfirma com a API do AbacatePay
+    // que a cobrança está mesmo PAID antes de liberar o pedido. Assim, um
+    // webhook forjado (mesmo com o segredo) não marca pago sem pagamento real.
     if (order) {
-      await markOrderPaid(order.id);
-      revalidatePath(`/conta/pedidos/${order.id}`);
-      revalidatePath("/conta/pedidos");
-      revalidatePath("/admin/pedidos");
+      const remote = await getChargeStatus(billingId);
+      if (remote === "PAID") {
+        await markOrderPaid(order.id);
+        revalidatePath(`/conta/pedidos/${order.id}`);
+        revalidatePath("/conta/pedidos");
+        revalidatePath("/admin/pedidos");
+      }
     }
   }
 

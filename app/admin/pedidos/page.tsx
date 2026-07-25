@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { listOrdersWithUsers } from "@/lib/repositories/orders";
+import { listOrderAuditLog } from "@/lib/repositories/orderAudit";
 import { getPackage } from "@/lib/packages";
 import {
   orderToJson,
@@ -19,28 +21,39 @@ const dateFmt = new Intl.DateTimeFormat("pt-BR", {
 });
 
 export default async function AdminOrdersPage() {
+  await requireAdmin();
   const orders = await listOrdersWithUsers();
 
-  const cards: AdminOrder[] = orders.map((order) => {
-    const forPrompt = order as unknown as OrderForPrompt;
-    const pkg = getPackage(order.packageTier);
-    return {
-      id: order.id,
-      status: order.status,
-      coupleName: order.coupleNames ?? order.user.name,
-      packageName: pkg?.name ?? order.packageTier,
-      whatsapp: order.user.whatsapp,
-      updatedAt: dateFmt.format(new Date(order.updatedAt)),
-      json: JSON.stringify(orderToJson(forPrompt), null, 2),
-      fullPrompt: buildFullPrompt(forPrompt),
-      previewUrl: order.previewUrl,
-      siteUrl: order.siteUrl,
-      priceCents: order.priceCents,
-      adminMessage: order.adminMessage,
-      paymentStatus: order.paymentStatus,
-      defaultPriceCents: pkg?.priceCents ?? 0,
-    };
-  });
+  const cards: AdminOrder[] = await Promise.all(
+    orders.map(async (order) => {
+      const forPrompt = order as unknown as OrderForPrompt;
+      const pkg = getPackage(order.packageTier);
+      const auditLog = await listOrderAuditLog(order.id);
+      return {
+        id: order.id,
+        status: order.status,
+        coupleName: order.coupleNames ?? order.user.name,
+        packageName: pkg?.name ?? order.packageTier,
+        whatsapp: order.user.whatsapp,
+        updatedAt: dateFmt.format(new Date(order.updatedAt)),
+        json: JSON.stringify(orderToJson(forPrompt), null, 2),
+        fullPrompt: buildFullPrompt(forPrompt),
+        previewUrl: order.previewUrl,
+        siteUrl: order.siteUrl,
+        priceCents: order.priceCents,
+        adminMessage: order.adminMessage,
+        paymentStatus: order.paymentStatus,
+        defaultPriceCents: pkg?.priceCents ?? 0,
+        auditLog: auditLog.map((entry) => ({
+          adminName: entry.adminName,
+          field: entry.field,
+          oldValue: entry.oldValue,
+          newValue: entry.newValue,
+          when: dateFmt.format(new Date(entry.createdAt)),
+        })),
+      };
+    })
+  );
 
   const inProgress = cards.filter(
     (c) =>

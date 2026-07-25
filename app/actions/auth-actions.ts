@@ -1,30 +1,40 @@
 "use server";
 
-import crypto from "crypto";
 import { redirect } from "next/navigation";
 import { createSessionCookie, clearSessionCookie } from "@/lib/auth/session";
+import { verifyPassword } from "@/lib/auth/password";
+import { getAdminByEmail } from "@/lib/repositories/admins";
+import { checkRateLimit, getClientIp, RATE_LIMIT_MESSAGE } from "@/lib/rateLimit";
 
-function passwordMatches(input: string): boolean {
-  const expected = process.env.ADMIN_PASSWORD;
-  if (!expected) {
-    throw new Error("ADMIN_PASSWORD is not set");
-  }
-
-  const inputBuffer = Buffer.from(input);
-  const expectedBuffer = Buffer.from(expected);
-  if (inputBuffer.length !== expectedBuffer.length) return false;
-
-  return crypto.timingSafeEqual(inputBuffer, expectedBuffer);
-}
+// Hash descartável para normalizar o tempo quando o e-mail não existe.
+const DUMMY_HASH =
+  "0000000000000000000000000000000000000000000000000000000000000000:" +
+  "0000000000000000000000000000000000000000000000000000000000000000" +
+  "0000000000000000000000000000000000000000000000000000000000000000";
 
 export async function loginAction(formData: FormData) {
+  const email = formData.get("email")?.toString().trim().toLowerCase() ?? "";
   const password = formData.get("password")?.toString() ?? "";
 
-  if (!passwordMatches(password)) {
-    return { error: "Senha incorreta." };
+  const ip = await getClientIp();
+  const [ipOk, emailOk] = await Promise.all([
+    checkRateLimit(`admin:${ip}`),
+    email ? checkRateLimit(`admin-email:${email}`) : Promise.resolve({ allowed: true }),
+  ]);
+  if (!ipOk.allowed || !emailOk.allowed) {
+    return { error: RATE_LIMIT_MESSAGE };
   }
 
-  await createSessionCookie();
+  const admin = email ? await getAdminByEmail(email) : null;
+  if (!admin) {
+    await verifyPassword(password, DUMMY_HASH); // gasta o mesmo tempo
+    return { error: "E-mail ou senha incorretos." };
+  }
+  if (!(await verifyPassword(password, admin.passwordHash))) {
+    return { error: "E-mail ou senha incorretos." };
+  }
+
+  await createSessionCookie(admin.id);
   redirect("/admin/pedidos");
 }
 

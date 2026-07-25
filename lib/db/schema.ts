@@ -31,8 +31,60 @@ export const orderStatusEnum = pgEnum("order_status", [
   "published", // site no ar, pedido finalizado
 ]);
 
-// Contas dos casais clientes da plataforma (não confundir com o admin do
-// site de um casamento, que usa senha única de ambiente).
+// Contas de administrador da plataforma (uma por pessoa — substitui a
+// senha única compartilhada). Mesmo hash scrypt usado pelos casais.
+export const admins = pgTable("admins", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+// Rastro de auditoria: cada campo alterado por um admin num pedido vira uma
+// linha aqui. adminName é um snapshot (sobrevive se a conta for removida).
+export const orderAuditLog = pgTable(
+  "order_audit_log",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orderId: uuid("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    adminId: uuid("admin_id").references(() => admins.id, {
+      onDelete: "set null",
+    }),
+    adminName: text("admin_name").notNull(),
+    field: text("field").notNull(),
+    oldValue: text("old_value"),
+    newValue: text("new_value"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index("idx_order_audit_log_order_id").on(table.orderId)]
+);
+
+// Rate limiting simples baseado no banco (funções serverless não
+// compartilham memória entre instâncias). Uma linha por tentativa de
+// login/cadastro; a janela é filtrada por tempo na consulta, não aqui.
+export const loginAttempts = pgTable(
+  "login_attempts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    key: text("key").notNull(), // ex: "admin:203.0.113.5"
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("idx_login_attempts_key_created").on(table.key, table.createdAt),
+  ]
+);
+
+// Contas dos casais clientes da plataforma (não confundir com o admin da
+// plataforma, tabela `admins` acima).
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
@@ -168,6 +220,22 @@ export const usersRelations = relations(users, ({ many }) => ({
   orders: many(orders),
 }));
 
-export const ordersRelations = relations(orders, ({ one }) => ({
+export const ordersRelations = relations(orders, ({ one, many }) => ({
   user: one(users, { fields: [orders.userId], references: [users.id] }),
+  auditLog: many(orderAuditLog),
+}));
+
+export const adminsRelations = relations(admins, ({ many }) => ({
+  auditEntries: many(orderAuditLog),
+}));
+
+export const orderAuditLogRelations = relations(orderAuditLog, ({ one }) => ({
+  order: one(orders, {
+    fields: [orderAuditLog.orderId],
+    references: [orders.id],
+  }),
+  admin: one(admins, {
+    fields: [orderAuditLog.adminId],
+    references: [admins.id],
+  }),
 }));
