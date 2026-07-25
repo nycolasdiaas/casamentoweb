@@ -70,6 +70,7 @@ function ModernoTemplateInner() {
   return (
     <div className={`${display.variable} ${mono.variable}`}>
       <TemplateChrome
+        styleId="moderno"
         styleName="Moderno"
         outerBg="#e9e8e4"
         cardBg="#fafafa"

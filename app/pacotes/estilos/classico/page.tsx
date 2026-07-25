@@ -77,6 +77,7 @@ function ClassicoTemplateInner() {
       className={`${display.variable} ${body.variable} ${script.variable}`}
     >
       <TemplateChrome
+        styleId="classico"
         styleName="Clássico"
         outerBg="#2f3a2a"
         cardBg="#f2efe7"

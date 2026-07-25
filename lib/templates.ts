@@ -1,6 +1,10 @@
 // Metadados dos 3 estilos visuais de template, usados na landing (/pacotes)
 // e nas páginas de prévia completa (/pacotes/estilos/[estilo]).
-export type TemplateStyleId = "classico" | "moderno" | "romantico";
+export type TemplateStyleId =
+  | "classico"
+  | "moderno"
+  | "romantico"
+  | "toscana";
 
 export type TemplateStyle = {
   id: TemplateStyleId;
@@ -30,6 +34,13 @@ export const TEMPLATE_STYLES: TemplateStyle[] = [
     description:
       "Aquarela e flores: molduras ovais, tons pastel, caligrafia generosa.",
     swatches: ["#fdf2f4", "#7c4a55", "#d9a3ae"],
+  },
+  {
+    id: "toscana",
+    name: "Toscana",
+    description:
+      "Rústico chique italiano: oliva e dourado, capa full-bleed, caligrafia Italianno.",
+    swatches: ["#f3eddd", "#33351f", "#9c8654"],
   },
 ];
 

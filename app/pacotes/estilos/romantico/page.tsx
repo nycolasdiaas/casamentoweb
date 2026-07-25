@@ -95,6 +95,7 @@ function RomanticoTemplateInner() {
   return (
     <div className={`${script.variable} ${body.variable}`}>
       <TemplateChrome
+        styleId="romantico"
         styleName="Romântico"
         outerBg="#6d3f49"
         cardBg="#fdf2f4"
