@@ -97,6 +97,26 @@ export const users = pgTable("users", {
     .defaultNow(),
 });
 
+// Tokens de redefinição de senha (casal). Guardamos só o HASH do token —
+// o valor em claro vai no link do e-mail e nunca é persistido. Uso único
+// (usedAt) e com expiração (expiresAt).
+export const passwordResetTokens = pgTable(
+  "password_reset_tokens",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull().unique(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index("idx_password_reset_user_id").on(table.userId)]
+);
+
 // Um pedido por casal: pacote + template escolhidos e o material do
 // briefing. "draft" enquanto edita; "submitted" quando envia pra produção.
 export const orders = pgTable(

@@ -73,7 +73,13 @@ export async function proxy(request: NextRequest) {
   }
 
   if (pathname.startsWith("/conta")) {
-    if (pathname === "/conta/entrar" || pathname === "/conta/criar") {
+    const publicContaPaths = [
+      "/conta/entrar",
+      "/conta/criar",
+      "/conta/esqueci",
+      "/conta/redefinir",
+    ];
+    if (publicContaPaths.includes(pathname)) {
       return NextResponse.next();
     }
 

@@ -50,6 +50,13 @@
       "when": 1784944729126,
       "tag": "0006_cuddly_network",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1784990547907,
+      "tag": "0007_closed_sabra",
+      "breakpoints": true
     }
   ]
 }

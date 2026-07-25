@@ -1,12 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { Suspense, useActionState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Inter } from "next/font/google";
 import { signinAction } from "@/app/actions/account-actions";
 import { SITE_NAME } from "@/lib/site";
 
 const inter = Inter({ subsets: ["latin"] });
+
+function ResetSuccessBanner() {
+  const params = useSearchParams();
+  if (params.get("redefinida") !== "1") return null;
+  return (
+    <p className="rounded-xl border border-(--color-olive)/30 bg-(--color-blush) px-4 py-3 text-sm text-(--color-olive) text-center">
+      Senha redefinida! Entre com a nova senha.
+    </p>
+  );
+}
 
 export default function SigninPage() {
   const [state, action, pending] = useActionState(
@@ -27,6 +38,10 @@ export default function SigninPage() {
           </p>
           <h1 className="text-2xl font-bold tracking-tight">Entrar</h1>
         </div>
+
+        <Suspense fallback={null}>
+          <ResetSuccessBanner />
+        </Suspense>
 
         <form action={action} className="flex flex-col gap-3">
           <input
@@ -55,6 +70,13 @@ export default function SigninPage() {
           >
             {pending ? "Entrando..." : "Entrar"}
           </button>
+
+          <Link
+            href="/conta/esqueci"
+            className="text-center text-xs text-(--color-olive)/70 underline underline-offset-4 hover:text-(--color-olive)"
+          >
+            Esqueci minha senha
+          </Link>
         </form>
 
         <p className="text-center text-sm text-(--color-olive)/70">
