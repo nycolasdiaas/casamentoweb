@@ -9,8 +9,6 @@ export const metadata: Metadata = {
   title: `Novo pedido | ${SITE_NAME}`,
 };
 
-export const dynamic = "force-dynamic";
-
 export default async function NewOrderPage() {
   const userId = await getSessionUserId();
   if (!userId) redirect("/conta/entrar");

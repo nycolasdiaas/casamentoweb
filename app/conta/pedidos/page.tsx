@@ -17,8 +17,6 @@ export const metadata: Metadata = {
   title: `Meus pedidos | ${SITE_NAME}`,
 };
 
-export const dynamic = "force-dynamic";
-
 export default async function OrdersListPage() {
   const userId = await getSessionUserId();
   if (!userId) redirect("/conta/entrar");

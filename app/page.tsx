@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { PACKAGES } from "@/lib/packages";
@@ -12,7 +13,7 @@ import {
 } from "@/lib/site";
 import HeroPreview from "@/components/landing/HeroPreview";
 import FloatingWhatsApp from "@/components/landing/FloatingWhatsApp";
-import { getSessionUserId } from "@/lib/auth/userSession";
+import AccountNav, { LoggedOutLinks } from "@/components/landing/AccountNav";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -108,9 +109,7 @@ const FAQ: [string, string][] = [
   ],
 ];
 
-export default async function PackagesPage() {
-  const isLoggedIn = Boolean(await getSessionUserId());
-
+export default function PackagesPage() {
   return (
     <div
       className={`${inter.className} flex-1 flex flex-col bg-white text-(--color-olive)`}
@@ -135,29 +134,9 @@ export default async function PackagesPage() {
             <a href="#faq" className="hidden sm:inline hover:underline underline-offset-4">
               Dúvidas
             </a>
-            {isLoggedIn ? (
-              <Link
-                href="/conta"
-                className="bg-(--color-olive) text-white text-xs font-medium tracking-wide px-4 py-2 rounded-full hover:bg-(--color-olive)/90 transition-colors"
-              >
-                Minha conta
-              </Link>
-            ) : (
-              <>
-                <Link
-                  href="/conta/entrar"
-                  className="hover:underline underline-offset-4"
-                >
-                  Entrar
-                </Link>
-                <Link
-                  href="/conta/criar"
-                  className="bg-(--color-olive) text-white text-xs font-medium tracking-wide px-4 py-2 rounded-full hover:bg-(--color-olive)/90 transition-colors"
-                >
-                  Começar agora
-                </Link>
-              </>
-            )}
+            <Suspense fallback={<LoggedOutLinks />}>
+              <AccountNav />
+            </Suspense>
           </div>
         </nav>
       </header>

@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { getSessionAdminId } from "@/lib/auth/session";
 import {
   createGift,
@@ -40,6 +40,9 @@ export async function createGiftAction(formData: FormData) {
   await requireAdminSession();
   const siteId = await getLegacySiteId();
   const gift = await createGift(siteId, parseGiftFormData(formData));
+  // updateTag (nao revalidateTag): o admin precisa ver a propria mudanca
+  // imediatamente, nao uma versao stale.
+  updateTag(`gifts:${siteId}`);
   revalidatePath("/presentes");
   revalidatePath("/admin/presentes");
   return gift;
@@ -49,6 +52,7 @@ export async function updateGiftAction(giftId: string, formData: FormData) {
   await requireAdminSession();
   const siteId = await getLegacySiteId();
   const gift = await updateGift(siteId, giftId, parseGiftFormData(formData));
+  updateTag(`gifts:${siteId}`);
   revalidatePath("/presentes");
   revalidatePath("/admin/presentes");
   return gift;
@@ -58,6 +62,7 @@ export async function deleteGiftAction(giftId: string) {
   await requireAdminSession();
   const siteId = await getLegacySiteId();
   await deleteGift(siteId, giftId);
+  updateTag(`gifts:${siteId}`);
   revalidatePath("/presentes");
   revalidatePath("/admin/presentes");
 }

@@ -4,8 +4,6 @@ import { getLegacySiteId } from "@/lib/repositories/sites";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import RsvpDashboard from "@/components/admin/RsvpDashboard";
 
-export const dynamic = "force-dynamic";
-
 export default async function AdminDashboardPage() {
   await requireAdmin();
   const groups = await listGroupsWithGuests(await getLegacySiteId());

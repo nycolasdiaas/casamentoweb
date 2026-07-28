@@ -1,4 +1,5 @@
 import { and, eq, inArray, sql } from "drizzle-orm";
+import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db/client";
 import { gifts, giftContributions } from "@/lib/db/schema";
 
@@ -43,7 +44,17 @@ export async function deleteGift(siteId: string, giftId: string) {
     .where(and(eq(gifts.id, giftId), eq(gifts.siteId, siteId)));
 }
 
+/**
+ * Lista de presentes do site, em cache.
+ *
+ * Muda só quando o casal mexe na lista — e aí a action chama
+ * `updateTag('gifts:<siteId>')`, então o convidado nunca vê versão velha.
+ */
 export async function listGifts(siteId: string) {
+  "use cache";
+  cacheTag(`gifts:${siteId}`);
+  cacheLife("days");
+
   return db.query.gifts.findMany({
     where: eq(gifts.siteId, siteId),
     orderBy: (gifts, { asc }) => [asc(gifts.position), asc(gifts.createdAt)],

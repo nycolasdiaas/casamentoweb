@@ -21,8 +21,6 @@ export const metadata: Metadata = {
   title: `Acompanhar pedido | ${SITE_NAME}`,
 };
 
-export const dynamic = "force-dynamic";
-
 export default async function OrderTrackerPage({
   params,
 }: {

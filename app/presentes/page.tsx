@@ -5,8 +5,6 @@ import { getLegacySiteId, LEGACY_SITE_SLUG } from "@/lib/repositories/sites";
 import GiftGallery from "@/components/gifts/GiftGallery";
 import TrackView from "@/components/TrackView";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Isabelle & Nycolas | Lista de Presentes",
   description: "Presenteie os noivos com um Pix disfarçado de carinho",

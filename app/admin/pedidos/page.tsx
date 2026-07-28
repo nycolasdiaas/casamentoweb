@@ -11,8 +11,6 @@ import {
 } from "@/lib/buildPrompt";
 import OrderCard, { type AdminOrder } from "@/components/admin/OrderCard";
 
-export const dynamic = "force-dynamic";
-
 const dateFmt = new Intl.DateTimeFormat("pt-BR", {
   day: "2-digit",
   month: "2-digit",

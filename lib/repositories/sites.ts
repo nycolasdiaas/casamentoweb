@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db/client";
 import { sites } from "@/lib/db/schema";
 
@@ -14,7 +15,18 @@ import { sites } from "@/lib/db/schema";
  */
 export const LEGACY_SITE_SLUG = "isabelle-e-nycolas";
 
+/**
+ * Resolve o site pelo slug, em cache.
+ *
+ * É a consulta mais quente da plataforma: todo acesso de convidado começa
+ * por ela. Muda só quando o casal publica ou edita, então fica em cache
+ * longo e é invalidada por tag (`site:<slug>`) na hora da mudança.
+ */
 export async function getSiteBySlug(slug: string) {
+  "use cache";
+  cacheTag(`site:${slug}`);
+  cacheLife("days");
+
   const site = await db.query.sites.findFirst({ where: eq(sites.slug, slug) });
   return site ?? null;
 }

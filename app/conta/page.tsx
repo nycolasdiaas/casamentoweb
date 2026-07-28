@@ -13,8 +13,6 @@ export const metadata: Metadata = {
   title: `Minha conta | ${SITE_NAME}`,
 };
 
-export const dynamic = "force-dynamic";
-
 function HubCard({
   href,
   title,

@@ -3,8 +3,6 @@ import { revalidatePath } from "next/cache";
 import { getOrderByPaymentId, markOrderPaid } from "@/lib/repositories/orders";
 import { getChargeStatus } from "@/lib/payments/abacatepay";
 
-export const dynamic = "force-dynamic";
-
 // Webhook do AbacatePay para confirmação de pagamento em tempo real.
 // Configure a URL no painel do AbacatePay como:
 //   https://SEU-DOMINIO/api/webhooks/abacatepay?webhookSecret=SEU_SEGREDO

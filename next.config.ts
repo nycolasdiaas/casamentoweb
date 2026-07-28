@@ -25,6 +25,11 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Habilita `use cache` + PPR (padrão no App Router quando ligado). É o que
+  // permite servir o site de cada casal do cache e invalidar por tag quando o
+  // casal edita — sem gerar código nem fazer deploy por casamento.
+  // Ver docs/sdd-geracao-automatica.md §3.2.
+  cacheComponents: true,
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
