@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { getSessionUserId } from "@/lib/auth/userSession";
 import AccountShell from "@/components/account/AccountShell";
 import OrderForm from "@/components/account/OrderForm";
+import OrderPhotoSection from "@/components/account/OrderPhotoSection";
+import { isStorageConfigured } from "@/lib/storage";
 import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -25,7 +27,12 @@ export default async function NewOrderPage() {
         </p>
       </div>
 
-      <OrderForm order={null} orderId={null} />
+      <OrderForm
+        order={null}
+        orderId={null}
+        photoSlot={<OrderPhotoSection orderId={null} />}
+        photosEnabled={isStorageConfigured()}
+      />
     </AccountShell>
   );
 }

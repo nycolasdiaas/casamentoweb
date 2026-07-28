@@ -55,12 +55,14 @@ export default function SignupPage() {
             placeholder="WhatsApp (com DDD)"
             className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm focus:border-(--color-gold) focus:outline-none"
           />
+          {/* mín. 8 aqui e no servidor (signupAction) — antes o campo pedia 6
+              e o servidor recusava, dando erro só depois de enviar. */}
           <input
             type="password"
             name="password"
-            placeholder="Senha (mín. 6 caracteres)"
+            placeholder="Senha (mín. 8 caracteres)"
             required
-            minLength={6}
+            minLength={8}
             className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm focus:border-(--color-gold) focus:outline-none"
           />
 
@@ -71,10 +73,13 @@ export default function SignupPage() {
           <button
             type="submit"
             disabled={pending}
-            className="mt-1 rounded-full bg-(--color-olive) text-white py-3.5 text-sm font-medium transition-colors hover:bg-(--color-olive)/90 disabled:opacity-50"
+            className="btn btn-primary mt-1 w-full"
           >
             {pending ? "Criando..." : "Criar conta"}
           </button>
+          <p className="text-center text-xs text-(--color-muted)">
+            Vamos mandar um link no e-mail de vocês para confirmar a conta.
+          </p>
         </form>
 
         <p className="text-center text-sm text-(--color-olive)/70">

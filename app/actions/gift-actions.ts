@@ -39,7 +39,7 @@ export async function createGiftAction(formData: FormData) {
   await requireAdminSession();
   const gift = await createGift(parseGiftFormData(formData));
   revalidatePath("/presentes");
-  revalidatePath("/admin/presentes");
+  revalidatePath("/admin/casamento/presentes");
   return gift;
 }
 
@@ -47,7 +47,7 @@ export async function updateGiftAction(giftId: string, formData: FormData) {
   await requireAdminSession();
   const gift = await updateGift(giftId, parseGiftFormData(formData));
   revalidatePath("/presentes");
-  revalidatePath("/admin/presentes");
+  revalidatePath("/admin/casamento/presentes");
   return gift;
 }
 
@@ -55,7 +55,7 @@ export async function deleteGiftAction(giftId: string) {
   await requireAdminSession();
   await deleteGift(giftId);
   revalidatePath("/presentes");
-  revalidatePath("/admin/presentes");
+  revalidatePath("/admin/casamento/presentes");
 }
 
 /** Ação pública: convidado registra que enviou um Pix (identificação opcional). */
@@ -84,6 +84,6 @@ export async function registerContributionAction({
     giftName: gift.name,
     guestName: trimmedName || null,
   });
-  revalidatePath("/admin/presentes");
+  revalidatePath("/admin/casamento/presentes");
   return contribution;
 }

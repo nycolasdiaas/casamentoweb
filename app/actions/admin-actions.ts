@@ -25,12 +25,12 @@ export async function createGroupAction(formData: FormData) {
   }
 
   const group = await createGroup({ label, guestNames });
-  revalidatePath("/admin");
+  revalidatePath("/admin/casamento");
   return group;
 }
 
 export async function deleteGroupAction(groupId: string) {
   await requireAdminSession();
   await deleteGroup(groupId);
-  revalidatePath("/admin");
+  revalidatePath("/admin/casamento");
 }

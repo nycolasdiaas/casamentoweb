@@ -4,6 +4,8 @@ import { getSessionUserId } from "@/lib/auth/userSession";
 import { getOrderById } from "@/lib/repositories/orders";
 import AccountShell from "@/components/account/AccountShell";
 import OrderForm, { type OrderData } from "@/components/account/OrderForm";
+import OrderPhotoSection from "@/components/account/OrderPhotoSection";
+import { isStorageConfigured } from "@/lib/storage";
 import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -38,7 +40,12 @@ export default async function EditOrderPage({
         </p>
       </div>
 
-      <OrderForm order={order as OrderData} orderId={order.id} />
+      <OrderForm
+        order={order as OrderData}
+        orderId={order.id}
+        photoSlot={<OrderPhotoSection orderId={order.id} />}
+        photosEnabled={isStorageConfigured()}
+      />
     </AccountShell>
   );
 }

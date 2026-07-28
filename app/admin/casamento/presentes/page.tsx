@@ -1,43 +1,46 @@
 import Link from "next/link";
-import { listGroupsWithGuests } from "@/lib/repositories/groups";
+import { listGifts, listContributions } from "@/lib/repositories/gifts";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
-import RsvpDashboard from "@/components/admin/RsvpDashboard";
+import GiftAdmin from "@/components/admin/GiftAdmin";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminDashboardPage() {
+export default async function AdminGiftsPage() {
   await requireAdmin();
-  const groups = await listGroupsWithGuests();
+  const [gifts, contributions] = await Promise.all([
+    listGifts(),
+    listContributions(),
+  ]);
 
   return (
     <main className="flex-1 flex flex-col gap-8 px-6 py-12 max-w-3xl mx-auto w-full">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <h1 className="font-serif text-xl text-(--color-olive)">
-          Confirmações
+          Lista de presentes
         </h1>
         <nav className="flex gap-4">
           <Link
-            href="/admin"
+            href="/presentes"
             className="font-serif text-xs text-(--color-olive) underline"
           >
-            Gerenciar convidados
+            Ver página pública
           </Link>
           <Link
-            href="/admin/presentes"
+            href="/admin/casamento"
             className="font-serif text-xs text-(--color-olive) underline"
           >
-            Lista de presentes
+            Convidados
           </Link>
           <Link
-            href="/admin/pedidos"
+            href="/admin/casamento/confirmacoes"
             className="font-serif text-xs text-(--color-olive) underline"
           >
-            Pedidos de sites
+            Confirmações
           </Link>
         </nav>
       </div>
 
-      <RsvpDashboard groups={groups} />
+      <GiftAdmin gifts={gifts} contributions={contributions} />
     </main>
   );
 }

@@ -8,9 +8,10 @@ import {
   clearUserSessionCookie,
   getSessionUserId,
 } from "@/lib/auth/userSession";
-import { createUser, getUserByEmail } from "@/lib/repositories/users";
+import { createUser, getUserByEmail, getUserById } from "@/lib/repositories/users";
 import { getAdminByEmail } from "@/lib/repositories/admins";
-import { createSessionCookie as createAdminSessionCookie } from "@/lib/auth/session";
+import { sendVerificationEmailFor } from "@/app/actions/email-verification-actions";
+import { clearSessionCookie as clearAdminSessionCookie } from "@/lib/auth/session";
 import {
   createOrder,
   updateOrder,
@@ -23,6 +24,7 @@ import { PACKAGES, type PackageTier } from "@/lib/packages";
 import { TEMPLATE_STYLES } from "@/lib/templates";
 import { isFontStyle, isHexColor } from "@/lib/customization";
 import { checkRateLimit, getClientIp, RATE_LIMIT_MESSAGE } from "@/lib/rateLimit";
+import { isEmailConfigured } from "@/lib/email";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -54,6 +56,11 @@ export async function signupAction(formData: FormData) {
     whatsapp: whatsapp || undefined,
   });
 
+  // Dispara a confirmação de e-mail. Não bloqueia o cadastro se o envio
+  // falhar — o painel mostra o aviso com o botão de reenviar.
+  await sendVerificationEmailFor(user);
+
+  await clearAdminSessionCookie();
   await createUserSessionCookie(user.id);
   redirect("/conta");
 }
@@ -77,18 +84,25 @@ export async function signinAction(formData: FormData) {
   ]);
   if (!ipOk.allowed || !emailOk.allowed) return { error: RATE_LIMIT_MESSAGE };
 
-  // Mesma tela serve casal e admin: tenta conta de casal primeiro, depois
-  // admin — cada um cai na sua sessão (cookie diferente) e área própria.
+  // Esta tela entra SÓ como casal. Antes ela também aceitava credencial de
+  // admin e mandava direto pro /admin — era por isso que quem já tinha logado
+  // como admin nunca conseguia entrar como casal. Admin tem a tela dele.
   const user = email ? await getUserByEmail(email) : null;
   if (user && (await verifyPassword(password, user.passwordHash))) {
+    // Derruba qualquer sessão de admin aberta no mesmo navegador: um browser
+    // fica em um papel de cada vez, nunca nos dois.
+    await clearAdminSessionCookie();
     await createUserSessionCookie(user.id);
     redirect("/conta");
   }
 
   const admin = email ? await getAdminByEmail(email) : null;
   if (admin && (await verifyPassword(password, admin.passwordHash))) {
-    await createAdminSessionCookie(admin.id);
-    redirect("/admin/pedidos");
+    // Credencial certa, porta errada — não cria sessão nenhuma aqui.
+    return {
+      error:
+        "Essa é uma conta de administrador. Entre pela tela da equipe em /admin/login.",
+    };
   }
 
   // Nenhuma conta bateu. Se o e-mail nem existe, roda um scrypt descartável
@@ -175,6 +189,64 @@ export async function saveOrderAction(formData: FormData) {
   redirect(`/conta/pedido/${created.id}`);
 }
 
+/**
+ * "Ver os modelos" a partir do formulário: salva o rascunho ANTES de sair da
+ * tela (senão o casal perde o que já digitou) e manda para a prévia do
+ * template atual, carregando o id do pedido para conseguir voltar.
+ */
+export async function previewTemplatesAction(formData: FormData) {
+  const userId = await getSessionUserId();
+  if (!userId) redirect("/conta/entrar");
+
+  const parsed = parseOrderForm(formData);
+  if ("error" in parsed) return { error: parsed.error };
+
+  const orderId = formData.get("orderId")?.toString() ?? "";
+  const existing = await getOwnedOrder(userId, orderId);
+  if (existing && existing.status !== "draft") {
+    return { error: "Este pedido já foi enviado e não pode ser editado." };
+  }
+
+  const draft = existing
+    ? ((await updateOrder(existing.id, parsed.input)) ?? existing)
+    : await createOrder(userId, parsed.input);
+
+  // Abre no modelo que já está marcado; sem nenhum, começa pelo primeiro.
+  const style = parsed.input.templateStyle || TEMPLATE_STYLES[0].id;
+
+  revalidatePath(`/conta/pedido/${draft.id}`);
+  redirect(
+    `/pacotes/estilos/${style}?pacote=${parsed.input.packageTier}&pedido=${draft.id}`
+  );
+}
+
+/**
+ * Volta da prévia para o pedido gravando o modelo escolhido. Chamada tanto
+ * pelo botão "Usar este modelo" quanto pelo "voltar" da prévia — os dois
+ * salvam, que foi o pedido do Anderson.
+ */
+export async function chooseTemplateAction(formData: FormData) {
+  const userId = await getSessionUserId();
+  if (!userId) redirect("/conta/entrar");
+
+  const orderId = formData.get("orderId")?.toString() ?? "";
+  const templateStyle = formData.get("templateStyle")?.toString() ?? "";
+
+  const order = await getOwnedOrder(userId, orderId);
+  if (!order) redirect("/conta/pedidos");
+  if (order.status !== "draft") redirect(`/conta/pedidos/${order.id}`);
+
+  if (TEMPLATE_STYLES.some((style) => style.id === templateStyle)) {
+    await updateOrder(order.id, {
+      packageTier: order.packageTier as PackageTier,
+      templateStyle,
+    });
+  }
+
+  revalidatePath(`/conta/pedido/${order.id}`);
+  redirect(`/conta/pedido/${order.id}`);
+}
+
 export async function submitOrderAction(formData: FormData) {
   const userId = await getSessionUserId();
   if (!userId) redirect("/conta/entrar");
@@ -184,17 +256,29 @@ export async function submitOrderAction(formData: FormData) {
 
   const orderId = formData.get("orderId")?.toString() ?? "";
   const existing = await getOwnedOrder(userId, orderId);
-
-  if (existing) {
-    if (existing.status !== "draft") {
-      return { error: "Este pedido já foi enviado." };
-    }
-    await updateOrder(existing.id, parsed.input);
-    await submitOrderById(existing.id);
-  } else {
-    const created = await createOrder(userId, parsed.input);
-    await submitOrderById(created.id);
+  if (existing && existing.status !== "draft") {
+    return { error: "Este pedido já foi enviado." };
   }
+
+  // Salva o conteúdo ANTES de checar a confirmação de e-mail: se travar por
+  // e-mail não confirmado, o casal não perde o que digitou.
+  const draft = existing
+    ? ((await updateOrder(existing.id, parsed.input)) ?? existing)
+    : await createOrder(userId, parsed.input);
+
+  // Enviar o pedido é o passo que compromete a equipe a produzir — só depois
+  // do e-mail confirmado, senão não temos como avisar o casal da prévia.
+  const user = await getUserById(userId);
+  if (user && !user.emailVerifiedAt && isEmailConfigured()) {
+    revalidatePath(`/conta/pedido/${draft.id}`);
+    return {
+      needsEmailConfirmation: true,
+      error:
+        "Rascunho salvo ✓ — falta confirmar o e-mail de vocês para enviar o pedido. O link está na caixa de entrada.",
+    };
+  }
+
+  await submitOrderById(draft.id);
 
   // Volta para o início (hub), que lista os pedidos com o andamento.
   revalidatePath("/conta");

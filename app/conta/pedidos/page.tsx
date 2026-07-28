@@ -34,10 +34,7 @@ export default async function OrdersListPage() {
             Cada pedido de vocês e em que etapa está.
           </p>
         </div>
-        <Link
-          href="/conta/pedido/novo"
-          className="rounded-full bg-(--color-olive) text-white px-5 py-2.5 text-sm font-medium transition-transform hover:scale-105"
-        >
+        <Link href="/conta/pedido/novo" className="btn btn-primary btn-sm">
           + Novo pedido
         </Link>
       </div>
@@ -47,10 +44,7 @@ export default async function OrdersListPage() {
           <p className="text-sm text-(--color-olive)/75 max-w-md leading-relaxed">
             Vocês ainda não têm nenhum pedido. Vamos montar o primeiro?
           </p>
-          <Link
-            href="/conta/pedido/novo"
-            className="rounded-full bg-(--color-olive) text-white px-8 py-3 text-sm font-medium transition-transform hover:scale-105"
-          >
+          <Link href="/conta/pedido/novo" className="btn btn-primary">
             Montar meu pedido
           </Link>
         </div>
@@ -81,14 +75,14 @@ export default async function OrdersListPage() {
                   {isDraft ? (
                     <Link
                       href={`/conta/pedido/${order.id}`}
-                      className="rounded-full border border-(--color-olive)/30 px-5 py-2.5 text-sm font-medium transition-colors hover:bg-(--color-blush)"
+                      className="btn btn-secondary btn-sm"
                     >
                       Continuar
                     </Link>
                   ) : (
                     <Link
                       href={`/conta/pedidos/${order.id}`}
-                      className="rounded-full bg-(--color-olive) text-white px-5 py-2.5 text-sm font-medium transition-transform hover:scale-105"
+                      className="btn btn-primary btn-sm"
                     >
                       Acompanhar
                     </Link>

@@ -21,6 +21,9 @@ export type OrderForPrompt = {
   createdAt: Date | string;
   updatedAt: Date | string;
   user: { name: string; email: string; whatsapp: string | null };
+  // Quantas fotos o casal subiu na plataforma. Os arquivos vão junto com o
+  // briefing; aqui o gerador só precisa saber quantas esperar.
+  photoCount?: number;
 };
 
 function fontLabel(id: string | null): string | null {
@@ -58,7 +61,8 @@ export function orderToJson(order: OrderForPrompt) {
     },
     conteudo: {
       dataCasamento: order.weddingDate,
-      linkFotos: order.photosLink,
+      fotosEnviadasNaPlataforma: order.photoCount ?? 0,
+      pastaExternaDeApoio: order.photosLink,
       historiaEDetalhes: order.notes,
     },
     datas: {
@@ -77,20 +81,54 @@ export function orderToJson(order: OrderForPrompt) {
 // Prompt-base de geração do site. EDITE À VONTADE — este texto é somado ao
 // JSON do pedido para produzir o site de cada casal. Também vive em
 // docs/prompt-gerar-site.md para referência fora do app.
-export const SITE_BUILD_PROMPT = `Você é o motor de produção da Enlace, uma plataforma que entrega sites de casamento prontos. Gere o site do casal a partir do JSON do pedido abaixo.
+//
+// A versão anterior era uma lista solta de regras e produzia site com dado
+// inventado, seção fora do pacote e caminho de arquivo aleatório. Esta versão
+// fixa: (1) precedência explícita entre as fontes de decisão, (2) o que é
+// proibido inventar, (3) a estrutura de arquivos exata, (4) o formato da
+// resposta. É o que reduz a "falha de lógica" que aparecia no resultado.
+export const SITE_BUILD_PROMPT = `Você é o motor de produção da Enlace, plataforma que entrega sites de casamento prontos. Gere o site DESTE casal a partir do JSON no fim deste prompt.
 
-REGRAS:
-- Stack: Next.js (App Router) + Tailwind v4, igual aos templates em app/pacotes/estilos/. Mobile-first (o convidado abre pelo WhatsApp).
-- O pacote define quais seções existem: "Convite" = capa/save-the-date, contagem regressiva, história, informações, rodapé. "Site do Casamento" = tudo isso + confirmação de presença (RSVP). "Para Sempre" = tudo + lista de presentes com Pix (sem taxa) + álbum pós-festa + endereço personalizado.
-- Se "templateBase" tiver um nome, use-o como ponto de partida visual; se for "nenhum", monte do zero a partir das cores e tipografia.
-- "corPrincipal" e "corSecundaria" (hex) mandam na paleta. Se vierem nulas, escolha uma paleta elegante que combine com as observações.
-- "tipografia" indica a direção das fontes dos títulos. Se nula, escolha algo coerente com o estilo.
-- LEIA "observacoes" e "historiaEDetalhes" com atenção — são os pedidos textuais do casal e têm prioridade sobre qualquer padrão.
-- Use as fotos do "linkFotos" (o casal compartilhou uma pasta); onde não houver foto, use placeholders elegantes.
-- Nomes do casal: use "nomeExibicao". Data: "dataCasamento".
-- Não invente informações que não estão no pedido; se algo essencial faltar, deixe um placeholder claro e liste no final o que falta pedir ao casal pelo WhatsApp.
+## Ordem de precedência (quando duas fontes se contradizem, a de cima vence)
+1. "estilo.observacoes" e "conteudo.historiaEDetalhes" — texto escrito pelo próprio casal.
+2. "estilo.corPrincipal", "estilo.corSecundaria", "estilo.tipografia" — escolhas explícitas na plataforma.
+3. "estilo.templateBase" — ponto de partida visual apenas.
+4. Seu bom gosto, para o que sobrar.
+Exemplo: se templateBase é "Clássico" mas as observações pedem "tema praia, nada de dourado", o tema praia vence e o dourado sai.
 
-Entregue o código do site e, ao final, um checklist do que ainda falta do casal.
+## Escopo por pacote (NÃO entregue seção fora do pacote contratado)
+- "convite": capa/save-the-date, contagem regressiva, nossa história, informações (data, horário, local, mapa), rodapé.
+- "site": tudo do convite + confirmação de presença (RSVP) por convidado, com link por família/grupo.
+- "para-sempre": tudo do site + lista de presentes com Pix (sem taxa) + álbum pós-festa + endereço personalizado.
+Confira "pacote.id" e "pacote.recursos" antes de escrever qualquer seção. Seção a mais é retrabalho, não bônus.
+
+## Proibido inventar
+Estes dados só existem se vierem no JSON. Se faltarem, use um placeholder VISÍVEL no formato [FALTA: descrição] e registre no checklist final:
+- nome do local, endereço, cidade, mapa
+- horário da cerimônia e da festa
+- dress code, lista de padrinhos, cardápio
+- qualquer fato da história do casal que não esteja em "historiaEDetalhes"
+- depoimento, avaliação ou número (ex: "500 casais atendidos")
+Nunca preencha com o casal de exemplo "Ana & Pedro" nem com texto genérico de template.
+
+## Conteúdo
+- Nome de exibição: "casal.nomeExibicao". Data: "conteudo.dataCasamento" (formato ISO; exiba por extenso em pt-BR).
+- "Nossa história": reescreva "historiaEDetalhes" com as palavras do casal, em 2 a 4 parágrafos curtos. Ajuste ritmo e pontuação, não invente fato novo.
+- Fotos: o casal sobe as fotos dentro da plataforma; a equipe entrega os arquivos junto com este briefing. Use <Image> com placeholder de proporção correta e um comentário // TODO: foto X onde cada uma entra. "conteudo.linkFotos" (quando existir) é só uma pasta externa de apoio.
+- Textos em português do Brasil, tom caloroso e direto, sem clichê de agência ("momentos inesquecíveis", "o dia mais especial das suas vidas").
+
+## Técnico
+- Next.js 16 (App Router, Server Components por padrão) + Tailwind v4. Espelhe os templates em app/pacotes/estilos/ — leia um antes de começar.
+- Mobile-first de verdade: o convidado abre o link pelo WhatsApp num celular. Nada pode gerar rolagem horizontal; trilhos que rolam de propósito usam a classe .no-scrollbar.
+- Paleta em CSS custom properties no topo do arquivo. Em botão de ação use cor sólida em hex literal — variável que não resolve já deixou CTA invisível em produção aqui.
+- Contraste mínimo 4.5:1 em texto e botão. Toda imagem com alt. Todo campo de formulário com <label>.
+- Fontes via next/font/google, com o peso que existe de verdade na família.
+- Sem dependência nova sem necessidade real.
+
+## Formato da resposta
+1. **Plano** — 5 linhas: paleta, tipografia, seções (na ordem) e o que veio das observações do casal.
+2. **Código** — arquivos completos, cada um com o caminho como cabeçalho. Sem "..." nem trecho omitido.
+3. **Checklist do casal** — lista do que ficou como [FALTA: ...], pronta para copiar e mandar pro casal.
 
 PEDIDO:
 `;

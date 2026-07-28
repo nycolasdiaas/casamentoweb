@@ -12,12 +12,14 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "backup:guests": "node scripts/backup-guests.mjs",
-    "seed:gifts": "node scripts/seed-gifts.mjs"
+    "seed:gifts": "node scripts/seed-gifts.mjs",
+    "email:test": "node scripts/test-email.mjs"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
     "nanoid": "^5.1.15",
     "next": "^16.2.11",
+    "nodemailer": "^9.0.3",
     "postgres": "^3.4.9",
     "react": "19.2.4",
     "react-dom": "19.2.4"
@@ -28,6 +30,7 @@
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20",
+    "@types/nodemailer": "^8.0.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.0.2",

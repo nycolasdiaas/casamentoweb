@@ -41,7 +41,7 @@ sem tudo em mãos.
       `PIX_INSTITUTION` do casal novo (conferir copia e cola num app de banco
       ANTES de publicar — pagar R$ 0,01 de teste)
 - [ ] `public/pix-qr.png`: QR novo do casal
-- [ ] Cadastrar presentes: `scripts/seed-gifts.mjs` ou painel `/admin/presentes`
+- [ ] Cadastrar presentes: `scripts/seed-gifts.mjs` ou painel `/admin/casamento/presentes`
 
 ## 4. RSVP — Site e Para Sempre (~30 min–1 h)
 

@@ -123,5 +123,8 @@ export async function saveOrderAdminAction(formData: FormData) {
   await logOrderChanges(orderId, admin.id, admin.name, changes);
 
   revalidatePath("/admin/pedidos");
+  revalidatePath(`/admin/pedidos/${orderId}`);
+  revalidatePath("/conta");
   revalidatePath("/conta/pedidos");
+  revalidatePath(`/conta/pedidos/${orderId}`);
 }

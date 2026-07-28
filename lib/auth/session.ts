@@ -2,10 +2,15 @@ import { cookies } from "next/headers";
 import crypto from "crypto";
 
 // Sessão de admin da plataforma (uma conta por pessoa — ver tabela `admins`).
-// Payload: "adminId:expiresAt", assinado com HMAC — mesmo esquema do
-// user_session dos casais.
+// Payload: "adminId:expiresAt", assinado com HMAC.
 export const COOKIE_NAME = "admin_session";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // 7 days
+
+// Separação de domínio da assinatura. O cookie de admin e o do casal têm o
+// mesmo formato ("id:expiresAt") e usam o mesmo segredo — sem este prefixo
+// no que é assinado, um admin_session válido colado em user_session passaria
+// na verificação (e vice-versa), virando escalada de privilégio.
+export const ADMIN_SESSION_DOMAIN = "enlace.admin.v1";
 
 function getSecret(): string {
   const secret = process.env.ADMIN_SESSION_SECRET;
@@ -16,7 +21,10 @@ function getSecret(): string {
 }
 
 function sign(payload: string): string {
-  return crypto.createHmac("sha256", getSecret()).update(payload).digest("hex");
+  return crypto
+    .createHmac("sha256", getSecret())
+    .update(`${ADMIN_SESSION_DOMAIN}|${payload}`)
+    .digest("hex");
 }
 
 export async function createSessionCookie(adminId: string) {

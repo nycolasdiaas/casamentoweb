@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useActionState, useState } from "react";
 import {
   Cormorant_Garamond,
@@ -41,6 +40,7 @@ import {
 import {
   saveOrderAction,
   submitOrderAction,
+  previewTemplatesAction,
 } from "@/app/actions/account-actions";
 import { PACKAGES, type PackageTier } from "@/lib/packages";
 import { TEMPLATE_STYLES } from "@/lib/templates";
@@ -250,22 +250,36 @@ function ColorField({
 }
 
 type ActionResult =
-  | { error?: string; saved?: boolean; submitted?: boolean }
+  | {
+      error?: string;
+      saved?: boolean;
+      submitted?: boolean;
+      // "erro" que na verdade é um aviso: rascunho salvo, falta confirmar
+      // o e-mail para poder enviar.
+      needsEmailConfirmation?: boolean;
+    }
   | undefined;
 
 export default function OrderForm({
   order,
   orderId,
+  photoSlot,
+  photosEnabled,
 }: {
   order: OrderData | null;
   orderId: string | null;
+  // O uploader é renderizado no server (precisa das URLs assinadas) e entra
+  // aqui como slot — por isso não é montado dentro deste client component.
+  photoSlot: React.ReactNode;
+  // Storage ligado? Muda o texto e abre o campo de link quando não está.
+  photosEnabled: boolean;
 }) {
   const [state, action, pending] = useActionState(
     async (_prev: ActionResult, formData: FormData): Promise<ActionResult> => {
       const intent = formData.get("intent")?.toString();
-      return intent === "submit"
-        ? submitOrderAction(formData)
-        : saveOrderAction(formData);
+      if (intent === "submit") return submitOrderAction(formData);
+      if (intent === "preview") return previewTemplatesAction(formData);
+      return saveOrderAction(formData);
     },
     undefined
   );
@@ -337,12 +351,18 @@ export default function OrderForm({
         <div className="flex flex-col gap-2">
           <p className="text-sm font-medium">
             Ponto de partida{" "}
-            <Link
-              href="/#estilos"
-              className="font-normal text-xs underline underline-offset-4 text-(--color-olive)/70"
+            {/* Abre a prévia de tela cheia. É submit, não link: salva o
+                rascunho antes de sair para o casal não perder o que digitou
+                — e volta com o modelo escolhido já marcado. */}
+            <button
+              type="submit"
+              name="intent"
+              value="preview"
+              disabled={pending}
+              className="font-normal text-xs underline underline-offset-4 text-(--color-olive)/70 hover:text-(--color-olive) disabled:opacity-50"
             >
-              (ver os modelos)
-            </Link>
+              (ver os modelos por dentro)
+            </button>
           </p>
           <input type="hidden" name="templateStyle" value={templateStyle} />
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -497,69 +517,134 @@ export default function OrderForm({
       </div>
 
       {/* Material */}
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-5">
         <p className="text-sm font-semibold">3. Material de vocês</p>
-        <input
-          type="text"
-          name="coupleNames"
-          defaultValue={order?.coupleNames ?? ""}
-          placeholder="Como querem aparecer no site (ex: Ana & Pedro)"
-          className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm focus:border-(--color-gold) focus:outline-none"
-        />
-        <input
-          type="date"
-          name="weddingDate"
-          defaultValue={order?.weddingDate ?? ""}
-          aria-label="Data do casamento"
-          className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm focus:border-(--color-gold) focus:outline-none"
-        />
-        <input
-          type="url"
-          name="photosLink"
-          defaultValue={order?.photosLink ?? ""}
-          placeholder="Link das fotos (Google Drive, Dropbox...)"
-          className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm focus:border-(--color-gold) focus:outline-none"
-        />
-        <p className="text-xs text-(--color-muted) -mt-1">
-          Coloquem as fotos numa pasta compartilhada e colem o link aqui —
-          qualquer um serve.
-        </p>
-        <textarea
-          name="notes"
-          rows={4}
-          defaultValue={order?.notes ?? ""}
-          placeholder="História de vocês, local da festa, cores preferidas... tudo que quiserem contar"
-          className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm resize-y focus:border-(--color-gold) focus:outline-none"
-        />
+
+        <label className="flex flex-col gap-1.5">
+          <span className="text-sm font-medium">
+            Como querem aparecer no site
+          </span>
+          <input
+            type="text"
+            name="coupleNames"
+            defaultValue={order?.coupleNames ?? ""}
+            placeholder="Ex: Ana & Pedro"
+            className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm focus:border-(--color-gold) focus:outline-none"
+          />
+          <span className="text-xs text-(--color-muted)">
+            É esse nome que aparece na capa do convite.
+          </span>
+        </label>
+
+        <label className="flex flex-col gap-1.5">
+          <span className="text-sm font-medium">Data do casamento</span>
+          <input
+            type="date"
+            name="weddingDate"
+            defaultValue={order?.weddingDate ?? ""}
+            className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm focus:border-(--color-gold) focus:outline-none"
+          />
+          <span className="text-xs text-(--color-muted)">
+            Usada na contagem regressiva e no Save the Date.
+          </span>
+        </label>
+
+        {/* Fotos: agora sobem para dentro da plataforma. */}
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-medium">Fotos de vocês</p>
+          <p className="text-xs text-(--color-muted)">
+            {photosEnabled
+              ? "Subam as fotos aqui mesmo — elas ficam guardadas junto com o pedido. São as fotos que entram na capa, na história e na galeria do site. De 5 a 15 já dão um site lindo."
+              : "São as fotos que entram na capa, na história e na galeria do site. De 5 a 15 já dão um site lindo."}
+          </p>
+          {photoSlot}
+        </div>
+
+        <label className="flex flex-col gap-1.5">
+          <span className="text-sm font-medium">A história de vocês</span>
+          <span className="text-xs text-(--color-muted) leading-relaxed">
+            Vira o texto da seção &ldquo;Nossa história&rdquo; do site — aquele
+            trecho que os convidados leem entre as fotos. A gente escreve com
+            as palavras de vocês, sem inventar nada. Contem como se conheceram,
+            o pedido, o que não pode faltar na festa, o local, horário… Nada
+            aqui aparece sem vocês verem antes na prévia.
+          </span>
+          <textarea
+            name="notes"
+            rows={5}
+            defaultValue={order?.notes ?? ""}
+            placeholder="Ex: A gente se conheceu em 2019 num churrasco de amigos... A festa é no Espaço Jardim, às 16h, e o dress code é..."
+            className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm resize-y focus:border-(--color-gold) focus:outline-none"
+          />
+        </label>
+
+        {/* Link externo continua existindo, mas como plano B declarado. Se o
+            upload estiver indisponível ele deixa de ser plano B — abre. */}
+        <details
+          open={!photosEnabled || Boolean(order?.photosLink)}
+          className="rounded-xl border border-(--color-gold)/30 bg-white/60 px-4 py-3"
+        >
+          <summary className="cursor-pointer text-xs text-(--color-olive)/70">
+            Tenho muitas fotos e já estão numa pasta compartilhada
+          </summary>
+          <div className="flex flex-col gap-1.5 pt-3">
+            <input
+              type="url"
+              name="photosLink"
+              defaultValue={order?.photosLink ?? ""}
+              placeholder="https://drive.google.com/..."
+              className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm focus:border-(--color-gold) focus:outline-none"
+            />
+            <span className="text-xs text-(--color-muted)">
+              Opcional. Confiram se a pasta está liberada para qualquer pessoa
+              com o link — o jeito mais seguro continua sendo subir as fotos
+              acima.
+            </span>
+          </div>
+        </details>
       </div>
 
-      {state?.error && <p className="text-sm text-red-700">{state.error}</p>}
+      {state?.error && (
+        <p
+          className={`text-sm ${
+            state.needsEmailConfirmation
+              ? "text-(--color-olive)"
+              : "text-red-700"
+          }`}
+        >
+          {state.error}
+        </p>
+      )}
       {state?.saved && !state.error && (
         <p className="text-sm text-(--color-olive)">
           Rascunho salvo ✓ — podem voltar e continuar depois.
         </p>
       )}
 
-      <div className="flex flex-wrap gap-3">
-        <button
-          type="submit"
-          name="intent"
-          value="save"
-          disabled={pending}
-          className="rounded-full border border-(--color-olive)/30 px-6 py-3 text-sm font-medium transition-colors hover:bg-(--color-blush) disabled:opacity-50"
-        >
-          {pending ? "Salvando..." : "Salvar rascunho"}
-        </button>
+      <div className="flex flex-wrap gap-3 border-t border-(--color-gold)/30 pt-6">
         <button
           type="submit"
           name="intent"
           value="submit"
           disabled={pending}
-          className="rounded-full bg-(--color-olive) text-white px-8 py-3 text-sm font-medium transition-colors hover:bg-(--color-olive)/90 disabled:opacity-50"
+          className="btn btn-primary"
         >
           {pending ? "Enviando..." : "Enviar pedido"}
         </button>
+        <button
+          type="submit"
+          name="intent"
+          value="save"
+          disabled={pending}
+          className="btn btn-secondary"
+        >
+          {pending ? "Salvando..." : "Salvar rascunho"}
+        </button>
       </div>
+      <p className="-mt-4 text-xs text-(--color-muted)">
+        Enviar não cobra nada e não fecha negócio: a gente monta a prévia e
+        vocês só pagam depois de ver o site pronto.
+      </p>
     </form>
   );
 }

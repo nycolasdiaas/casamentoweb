@@ -92,10 +92,32 @@ export const users = pgTable("users", {
   // formato "salt:hash" (scrypt), ver lib/auth/password.ts
   passwordHash: text("password_hash").notNull(),
   whatsapp: text("whatsapp"),
+  // null = e-mail ainda não confirmado. Enquanto for null o casal usa a conta
+  // normalmente, mas não consegue ENVIAR um pedido (só salvar rascunho).
+  emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
 });
+
+// Tokens de confirmação de e-mail. Mesmo esquema dos tokens de redefinição:
+// guardamos só o hash, o valor em claro vai no link e nunca é persistido.
+export const emailVerificationTokens = pgTable(
+  "email_verification_tokens",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull().unique(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index("idx_email_verification_user_id").on(table.userId)]
+);
 
 // Tokens de redefinição de senha (casal). Guardamos só o HASH do token —
 // o valor em claro vai no link do e-mail e nunca é persistido. Uso único
@@ -156,6 +178,28 @@ export const orders = pgTable(
       .defaultNow(),
   },
   (table) => [index("idx_orders_user_id").on(table.userId)]
+);
+
+// Fotos que o casal sobe DENTRO da plataforma (antes era só link do Drive).
+// O arquivo em si vive no Supabase Storage; aqui fica só o caminho e os
+// metadados. `storagePath` é único para o caminho ser sempre reconstruível.
+export const orderPhotos = pgTable(
+  "order_photos",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orderId: uuid("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    storagePath: text("storage_path").notNull().unique(),
+    originalName: text("original_name").notNull(),
+    contentType: text("content_type").notNull(),
+    sizeBytes: integer("size_bytes").notNull(),
+    position: smallint("position").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index("idx_order_photos_order_id").on(table.orderId)]
 );
 
 export const groups = pgTable("groups", {
@@ -243,7 +287,25 @@ export const usersRelations = relations(users, ({ many }) => ({
 export const ordersRelations = relations(orders, ({ one, many }) => ({
   user: one(users, { fields: [orders.userId], references: [users.id] }),
   auditLog: many(orderAuditLog),
+  photos: many(orderPhotos),
 }));
+
+export const orderPhotosRelations = relations(orderPhotos, ({ one }) => ({
+  order: one(orders, {
+    fields: [orderPhotos.orderId],
+    references: [orders.id],
+  }),
+}));
+
+export const emailVerificationTokensRelations = relations(
+  emailVerificationTokens,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [emailVerificationTokens.userId],
+      references: [users.id],
+    }),
+  })
+);
 
 export const adminsRelations = relations(admins, ({ many }) => ({
   auditEntries: many(orderAuditLog),
