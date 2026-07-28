@@ -19,6 +19,9 @@ import {
   getOrderById,
 } from "@/lib/repositories/orders";
 import { canCancelOrder } from "@/lib/orderStatus";
+import { provisionSiteForOrder } from "@/lib/site/provision";
+import { getUserById } from "@/lib/repositories/users";
+import { getBaseUrl } from "@/lib/baseUrl";
 import { PACKAGES, type PackageTier } from "@/lib/packages";
 import { TEMPLATE_STYLES } from "@/lib/templates";
 import { isFontStyle, isHexColor } from "@/lib/customization";
@@ -185,15 +188,40 @@ export async function submitOrderAction(formData: FormData) {
   const orderId = formData.get("orderId")?.toString() ?? "";
   const existing = await getOwnedOrder(userId, orderId);
 
+  let finalOrderId: string;
   if (existing) {
     if (existing.status !== "draft") {
       return { error: "Este pedido já foi enviado." };
     }
     await updateOrder(existing.id, parsed.input);
     await submitOrderById(existing.id);
+    finalOrderId = existing.id;
   } else {
     const created = await createOrder(userId, parsed.input);
     await submitOrderById(created.id);
+    finalOrderId = created.id;
+  }
+
+  // Provisiona o site na hora. É o passo que tira o humano do caminho: o
+  // casal envia o briefing e a prévia já existe, em vez de esperar dias.
+  //
+  // Falha aqui NÃO derruba o envio do pedido: o pedido continua registrado e
+  // o admin trata como exceção. Perder o pedido do casal por causa de um
+  // tropeço no provisionamento seria muito pior do que provisionar depois.
+  try {
+    const order = await getOrderById(finalOrderId);
+    const user = await getUserById(userId);
+    if (order && user) {
+      const baseUrl = await getBaseUrl();
+      const resultado = await provisionSiteForOrder(order, user.name, baseUrl);
+      if (!resultado.ok) {
+        console.error(
+          `[provision] pedido ${finalOrderId} não provisionado: ${resultado.reason}`
+        );
+      }
+    }
+  } catch (error) {
+    console.error(`[provision] falha no pedido ${finalOrderId}:`, error);
   }
 
   // Volta para o início (hub), que lista os pedidos com o andamento.

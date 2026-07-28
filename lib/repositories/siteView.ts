@@ -33,6 +33,35 @@ export async function getSiteViewBySlug(slug: string) {
   return { site, content: content ?? null, sections: secoes };
 }
 
+/**
+ * Mesma view, mas resolvida pelo token de prévia.
+ *
+ * O token é o segredo que dá acesso ao site antes de publicar — por isso a
+ * busca é por ele, e não pelo slug: o slug é adivinhável, o token não.
+ */
+export async function getSiteViewByPreviewToken(token: string) {
+  "use cache";
+  cacheTag(`site-preview:${token}`);
+  cacheLife("minutes");
+
+  const site = await db.query.sites.findFirst({
+    where: eq(sites.previewToken, token),
+  });
+  if (!site) return null;
+
+  const [content] = await db
+    .select()
+    .from(siteContent)
+    .where(eq(siteContent.siteId, site.id));
+
+  const secoes = await db
+    .select()
+    .from(siteSections)
+    .where(eq(siteSections.siteId, site.id));
+
+  return { site, content: content ?? null, sections: secoes };
+}
+
 /** Slugs publicados, para o generateStaticParams da rota pública. */
 export async function listPublishedSiteSlugs(): Promise<string[]> {
   "use cache";

@@ -4,23 +4,18 @@ import {
   getSiteViewBySlug,
   listPublishedSiteSlugs,
 } from "@/lib/repositories/siteView";
-import { getTemplate } from "@/lib/templates/registry";
-// resolveTheme não entra aqui: o tema gravado em sites.theme JÁ é o
-// resolvido (preset do molde + escolhas do casal). A resolução acontece no
-// provisionamento do pedido (Fase 3), uma vez, não a cada render.
-import { parseThemeSpec, clampThemeFonts } from "@/lib/theme/spec";
-import { buildContentView } from "@/lib/site/content";
-import { isSectionKey, type SectionKey } from "@/lib/templates/contract";
-import SiteRenderer from "@/components/site/SiteRenderer";
+import SiteFromView from "@/components/site/SiteFromView";
 
 /**
  * Site público de um casal, renderizado a partir do banco.
  *
  * Fica sob /s/<slug> nesta fase, e não na raiz, de propósito: colocar sites
  * de casal na raiz colide com as rotas existentes (/admin, /conta, /pacotes,
- * /presentes, /rsvp) e exigiria a lista de reservados valendo de verdade
- * (lib/siteSlug.ts). O prefixo mantém a Fase 1 sem risco para o que já está
+ * /presentes, /rsvp). O prefixo mantém a fase sem risco para o que já está
  * no ar; a Fase 2 troca isso por subdomínio, lendo a MESMA coluna slug.
+ *
+ * Só serve site PUBLICADO. Enquanto está em prévia, o acesso é por
+ * /preview/<token>, que o casal recebe ao enviar o pedido.
  *
  * Ver docs/sdd-geracao-automatica.md §6.
  */
@@ -63,46 +58,5 @@ export default async function SitePage({
     notFound();
   }
 
-  const template = getTemplate(view.site.templateId);
-  if (!template || !view.content) {
-    // Site publicado cujo molde ainda não foi portado (Fase 2) ou sem
-    // conteúdo preenchido. Não é 404 — o site existe; só ainda não tem o que
-    // mostrar por aqui.
-    notFound();
-  }
-
-  // Tema do banco, mas grampeado ao que ESTE molde oferece: uma fonte fora
-  // do catálogo do template renderizaria sem @font-face e cairia na fonte do
-  // sistema. Acontece se o casal trocar de template depois de escolher a
-  // fonte. Ver §4.3 do SDD.
-  const theme = clampThemeFonts(
-    parseThemeSpec(view.site.theme) ?? template.defaultTheme,
-    new Set(Object.keys(template.fonts)),
-    template.defaultTheme.fonts
-  );
-  const content = buildContentView({
-    ...view.content,
-    weddingDate: view.content.weddingDate,
-  });
-
-  const desligadas = view.sections
-    .filter((s) => !s.enabled)
-    .map((s) => s.sectionKey);
-  const habilitadas = view.sections.length
-    ? (template.order.filter(
-        (k) => !desligadas.includes(k) && isSectionKey(k)
-      ) as SectionKey[])
-    : undefined;
-
-  return (
-    <SiteRenderer
-      template={template}
-      theme={theme}
-      content={content}
-      tier={view.site.tier}
-      slug={slug}
-      siteId={view.site.id}
-      enabledSections={habilitadas}
-    />
-  );
+  return <SiteFromView view={view} slug={slug} />;
 }

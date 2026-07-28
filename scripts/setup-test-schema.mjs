@@ -17,10 +17,36 @@ config({ path: ".env.local" });
 const DDL = [
   `create schema if not exists test`,
 
+  // users e orders são pré-requisito do teste de provisionamento
+  // (pedido -> site). Espelham lib/db/schema.ts.
+  `create table if not exists test.users (
+     id uuid primary key default gen_random_uuid(),
+     name text not null,
+     email text not null unique,
+     password_hash text not null,
+     whatsapp text,
+     created_at timestamptz not null default now()
+   )`,
+
+  `create table if not exists test.orders (
+     id uuid primary key default gen_random_uuid(),
+     user_id uuid not null references test.users(id) on delete cascade,
+     package_tier public.package_tier not null,
+     template_style text,
+     primary_color text, secondary_color text, font_style text,
+     style_notes text, couple_names text, wedding_date text,
+     photos_link text, notes text,
+     status public.order_status not null default 'draft',
+     preview_url text, site_url text, price_cents integer, admin_message text,
+     payment_id text, payment_url text, payment_status text,
+     created_at timestamptz not null default now(),
+     updated_at timestamptz not null default now()
+   )`,
+
   `create table if not exists test.sites (
      id uuid primary key default gen_random_uuid(),
-     order_id uuid unique,
-     user_id uuid,
+     order_id uuid unique references test.orders(id) on delete set null,
+     user_id uuid references test.users(id) on delete set null,
      slug text not null unique,
      template_id text,
      theme jsonb,
