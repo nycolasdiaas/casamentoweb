@@ -12,7 +12,9 @@ vi.mock("@/lib/auth/session", () => ({
 }));
 
 import { db } from "@/lib/db/client";
-import { gifts, giftContributions, loginAttempts } from "@/lib/db/schema";
+import { gifts, giftContributions, loginAttempts, sites } from "@/lib/db/schema";
+import { createTestSite } from "@/lib/repositories/testSite";
+import { LEGACY_SITE_SLUG } from "@/lib/repositories/sites";
 import {
   createGiftAction,
   updateGiftAction,
@@ -33,6 +35,9 @@ beforeEach(async () => {
   await db.delete(giftContributions);
   await db.delete(gifts);
   await db.delete(loginAttempts);
+  await db.delete(sites);
+  // As actions ainda resolvem o tenant pelo slug legado (Fase 0).
+  await createTestSite(LEGACY_SITE_SLUG);
 });
 
 afterAll(async () => {

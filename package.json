@@ -8,10 +8,13 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
+    "test:setup": "node scripts/setup-test-schema.mjs",
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "backup:guests": "node scripts/backup-guests.mjs",
+    "backup:full": "node scripts/backup-full.mjs",
+    "backfill:legacy": "node scripts/backfill-legacy-site.mjs",
     "seed:gifts": "node scripts/seed-gifts.mjs"
   },
   "dependencies": {

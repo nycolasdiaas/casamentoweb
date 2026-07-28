@@ -9,6 +9,7 @@ import {
   getGiftById,
   registerContribution,
 } from "@/lib/repositories/gifts";
+import { getLegacySiteId } from "@/lib/repositories/sites";
 import { parsePriceToCents } from "@/lib/format";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
@@ -37,7 +38,8 @@ function parseGiftFormData(formData: FormData) {
 
 export async function createGiftAction(formData: FormData) {
   await requireAdminSession();
-  const gift = await createGift(parseGiftFormData(formData));
+  const siteId = await getLegacySiteId();
+  const gift = await createGift(siteId, parseGiftFormData(formData));
   revalidatePath("/presentes");
   revalidatePath("/admin/presentes");
   return gift;
@@ -45,7 +47,8 @@ export async function createGiftAction(formData: FormData) {
 
 export async function updateGiftAction(giftId: string, formData: FormData) {
   await requireAdminSession();
-  const gift = await updateGift(giftId, parseGiftFormData(formData));
+  const siteId = await getLegacySiteId();
+  const gift = await updateGift(siteId, giftId, parseGiftFormData(formData));
   revalidatePath("/presentes");
   revalidatePath("/admin/presentes");
   return gift;
@@ -53,7 +56,8 @@ export async function updateGiftAction(giftId: string, formData: FormData) {
 
 export async function deleteGiftAction(giftId: string) {
   await requireAdminSession();
-  await deleteGift(giftId);
+  const siteId = await getLegacySiteId();
+  await deleteGift(siteId, giftId);
   revalidatePath("/presentes");
   revalidatePath("/admin/presentes");
 }
@@ -72,7 +76,8 @@ export async function registerContributionAction({
     throw new Error("Muitas tentativas. Aguarde alguns minutos.");
   }
 
-  const gift = await getGiftById(giftId);
+  const siteId = await getLegacySiteId();
+  const gift = await getGiftById(siteId, giftId);
   if (!gift) {
     throw new Error("Gift not found");
   }

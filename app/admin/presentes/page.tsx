@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { listGifts, listContributions } from "@/lib/repositories/gifts";
+import { getLegacySiteId } from "@/lib/repositories/sites";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import GiftAdmin from "@/components/admin/GiftAdmin";
 
@@ -7,9 +8,10 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminGiftsPage() {
   await requireAdmin();
+  const siteId = await getLegacySiteId();
   const [gifts, contributions] = await Promise.all([
-    listGifts(),
-    listContributions(),
+    listGifts(siteId),
+    listContributions(siteId),
   ]);
 
   return (

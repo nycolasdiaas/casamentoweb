@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { listGroupsWithGuests } from "@/lib/repositories/groups";
+import { getLegacySiteId } from "@/lib/repositories/sites";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import GroupForm from "@/components/admin/GroupForm";
 import GroupList from "@/components/admin/GroupList";
@@ -8,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
   await requireAdmin();
-  const groups = await listGroupsWithGuests();
+  const groups = await listGroupsWithGuests(await getLegacySiteId());
 
   return (
     <main className="flex-1 flex flex-col gap-8 px-6 py-12 max-w-2xl mx-auto w-full">

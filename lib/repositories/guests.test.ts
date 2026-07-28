@@ -1,23 +1,29 @@
 import { describe, it, expect, beforeEach, afterAll } from "vitest";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { groups, guests } from "@/lib/db/schema";
+import { groups, guests, sites } from "@/lib/db/schema";
 import { createGroup } from "./groups";
+import { createTestSite } from "./testSite";
 import { updateGuestRsvp } from "./guests";
+
+let siteId: string;
 
 beforeEach(async () => {
   await db.delete(guests);
   await db.delete(groups);
+  await db.delete(sites);
+  siteId = (await createTestSite()).id;
 });
 
 afterAll(async () => {
   await db.delete(guests);
   await db.delete(groups);
+  await db.delete(sites);
 });
 
 describe("updateGuestRsvp", () => {
   it("sets the status and respondedAt for the given guest", async () => {
-    const group = await createGroup({ guestNames: ["Ana", "Bruno"] });
+    const group = await createGroup({ siteId, guestNames: ["Ana", "Bruno"] });
     const [ana] = group.guests;
 
     const updated = await updateGuestRsvp(group.id, ana.id, "confirmed");
@@ -27,7 +33,7 @@ describe("updateGuestRsvp", () => {
   });
 
   it("does not affect other guests in the same group", async () => {
-    const group = await createGroup({ guestNames: ["Ana", "Bruno"] });
+    const group = await createGroup({ siteId, guestNames: ["Ana", "Bruno"] });
     const [ana, bruno] = group.guests;
 
     await updateGuestRsvp(group.id, ana.id, "confirmed");
@@ -42,7 +48,7 @@ describe("updateGuestRsvp", () => {
   });
 
   it("throws for a non-existent guest id", async () => {
-    const group = await createGroup({ guestNames: ["Ana"] });
+    const group = await createGroup({ siteId, guestNames: ["Ana"] });
     await expect(
       updateGuestRsvp(
         group.id,
@@ -53,8 +59,8 @@ describe("updateGuestRsvp", () => {
   });
 
   it("throws when the guest belongs to a different group", async () => {
-    const groupA = await createGroup({ guestNames: ["Ana"] });
-    const groupB = await createGroup({ guestNames: ["Bruno"] });
+    const groupA = await createGroup({ siteId, guestNames: ["Ana"] });
+    const groupB = await createGroup({ siteId, guestNames: ["Bruno"] });
 
     await expect(
       updateGuestRsvp(groupA.id, groupB.guests[0].id, "confirmed")

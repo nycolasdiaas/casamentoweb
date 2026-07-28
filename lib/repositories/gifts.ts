@@ -1,6 +1,9 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { gifts, giftContributions } from "@/lib/db/schema";
+
+// TODA consulta aqui é escopada por siteId. Sem isso, a lista de presentes
+// de um casal apareceria no site de outro — ver docs/sdd-geracao-automatica.md §1.2.
 
 export type GiftInput = {
   category: string;
@@ -8,39 +11,49 @@ export type GiftInput = {
   priceCents: number | null;
 };
 
-export async function createGift(input: GiftInput) {
+export async function createGift(siteId: string, input: GiftInput) {
   const [{ maxPosition }] = await db
     .select({ maxPosition: sql<number>`coalesce(max(${gifts.position}), -1)` })
-    .from(gifts);
+    .from(gifts)
+    .where(eq(gifts.siteId, siteId));
 
   const [gift] = await db
     .insert(gifts)
-    .values({ ...input, position: maxPosition + 1 })
+    .values({ ...input, siteId, position: maxPosition + 1 })
     .returning();
   return gift;
 }
 
-export async function updateGift(giftId: string, input: GiftInput) {
+export async function updateGift(
+  siteId: string,
+  giftId: string,
+  input: GiftInput
+) {
   const [gift] = await db
     .update(gifts)
     .set(input)
-    .where(eq(gifts.id, giftId))
+    .where(and(eq(gifts.id, giftId), eq(gifts.siteId, siteId)))
     .returning();
   return gift ?? null;
 }
 
-export async function deleteGift(giftId: string) {
-  await db.delete(gifts).where(eq(gifts.id, giftId));
+export async function deleteGift(siteId: string, giftId: string) {
+  await db
+    .delete(gifts)
+    .where(and(eq(gifts.id, giftId), eq(gifts.siteId, siteId)));
 }
 
-export async function listGifts() {
+export async function listGifts(siteId: string) {
   return db.query.gifts.findMany({
+    where: eq(gifts.siteId, siteId),
     orderBy: (gifts, { asc }) => [asc(gifts.position), asc(gifts.createdAt)],
   });
 }
 
-export async function getGiftById(giftId: string) {
-  const gift = await db.query.gifts.findFirst({ where: eq(gifts.id, giftId) });
+export async function getGiftById(siteId: string, giftId: string) {
+  const gift = await db.query.gifts.findFirst({
+    where: and(eq(gifts.id, giftId), eq(gifts.siteId, siteId)),
+  });
   return gift ?? null;
 }
 
@@ -60,8 +73,24 @@ export async function registerContribution({
   return contribution;
 }
 
-export async function listContributions() {
+/**
+ * Contribuições do site. giftContributions não tem site_id próprio (o
+ * presente pode ter sido apagado, deixando giftId null), então o escopo vem
+ * da lista de presentes do site.
+ */
+export async function listContributions(siteId: string) {
+  const siteGifts = await db
+    .select({ id: gifts.id })
+    .from(gifts)
+    .where(eq(gifts.siteId, siteId));
+
+  if (siteGifts.length === 0) return [];
+
   return db.query.giftContributions.findMany({
+    where: inArray(
+      giftContributions.giftId,
+      siteGifts.map((g) => g.id)
+    ),
     orderBy: (giftContributions, { desc }) => [
       desc(giftContributions.createdAt),
     ],

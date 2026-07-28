@@ -1,7 +1,9 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { listGifts, groupGiftsByCategory } from "@/lib/repositories/gifts";
+import { getLegacySiteId, LEGACY_SITE_SLUG } from "@/lib/repositories/sites";
 import GiftGallery from "@/components/gifts/GiftGallery";
+import TrackView from "@/components/TrackView";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function GiftsPage() {
-  const gifts = await listGifts();
+  const gifts = await listGifts(await getLegacySiteId());
   const categories = groupGiftsByCategory(
     gifts.map(({ id, category, name, priceCents }) => ({
       id,
@@ -23,6 +25,7 @@ export default async function GiftsPage() {
 
   return (
     <main className="flex-1 flex flex-col gap-10 px-6 py-12 max-w-4xl mx-auto w-full">
+      <TrackView siteSlug={LEGACY_SITE_SLUG} kind="gift_open" />
       <header className="flex flex-col items-center gap-4 text-center">
         <h1 className="font-script text-3xl sm:text-4xl text-(--color-olive)">
           Lista de Presentes

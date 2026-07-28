@@ -5,8 +5,13 @@ import {
   timestamp,
   smallint,
   integer,
+  bigserial,
+  boolean,
+  date,
+  jsonb,
   pgEnum,
   index,
+  primaryKey,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -158,14 +163,158 @@ export const orders = pgTable(
   (table) => [index("idx_orders_user_id").on(table.userId)]
 );
 
-export const groups = pgTable("groups", {
+// ─────────────────────────────────────────────────────────────────────────
+// Plataforma multi-site. Um `site` é o tenant: tudo que pertence ao
+// casamento de um casal pendura aqui. Ver docs/sdd-geracao-automatica.md.
+// ─────────────────────────────────────────────────────────────────────────
+
+export const siteStatusEnum = pgEnum("site_status", [
+  "provisioning", // criado, ainda montando
+  "preview", // prévia liberada pro casal
+  "published", // no ar
+  "archived", // fora do ar por decisão manual
+]);
+
+export const sites = pgTable("sites", {
   id: uuid("id").primaryKey().defaultRandom(),
+  // orderId/userId são nullable de propósito: o casamento que já estava no
+  // ar nasceu antes do fluxo de pedidos e não tem pedido associado. Também
+  // permite site criado direto pelo admin.
+  orderId: uuid("order_id")
+    .unique()
+    .references(() => orders.id, { onDelete: "set null" }),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
   slug: text("slug").notNull().unique(),
-  label: text("label"),
+  // null = site com código próprio (o legado), não gerado por template
+  templateId: text("template_id"),
+  // ThemeSpec validado; null enquanto o site não usa o renderer por tokens
+  theme: jsonb("theme"),
+  tier: packageTierEnum("tier").notNull(),
+  status: siteStatusEnum("status").notNull().default("provisioning"),
+  previewToken: text("preview_token").notNull().unique(),
+  publishedAt: timestamp("published_at", { withTimezone: true }),
+  // última visita registrada pelo beacon (§6.1 do SDD)
+  lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
+
+// Conteúdo editável do site, 1:1 com `sites`. Separado da tabela do tenant
+// para o casal poder editar texto sem tocar em nada estrutural.
+export const siteContent = pgTable("site_content", {
+  siteId: uuid("site_id")
+    .primaryKey()
+    .references(() => sites.id, { onDelete: "cascade" }),
+  coupleNames: text("couple_names"),
+  partnerA: text("partner_a"),
+  partnerB: text("partner_b"),
+  weddingDate: timestamp("wedding_date", { withTimezone: true }),
+  timezone: text("timezone").notNull().default("America/Fortaleza"),
+  ceremonyVenue: text("ceremony_venue"),
+  ceremonyAddress: text("ceremony_address"),
+  ceremonyMapUrl: text("ceremony_map_url"),
+  receptionVenue: text("reception_venue"),
+  receptionAddress: text("reception_address"),
+  story: text("story"),
+  dressCode: text("dress_code"),
+  giftMessage: text("gift_message"),
+  rsvpDeadline: date("rsvp_deadline"),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+// Quais seções o site mostra, em que ordem. O pacote define o padrão; o
+// casal pode desligar o que não quiser.
+export const siteSections = pgTable(
+  "site_sections",
+  {
+    siteId: uuid("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    sectionKey: text("section_key").notNull(),
+    position: smallint("position").notNull().default(0),
+    enabled: boolean("enabled").notNull().default(true),
+    config: jsonb("config"),
+  },
+  (table) => [primaryKey({ columns: [table.siteId, table.sectionKey] })]
+);
+
+// ─── Métricas de acesso ──────────────────────────────────────────────────
+// Evento bruto, append-only. NUNCA guarda IP: visitorHash é HMAC de
+// IP+user-agent com sal que gira todo dia — dá visitante único por dia sem
+// reter dado pessoal do convidado, que é terceiro (LGPD).
+export const siteEvents = pgTable(
+  "site_events",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    siteId: uuid("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    // view | rsvp_open | rsvp_submit | gift_open | pix_copy | gift_confirm
+    kind: text("kind").notNull(),
+    path: text("path"),
+    section: text("section"),
+    referrerHost: text("referrer_host"), // só o host, nunca a URL inteira
+    device: text("device"), // mobile | tablet | desktop
+    country: text("country"),
+    region: text("region"),
+    visitorHash: text("visitor_hash"),
+    isReturning: boolean("is_returning"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("idx_site_events_site_created").on(table.siteId, table.createdAt),
+    index("idx_site_events_kind").on(table.siteId, table.kind, table.createdAt),
+  ]
+);
+
+// Agregado diário (roll-up por pg_cron). Fica para sempre — é o que responde
+// às perguntas de produto sem varrer a tabela bruta.
+export const siteDailyStats = pgTable(
+  "site_daily_stats",
+  {
+    siteId: uuid("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    day: date("day").notNull(),
+    views: integer("views").notNull().default(0),
+    uniqueVisitors: integer("unique_visitors").notNull().default(0),
+    rsvpOpens: integer("rsvp_opens").notNull().default(0),
+    rsvpSubmits: integer("rsvp_submits").notNull().default(0),
+    giftOpens: integer("gift_opens").notNull().default(0),
+    pixCopies: integer("pix_copies").notNull().default(0),
+    giftConfirms: integer("gift_confirms").notNull().default(0),
+  },
+  (table) => [primaryKey({ columns: [table.siteId, table.day] })]
+);
+
+export const groups = pgTable(
+  "groups",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    // O slug segue ÚNICO GLOBALMENTE de propósito (não por site): é o que faz
+    // a rota legada /rsvp/<slug> continuar funcionando sem ambiguidade para
+    // os links já distribuídos aos convidados. Ver §5.2 e §6.2 do SDD.
+    slug: text("slug").notNull().unique(),
+    label: text("label"),
+    // nullable nesta fase: preenchido pelo backfill, vira NOT NULL só numa
+    // migração posterior, depois de verificado em produção.
+    siteId: uuid("site_id").references(() => sites.id, {
+      onDelete: "restrict",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index("idx_groups_site_id").on(table.siteId)]
+);
 
 export const guests = pgTable(
   "guests",
@@ -185,17 +334,25 @@ export const guests = pgTable(
   (table) => [index("idx_guests_group_id").on(table.groupId)]
 );
 
-export const gifts = pgTable("gifts", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  category: text("category").notNull(),
-  name: text("name").notNull(),
-  // null = convidado escolhe o valor ("presente livre")
-  priceCents: integer("price_cents"),
-  position: smallint("position").notNull().default(0),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
+export const gifts = pgTable(
+  "gifts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    category: text("category").notNull(),
+    name: text("name").notNull(),
+    // null = convidado escolhe o valor ("presente livre")
+    priceCents: integer("price_cents"),
+    position: smallint("position").notNull().default(0),
+    // nullable nesta fase — mesma razão de groups.siteId acima.
+    siteId: uuid("site_id").references(() => sites.id, {
+      onDelete: "restrict",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index("idx_gifts_site_id").on(table.siteId)]
+);
 
 export const giftContributions = pgTable(
   "gift_contributions",
@@ -214,12 +371,112 @@ export const giftContributions = pgTable(
   (table) => [index("idx_gift_contributions_gift_id").on(table.giftId)]
 );
 
-export const groupsRelations = relations(groups, ({ many }) => ({
+// ─────────────────────────────────────────────────────────────────────────
+// Tabelas que JÁ EXISTEM em produção mas estavam fora do schema.ts (drift de
+// um `drizzle-kit push` antigo). Declaradas aqui só para o Drizzle passar a
+// conhecê-las — a migração que as introduz usa CREATE TABLE IF NOT EXISTS e
+// é no-op no banco atual. Não apagar: ver docs/sdd-geracao-automatica.md §13.1.
+// ─────────────────────────────────────────────────────────────────────────
+
+// Snapshot de convidados a cada 6h, escrito pela função Postgres
+// public.snapshot_guests_backup() agendada no pg_cron. Retém 30 dias.
+export const groupsBackup = pgTable(
+  "groups_backup",
+  {
+    backupAt: timestamp("backup_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    id: uuid("id").notNull(),
+    slug: text("slug").notNull(),
+    label: text("label"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [index("idx_groups_backup_at").on(table.backupAt)]
+);
+
+export const guestsBackup = pgTable(
+  "guests_backup",
+  {
+    backupAt: timestamp("backup_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    id: uuid("id").notNull(),
+    groupId: uuid("group_id").notNull(),
+    name: text("name").notNull(),
+    // text, não o enum — o snapshot faz cast para sobreviver a mudança de enum
+    rsvpStatus: text("rsvp_status").notNull(),
+    respondedAt: timestamp("responded_at", { withTimezone: true }),
+    position: smallint("position").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [index("idx_guests_backup_at").on(table.backupAt)]
+);
+
+// Criadas por um push antigo e nunca usadas por código. Mantidas vazias.
+export const emailVerificationTokens = pgTable(
+  "email_verification_tokens",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull().unique(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index("idx_email_verification_user_id").on(table.userId)]
+);
+
+export const orderPhotos = pgTable(
+  "order_photos",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orderId: uuid("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    storagePath: text("storage_path").notNull().unique(),
+    originalName: text("original_name").notNull(),
+    contentType: text("content_type").notNull(),
+    sizeBytes: integer("size_bytes").notNull(),
+    position: smallint("position").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index("idx_order_photos_order_id").on(table.orderId)]
+);
+
+export const groupsRelations = relations(groups, ({ one, many }) => ({
   guests: many(guests),
+  site: one(sites, { fields: [groups.siteId], references: [sites.id] }),
 }));
 
-export const giftsRelations = relations(gifts, ({ many }) => ({
+export const sitesRelations = relations(sites, ({ one, many }) => ({
+  order: one(orders, { fields: [sites.orderId], references: [orders.id] }),
+  user: one(users, { fields: [sites.userId], references: [users.id] }),
+  content: one(siteContent, {
+    fields: [sites.id],
+    references: [siteContent.siteId],
+  }),
+  sections: many(siteSections),
+  groups: many(groups),
+  gifts: many(gifts),
+}));
+
+export const siteContentRelations = relations(siteContent, ({ one }) => ({
+  site: one(sites, { fields: [siteContent.siteId], references: [sites.id] }),
+}));
+
+export const siteSectionsRelations = relations(siteSections, ({ one }) => ({
+  site: one(sites, { fields: [siteSections.siteId], references: [sites.id] }),
+}));
+
+export const giftsRelations = relations(gifts, ({ one, many }) => ({
   contributions: many(giftContributions),
+  site: one(sites, { fields: [gifts.siteId], references: [sites.id] }),
 }));
 
 export const giftContributionsRelations = relations(
