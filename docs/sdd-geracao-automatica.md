@@ -135,7 +135,28 @@ Isso torna a migração dos 6 templates quase mecânica: hoje eles já usam `#3d
 
 Solução: `lib/fonts/registry.ts` central, `FontStyleId → { variable, className }`, importado pelo renderer.
 
-**Risco de performance:** 34 famílias declaradas geram CSS para todas. Só as usadas entram no HTML, mas isso precisa ser **medido** (§12). Mitigação se doer: reduzir o catálogo, ou migrar para `next/font/local` com fontes variáveis auto-hospedadas.
+**Risco de performance — MEDIDO na Fase 1 (era hipótese, agora é número):**
+
+Medido no build de produção, na página `/s/ana-e-pedro` (molde Clássico, que usa 3 fontes):
+
+| | |
+|---|---|
+| Chunk CSS carregado pela página | **83,6 KB** (render-blocking) |
+| Regras `@font-face` | 243, em 68 famílias (34 fontes × pesos/estilos + fallbacks) |
+| Bytes das 3 fontes de fato usadas | 25,2 KB |
+| **Desperdício** | **51,1 KB — 61% do chunk** |
+
+Nuance importante: os arquivos `.woff2` das fontes não usadas **não** são baixados (o browser só busca a fonte que algum elemento aplica). O custo é de **CSS**, não de download de fonte. Mas são 51 KB de CSS bloqueante num convite que o convidado abre no 4G — material o suficiente para agir.
+
+**Causa:** o registry referencia as 34 estaticamente (obrigatório, `next/font` não aceita chamada dinâmica), então o chunk de qualquer página que importe o registry carrega o CSS das 34.
+
+**Opções (decisão de produto pendente, §14):**
+
+1. **Fontes por molde** — cada template declara as suas 3–5 no próprio módulo. A rota só importa o molde que renderiza, então só aquele CSS embarca. Elimina quase todo o desperdício e ainda melhora o produto: uma fonte que estraga o Clássico deixa de ser oferecida nele. Custo: a escolha de fonte passa a ser por template, não um catálogo único.
+2. **Cortar o catálogo** para ~12 bem escolhidas (~18 KB). Simples, mas perde variedade sem ganhar curadoria.
+3. **Aceitar.** 51 KB é ruim, não fatal.
+
+Recomendação: **opção 1**. É a única que resolve o número e melhora o resultado visual ao mesmo tempo.
 
 ### 4.4 Contrato de template
 
@@ -628,7 +649,7 @@ Migrar fora do horário de pico e **nunca na véspera/semana do casamento** (16/
 | # | Assunto | Padrão adotado |
 |---|---|---|
 | 8 | RLS no Postgres | **Não agora.** Escopo por `siteId` no repository + teste automatizado que falha se alguma query pública não filtrar por site. RLS entra depois, se quisermos rede dupla. |
-| 9 | Catálogo de fontes | Mantém as 34 na Fase 0; **medir o peso na Fase 1** e cortar se doer. |
+| 9 | Catálogo de fontes | ~~Medir na Fase 1~~ → **MEDIDO: 51 KB (61%) de CSS desperdiçado** (§4.3). Decisão pendente entre "fontes por molde" (recomendado), cortar catálogo, ou aceitar. |
 | 10 | Fluxo artesanal | Continua existindo como exceção operacional (`in_production`), não como produto. |
 | 11 | Pedidos de teste no banco | ~~Limpar~~ → **não apagar** (decisão 6). Os 3 pedidos com dados fake (`casal: "11"`, data `1222-12-12`) ganham só uma flag `is_test` para sumirem das telas. Dado preservado. |
 | 12 | Upgrade de pacote | Altera `tier` no mesmo pedido e no mesmo site — não cria site novo. |

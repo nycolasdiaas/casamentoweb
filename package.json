@@ -15,7 +15,8 @@
     "backup:guests": "node scripts/backup-guests.mjs",
     "backup:full": "node scripts/backup-full.mjs",
     "backfill:legacy": "node scripts/backfill-legacy-site.mjs",
-    "seed:gifts": "node scripts/seed-gifts.mjs"
+    "seed:gifts": "node scripts/seed-gifts.mjs",
+    "seed:demo": "node scripts/seed-demo-site.mjs"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",

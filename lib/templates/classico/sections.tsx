@@ -1,0 +1,248 @@
+import PhotoSlot from "@/components/templates/PhotoSlot";
+import Countdown from "@/components/site/Countdown";
+import type { SectionProps } from "@/lib/templates/contract";
+
+// Seções do molde Clássico, agora dirigidas por dados.
+//
+// Diferença para app/pacotes/estilos/classico/page.tsx (a prévia com casal
+// fictício): aqui não há hex fixo nem "Ana & Pedro". Cor vem de var(--ink),
+// var(--accent); conteúdo vem de `content`. É o mesmo desenho servindo N
+// casais.
+//
+// Ver docs/sdd-geracao-automatica.md §4.4.
+
+/** Cabeçalho ornamentado reaproveitado por várias seções do molde. */
+function SectionHeading({
+  script,
+  title,
+}: {
+  script: string;
+  title: string;
+}) {
+  return (
+    <div className="text-center mb-6">
+      <div className="font-[family-name:var(--font-script)] text-[29px] text-(--accent) leading-tight">
+        {script}
+      </div>
+      <h2 className="mt-1 mb-3.5 font-[family-name:var(--font-display)] text-[23px] font-semibold tracking-[0.24em] uppercase">
+        {title}
+      </h2>
+      <div className="w-[72px] h-px bg-(--accent) mx-auto" />
+      <div className="w-11 h-px bg-(--accent) mx-auto mt-[5px]" />
+    </div>
+  );
+}
+
+/** Moldura dupla dourada — a assinatura visual do Clássico. */
+function GoldFrame({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="border border-(--accent) p-[5px]">
+      <div className="border border-(--accent)/50 p-[5px]">{children}</div>
+    </div>
+  );
+}
+
+export function Cover({ content }: SectionProps) {
+  const [a, b] = content.initials ?? [null, null];
+
+  return (
+    <section className="px-[18px] pt-[52px] pb-11">
+      <div className="border border-(--accent) p-1">
+        <div className="border border-(--accent)/55 px-[22px] pb-9">
+          {a && b && (
+            <div className="flex justify-center -mt-[38px]">
+              <div className="bg-(--paper) px-3.5">
+                <div className="size-[76px] rounded-full border border-(--accent) flex items-center justify-center">
+                  <div className="size-16 rounded-full border border-(--accent)/50 flex items-center justify-center gap-1">
+                    <span className="font-[family-name:var(--font-display)] text-xl font-medium">
+                      {a}
+                    </span>
+                    <span className="font-[family-name:var(--font-script)] text-lg text-(--accent)">
+                      &amp;
+                    </span>
+                    <span className="font-[family-name:var(--font-display)] text-xl font-medium">
+                      {b}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="text-center mt-6">
+            <div className="font-[family-name:var(--font-script)] text-[37px] text-(--accent) leading-tight">
+              Save the Date
+            </div>
+            <h1 className="font-[family-name:var(--font-display)] font-medium text-[46px] leading-[1.08] tracking-wide mt-4">
+              {content.coupleNames}
+            </h1>
+
+            <div className="w-[72px] h-px bg-(--accent) mx-auto mt-5" />
+            <div className="w-11 h-px bg-(--accent) mx-auto mt-[5px]" />
+
+            {content.weekdayLabel && (
+              <div className="mt-5 text-[11px] tracking-[0.35em] uppercase opacity-70">
+                {content.weekdayLabel}
+              </div>
+            )}
+            {content.weddingDateLabel && (
+              <div className="mt-1.5 font-[family-name:var(--font-display)] text-2xl font-medium">
+                {content.weddingDateLabel}
+              </div>
+            )}
+            {content.weddingTimeLabel && (
+              <div className="mt-0.5 italic text-[15px] opacity-80">
+                {content.weddingTimeLabel}
+              </div>
+            )}
+            {content.ceremonyVenue && (
+              <div className="mt-4 font-[family-name:var(--font-display)] text-lg font-medium">
+                {content.ceremonyVenue}
+              </div>
+            )}
+            {content.ceremonyAddress && (
+              <div className="mt-1 text-[10.5px] tracking-[0.3em] uppercase opacity-65">
+                {content.ceremonyAddress}
+              </div>
+            )}
+          </div>
+
+          <div className="mt-6">
+            <GoldFrame>
+              <PhotoSlot
+                label="Foto principal do casal"
+                className="aspect-[3/4] w-full"
+              />
+            </GoldFrame>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function CountdownSection({ content }: SectionProps) {
+  if (!content.weddingDate) return null;
+
+  return (
+    <section className="px-7 py-14 border-y border-(--accent)/35 bg-(--ink)/[0.04]">
+      <SectionHeading script="falta pouco" title="Contagem regressiva" />
+      <Countdown targetDate={content.weddingDate.toISOString()} />
+      <div className="text-center mt-6 italic text-sm opacity-75">
+        para o nosso grande dia
+      </div>
+    </section>
+  );
+}
+
+export function Story({ content }: SectionProps) {
+  if (!content.story) return null;
+
+  return (
+    <section className="px-7 py-16">
+      <SectionHeading script="a nossa" title="História" />
+      <p className="text-center text-base leading-[1.75] opacity-90 whitespace-pre-line">
+        {content.story}
+      </p>
+      <div className="my-7">
+        <GoldFrame>
+          <PhotoSlot label="O pedido" className="aspect-[4/3] w-full" />
+        </GoldFrame>
+      </div>
+    </section>
+  );
+}
+
+export function Details({ content }: SectionProps) {
+  const items = [
+    content.ceremonyVenue && {
+      label: "Cerimônia",
+      value: content.ceremonyVenue,
+      extra: content.ceremonyAddress,
+      href: content.ceremonyMapUrl,
+    },
+    content.receptionVenue && {
+      label: "Festa",
+      value: content.receptionVenue,
+      extra: content.receptionAddress,
+      href: null,
+    },
+    content.dressCode && {
+      label: "Traje",
+      value: content.dressCode,
+      extra: null,
+      href: null,
+    },
+  ].filter(Boolean) as {
+    label: string;
+    value: string;
+    extra: string | null;
+    href: string | null;
+  }[];
+
+  if (items.length === 0) return null;
+
+  return (
+    <section className="px-7 py-16 border-y border-(--accent)/35">
+      <SectionHeading script="o grande dia" title="Informações" />
+      <div className="flex flex-col gap-7">
+        {items.map((item) => (
+          <div key={item.label} className="text-center">
+            <div className="text-[10px] tracking-[0.28em] uppercase opacity-65">
+              {item.label}
+            </div>
+            <div className="mt-1.5 font-[family-name:var(--font-display)] text-lg font-medium">
+              {item.value}
+            </div>
+            {item.extra && (
+              <div className="mt-1 text-sm opacity-75">{item.extra}</div>
+            )}
+            {item.href && (
+              <a
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block mt-2.5 text-[11px] tracking-[0.2em] uppercase border-b border-(--accent) pb-0.5"
+              >
+                Ver no mapa
+              </a>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export function Gallery() {
+  return (
+    <section className="px-7 py-16">
+      <SectionHeading script="momentos" title="Galeria" />
+      <div className="grid grid-cols-2 gap-3">
+        {["Noivado", "Ensaio", "Viagem", "Nós dois"].map((label) => (
+          <GoldFrame key={label}>
+            <PhotoSlot label={label} className="aspect-square w-full" />
+          </GoldFrame>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export function Footer({ content }: SectionProps) {
+  return (
+    <footer
+      className="px-7 py-14 text-center"
+      style={{ background: "var(--ink)", color: "var(--paper)" }}
+    >
+      <div className="font-[family-name:var(--font-script)] text-[32px] text-(--accent)">
+        {content.coupleNames}
+      </div>
+      {content.weddingDateLabel && (
+        <div className="mt-2 text-[11px] tracking-[0.3em] uppercase opacity-80">
+          {content.weddingDateLabel}
+        </div>
+      )}
+    </footer>
+  );
+}
