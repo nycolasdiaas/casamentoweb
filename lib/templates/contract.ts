@@ -39,6 +39,8 @@ export type SiteContentView = {
   initials: [string, string] | null;
   weddingDate: Date | null;
   weddingDateLabel: string | null;
+  /** dia/mês/ano com dois dígitos, para os moldes que escrevem a data como número */
+  weddingDateParts: { day: string; month: string; year: string } | null;
   weddingTimeLabel: string | null;
   weekdayLabel: string | null;
   ceremonyVenue: string | null;

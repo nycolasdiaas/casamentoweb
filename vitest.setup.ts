@@ -26,6 +26,51 @@ vi.mock("next/cache", async (importOriginal) => {
   };
 });
 
+/**
+ * `next/font/google` não é uma biblioteca: é uma transformação de build. Fora
+ * do Next, `Cormorant_Garamond` nem é função — importar qualquer molde (que
+ * declara as próprias fontes) explodia antes do primeiro teste rodar.
+ *
+ * A lista é explícita porque o vitest valida os exports do mock na hora de
+ * registrá-lo: um Proxy que responde a tudo é recusado com
+ * "No X export is defined on the next/font/google mock".
+ *
+ * Cobre o catálogo inteiro de FONT_STYLES (lib/customization.ts), não só o
+ * que os moldes de hoje usam — assim molde novo não esbarra aqui. Ao oferecer
+ * uma fonte nova no catálogo, acrescente o nome do loader nesta lista.
+ */
+const GOOGLE_FONT_LOADERS = [
+  // serifadas
+  "Cormorant_Garamond", "Playfair_Display", "EB_Garamond", "Lora",
+  "Libre_Baskerville", "Bodoni_Moda", "DM_Serif_Display", "Prata",
+  "Marcellus", "Cardo", "Cinzel", "Italiana", "Spectral", "Gilda_Display",
+  "Crimson_Text",
+  // caligráficas
+  "Great_Vibes", "Dancing_Script", "Parisienne", "Sacramento", "Allura",
+  "Pinyon_Script", "Alex_Brush", "Tangerine", "Petit_Formal_Script",
+  "Yellowtail", "Style_Script", "Kaushan_Script",
+  // sem serifa
+  "Josefin_Sans", "Poiret_One", "Montserrat", "Jost", "Raleway",
+  // rústicas
+  "Amatic_SC", "Caveat",
+  // usadas só nas páginas de prévia
+  "Archivo",
+];
+
+vi.mock("next/font/google", () =>
+  Object.fromEntries(
+    GOOGLE_FONT_LOADERS.map((nome) => [
+      nome,
+      // Mesmo formato que o loader real devolve: `variable` (consumida por
+      // themeFontClassNames) e `className`.
+      (options?: { variable?: string }) => ({
+        variable: options?.variable ?? `--f-${nome.toLowerCase()}`,
+        className: `mock-${nome.toLowerCase()}`,
+      }),
+    ])
+  )
+);
+
 afterEach(() => {
   cleanup();
 });

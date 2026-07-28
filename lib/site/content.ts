@@ -74,6 +74,16 @@ export function buildContentView(row: ContentRow): SiteContentView {
     initials: initialsFrom(coupleNames, row.partnerA, row.partnerB),
     weddingDate: date,
     weddingDateLabel: fmt({ day: "numeric", month: "long", year: "numeric" }),
+    // Partes cruas para os moldes que escrevem a data como número
+    // ("19 · 09 · 26" no Editorial). O separador é decisão do desenho; o
+    // fuso e o zero à esquerda continuam sendo decisão daqui.
+    weddingDateParts: date
+      ? {
+          day: fmt({ day: "2-digit" })!,
+          month: fmt({ month: "2-digit" })!,
+          year: fmt({ year: "2-digit" })!,
+        }
+      : null,
     weddingTimeLabel: temHorario
       ? fmt({ hour: "2-digit", minute: "2-digit" })
       : null,
