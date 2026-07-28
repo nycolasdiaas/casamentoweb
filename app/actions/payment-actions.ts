@@ -70,7 +70,10 @@ export async function startPaymentAction(
         ? `Site de casamento de ${order.coupleNames}`
         : undefined,
       returnUrl: `${base}/conta/pedidos/${order.id}`,
-      completionUrl: `${base}/conta/pedidos/${order.id}?pago=1`,
+      // Ao concluir, passa pela rota que confirma com o AbacatePay e publica
+      // o site — só ela pode derrubar o cache. Ela redireciona de volta para
+      // o acompanhamento.
+      completionUrl: `${base}/api/pagamento/confirmar?pedido=${order.id}`,
       customer: {
         name: order.coupleNames ?? user?.name,
         email: user?.email,

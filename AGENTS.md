@@ -133,6 +133,25 @@ Resumo do que existe hoje:
   **privado** no Supabase Storage, upload assinado direto do browser. O casal
   sobe pela tela de acompanhamento do pedido; o molde cai no placeholder
   enquanto o slot estiver vazio. Ver §8 do SDD.
+- **Publicação**: pagamento confirmado põe o site no ar sozinho, por três
+  caminhos (retorno do checkout, webhook, ação do admin). Ver §7.2 do SDD.
+
+# Armadilha do cache ao publicar
+
+**Publicar exige derrubar cache, e isso não pode acontecer no render.**
+`updateTag` só vale em Server Action; `revalidateTag` em Server Action ou
+Route Handler; **nenhum dos dois durante o render de uma página**. Por isso a
+publicação mora em `/api/pagamento/confirmar`, e a tela de acompanhamento
+apenas **redireciona** para lá quando detecta pagamento confirmado com site
+ainda em prévia (com `?publicacao=erro` cortando o laço).
+
+Publicar sem invalidar deixaria `/s/<slug>` em 404 por dias — `site-view` vive
+com `cacheLife("days")` — enquanto o pedido diz "no ar". E use `{ expire: 0 }`,
+não `"max"`: stale-while-revalidate serviria justamente o 404 anterior para o
+casal que acabou de pagar.
+
+Não esqueça a tag `published-site-slugs`: é ela que alimenta o
+`generateStaticParams` de `/s/[slug]`. `publishedSiteTags()` já devolve as três.
 
 # Armadilhas das fotos
 
@@ -163,10 +182,15 @@ Resumo do que existe hoje:
 
 - **Álbum pós-festa ainda é placeholder**: as fotos da festa (slot `album`)
   não têm upload — só existem depois do casamento.
-- **Publicação não acontece sozinha**: o webhook do AbacatePay confirma o
-  pagamento, mas nada move o site de `preview` para `published`.
-- **`ABACATEPAY_WEBHOOK_SECRET` está vazio** — webhook sem verificação de
-  assinatura nem idempotência.
+- **`ABACATEPAY_WEBHOOK_SECRET` está vazio, então o webhook está DESLIGADO**
+  (responde 503 e não processa nada). Não é falta de verificação: quando o
+  segredo existe, ele compara em tempo constante e ainda reconfirma com a API
+  do AbacatePay antes de liberar. Sem ele, a confirmação depende do casal
+  voltar do checkout — o que funciona, só não é instantâneo.
+- **Cancelar pedido órfã o site**: `deleteOrder` apaga o pedido e
+  `sites.order_id` é `set null`, então o site provisionado fica sem dono.
+  Invisível (segue em `preview`), mas acumula. Apagar a conta do casal faz o
+  mesmo — aí de propósito: o site do casamento não some porque a conta sumiu.
 - **`DATABASE_URL_TEST` aponta para a mesma instância de produção** (isolado
   por schema, mas um erro de config alcança dados reais).
 - Mural de recados é a única seção do contrato sem implementação.

@@ -1,9 +1,11 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { getSessionAdminId } from "@/lib/auth/session";
 import { getAdminById } from "@/lib/repositories/admins";
 import { isOrderStatus, STATUS_META } from "@/lib/orderStatus";
+import { publishSiteForOrder, publishedSiteTags } from "@/lib/site/publish";
+import { getBaseUrl } from "@/lib/baseUrl";
 import {
   getOrderById,
   updateOrderStatus,
@@ -76,6 +78,10 @@ export async function saveOrderAdminAction(formData: FormData) {
     });
     await updateOrderStatus(orderId, status);
   }
+  // Publicar de verdade acontece só depois de gravar os campos abaixo —
+  // senão updateOrderAdminFields sobrescreveria o siteUrl recém-preenchido
+  // com o valor (possivelmente vazio) do formulário.
+  const deveOPublicar = isOrderStatus(status) && status === "published";
 
   const previewUrl = sanitizeUrl(formData.get("previewUrl")?.toString() ?? "");
   const siteUrl = sanitizeUrl(formData.get("siteUrl")?.toString() ?? "");
@@ -121,6 +127,31 @@ export async function saveOrderAdminAction(formData: FormData) {
   });
 
   await logOrderChanges(orderId, admin.id, admin.name, changes);
+
+  // Marcar o pedido como "site no ar" tem que colocar o site no ar. Sem isto,
+  // o admin via o pedido publicado, o casal via "no ar" — e /s/<slug>
+  // devolvia 404, porque o site continuava em `preview`.
+  //
+  // requirePaid: false — admin publicando à mão já decidiu (cortesia, acerto
+  // por fora). Quem exige pagamento confirmado é o caminho do pagamento.
+  if (deveOPublicar) {
+    let base: string | null = null;
+    try {
+      base = await getBaseUrl();
+    } catch {
+      console.error("[publicar] getBaseUrl falhou — siteUrl fica como está");
+    }
+
+    const publicado = await publishSiteForOrder(orderId, {
+      baseUrl: base,
+      requirePaid: false,
+    });
+    if (publicado.ok) {
+      for (const tag of publishedSiteTags(publicado.slug)) updateTag(tag);
+    } else {
+      console.error(`[publicar] pedido ${orderId}: ${publicado.reason}`);
+    }
+  }
 
   revalidatePath("/admin/pedidos");
   revalidatePath("/conta/pedidos");

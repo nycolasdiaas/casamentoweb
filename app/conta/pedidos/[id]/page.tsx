@@ -30,8 +30,10 @@ export const metadata: Metadata = {
 
 export default async function OrderTrackerPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ publicacao?: string }>;
 }) {
   const userId = await getSessionUserId();
   if (!userId) redirect("/conta/entrar");
@@ -67,6 +69,26 @@ export default async function OrderTrackerPage({
   // nele que as fotos penduram — por isso o painel de fotos vive aqui, e não
   // no briefing: o casal vê a prévia e preenche os lugares que estão vazios.
   const site = await getSiteByOrderId(order.id);
+
+  // Rede de segurança para quem pagou e voltou por fora do checkout (fechou a
+  // aba, abriu o link do e-mail dias depois, webhook desligado). Publicar
+  // exige derrubar cache, e isso não pode acontecer durante o render — então
+  // manda para a rota que sabe fazer isso e volta para cá.
+  //
+  // O marcador `publicacao=erro` corta o laço: se a rota não conseguiu
+  // publicar, a tela não a chama de novo.
+  const { publicacao } = await searchParams;
+  const publicacaoFalhou = publicacao === "erro";
+  if (
+    paymentStatus === "PAID" &&
+    site !== null &&
+    site.status !== "published" &&
+    site.status !== "archived" &&
+    !publicacaoFalhou
+  ) {
+    redirect(`/api/pagamento/confirmar?pedido=${order.id}`);
+  }
+
   const podeSubirFotos = site !== null && isStorageEnabled();
   const fotos = podeSubirFotos ? await listSitePhotosFresh(site.id) : [];
 
@@ -104,6 +126,17 @@ export default async function OrderTrackerPage({
           } satisfies TrackerOrder
         }
       />
+
+      {publicacaoFalhou && (
+        <p
+          role="alert"
+          className="rounded-xl border border-(--color-gold)/50 bg-(--color-blush) px-4 py-3 text-sm text-(--color-olive) leading-relaxed"
+        >
+          Recebemos o pagamento de vocês, mas não conseguimos colocar o site no
+          ar automaticamente. Já estamos vendo isso — se preferir, chame a gente
+          no WhatsApp que resolvemos na hora.
+        </p>
+      )}
 
       {podeSubirFotos && (
         <PhotoManager

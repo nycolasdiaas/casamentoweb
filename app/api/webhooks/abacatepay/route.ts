@@ -1,7 +1,9 @@
 import crypto from "crypto";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { getOrderByPaymentId, markOrderPaid } from "@/lib/repositories/orders";
 import { getChargeStatus } from "@/lib/payments/abacatepay";
+import { publishSiteForOrder, publishedSiteTags } from "@/lib/site/publish";
+import { getBaseUrl } from "@/lib/baseUrl";
 
 // Webhook do AbacatePay para confirmação de pagamento em tempo real.
 // Configure a URL no painel do AbacatePay como:
@@ -64,6 +66,25 @@ export async function POST(request: Request) {
       const remote = await getChargeStatus(billingId);
       if (remote === "PAID") {
         await markOrderPaid(order.id);
+
+        // Publica na hora. Idempotente: reenvio do webhook não republica nem
+        // mexe na data da primeira publicação.
+        let base: string | null = null;
+        try {
+          base = await getBaseUrl();
+        } catch {
+          console.error("[webhook] getBaseUrl falhou — siteUrl fica como está");
+        }
+
+        const publicado = await publishSiteForOrder(order.id, { baseUrl: base });
+        if (publicado.ok) {
+          for (const tag of publishedSiteTags(publicado.slug)) {
+            revalidateTag(tag, { expire: 0 });
+          }
+        } else {
+          console.error(`[webhook] não publicou ${order.id}: ${publicado.reason}`);
+        }
+
         revalidatePath(`/conta/pedidos/${order.id}`);
         revalidatePath("/conta/pedidos");
         revalidatePath("/admin/pedidos");

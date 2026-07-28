@@ -463,9 +463,59 @@ Impacto na esteira de status ([lib/orderStatus.ts](../lib/orderStatus.ts)):
 
 - `submitted` → `preview_ready` vira automático (segundos, não dias).
 - `in_production` deixa de ser etapa normal e passa a ser **exceção** (falha no provisionamento, ou casal pediu ajuda humana).
-- `paid` → `published` automático pelo webhook do AbacatePay: publica, gera domínio, `updateTag`.
+- `paid` → `published` automático (§7.2).
 
 O admin deixa de ser produtor e vira **operador de exceção + moderação**. Os textos de `STATUS_META` precisam ser reescritos ("Estamos montando o site de vocês" deixa de ser verdade).
+
+### 7.2 Publicação ao pagamento — implementado
+
+Fechava o funil pela metade: o pagamento era confirmado, o pedido virava
+`paid` — e **nada movia o site de `preview` para `published`**. `/s/<slug>`
+continuava 404 até alguém mexer à mão.
+
+`lib/site/publish.ts` faz a passagem, e três caminhos a chamam:
+
+| Caminho | Quando | Como invalida o cache |
+|---|---|---|
+| `/api/pagamento/confirmar` | volta do checkout (`completionUrl`) | `revalidateTag(tag, { expire: 0 })` |
+| Webhook do AbacatePay | pagamento confirmado em tempo real | idem |
+| Ação do admin | admin move o pedido para "site no ar" | `updateTag` (é Server Action) |
+
+**Por que uma rota e não a tela de acompanhamento.** Publicar exige derrubar
+`site-view:<slug>`, que vive por dias. E nem `updateTag` (só Server Action)
+nem `revalidateTag` (Server Action ou Route Handler) podem ser chamados
+**durante o render de uma página**. Publicar no render deixaria `/s/<slug>`
+devolvendo 404 por dias com o pedido dizendo "no ar" — pior que não publicar.
+
+A tela de acompanhamento continua sendo a rede de segurança para quem pagou e
+voltou por fora do checkout (fechou a aba, abriu o link dias depois, webhook
+desligado): quando vê pagamento confirmado e site ainda não publicado, ela
+**redireciona** para a rota. Um marcador `?publicacao=erro` corta o laço se a
+rota não conseguir publicar.
+
+`expire: 0` e não `"max"`: stale-while-revalidate serviria justamente o 404
+anterior para o casal que acabou de pagar e vai abrir o link agora.
+
+Regras que o `publishSiteForOrder` carrega:
+
+- **Exige pagamento confirmado** — exceto quando quem pede é o admin
+  (`requirePaid: false`), para cortesia ou acerto por fora.
+- **Idempotente**: webhook reenviado e tela recarregada não republicam nem
+  mexem na data da primeira publicação.
+- **Não republica site arquivado**: arquivar é decisão manual de tirar do ar;
+  um webhook atrasado não pode desfazê-la.
+- **Nunca sobrescreve um `siteUrl` já preenchido** — pode ser o domínio
+  próprio do casal, que é a promessa do pacote "para sempre".
+- Preenche `siteUrl` quando vazio: sem ele o casal vê "site no ar" e não tem
+  link para abrir.
+
+**Sobre a segurança do webhook** (o SDD dizia que ele não verificava nada —
+estava errado): ele compara um segredo em tempo constante, e **reconfirma com
+a API do AbacatePay** que a cobrança está paga antes de liberar qualquer
+coisa. Sem `ABACATEPAY_WEBHOOK_SECRET` ele responde 503 e não processa nada —
+ou seja, está **desligado**, que é diferente de inseguro. A mesma
+reconfirmação protege a rota de retorno: chegar nela digitando a URL não
+publica nada.
 
 ### 7.1 IA no lugar certo (Fase 6, opcional)
 
