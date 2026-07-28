@@ -51,13 +51,23 @@ export type SiteContentView = {
   giftMessage: string | null;
 };
 
-/** Tudo que uma seção recebe. */
+/**
+ * Tudo que uma seção recebe.
+ *
+ * Seções que precisam de mais dados (lista de presentes, por exemplo) são
+ * async server components e buscam o próprio conteúdo a partir do `siteId`,
+ * em vez de o SiteRenderer ter que saber o que cada seção consome. Como as
+ * consultas são `use cache`, buscar de dentro da seção não custa ida extra
+ * ao banco.
+ */
 export type SectionProps = {
   content: SiteContentView;
   theme: ThemeSpec;
   tier: PackageTier;
   /** slug do site, para links internos e para o beacon de métricas */
   slug: string;
+  /** tenant, para as seções que carregam dados próprios */
+  siteId: string;
 };
 
 export type TemplateModule = {

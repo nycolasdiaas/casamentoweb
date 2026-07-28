@@ -75,6 +75,31 @@ async function main() {
         updated_at = now()
     `;
 
+    // Lista de presentes do casal de demonstração, no escopo DESTE site.
+    const presentes = [
+      ["Lua de Mel", "Caipirinha à beira-mar", 9000],
+      ["Lua de Mel", "Jantar em Jericoacoara", 18000],
+      ["Lua de Mel", "Passeio de buggy nas dunas", 15000],
+      ["Lua de Mel", "Uma noite a mais na pousada", 25000],
+      ["Montando o Ninho", "Taças para os brindes", 16000],
+      ["Montando o Ninho", "Jogo de panelas", 32000],
+      ["Do Seu Jeito", "Presente livre", null],
+    ];
+    const [{ n: jaTem }] = await tx`
+      select count(*)::int as n from public.gifts where site_id = ${site.id}
+    `;
+    if (jaTem === 0) {
+      for (const [i, [categoria, nome, preco]] of presentes.entries()) {
+        await tx`
+          insert into public.gifts (site_id, category, name, price_cents, position)
+          values (${site.id}, ${categoria}, ${nome}, ${preco}, ${i})
+        `;
+      }
+      console.log(`${presentes.length} presentes criados para ${SLUG}`);
+    } else {
+      console.log(`${jaTem} presentes já existem — mantidos`);
+    }
+
     const secoes = ["cover","countdown","story","details","gallery","rsvp","gifts","guestbook","album","footer"];
     for (const [i, key] of secoes.entries()) {
       await tx`

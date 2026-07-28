@@ -1,5 +1,8 @@
+import Link from "next/link";
 import PhotoSlot from "@/components/templates/PhotoSlot";
 import Countdown from "@/components/site/Countdown";
+import GiftGrid from "@/components/site/GiftGrid";
+import { listGifts } from "@/lib/repositories/gifts";
 import type { SectionProps } from "@/lib/templates/contract";
 
 // Seções do molde Clássico, agora dirigidas por dados.
@@ -224,6 +227,122 @@ export function Gallery() {
             <PhotoSlot label={label} className="aspect-square w-full" />
           </GoldFrame>
         ))}
+      </div>
+    </section>
+  );
+}
+
+export function Rsvp({ content, slug }: SectionProps) {
+  return (
+    <section className="px-7 py-16">
+      <SectionHeading script="você vem?" title="Confirmação" />
+      <p className="mb-6 text-center text-[15.5px] leading-relaxed opacity-85">
+        Sua presença é o nosso presente mais querido.
+        {content.coupleNames && " Confirme sua presença pelo link que enviamos."}
+      </p>
+
+      <div
+        className="border px-[22px] py-7 text-center"
+        style={{
+          borderColor: "color-mix(in srgb, var(--accent) 55%, transparent)",
+          background: "color-mix(in srgb, var(--paper) 88%, white)",
+        }}
+      >
+        <p className="text-sm leading-relaxed opacity-80">
+          Cada família recebeu um link pessoal, com os nomes de quem foi
+          convidado. Procure a mensagem que enviamos para confirmar.
+        </p>
+        <Link
+          href={`/s/${slug}`}
+          className="inline-block mt-5 text-[11.5px] tracking-[0.24em] uppercase px-7 py-3.5 border transition-opacity hover:opacity-85"
+          style={{
+            background: "var(--ink)",
+            borderColor: "var(--ink)",
+            color: "var(--paper)",
+          }}
+        >
+          Não recebi meu link
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+export async function Gifts({ siteId, content }: SectionProps) {
+  const gifts = await listGifts(siteId);
+  if (gifts.length === 0) return null;
+
+  return (
+    <section
+      className="px-7 py-16 border-y"
+      style={{
+        background: "color-mix(in srgb, var(--ink) 4%, var(--paper))",
+        borderColor: "color-mix(in srgb, var(--accent) 35%, transparent)",
+      }}
+    >
+      <SectionHeading script="com carinho" title="Lista de presentes" />
+      <p className="mb-6 text-center text-[15.5px] leading-relaxed opacity-85">
+        {content.giftMessage ??
+          "Ter você conosco já é presente. Mas, se o coração pedir, cada mimo abaixo vira uma lembrança da nossa lua de mel."}
+      </p>
+      <GiftGrid
+        gifts={gifts.map((g) => ({
+          id: g.id,
+          category: g.category,
+          name: g.name,
+          priceCents: g.priceCents,
+        }))}
+      />
+    </section>
+  );
+}
+
+export function Album({ content }: SectionProps) {
+  const dataLabel = content.weddingDateLabel;
+
+  return (
+    <section
+      className="px-7 py-16 border-t"
+      style={{
+        background: "color-mix(in srgb, var(--ink) 4%, var(--paper))",
+        borderColor: "color-mix(in srgb, var(--accent) 35%, transparent)",
+      }}
+    >
+      <SectionHeading script="para matar a saudade" title="Álbum da festa" />
+      <div
+        className="border px-6 py-8 text-center"
+        style={{
+          borderColor: "color-mix(in srgb, var(--accent) 55%, transparent)",
+          background: "color-mix(in srgb, var(--paper) 88%, white)",
+        }}
+      >
+        <div className="flex justify-center">
+          <svg
+            width="30"
+            height="30"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="var(--accent)"
+            strokeWidth="1.3"
+            aria-hidden
+          >
+            <rect x="5" y="10" width="14" height="10" rx="1" />
+            <path d="M8 10 V7 a4 4 0 0 1 8 0 v3" />
+          </svg>
+        </div>
+        <div className="mt-3 font-[family-name:var(--font-display)] text-2xl font-medium">
+          Um presente para depois
+        </div>
+        <p className="mt-2.5 text-sm leading-relaxed opacity-80">
+          As fotos da festa aparecem aqui
+          {dataLabel ? ` depois de ${dataLabel}` : " depois do casamento"}.
+          Volte para matar a saudade.
+        </p>
+        <div className="mt-5 grid grid-cols-3 gap-2 opacity-65">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <PhotoSlot key={i} label="" className="aspect-square w-full" />
+          ))}
+        </div>
       </div>
     </section>
   );

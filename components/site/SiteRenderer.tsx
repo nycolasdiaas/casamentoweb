@@ -24,6 +24,7 @@ export default function SiteRenderer({
   content,
   tier,
   slug,
+  siteId,
   enabledSections,
 }: {
   template: TemplateModule;
@@ -31,6 +32,7 @@ export default function SiteRenderer({
   content: SiteContentView;
   tier: PackageTier;
   slug: string;
+  siteId: string;
   /** seções desligadas pelo casal; ausente = tudo que o pacote permite */
   enabledSections?: SectionKey[];
 }) {
@@ -42,7 +44,7 @@ export default function SiteRenderer({
       template.sections[key]
   );
 
-  const props = { content, theme, tier, slug };
+  const props = { content, theme, tier, slug, siteId };
 
   return (
     <div

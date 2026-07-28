@@ -8,6 +8,9 @@ import {
   Story,
   Details,
   Gallery,
+  Rsvp,
+  Gifts,
+  Album,
   Footer,
 } from "./sections";
 
@@ -34,13 +37,26 @@ const classico: TemplateModule = {
   meta: getTemplateStyle("classico")!,
   defaultTheme,
   fonts: CLASSICO_FONTS,
-  order: ["cover", "countdown", "story", "details", "gallery", "footer"],
+  order: [
+    "cover",
+    "countdown",
+    "story",
+    "details",
+    "gallery",
+    "rsvp",
+    "gifts",
+    "album",
+    "footer",
+  ],
   sections: {
     cover: Cover,
     countdown: CountdownSection,
     story: Story,
     details: Details,
     gallery: Gallery,
+    rsvp: Rsvp,
+    gifts: Gifts,
+    album: Album,
     footer: Footer,
   },
 };

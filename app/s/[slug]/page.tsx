@@ -101,6 +101,7 @@ export default async function SitePage({
       content={content}
       tier={view.site.tier}
       slug={slug}
+      siteId={view.site.id}
       enabledSections={habilitadas}
     />
   );
