@@ -1,4 +1,5 @@
 import { and, eq } from "drizzle-orm";
+import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db/client";
 import { groups, guests } from "@/lib/db/schema";
 import { generateUniqueSlug } from "@/lib/slug";
@@ -52,6 +53,13 @@ export async function createGroup({
  * Ver docs/sdd-geracao-automatica.md §5.2 e §6.2.
  */
 export async function getGroupBySlug(slug: string) {
+  "use cache";
+  cacheTag(`group:${slug}`);
+  // Mais curto que a lista de presentes de propósito: confirmação de presença
+  // é o dado que mais dói ficar velho. A action chama updateTag ao confirmar,
+  // então isto é só rede de segurança.
+  cacheLife("hours");
+
   const group = await db.query.groups.findFirst({
     where: eq(groups.slug, slug),
     with: {
@@ -60,6 +68,23 @@ export async function getGroupBySlug(slug: string) {
   });
 
   return group ?? null;
+}
+
+/**
+ * Slugs de grupo para o `generateStaticParams` da rota de RSVP.
+ *
+ * Com Cache Components, uma rota dinâmica precisa declarar ao menos um param
+ * — é isso que autoriza a página a ler `params` fora de <Suspense>, e é o que
+ * permite o `notFound()` devolver um 404 de verdade em vez de 200 com o shell
+ * já enviado.
+ */
+export async function listGroupSlugs(): Promise<string[]> {
+  "use cache";
+  cacheTag("group-slugs");
+  cacheLife("hours");
+
+  const rows = await db.select({ slug: groups.slug }).from(groups);
+  return rows.map((r) => r.slug);
 }
 
 export async function listGroupsWithGuests(siteId: string) {

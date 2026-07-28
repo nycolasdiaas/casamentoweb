@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { getGroupBySlug } from "@/lib/repositories/groups";
 import { updateGuestRsvp } from "@/lib/repositories/guests";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
@@ -26,6 +26,9 @@ export async function submitRsvpAction(
   if (!group) throw new Error("Convite não encontrado");
 
   const updated = await updateGuestRsvp(group.id, guestId, status);
+  // updateTag (não revalidateTag): o convidado tem que ver a própria
+  // confirmação imediatamente, não uma versão stale.
+  updateTag(`group:${slug}`);
   revalidatePath("/rsvp", "layout");
   return updated;
 }
