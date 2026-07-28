@@ -244,6 +244,53 @@ export const siteSections = pgTable(
   (table) => [primaryKey({ columns: [table.siteId, table.sectionKey] })]
 );
 
+// Fotos do casal, escopadas por SITE — não por pedido.
+//
+// Escolha deliberada de não reaproveitar `order_photos` (que existe, vazia, de
+// um push antigo): quem consome a foto é o renderer, que só conhece `siteId`;
+// o casamento legado tem site sem pedido; e o casal troca foto depois de
+// publicado, quando o pedido já não é o objeto relevante.
+//
+// `slot` diz onde a foto entra no molde ("cover", "story", "gallery") — é o
+// mesmo vocabulário das seções, mas frouxo de propósito (text, não enum):
+// molde novo pode inventar slot sem migração.
+//
+// NOT NULL aqui é seguro porque a tabela nasce vazia — a regra de migração
+// aditiva do AGENTS.md protege tabelas que já têm linhas de cliente.
+export const sitePhotos = pgTable(
+  "site_photos",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    siteId: uuid("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    slot: text("slot").notNull(),
+    // caminho no bucket privado; unique impede duas linhas para o mesmo objeto
+    storagePath: text("storage_path").notNull().unique(),
+    contentType: text("content_type").notNull(),
+    sizeBytes: integer("size_bytes").notNull(),
+    // dimensões finais (pós-compressão no cliente): sem elas o next/image não
+    // reserva espaço e a página pula quando a foto carrega
+    width: integer("width"),
+    height: integer("height"),
+    // miniatura embutida em base64 para o placeholder de blur
+    blurDataUrl: text("blur_data_url"),
+    alt: text("alt"),
+    originalName: text("original_name"),
+    position: smallint("position").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("idx_site_photos_site_slot").on(
+      table.siteId,
+      table.slot,
+      table.position
+    ),
+  ]
+);
+
 // ─── Métricas de acesso ──────────────────────────────────────────────────
 // Evento bruto, append-only. NUNCA guarda IP: visitorHash é HMAC de
 // IP+user-agent com sal que gira todo dia — dá visitante único por dia sem
@@ -464,6 +511,11 @@ export const sitesRelations = relations(sites, ({ one, many }) => ({
   sections: many(siteSections),
   groups: many(groups),
   gifts: many(gifts),
+  photos: many(sitePhotos),
+}));
+
+export const sitePhotosRelations = relations(sitePhotos, ({ one }) => ({
+  site: one(sites, { fields: [sitePhotos.siteId], references: [sites.id] }),
 }));
 
 export const siteContentRelations = relations(siteContent, ({ one }) => ({

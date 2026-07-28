@@ -475,14 +475,76 @@ Ganha-se a "mágica" da personalização sem colocar código não revisado em pr
 
 ---
 
-## 8. Fotos
+## 8. Fotos — implementado (Fase 3, 2/2)
 
-Hoje `photosLink` é uma URL de pasta compartilhada que **um humano abre e baixa**. Automatizar exige upload real:
+Antes disto, `photosLink` era uma URL de pasta compartilhada que **um humano
+abria e baixava**, e `PhotoSlot` sorteava fotos de casamentos do Unsplash. Um
+casal que pedisse o site recebia **fotos de estranhos**.
 
-- **Supabase Storage** (já estamos no Supabase — caminho mais barato), upload assinado direto do browser.
-- Redimensionar/comprimir no cliente antes do upload (alvo ≤ 500 KB por foto); guardar `width`/`height`/`blur_data_url` para evitar layout shift.
-- `next/image` com `images.remotePatterns` apontando para o domínio do Storage.
-- Limites por tier: convite 5 fotos, site 15, para-sempre 40 + álbum pós-festa.
+O que existe hoje:
+
+- **`site_photos`, escopada por site** — não por pedido. `order_photos` (que
+  existia vazia de um push antigo) ficou onde estava. A razão: quem consome a
+  foto é o renderer, que só conhece `siteId`; o casamento legado tem site sem
+  pedido; e o casal troca foto depois de publicado, quando o pedido já não é o
+  objeto relevante.
+- **Bucket privado** no Supabase Storage, criado por `npm run setup:storage`.
+  Foto de casamento tem convidado dentro — dado pessoal de terceiro, o mesmo
+  princípio que já vale para as métricas (§6.1). Nada é público.
+- **Upload assinado direto do browser**: o arquivo não passa pelo servidor
+  Next. Comprimido no cliente (alvo ≤ 500 KB, maior lado 1600px), com
+  `width`/`height`/`blur_data_url` guardados para não haver layout shift.
+- **Entrega por `/f/<id>`**, uma rota nossa que lê do bucket e repassa os
+  bytes (§8.1).
+- Limites por tier: convite 5 · site 15 · para-sempre 40.
+- Slots: `cover` (1), `story` (1), `gallery` (12). O `album` — fotos da festa —
+  continua sem upload: só existe depois do casamento.
+
+### 8.1 Por que a foto sai por uma rota nossa, e não do Storage
+
+Três caminhos foram considerados:
+
+| | Prós | Contras |
+|---|---|---|
+| Bucket público, caminho não adivinhável | simples, zero salto | quem pegou a URL vê para sempre, mesmo depois de o casal apagar; prévia não paga fica exposta |
+| URL assinada embutida no HTML | sem salto extra | **colide com o cache**: o site fica em `cacheLife("days")` e a assinatura expira dentro dele — o convidado veria foto quebrada |
+| **Rota `/f/<id>` que lê do bucket e repassa os bytes** | URL estável (convive com o cache), revogável, dá para checar o status do site, `remotePatterns` continua vazio | os bytes passam pelo servidor |
+
+Escolhido o terceiro.
+
+**Armadilha que custou uma volta:** a primeira versão da rota assinava e
+devolvia um **307** para o Storage, apoiada em `image.md` ("maximumRedirects"),
+que diz que o otimizador segue redirects sem precisar de `remotePatterns`.
+Isso vale para imagens **remotas**. `/f/<id>` é caminho local: a busca do
+otimizador é interna, **não segue o redirect**, e a resposta é
+
+```
+"url" parameter is valid but internal response is invalid
+```
+
+ou seja, com redirect **nenhuma foto renderiza**. Medido contra o app rodando,
+não deduzido. A rota passou a repassar os bytes.
+
+O custo é pequeno: quem busca `/f/<id>` é o otimizador, uma vez por foto e
+tamanho — o convidado recebe a versão já otimizada e cacheada, nunca toca
+nesta rota. E como a URL é da nossa própria origem, `images.remotePatterns`
+continua vazio: o domínio do Storage nunca vira superfície aberta na
+configuração.
+
+A rota também não assina mais nada: quem lê é o nosso servidor, que já tem a
+chave de serviço. Assinar seria uma ida a mais ao Storage por foto.
+
+Apagar a foto tira a linha do banco, e `/f/<id>` passa a devolver 404 na hora.
+O objeto sai do bucket em seguida; se essa segunda parte falhar, sobra lixo
+invisível no bucket — de propósito, porque o inverso (objeto apagado com linha
+viva) deixaria foto quebrada no site do casal.
+
+### 8.2 O `content-type` do browser não vale como prova
+
+Quem envia está com uma URL assinada na mão, então o cabeçalho que ele declara
+é palavra dele. A confirmação lê os **primeiros bytes do objeto** e confere a
+assinatura do arquivo (JPEG/PNG/WebP); o que não passa é apagado e recusado. O
+bucket ainda reforça com `allowed_mime_types` e `file_size_limit`.
 
 ---
 

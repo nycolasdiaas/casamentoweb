@@ -36,6 +36,27 @@ export async function getSiteById(siteId: string) {
   return site ?? null;
 }
 
+/** O site do pedido, se existir. Um pedido tem no máximo um (order_id unique). */
+export async function getSiteByOrderId(orderId: string) {
+  const site = await db.query.sites.findFirst({
+    where: eq(sites.orderId, orderId),
+  });
+  return site ?? null;
+}
+
+/**
+ * O site, se ele pertence a este casal.
+ *
+ * Sem cache de propósito: é a checagem de dono que protege as ações de
+ * escrita (subir e apagar foto). Servir isso de cache seria confiar num
+ * estado que pode ter mudado.
+ */
+export async function getSiteOwnedByUser(siteId: string, userId: string) {
+  const site = await db.query.sites.findFirst({ where: eq(sites.id, siteId) });
+  if (!site || site.userId !== userId) return null;
+  return site;
+}
+
 /**
  * Resolve o site do casamento legado. Lança se não existir — é erro de
  * configuração (o backfill da Fase 0 cria este registro), não um caso

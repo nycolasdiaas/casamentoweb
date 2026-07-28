@@ -49,6 +49,10 @@ DDL no Postgres é transacional. Aplique a migração inteira numa transação
 contra o schema real, verifique as contagens e dê `ROLLBACK`. Valida contra o
 banco de verdade sem deixar rastro — foi assim que a 0008 foi validada.
 
+Agora é `npm run db:rehearse` (a 0009 passou por ele). Reprova sozinho se a
+migração derrubar tabela ou mexer em contagem existente — as duas coisas que
+não podem acontecer neste banco.
+
 ## Backup automático que já existe
 
 `pg_cron` roda `public.snapshot_guests_backup()` a cada 6h, com retenção de
@@ -97,6 +101,8 @@ snapshot rodou) com `created_at` (quando o grupo foi criado).
 | `npm run backup:full` | Dump lógico completo → `backups/` (gitignored). **Antes de toda migração.** |
 | `npm run backup:guests` | Só convidados (o antigo; não substitui o full) |
 | `npm run db:generate` / `db:migrate` | Migrações. **Nunca `push`.** |
+| `npm run db:rehearse` | Ensaia a última migração contra o banco real e dá ROLLBACK (ver abaixo) |
+| `npm run setup:storage` | Cria o bucket privado das fotos. Uma vez por ambiente. |
 | `npm run test:setup` | Sincroniza o schema `test`, que é mantido à mão e **não** recebe as migrações |
 | `npm run backfill:legacy` | Vincula o casamento legado ao seu `site` (idempotente) |
 | `npm run seed:demo` | Site de demonstração `ana-e-pedro` no motor novo |
@@ -123,11 +129,40 @@ Resumo do que existe hoje:
 - **Métricas**: beacon em `/api/track`. **IP nunca é gravado** — `visitor_hash`
   é HMAC de (IP + UA + dia) com sal que gira a cada 24h (LGPD: o convidado é
   terceiro).
+- **Fotos**: `site_photos` (escopada por site, não por pedido), bucket
+  **privado** no Supabase Storage, upload assinado direto do browser. O casal
+  sobe pela tela de acompanhamento do pedido; o molde cai no placeholder
+  enquanto o slot estiver vazio. Ver §8 do SDD.
+
+# Armadilhas das fotos
+
+- **A foto sai por `/f/<id>`, nunca por URL do Storage no HTML.** O site fica
+  em `cacheLife("days")`; uma URL assinada embutida expiraria dentro do cache
+  e o convidado veria foto quebrada.
+- **Essa rota REPASSA os bytes; não redirecione.** O otimizador do
+  `next/image` segue redirects só para imagens **remotas**. `/f/<id>` é
+  caminho local: a busca é interna, não segue o 307, e devolve
+  `"url" parameter is valid but internal response is invalid` — com redirect,
+  nenhuma foto renderiza. Custou uma volta; está medido no §8.1 do SDD.
+- **`images.remotePatterns` continua vazio de propósito** — a URL é da nossa
+  própria origem. Adicionar o domínio do Storage lá abriria superfície à toa.
+- **Sem `SUPABASE_SERVICE_ROLE_KEY`, o upload fica desligado** — o painel some
+  da tela do casal e o site mostra as imagens de exemplo. Nada quebra, mas
+  também nada avisa: se o upload "sumiu", é a chave.
+- **`createImageBitmap` precisa de `imageOrientation: "from-image"`.** Sem
+  isso, foto tirada na vertical no celular chega deitada — o canvas ignora o
+  EXIF.
+- **O `content-type` que o browser declara não vale como prova.** Quem envia
+  está com uma URL assinada na mão; a confirmação lê os primeiros bytes do
+  objeto e confere a assinatura do arquivo.
+- **Apagar foto deixa a linha sair primeiro, o objeto depois.** Se o objeto
+  não sair, sobra lixo invisível no bucket — melhor que o inverso, que deixaria
+  foto quebrada no site.
 
 # Pendências conhecidas
 
-- **Fotos são placeholder** (`PhotoSlot` sorteia imagens de `public/demo/`).
-  Sem upload, sem storage. **Próximo passo.**
+- **Álbum pós-festa ainda é placeholder**: as fotos da festa (slot `album`)
+  não têm upload — só existem depois do casamento.
 - **Publicação não acontece sozinha**: o webhook do AbacatePay confirma o
   pagamento, mas nada move o site de `preview` para `published`.
 - **`ABACATEPAY_WEBHOOK_SECRET` está vazio** — webhook sem verificação de

@@ -1,8 +1,10 @@
 import Link from "next/link";
 import PhotoSlot from "@/components/templates/PhotoSlot";
+import SitePhoto from "@/components/site/SitePhoto";
 import Countdown from "@/components/site/Countdown";
 import GiftGrid from "@/components/site/GiftGrid";
 import { listGifts } from "@/lib/repositories/gifts";
+import { listSitePhotos, photoAt, SLOT_CAPACITY } from "@/lib/repositories/sitePhotos";
 import type { SectionProps } from "@/lib/templates/contract";
 
 // Seções do molde Clássico, agora dirigidas por dados.
@@ -45,8 +47,9 @@ function GoldFrame({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function Cover({ content }: SectionProps) {
+export async function Cover({ content, siteId }: SectionProps) {
   const [a, b] = content.initials ?? [null, null];
+  const capa = photoAt(await listSitePhotos(siteId), "cover");
 
   return (
     <section className="px-[18px] pt-[52px] pb-11">
@@ -112,9 +115,11 @@ export function Cover({ content }: SectionProps) {
 
           <div className="mt-6">
             <GoldFrame>
-              <PhotoSlot
+              <SitePhoto
+                photo={capa}
                 label="Foto principal do casal"
                 className="aspect-[3/4] w-full"
+                priority
               />
             </GoldFrame>
           </div>
@@ -138,8 +143,10 @@ export function CountdownSection({ content }: SectionProps) {
   );
 }
 
-export function Story({ content }: SectionProps) {
+export async function Story({ content, siteId }: SectionProps) {
   if (!content.story) return null;
+
+  const foto = photoAt(await listSitePhotos(siteId), "story");
 
   return (
     <section className="px-7 py-16">
@@ -149,7 +156,11 @@ export function Story({ content }: SectionProps) {
       </p>
       <div className="my-7">
         <GoldFrame>
-          <PhotoSlot label="O pedido" className="aspect-[4/3] w-full" />
+          <SitePhoto
+            photo={foto}
+            label="O pedido"
+            className="aspect-[4/3] w-full"
+          />
         </GoldFrame>
       </div>
     </section>
@@ -217,16 +228,36 @@ export function Details({ content }: SectionProps) {
   );
 }
 
-export function Gallery() {
+/** Rótulos dos quadros vazios, enquanto o casal não subiu nada. */
+const MOMENTOS = ["Noivado", "Ensaio", "Viagem", "Nós dois"];
+
+export async function Gallery({ siteId }: SectionProps) {
+  const fotos = (await listSitePhotos(siteId))
+    .filter((p) => p.slot === "gallery")
+    .slice(0, SLOT_CAPACITY.gallery);
+
   return (
     <section className="px-7 py-16">
       <SectionHeading script="momentos" title="Galeria" />
       <div className="grid grid-cols-2 gap-3">
-        {["Noivado", "Ensaio", "Viagem", "Nós dois"].map((label) => (
-          <GoldFrame key={label}>
-            <PhotoSlot label={label} className="aspect-square w-full" />
-          </GoldFrame>
-        ))}
+        {fotos.length > 0
+          ? fotos.map((foto, i) => (
+              <GoldFrame key={foto.id}>
+                <SitePhoto
+                  photo={foto}
+                  label={`Momento ${i + 1}`}
+                  className="aspect-square w-full"
+                />
+              </GoldFrame>
+            ))
+          : // Sem foto do casal, os quadros de exemplo seguram o desenho da
+            // seção. Não se mistura os dois: meia grade de fotos reais e meia
+            // de desconhecidos ficaria pior que só o exemplo.
+            MOMENTOS.map((label) => (
+              <GoldFrame key={label}>
+                <PhotoSlot label={label} className="aspect-square w-full" />
+              </GoldFrame>
+            ))}
       </div>
     </section>
   );

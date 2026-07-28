@@ -13,6 +13,13 @@ import CancelOrderButton from "@/components/account/CancelOrderButton";
 import OrderStatusTracker, {
   type TrackerOrder,
 } from "@/components/account/OrderStatusTracker";
+import PhotoManager from "@/components/account/PhotoManager";
+import { getSiteByOrderId } from "@/lib/repositories/sites";
+import {
+  listSitePhotosFresh,
+  photoLimitForTier,
+} from "@/lib/repositories/sitePhotos";
+import { isStorageEnabled } from "@/lib/storage/supabase";
 import { canCancelOrder, type OrderStatus } from "@/lib/orderStatus";
 import type { PackageTier } from "@/lib/packages";
 import { SITE_NAME } from "@/lib/site";
@@ -56,6 +63,13 @@ export default async function OrderTrackerPage({
     }
   }
 
+  // O site já existe desde o envio do pedido (provisionamento automático), e é
+  // nele que as fotos penduram — por isso o painel de fotos vive aqui, e não
+  // no briefing: o casal vê a prévia e preenche os lugares que estão vazios.
+  const site = await getSiteByOrderId(order.id);
+  const podeSubirFotos = site !== null && isStorageEnabled();
+  const fotos = podeSubirFotos ? await listSitePhotosFresh(site.id) : [];
+
   return (
     <AccountShell active="pedidos">
       <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -90,6 +104,20 @@ export default async function OrderTrackerPage({
           } satisfies TrackerOrder
         }
       />
+
+      {podeSubirFotos && (
+        <PhotoManager
+          siteId={site.id}
+          limit={photoLimitForTier(site.tier as PackageTier)}
+          photos={fotos.map((f) => ({
+            id: f.id,
+            slot: f.slot,
+            width: f.width,
+            height: f.height,
+            blurDataUrl: f.blurDataUrl,
+          }))}
+        />
+      )}
 
       {canCancelOrder(status) && (
         <div className="flex flex-col gap-1 border-t border-(--color-gold)/30 pt-4">

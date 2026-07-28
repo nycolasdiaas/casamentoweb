@@ -80,6 +80,22 @@ const DDL = [
      primary key (site_id, section_key)
    )`,
 
+  `create table if not exists test.site_photos (
+     id uuid primary key default gen_random_uuid(),
+     site_id uuid not null references test.sites(id) on delete cascade,
+     slot text not null,
+     storage_path text not null unique,
+     content_type text not null,
+     size_bytes integer not null,
+     width integer, height integer,
+     blur_data_url text, alt text, original_name text,
+     position smallint not null default 0,
+     created_at timestamptz not null default now()
+   )`,
+
+  `create index if not exists idx_test_site_photos_site_slot
+     on test.site_photos (site_id, slot, position)`,
+
   `create table if not exists test.site_events (
      id bigserial primary key,
      site_id uuid not null references test.sites(id) on delete cascade,
