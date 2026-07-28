@@ -1,6 +1,14 @@
 // Verifica que um molde portado renderiza de verdade, contra o app rodando.
-// Temporário: cria um site descartável por molde, confere e apaga.
-//   node scripts/tmp-verify-molde.mjs editorial toscana
+//
+// Cria um site descartável por molde, confere e apaga — inclusive se algo
+// falhar no meio (a limpeza está no finally). Precisa do servidor de pé:
+//   npm run build && npm run start
+//   npm run verify:template editorial toscana
+//
+// O que ele pega e o teste automatizado não: que o molde renderiza com dado
+// de verdade vindo do banco, e que o desenho vem de TOKEN — o site é montado
+// com um tema fora da paleta padrão do molde, e a cor do casal precisa
+// aparecer só no wrapper. Hex na marcação de uma seção aparece aqui.
 import { config } from "dotenv";
 import postgres from "postgres";
 import crypto from "node:crypto";

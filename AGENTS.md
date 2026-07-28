@@ -80,11 +80,36 @@ snapshot rodou) com `created_at` (quando o grupo foi criado).
 - **`updateTag` (não `revalidateTag`) nas ações do casal**: read-your-own-writes,
   para ele ver a própria mudança em vez de versão stale.
 
+# Ao portar ou mexer num molde
+
+- **Rode `npm run verify:template <id>`** com o servidor de pé. Ele monta um
+  site descartável com tema FORA da paleta padrão do molde: se algum hex
+  ficou escrito na marcação de uma seção, aparece ali. O teste automatizado
+  não pega isso.
+- **Não invente dado que o banco não tem.** As prévias em
+  `app/pacotes/estilos/` têm cronograma do dia, legendas de foto e frases de
+  casal fictício escritas no código. Portar é omitir o que não existe, não
+  transplantar o texto — senão o site de um casal real anuncia um coquetel
+  que não vai ter.
+- **Cada molde declara só as fontes que combinam com ele.** `clampThemeFonts`
+  recorta a escolha do casal ao catálogo do molde, então *não oferecer* é o
+  que impede uma Amatic SC de destruir o Clássico. Curadoria, não limitação.
+- **Ornamentos SVG usam token, não hex.** Um ramo rosa num site azul-marinho
+  é o detalhe que denuncia molde mal portado. Derive de `var(--accent)` e
+  `color-mix` com a tinta.
+- As invariantes estruturais (papel de fonte sem fonte declarada, seção que o
+  pacote libera e o molde não implementa, ordem repetida) estão em
+  `lib/templates/registry.test.ts` e rodam para todo molde do registry.
+
 # Armadilhas do `next/font`
 
 - **Cada fonte precisa ir para um `const` no escopo do módulo.** Dentro de
   objeto literal falha com *"Font loaders must be called and assigned to a
   const in the module scope"*.
+- **Nos testes, `next/font/google` é mockado** em `vitest.setup.ts` — é
+  transformação de build, não biblioteca, e fora do Next os loaders nem são
+  funções. A lista de nomes é explícita porque o vitest recusa um Proxy; ao
+  oferecer fonte nova no catálogo, acrescente o loader lá.
 - **Declarar N fontes num módulo embarca o CSS das N** em qualquer página que
   o importe. Medido: 34 fontes = 83,6 KB de CSS, 61% desperdiçado. Por isso
   **cada molde declara as suas** em `lib/templates/<id>/fonts.ts`.
@@ -103,6 +128,7 @@ snapshot rodou) com `created_at` (quando o grupo foi criado).
 | `npm run db:generate` / `db:migrate` | Migrações. **Nunca `push`.** |
 | `npm run db:rehearse` | Ensaia a última migração contra o banco real e dá ROLLBACK (ver abaixo) |
 | `npm run setup:storage` | Cria o bucket privado das fotos. Uma vez por ambiente. |
+| `npm run verify:template <ids>` | Renderiza cada molde com dado real (site descartável) e confere que o desenho vem de token. Precisa do servidor de pé. |
 | `npm run test:setup` | Sincroniza o schema `test`, que é mantido à mão e **não** recebe as migrações |
 | `npm run backfill:legacy` | Vincula o casamento legado ao seu `site` (idempotente) |
 | `npm run seed:demo` | Site de demonstração `ana-e-pedro` no motor novo |
@@ -123,7 +149,10 @@ Resumo do que existe hoje:
   `getGroupBySlug` é global **de propósito** (§6.2 do SDD).
 - **Motor de templates**: molde (`lib/templates/<id>/`) + tokens
   (`ThemeSpec`) + conteúdo do banco. Corrigir um molde corrige todos os sites.
-  Só o **Clássico** está portado; os outros 5 mostram "em preparação".
+  **Os 6 estilos estão portados** (Clássico, Editorial, Toscana, Romântico,
+  Moderno, Film). O registry segue `Partial` de propósito: estilo novo que
+  entre no catálogo antes de ser portado cai em "estamos preparando", não
+  quebra.
 - **Provisionamento**: `submitOrderAction` cria o site na hora e move o
   pedido para `preview_ready` com o link da prévia.
 - **Métricas**: beacon em `/api/track`. **IP nunca é gravado** — `visitor_hash`

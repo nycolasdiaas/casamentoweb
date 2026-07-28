@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:setup": "node scripts/setup-test-schema.mjs",
     "setup:storage": "node scripts/setup-storage.mjs",
+    "verify:template": "node scripts/verify-template.mjs",
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:rehearse": "node scripts/rehearse-migration.mjs",

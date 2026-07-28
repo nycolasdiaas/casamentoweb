@@ -188,6 +188,44 @@ export const TEMPLATE_REGISTRY: Record<TemplateStyleId, TemplateModule> = {...};
 
 Cada seção recebe `{ content, theme, tier }` e devolve JSX. O comportamento compartilhado (contagem regressiva, modal de presente, mural) já está isolado em [useWeddingDemoState.ts](../components/templates/useWeddingDemoState.ts) — vira o hook de produção, trocando `localStorage` por server actions.
 
+### 4.4.1 Os 6 moldes portados — o que o porte é, e o que não é
+
+Todos os 6 estilos vendidos estão no motor. Portar um molde é uma
+transformação com regra fixa:
+
+| Na prévia (`app/pacotes/estilos/<id>/`) | No molde (`lib/templates/<id>/`) |
+|---|---|
+| `#d9a3ae`, `#141414` | `var(--accent)`, `var(--ink)` |
+| `"Ana & Pedro"`, `DEMO_COUPLE.story` | `content.coupleNames`, `content.story` |
+| `useWeddingDemoState` (RSVP, mural, presentes fictícios) | `listGifts(siteId)`, CTA para o link pessoal |
+| Cronograma do dia, legendas de foto, frases do casal fictício | **omitido** — não há modelo de dados |
+
+A última linha é a regra que mais importa: **o que não existe no banco não é
+transplantado**. A prévia do Editorial anunciava "17h30 coquetel"; o Moderno
+dava nome à história ("A fila do pastel"); o Toscana legendava fotos ("o
+brinde de 2019"). Transplantar isso faria o site de um casal real anunciar um
+coquetel que não vai ter. Seção sem dado é omitida, não preenchida com
+ficção.
+
+As prévias continuam existindo e não foram tocadas: elas são a vitrine com
+casal fictício, onde inventar contexto é justamente o trabalho.
+
+**Curadoria de fontes por molde.** Cada molde declara só o que combina com
+ele, e `clampThemeFonts` recorta a escolha do casal a esse catálogo. Não
+oferecer é o mecanismo: o Moderno não lista nenhuma serifa nem caligráfica,
+então um casal que peça Parisienne num site Moderno cai na Poiret One em vez
+de desmontar o desenho. Verificado: pedindo `cormorant/spectral/italiana`
+para os seis, o Moderno recortou as três para `jost/poiret` e o Toscana
+trocou `spectral` por `crimson`.
+
+**Ornamentos seguem a paleta.** Os SVGs botânicos do Romântico e a folha do
+Film tinham cor fixa na prévia. No molde eles derivam de `var(--accent)` e de
+`color-mix` com a tinta — um ramo rosa num site azul-marinho seria o detalhe
+que denuncia molde mal portado.
+
+**O mural (`guestbook`) fica de fora dos seis**: é a única seção do contrato
+sem implementação, e nenhum molde a declara em `order`.
+
 ### 4.5 Gating por pacote
 
 Já existe `tierIncludes()` em [lib/packages.ts:85](../lib/packages.ts#L85). Formaliza-se como tabela:
@@ -645,7 +683,7 @@ Resposta honesta: **muito menos do que parece, mas em pontos específicos e ineg
 |---|---|---|
 | **0. Fundação** | Dump + ensaio da migração em cópia local; `sites`/`site_content`/`site_sections`; **métricas (`site_events`, `site_daily_stats`) + beacon já no site que está no ar**; backfill aditivo **preservando os slugs de RSVP já distribuídos**; `siteId` em todos os repositories + teste de isolamento; slugs reservados; down migrations escritas | 5–7 d |
 | **1. Fatia vertical** | `cacheComponents: true` + revisão das rotas atuais; `ThemeSpec`+Zod; registry de fontes; **1 template (Clássico)** portado ponta a ponta; rota `/[slug]` cacheada | 5–7 d |
-| **2. Moldes** | Portar os 5 templates restantes para o contrato de seções | 5–8 d |
+| **2. Moldes** ✅ | Portar os 5 templates restantes para o contrato de seções — ver §4.4.1 | 5–8 d |
 | **3. Provisionamento** | `submitOrderAction` cria o site; upload de fotos; prévia por token; e-mail automático | 4–6 d |
 | **4. Autonomia do casal** | Editor de conteúdo em `/conta`; publicar/despublicar; `updateTag`; RSVP e presentes multi-tenant reais | 4–6 d |
 | **5. Robustez** | Rate limit público + moderação; webhook idempotente + assinatura; Sentry; subdomínio | 4–6 d |
