@@ -8,7 +8,7 @@ import { getTemplate } from "@/lib/templates/registry";
 // resolveTheme não entra aqui: o tema gravado em sites.theme JÁ é o
 // resolvido (preset do molde + escolhas do casal). A resolução acontece no
 // provisionamento do pedido (Fase 3), uma vez, não a cada render.
-import { parseThemeSpec } from "@/lib/theme/spec";
+import { parseThemeSpec, clampThemeFonts } from "@/lib/theme/spec";
 import { buildContentView } from "@/lib/site/content";
 import { isSectionKey, type SectionKey } from "@/lib/templates/contract";
 import SiteRenderer from "@/components/site/SiteRenderer";
@@ -71,7 +71,15 @@ export default async function SitePage({
     notFound();
   }
 
-  const theme = parseThemeSpec(view.site.theme) ?? template.defaultTheme;
+  // Tema do banco, mas grampeado ao que ESTE molde oferece: uma fonte fora
+  // do catálogo do template renderizaria sem @font-face e cairia na fonte do
+  // sistema. Acontece se o casal trocar de template depois de escolher a
+  // fonte. Ver §4.3 do SDD.
+  const theme = clampThemeFonts(
+    parseThemeSpec(view.site.theme) ?? template.defaultTheme,
+    new Set(Object.keys(template.fonts)),
+    template.defaultTheme.fonts
+  );
   const content = buildContentView({
     ...view.content,
     weddingDate: view.content.weddingDate,

@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { parseThemeSpec, resolveTheme, type ThemeSpec } from "./spec";
+import {
+  parseThemeSpec,
+  resolveTheme,
+  clampThemeFonts,
+  type ThemeSpec,
+} from "./spec";
 
 const valido: ThemeSpec = {
   version: 1,
@@ -102,5 +107,45 @@ describe("resolveTheme", () => {
     const copia = structuredClone(valido);
     resolveTheme(valido, { primaryColor: "#c65a2e", fontStyle: "playfair" });
     expect(valido).toEqual(copia);
+  });
+});
+
+describe("clampThemeFonts", () => {
+  const oferecidas = new Set(["cormorant", "lora", "pinyon", "playfair"]);
+
+  it("keeps fonts the template offers", () => {
+    const t = clampThemeFonts(valido, oferecidas, valido.fonts);
+    expect(t.fonts).toEqual(valido.fonts);
+  });
+
+  // O caso real: o casal escolhe a fonte e depois troca de template.
+  it("falls back to the template default for a font it does not offer", () => {
+    const comFonteDeOutroMolde: ThemeSpec = {
+      ...valido,
+      fonts: { ...valido.fonts, display: "caveat" },
+    };
+
+    const t = clampThemeFonts(comFonteDeOutroMolde, oferecidas, valido.fonts);
+
+    expect(t.fonts.display).toBe(valido.fonts.display);
+    expect(t.fonts.body).toBe(valido.fonts.body);
+  });
+
+  it("clamps each role independently", () => {
+    const misto: ThemeSpec = {
+      ...valido,
+      fonts: { display: "playfair", body: "amatic", script: "kaushan" },
+    };
+
+    const t = clampThemeFonts(misto, oferecidas, valido.fonts);
+
+    expect(t.fonts.display).toBe("playfair"); // oferecida, mantém
+    expect(t.fonts.body).toBe(valido.fonts.body); // não oferecida, cai no padrão
+    expect(t.fonts.script).toBe(valido.fonts.script);
+  });
+
+  it("does not touch the palette", () => {
+    const t = clampThemeFonts(valido, new Set(), valido.fonts);
+    expect(t.palette).toEqual(valido.palette);
   });
 });

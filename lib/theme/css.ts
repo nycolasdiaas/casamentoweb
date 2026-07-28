@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { fontVar } from "@/lib/fonts/registry";
+import { fontVar, type FontSet } from "@/lib/fonts/types";
 import type { ThemeSpec } from "./spec";
 
 /**
@@ -28,4 +28,15 @@ export function themeToCssVars(theme: ThemeSpec): CSSProperties {
 /** Fontes que o tema realmente usa — só essas vão para o HTML. */
 export function themeFontIds(theme: ThemeSpec) {
   return [theme.fonts.display, theme.fonts.body, theme.fonts.script];
+}
+
+/**
+ * Classes `variable` das fontes que o tema usa, buscadas no catálogo DO
+ * MOLDE. Duplicatas somem (é comum display e script serem a mesma fonte).
+ */
+export function themeFontClassNames(theme: ThemeSpec, fonts: FontSet): string {
+  return Array.from(new Set(themeFontIds(theme)))
+    .map((id) => fonts[id]?.variable)
+    .filter(Boolean)
+    .join(" ");
 }

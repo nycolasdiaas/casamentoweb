@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 import type { PackageTier } from "@/lib/packages";
 import type { TemplateStyleId, TemplateStyle } from "@/lib/templates";
 import type { ThemeSpec } from "@/lib/theme/spec";
+import type { FontSet } from "@/lib/fonts/types";
 
 // Contrato entre o molde (template) e os dados do casal.
 //
@@ -64,6 +65,11 @@ export type TemplateModule = {
   meta: TemplateStyle;
   /** tema padrão do molde, antes das escolhas do casal */
   defaultTheme: ThemeSpec;
+  /**
+   * Fontes que ESTE molde oferece. Cada um traz as suas para que a página
+   * carregue só o CSS do desenho que renderiza — ver §4.3 do SDD.
+   */
+  fonts: FontSet;
   /** ordem canônica das seções neste molde */
   order: SectionKey[];
   sections: Partial<Record<SectionKey, ComponentType<SectionProps>>>;

@@ -76,6 +76,33 @@ export function parseThemeSpec(value: unknown): ThemeSpec | null {
 }
 
 /**
+ * Garante que o tema só use fontes que o molde oferece.
+ *
+ * Necessário porque o catálogo é por molde (§4.3): um tema gravado com uma
+ * fonte que o template não traz renderizaria sem `@font-face`, caindo na
+ * fonte do sistema. Aqui isso vira o padrão do molde, silenciosamente.
+ *
+ * Acontece, por exemplo, quando o casal troca de template depois de ter
+ * escolhido a fonte.
+ */
+export function clampThemeFonts(
+  theme: ThemeSpec,
+  disponiveis: ReadonlySet<string>,
+  fallback: ThemeFonts
+): ThemeSpec {
+  const fonts: ThemeFonts = {
+    display: disponiveis.has(theme.fonts.display)
+      ? theme.fonts.display
+      : fallback.display,
+    body: disponiveis.has(theme.fonts.body) ? theme.fonts.body : fallback.body,
+    script: disponiveis.has(theme.fonts.script)
+      ? theme.fonts.script
+      : fallback.script,
+  };
+  return { ...theme, fonts };
+}
+
+/**
  * Preset do template + escolhas do casal = tema final.
  *
  * A cor principal do casal vira o `accent` (é o detalhe que ele percebe como

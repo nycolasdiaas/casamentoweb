@@ -1,5 +1,4 @@
-import { fontClassNames } from "@/lib/fonts/registry";
-import { themeToCssVars, themeFontIds } from "@/lib/theme/css";
+import { themeToCssVars, themeFontClassNames } from "@/lib/theme/css";
 import { sectionsForTier, type SectionKey } from "@/lib/templates/contract";
 import type { TemplateModule } from "@/lib/templates/contract";
 import type { SiteContentView } from "@/lib/templates/contract";
@@ -47,7 +46,7 @@ export default function SiteRenderer({
 
   return (
     <div
-      className={`${fontClassNames(themeFontIds(theme))} min-h-screen w-full flex justify-center`}
+      className={`${themeFontClassNames(theme, template.fonts)} min-h-screen w-full flex justify-center`}
       style={{ ...themeToCssVars(theme), background: "var(--outer)" }}
     >
       <div

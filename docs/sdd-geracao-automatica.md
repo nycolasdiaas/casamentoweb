@@ -150,13 +150,23 @@ Nuance importante: os arquivos `.woff2` das fontes não usadas **não** são bai
 
 **Causa:** o registry referencia as 34 estaticamente (obrigatório, `next/font` não aceita chamada dinâmica), então o chunk de qualquer página que importe o registry carrega o CSS das 34.
 
-**Opções (decisão de produto pendente, §14):**
+**DECIDIDO E IMPLEMENTADO: fontes por molde.** Cada template declara as suas no próprio módulo (`lib/templates/<id>/fonts.ts`); a rota importa só o molde que renderiza. O Clássico oferece 8, curadas para o desenho.
 
-1. **Fontes por molde** — cada template declara as suas 3–5 no próprio módulo. A rota só importa o molde que renderiza, então só aquele CSS embarca. Elimina quase todo o desperdício e ainda melhora o produto: uma fonte que estraga o Clássico deixa de ser oferecida nele. Custo: a escolha de fonte passa a ser por template, não um catálogo único.
-2. **Cortar o catálogo** para ~12 bem escolhidas (~18 KB). Simples, mas perde variedade sem ganhar curadoria.
-3. **Aceitar.** 51 KB é ruim, não fatal.
+Resultado medido no mesmo cenário:
 
-Recomendação: **opção 1**. É a única que resolve o número e melhora o resultado visual ao mesmo tempo.
+| | Antes (34 num registry) | Depois (8 por molde) |
+|---|---|---|
+| Chunk de fontes | 83,6 KB | **36,2 KB** (−57%) |
+| CSS total da página | 140,1 KB | **92,7 KB** (−34%) |
+| Regras `@font-face` | 243 | 99 |
+
+**Ganho de produto junto:** uma Amatic SC ou Caveat destruiria o Clássico. Não oferecer é curadoria, não limitação.
+
+**Desperdício residual, sendo honesto:** sobram 5 fontes que o molde oferece e este casal não escolheu. Zerar isso exigiria emitir só as 3 escolhidas — impossível com declaração estática, já que a escolha é dado de runtime. **Per-molde é o piso prático** enquanto usarmos `next/font/google`. Se um dia doer, o caminho é auto-hospedar com `next/font/local` e gerar o `@font-face` só das escolhidas.
+
+**Armadilha do `next/font` (custou um build):** cada fonte precisa ser atribuída a um `const` no escopo do módulo. Declarar direto dentro do objeto (`{ cormorant: Cormorant_Garamond({...}) }`) falha com *"Font loaders must be called and assigned to a const in the module scope"*.
+
+Como o catálogo virou por molde, o tema gravado no banco pode conter uma fonte que o template atual não oferece (o casal trocou de template depois de escolher). `clampThemeFonts` resolve silenciosamente para o padrão do molde — sem isso, a página renderizaria sem `@font-face` e cairia na fonte do sistema.
 
 ### 4.4 Contrato de template
 
@@ -649,7 +659,7 @@ Migrar fora do horário de pico e **nunca na véspera/semana do casamento** (16/
 | # | Assunto | Padrão adotado |
 |---|---|---|
 | 8 | RLS no Postgres | **Não agora.** Escopo por `siteId` no repository + teste automatizado que falha se alguma query pública não filtrar por site. RLS entra depois, se quisermos rede dupla. |
-| 9 | Catálogo de fontes | ~~Medir na Fase 1~~ → **MEDIDO: 51 KB (61%) de CSS desperdiçado** (§4.3). Decisão pendente entre "fontes por molde" (recomendado), cortar catálogo, ou aceitar. |
+| 9 | Catálogo de fontes | ~~Medir na Fase 1~~ → medido (51 KB desperdiçados) → **RESOLVIDO: fontes por molde.** CSS da página caiu 34%; o chunk de fontes, 57%. §4.3 |
 | 10 | Fluxo artesanal | Continua existindo como exceção operacional (`in_production`), não como produto. |
 | 11 | Pedidos de teste no banco | ~~Limpar~~ → **não apagar** (decisão 6). Os 3 pedidos com dados fake (`casal: "11"`, data `1222-12-12`) ganham só uma flag `is_test` para sumirem das telas. Dado preservado. |
 | 12 | Upgrade de pacote | Altera `tier` no mesmo pedido e no mesmo site — não cria site novo. |

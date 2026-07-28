@@ -1,6 +1,7 @@
 import { getTemplateStyle } from "@/lib/templates";
 import type { TemplateModule } from "@/lib/templates/contract";
 import type { ThemeSpec } from "@/lib/theme/spec";
+import { CLASSICO_FONTS } from "./fonts";
 import {
   Cover,
   CountdownSection,
@@ -32,6 +33,7 @@ const classico: TemplateModule = {
   id: "classico",
   meta: getTemplateStyle("classico")!,
   defaultTheme,
+  fonts: CLASSICO_FONTS,
   order: ["cover", "countdown", "story", "details", "gallery", "footer"],
   sections: {
     cover: Cover,
