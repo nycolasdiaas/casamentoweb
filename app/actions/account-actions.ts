@@ -10,7 +10,7 @@ import {
 } from "@/lib/auth/userSession";
 import { createUser, getUserByEmail } from "@/lib/repositories/users";
 import { getAdminByEmail } from "@/lib/repositories/admins";
-import { createSessionCookie as createAdminSessionCookie } from "@/lib/auth/session";
+import { clearSessionCookie as clearAdminSessionCookie } from "@/lib/auth/session";
 import {
   createOrder,
   updateOrder,
@@ -57,6 +57,7 @@ export async function signupAction(formData: FormData) {
     whatsapp: whatsapp || undefined,
   });
 
+  await clearAdminSessionCookie();
   await createUserSessionCookie(user.id);
   redirect("/conta");
 }
@@ -80,18 +81,25 @@ export async function signinAction(formData: FormData) {
   ]);
   if (!ipOk.allowed || !emailOk.allowed) return { error: RATE_LIMIT_MESSAGE };
 
-  // Mesma tela serve casal e admin: tenta conta de casal primeiro, depois
-  // admin — cada um cai na sua sessão (cookie diferente) e área própria.
+  // Esta tela entra SÓ como casal. Antes ela também aceitava credencial de
+  // admin e mandava direto pro /admin — era por isso que quem já tinha logado
+  // como admin nunca conseguia entrar como casal. Admin tem a tela dele.
   const user = email ? await getUserByEmail(email) : null;
   if (user && (await verifyPassword(password, user.passwordHash))) {
+    // Derruba qualquer sessão de admin aberta no mesmo navegador: um browser
+    // fica em um papel de cada vez, nunca nos dois.
+    await clearAdminSessionCookie();
     await createUserSessionCookie(user.id);
     redirect("/conta");
   }
 
   const admin = email ? await getAdminByEmail(email) : null;
   if (admin && (await verifyPassword(password, admin.passwordHash))) {
-    await createAdminSessionCookie(admin.id);
-    redirect("/admin/pedidos");
+    // Credencial certa, porta errada — não cria sessão nenhuma aqui.
+    return {
+      error:
+        "Essa é uma conta de administrador. Entre pela tela da equipe em /admin/login.",
+    };
   }
 
   // Nenhuma conta bateu. Se o e-mail nem existe, roda um scrypt descartável

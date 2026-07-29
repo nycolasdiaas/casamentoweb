@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createSessionCookie, clearSessionCookie } from "@/lib/auth/session";
+import { clearUserSessionCookie } from "@/lib/auth/userSession";
 import { verifyPassword } from "@/lib/auth/password";
 import { getAdminByEmail } from "@/lib/repositories/admins";
 import { checkRateLimit, getClientIp, RATE_LIMIT_MESSAGE } from "@/lib/rateLimit";
@@ -34,6 +35,8 @@ export async function loginAction(formData: FormData) {
     return { error: "E-mail ou senha incorretos." };
   }
 
+  // Espelho do que a tela do casal faz: um navegador fica em um papel só.
+  await clearUserSessionCookie();
   await createSessionCookie(admin.id);
   redirect("/admin/pedidos");
 }

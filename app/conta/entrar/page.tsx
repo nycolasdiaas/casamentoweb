@@ -66,7 +66,7 @@ export default function SigninPage() {
           <button
             type="submit"
             disabled={pending}
-            className="mt-1 rounded-full bg-(--color-olive) text-white py-3.5 text-sm font-medium transition-colors hover:bg-(--color-olive)/90 disabled:opacity-50"
+            className="btn btn-primary mt-1 w-full"
           >
             {pending ? "Entrando..." : "Entrar"}
           </button>
