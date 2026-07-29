@@ -38,14 +38,29 @@ cerimônia às 16:00 em Fortaleza, e cada salvamento empurraria mais três horas
 `contentInput.test.ts` tem um caso que salva três vezes seguidas e confirma
 que o instante não escorrega.
 
+Também entrou o **controle do site**: ligar/desligar seção e tirar do ar /
+colocar de volta. `site_sections.enabled` já era respeitado pelo renderer
+(`SiteRenderer`), só não tinha quem escrevesse.
+
+Duas regras que os testes protegem:
+
+- **`cover` e `footer` não desligam** — sem elas o site não é um site, então
+  nem aparecem como opção.
+- **A primeira publicação continua sendo do pagamento.** O casal desarquiva
+  só o que já esteve no ar (`publishedAt` preenchido); senão arquivar e
+  desarquivar seria um jeito de publicar sem pagar.
+
+Arquivar não apaga nada: conteúdo, fotos e confirmações ficam, e
+`publishedAt` guarda a primeira ida ao ar.
+
 ### Fase 4, o que falta
 
-- **Publicar/despublicar pelo casal.** Hoje só a rota de pagamento e o admin
-  movem `preview → published`.
-- **RSVP e presentes multi-tenant reais** na tela do casal: as tabelas já têm
-  `site_id`, mas o casal não tem onde gerenciar grupos, convidados nem lista
-  de presentes — isso segue só no admin, e só para o casamento legado.
-- **Ligar/desligar seção** (`site_sections.enabled` existe e ninguém escreve).
+- **RSVP e presentes na tela do casal.** As tabelas já têm `site_id`, mas o
+  casal não tem onde gerenciar grupos, convidados nem lista de presentes —
+  isso segue só no admin, e só para o casamento legado. É o maior pedaço
+  aberto, e é promessa dos pacotes "Site" e "Para Sempre".
+- **Reordenar seções.** `site_sections.position` existe; o casal liga e
+  desliga, mas não move.
 
 ---
 

@@ -15,7 +15,14 @@ import OrderStatusTracker, {
 } from "@/components/account/OrderStatusTracker";
 import PhotoManager from "@/components/account/PhotoManager";
 import ContentEditor from "@/components/account/ContentEditor";
+import SiteControls from "@/components/account/SiteControls";
 import { getSiteContent } from "@/lib/repositories/siteContent";
+import {
+  listSiteSections,
+  podeDesligar,
+} from "@/lib/repositories/siteSections";
+import { SECTION_LABELS } from "@/lib/site/sectionLabels";
+import { isSectionKey, type SectionKey } from "@/lib/templates/contract";
 import { toEditorValues } from "@/lib/site/contentFields";
 import { getSiteByOrderId } from "@/lib/repositories/sites";
 import {
@@ -102,6 +109,23 @@ export default async function OrderTrackerPage({
   // Arquivado é decisão de tirar do ar; não faz sentido oferecer edição.
   const podeEditarConteudo = site !== null && site.status !== "archived";
 
+  // Seções: o provisionamento semeia conforme o pacote, então o que está no
+  // banco já é o que este pacote libera — não precisa filtrar por tier aqui.
+  const secoes = site
+    ? (await listSiteSections(site.id))
+        .filter((s) => isSectionKey(s.sectionKey))
+        .map((s) => {
+          const key = s.sectionKey as SectionKey;
+          return {
+            key,
+            label: SECTION_LABELS[key].label,
+            descricao: SECTION_LABELS[key].descricao,
+            enabled: s.enabled,
+            fixa: !podeDesligar(key),
+          };
+        })
+    : [];
+
   return (
     <AccountShell active="pedidos">
       <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -146,6 +170,16 @@ export default async function OrderTrackerPage({
           ar automaticamente. Já estamos vendo isso — se preferir, chame a gente
           no WhatsApp que resolvemos na hora.
         </p>
+      )}
+
+      {site !== null && secoes.length > 0 && (
+        <SiteControls
+          siteId={site.id}
+          status={site.status}
+          slug={site.slug}
+          secoes={secoes}
+          jaFoiPublicado={site.publishedAt !== null}
+        />
       )}
 
       {podeEditarConteudo && (
