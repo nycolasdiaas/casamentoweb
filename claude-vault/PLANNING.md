@@ -21,24 +21,43 @@ pedido → site provisionado → prévia → fotos do casal → pagamento → si
 
 ---
 
-## Bloqueio: duas coisas nunca foram exercitadas de verdade
+## Bloqueio: o que nunca foi exercitado de verdade
 
-Nenhuma das duas dá para verificar sem uma pessoa na frente da tela. Ambas
-estão no caminho crítico de um cliente pagante — valem mais que qualquer
-item da lista abaixo.
+Está no caminho crítico de um cliente pagante — vale mais que qualquer item
+da lista abaixo. O item 1 caiu em 28/07; sobra o pagamento.
 
-### 1. Subir uma foto por um navegador de verdade
+### 1. ~~Subir uma foto por um navegador de verdade~~ — EXIF e compressão OK
 
-O que está verificado: o caminho do Storage inteiro (assinar, enviar, ler,
-apagar), a rota `/f/<id>`, o `next/image` otimizando e a revogação ao apagar.
+O que já estava verificado: o caminho do Storage inteiro (assinar, enviar,
+ler, apagar), a rota `/f/<id>`, o `next/image` otimizando e a revogação ao
+apagar.
 
-O que **não** está: a compressão por canvas e a orientação EXIF de foto de
-celular. `createImageBitmap` recebe `imageOrientation: "from-image"`, mas
-foto tirada na vertical em iPhone é o caso clássico de chegar deitada.
+**Resolvido em 28/07/2026.** `prepararFoto()` foi exercitada num Chrome de
+verdade (142, via CDP) com JPEGs sintéticos carregando `Orientation=6` — o
+raster deitado que o iPhone grava para foto tirada na vertical. As bordas do
+raster são coloridas para a orientação ser lida por pixel, não a olho:
 
-**Como testar:** entrar numa conta com pedido enviado, abrir
-`/conta/pedidos/<id>`, subir uma foto de celular na vertical e conferir se
-aparece de pé na prévia.
+| Entrada | Bitmap após EXIF | Gravado | Blob | Topo / base |
+|---|---|---|---|---|
+| 1600x1200, 76 KB | 1200x1600 | 1200x1600 | 41 KB | vermelho / azul ✅ |
+| 4032x3024, 2041 KB | 3024x4032 | 1200x1600 | 475 KB | vermelho / azul ✅ |
+
+A borda **esquerda** do raster vira o **topo**, que é o que `Orientation=6`
+manda. Chega de pé. O laço de qualidade também funciona: 2041 KB caíram para
+475 KB, abaixo do alvo de 500.
+
+Dois detalhes que valem saber:
+
+- **`imageOrientation: "from-image"` já é o padrão do Chrome atual** — sem a
+  opção o resultado é idêntico (`3024x4032`). Manter é certo mesmo assim: o
+  padrão antigo era `"none"`, e é o que roda em WebView velha.
+- **475 KB é raspando no alvo.** A imagem do teste é ruído sintético, o pior
+  caso para JPEG; foto real comprime bem melhor. Mas se o alvo apertar, é a
+  medida de referência.
+
+**O que ainda não foi exercitado pela interface:** o clique real no
+`<input type="file">` da tela `/conta/pedidos/<id>`. O que estava em aberto
+era a preparação da imagem, e essa parte agora está medida.
 
 ### 2. Um pagamento real
 
