@@ -14,6 +14,9 @@ import OrderStatusTracker, {
   type TrackerOrder,
 } from "@/components/account/OrderStatusTracker";
 import PhotoManager from "@/components/account/PhotoManager";
+import ContentEditor from "@/components/account/ContentEditor";
+import { getSiteContent } from "@/lib/repositories/siteContent";
+import { toEditorValues } from "@/lib/site/contentFields";
 import { getSiteByOrderId } from "@/lib/repositories/sites";
 import {
   listSitePhotosFresh,
@@ -92,6 +95,13 @@ export default async function OrderTrackerPage({
   const podeSubirFotos = site !== null && isStorageEnabled();
   const fotos = podeSubirFotos ? await listSitePhotosFresh(site.id) : [];
 
+  // Conteúdo editável pelo casal (Fase 4). Lido sem cache de propósito: quem
+  // acabou de salvar precisa ver o próprio texto no formulário, não uma
+  // versão anterior.
+  const conteudo = site ? await getSiteContent(site.id) : null;
+  // Arquivado é decisão de tirar do ar; não faz sentido oferecer edição.
+  const podeEditarConteudo = site !== null && site.status !== "archived";
+
   return (
     <AccountShell active="pedidos">
       <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -136,6 +146,14 @@ export default async function OrderTrackerPage({
           ar automaticamente. Já estamos vendo isso — se preferir, chame a gente
           no WhatsApp que resolvemos na hora.
         </p>
+      )}
+
+      {podeEditarConteudo && (
+        <ContentEditor
+          siteId={site.id}
+          values={toEditorValues(conteudo)}
+          previewUrl={order.previewUrl ?? order.siteUrl}
+        />
       )}
 
       {podeSubirFotos && (

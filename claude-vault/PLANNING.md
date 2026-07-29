@@ -16,8 +16,36 @@ pedido → site provisionado → prévia → fotos do casal → pagamento → si
 | 1 | Cache Components, ThemeSpec, motor de templates | ✅ |
 | 2 | Os 6 moldes portados | ✅ |
 | 3 | Provisionamento, upload de fotos, publicação ao pagamento | ✅ |
+| 4 | Autonomia do casal | 🟡 editor de conteúdo entregue |
 
-213 testes. `main` com tudo isso mergeado.
+`main` com as Fases 0–3 mergeadas.
+
+### Fase 4, o que já entrou
+
+O casal edita o próprio conteúdo em `/conta/pedidos/<id>`: nomes, data e hora,
+locais e endereços de cerimônia e festa, link do mapa, traje, história e
+recado dos presentes. Salvar chama `updateTag` nas três tags do site, então a
+mudança aparece na hora — read-your-own-writes, não stale.
+
+Peças: `lib/repositories/siteContent.ts` (escrita, upsert por causa do site
+legado), `lib/site/contentInput.ts` (validação à mão, sem Zod — o projeto não
+tem a dependência), `lib/site/contentFields.ts` (o caminho de volta para o
+formulário) e `components/account/ContentEditor.tsx`.
+
+O cuidado que custou os testes: **hora é gravada em UTC e exibida no fuso do
+site**. Formatar de volta com `toISOString()` devolveria 19:00 para uma
+cerimônia às 16:00 em Fortaleza, e cada salvamento empurraria mais três horas.
+`contentInput.test.ts` tem um caso que salva três vezes seguidas e confirma
+que o instante não escorrega.
+
+### Fase 4, o que falta
+
+- **Publicar/despublicar pelo casal.** Hoje só a rota de pagamento e o admin
+  movem `preview → published`.
+- **RSVP e presentes multi-tenant reais** na tela do casal: as tabelas já têm
+  `site_id`, mas o casal não tem onde gerenciar grupos, convidados nem lista
+  de presentes — isso segue só no admin, e só para o casamento legado.
+- **Ligar/desligar seção** (`site_sections.enabled` existe e ninguém escreve).
 
 ---
 
