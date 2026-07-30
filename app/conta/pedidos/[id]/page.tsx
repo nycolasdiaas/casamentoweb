@@ -16,6 +16,13 @@ import OrderStatusTracker, {
 import PhotoManager from "@/components/account/PhotoManager";
 import ContentEditor from "@/components/account/ContentEditor";
 import SiteControls from "@/components/account/SiteControls";
+import ThemeEditor from "@/components/account/ThemeEditor";
+import PhotoOrder from "@/components/account/PhotoOrder";
+import { getTemplate } from "@/lib/templates/registry";
+import { getTemplateStyle } from "@/lib/templates";
+import { parseThemeSpec, clampThemeFonts } from "@/lib/theme/spec";
+import { FONT_STYLES } from "@/lib/customization";
+import { SLOT_LABEL, type PhotoSlot } from "@/lib/repositories/sitePhotos";
 import { getSiteContent } from "@/lib/repositories/siteContent";
 import {
   listSiteSections,
@@ -133,6 +140,50 @@ export default async function OrderTrackerPage({
     };
   });
 
+  // Tema (cores e fontes) editável pelo casal. As fontes ofertadas são as do
+  // MOLDE — o mesmo recorte que `clampThemeFonts` faz ao renderizar, para o
+  // formulário não oferecer o que o site descartaria.
+  const template = site ? getTemplate(site.templateId) : null;
+  const temaAtual =
+    site && template
+      ? clampThemeFonts(
+          parseThemeSpec(site.theme) ?? template.defaultTheme,
+          new Set(Object.keys(template.fonts)),
+          template.defaultTheme.fonts
+        )
+      : null;
+  // templateId é nullable: o casal pode ter pedido "montar do zero". Sem
+  // molde não há catálogo de fontes nem preset, então o editor de estilo não
+  // aparece — o site desses casos é montado à mão pela equipe.
+  const nomeDoModelo = site?.templateId
+    ? (getTemplateStyle(site.templateId)?.name ?? site.templateId)
+    : "";
+  const fontesDoModelo = template
+    ? FONT_STYLES.filter((f) => f.id in template.fonts).map((f) => ({
+        id: f.id,
+        nome: f.name,
+        descricao: f.description,
+      }))
+    : [];
+
+  // Fotos com marcação de ponta, para as setas já chegarem desabilitadas em
+  // quem é primeira ou última do próprio slot.
+  //
+  // A URL é `/f/<id>`, a mesma rota que o site usa — nunca URL do Storage.
+  // Ver §8.1 do SDD: a rota repassa os bytes de um bucket privado.
+  const fotosOrdenaveis = fotos.map((f) => {
+    const doSlot = fotos.filter((o) => o.slot === f.slot);
+    const idx = doSlot.findIndex((o) => o.id === f.id);
+    return {
+      id: f.id,
+      slot: f.slot,
+      slotLabel: SLOT_LABEL[f.slot as PhotoSlot] ?? f.slot,
+      url: `/f/${f.id}`,
+      primeira: idx === 0,
+      ultima: idx === doSlot.length - 1,
+    };
+  });
+
   return (
     <AccountShell active="pedidos">
       <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -194,6 +245,16 @@ export default async function OrderTrackerPage({
           siteId={site.id}
           values={toEditorValues(conteudo)}
           previewUrl={order.previewUrl ?? order.siteUrl}
+        />
+      )}
+
+      {site !== null && temaAtual !== null && (
+        <ThemeEditor
+          siteId={site.id}
+          nomeDoModelo={nomeDoModelo}
+          fontesDoModelo={fontesDoModelo}
+          values={{ ...temaAtual.palette, ...temaAtual.fonts }}
+          fotoSlot={<PhotoOrder siteId={site.id} fotos={fotosOrdenaveis} />}
         />
       )}
 
