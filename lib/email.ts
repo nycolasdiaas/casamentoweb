@@ -142,6 +142,40 @@ export async function sendPasswordResetEmail(
   );
 }
 
+/**
+ * "A prévia está pronta" — o e-mail que transforma "enviei o pedido" em
+ * "recebi meu site". Sem ele o casal só descobre a prévia se voltar à tela
+ * por conta própria (item 2 dos próximos passos do PLANNING).
+ */
+export async function sendPreviewReadyEmail(
+  to: string,
+  name: string,
+  previewUrl: string,
+  painelUrl: string
+): Promise<void> {
+  await send(
+    to,
+    "A prévia do site de vocês está pronta 💚",
+    layout(
+      "A prévia está pronta!",
+      `<p style="font-size:14px;line-height:1.6;color:#5a624f">
+        Oi, ${name}! Montamos o site de vocês com o que veio no pedido. Abram
+        para ver como ficou.
+      </p>
+      ${button(previewUrl, "Ver a prévia do site")}
+      <p style="font-size:13px;line-height:1.6;color:#5a624f">
+        Dá para trocar textos, datas e locais, escolher o que aparece e subir
+        as fotos direto no painel — e a mudança aparece no site na hora:<br>
+        <a href="${painelUrl}" style="color:#3d4a36">${painelUrl}</a>
+      </p>
+      <p style="font-size:12px;color:#a8a39a">
+        Este link é só de vocês: o site ainda não está público. Ele vai ao ar
+        depois da confirmação do pagamento.
+      </p>`
+    )
+  );
+}
+
 export async function sendEmailVerification(
   to: string,
   name: string,

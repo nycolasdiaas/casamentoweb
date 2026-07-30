@@ -2,6 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
+import { isEmailConfigured, sendPreviewReadyEmail } from "@/lib/email";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import {
   createUserSessionCookie,
@@ -226,6 +228,30 @@ export async function submitOrderAction(formData: FormData) {
         console.error(
           `[provision] pedido ${finalOrderId} não provisionado: ${resultado.reason}`
         );
+      } else if (resultado.created && isEmailConfigured()) {
+        // Só no primeiro provisionamento: `created` false significa que o site
+        // já existia, e reenviar "sua prévia está pronta" seria ruído.
+        //
+        // Em `after()` porque falar com o SMTP é lento e pode falhar: o casal
+        // não espera o e-mail para ver a tela seguinte, e uma falha de envio
+        // não pode derrubar um pedido que já está registrado. Ver §7 do SDD.
+        //
+        // O link da prévia é lido do pedido, não montado aqui — quem grava o
+        // `previewUrl` (com o token secreto) é o provisionamento.
+        after(async () => {
+          try {
+            const atualizado = await getOrderById(finalOrderId);
+            if (!atualizado?.previewUrl) return;
+            await sendPreviewReadyEmail(
+              user.email,
+              user.name,
+              atualizado.previewUrl,
+              `${baseUrl}/conta/pedidos/${finalOrderId}`
+            );
+          } catch (error) {
+            console.error(`[email] prévia do pedido ${finalOrderId}:`, error);
+          }
+        });
       }
     }
   } catch (error) {

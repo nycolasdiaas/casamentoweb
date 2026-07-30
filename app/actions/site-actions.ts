@@ -3,7 +3,10 @@
 import { updateTag } from "next/cache";
 import { getSessionUserId } from "@/lib/auth/userSession";
 import { getSiteOwnedByUser } from "@/lib/repositories/sites";
-import { setSectionEnabled } from "@/lib/repositories/siteSections";
+import {
+  setSectionEnabled,
+  moveSection,
+} from "@/lib/repositories/siteSections";
 import { archiveSite, unarchiveSite } from "@/lib/site/visibility";
 import { publishedSiteTags } from "@/lib/site/publish";
 
@@ -75,6 +78,31 @@ export async function toggleSectionAction(
     saved: true,
     message: enabled ? "Seção ligada ✓" : "Seção desligada ✓",
   };
+}
+
+export async function moveSectionAction(
+  _prev: SiteActionResult,
+  formData: FormData
+): Promise<SiteActionResult> {
+  const dono = await siteDoCasal(formData);
+  if ("error" in dono) return { error: dono.error };
+  const { site } = dono;
+
+  if (site.status === "archived") {
+    return { error: "Coloquem o site no ar antes de mudar as seções." };
+  }
+
+  const sectionKey = formData.get("sectionKey")?.toString() ?? "";
+  const direcao = formData.get("direcao")?.toString();
+  if (direcao !== "up" && direcao !== "down") {
+    return { error: "Direção inválida." };
+  }
+
+  const mudou = await moveSection(site.id, sectionKey, direcao);
+  if (!mudou) return { error: "Essa seção não pode ser movida." };
+
+  derrubarCache(site.slug, site.previewToken);
+  return { saved: true, message: "Ordem atualizada ✓" };
 }
 
 export async function setSiteVisibilityAction(

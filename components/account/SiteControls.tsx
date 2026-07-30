@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import {
   toggleSectionAction,
+  moveSectionAction,
   setSiteVisibilityAction,
 } from "@/app/actions/site-actions";
 
@@ -12,7 +13,66 @@ export type SecaoView = {
   descricao: string;
   enabled: boolean;
   fixa: boolean;
+  podeSubir: boolean;
+  podeDescer: boolean;
 };
+
+/**
+ * Setas de reordenar. Cada direção é um form próprio porque são duas ações
+ * distintas — e assim cada botão tem o próprio estado de "enviando".
+ */
+function MoveButtons({
+  siteId,
+  sectionKey,
+  podeSubir,
+  podeDescer,
+  bloqueado,
+}: {
+  siteId: string;
+  sectionKey: string;
+  podeSubir: boolean;
+  podeDescer: boolean;
+  bloqueado: boolean;
+}) {
+  const [, subir, subindo] = useActionState(moveSectionAction, undefined);
+  const [, descer, descendo] = useActionState(moveSectionAction, undefined);
+
+  const classe =
+    "flex size-7 items-center justify-center rounded-full border border-(--color-gold)/50 bg-white text-xs text-(--color-olive) transition-colors hover:bg-(--color-blush) disabled:opacity-30 disabled:hover:bg-white";
+
+  return (
+    <div className="flex items-center gap-1">
+      <form action={subir}>
+        <input type="hidden" name="siteId" value={siteId} />
+        <input type="hidden" name="sectionKey" value={sectionKey} />
+        <input type="hidden" name="direcao" value="up" />
+        <button
+          type="submit"
+          disabled={!podeSubir || bloqueado || subindo}
+          aria-label="Mover para cima"
+          title="Mover para cima"
+          className={classe}
+        >
+          ↑
+        </button>
+      </form>
+      <form action={descer}>
+        <input type="hidden" name="siteId" value={siteId} />
+        <input type="hidden" name="sectionKey" value={sectionKey} />
+        <input type="hidden" name="direcao" value="down" />
+        <button
+          type="submit"
+          disabled={!podeDescer || bloqueado || descendo}
+          aria-label="Mover para baixo"
+          title="Mover para baixo"
+          className={classe}
+        >
+          ↓
+        </button>
+      </form>
+    </div>
+  );
+}
 
 function SectionToggle({
   siteId,
@@ -43,6 +103,14 @@ function SectionToggle({
       {secao.fixa ? (
         <span className="shrink-0 text-xs text-(--color-muted)">sempre</span>
       ) : (
+        <div className="flex shrink-0 items-center gap-1.5">
+          <MoveButtons
+            siteId={siteId}
+            sectionKey={secao.key}
+            podeSubir={secao.podeSubir}
+            podeDescer={secao.podeDescer}
+            bloqueado={bloqueado}
+          />
         <form action={action} className="shrink-0">
           <input type="hidden" name="siteId" value={siteId} />
           <input type="hidden" name="sectionKey" value={secao.key} />
@@ -61,6 +129,7 @@ function SectionToggle({
             {pending ? "..." : secao.enabled ? "Aparece" : "Escondida"}
           </button>
         </form>
+        </div>
       )}
     </li>
   );

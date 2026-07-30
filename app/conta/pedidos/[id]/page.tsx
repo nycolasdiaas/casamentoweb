@@ -111,20 +111,27 @@ export default async function OrderTrackerPage({
 
   // Seções: o provisionamento semeia conforme o pacote, então o que está no
   // banco já é o que este pacote libera — não precisa filtrar por tier aqui.
-  const secoes = site
-    ? (await listSiteSections(site.id))
-        .filter((s) => isSectionKey(s.sectionKey))
-        .map((s) => {
-          const key = s.sectionKey as SectionKey;
-          return {
-            key,
-            label: SECTION_LABELS[key].label,
-            descricao: SECTION_LABELS[key].descricao,
-            enabled: s.enabled,
-            fixa: !podeDesligar(key),
-          };
-        })
+  const linhasSecoes = site
+    ? (await listSiteSections(site.id)).filter((s) => isSectionKey(s.sectionKey))
     : [];
+  // As setas só valem entre seções móveis: `cover` e `footer` são âncoras, e
+  // oferecer "subir" para quem já é o primeiro móvel só gera erro na volta.
+  const moveis = linhasSecoes.filter((s) =>
+    podeDesligar(s.sectionKey as SectionKey)
+  );
+  const secoes = linhasSecoes.map((s) => {
+    const key = s.sectionKey as SectionKey;
+    const idxMovel = moveis.findIndex((m) => m.sectionKey === s.sectionKey);
+    return {
+      key,
+      label: SECTION_LABELS[key].label,
+      descricao: SECTION_LABELS[key].descricao,
+      enabled: s.enabled,
+      fixa: !podeDesligar(key),
+      podeSubir: idxMovel > 0,
+      podeDescer: idxMovel >= 0 && idxMovel < moveis.length - 1,
+    };
+  });
 
   return (
     <AccountShell active="pedidos">

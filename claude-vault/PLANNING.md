@@ -16,7 +16,7 @@ pedido → site provisionado → prévia → fotos do casal → pagamento → si
 | 1 | Cache Components, ThemeSpec, motor de templates | ✅ |
 | 2 | Os 6 moldes portados | ✅ |
 | 3 | Provisionamento, upload de fotos, publicação ao pagamento | ✅ |
-| 4 | Autonomia do casal | 🟡 editor de conteúdo entregue |
+| 4 | Autonomia do casal | 🟡 falta RSVP/presentes na tela do casal |
 
 `main` com as Fases 0–3 mergeadas.
 
@@ -59,8 +59,11 @@ Arquivar não apaga nada: conteúdo, fotos e confirmações ficam, e
   casal não tem onde gerenciar grupos, convidados nem lista de presentes —
   isso segue só no admin, e só para o casamento legado. É o maior pedaço
   aberto, e é promessa dos pacotes "Site" e "Para Sempre".
-- **Reordenar seções.** `site_sections.position` existe; o casal liga e
-  desliga, mas não move.
+- **`rsvpDeadline` e `timezone`.** `rsvpDeadline` é o único campo de
+  `site_content` fora do editor — nenhum molde o usa ainda, e oferecê-lo
+  prometeria um prazo que o site não mostra. `timezone` é lido e não
+  editável (fixo em America/Fortaleza): casal de outro fuso veria hora
+  errada. Os dois entram junto com o RSVP.
 
 ---
 
@@ -127,19 +130,31 @@ não pode ser tratado como melhoria: **é escrita pública e anônima**, então
 rate limit e moderação são requisito. Sem isso, o site do casamento de
 alguém vira mural aberto na internet.
 
-### 2. E-mail "sua prévia está pronta"
+### 2. ~~E-mail "sua prévia está pronta"~~ — entregue
 
-`lib/email.ts` só tem redefinição de senha. Hoje o casal só descobre a prévia
-se voltar à tela sozinho. Pequeno, e é o que transforma "enviei o pedido" em
-"recebi meu site".
+`sendPreviewReadyEmail` dispara no primeiro provisionamento, dentro de
+`after()`: falar com o SMTP é lento e pode falhar, e nem a espera nem a falha
+podem alcançar um pedido que já está registrado. Só quando
+`resultado.created` é true — reenviar o pedido não remanda o aviso. O link da
+prévia é lido do `previewUrl` gravado pelo provisionamento, não remontado.
 
-### 3. Fechar o webhook do AbacatePay
+`lib/email.ts` ganhou um segundo transporte antes disso: **Gmail SMTP** por
+senha de app, para não depender de domínio verificado. O Resend continua
+sendo o destino final. Teste de envio: `npm run email:test seu@email.com`.
 
-`ABACATEPAY_WEBHOOK_SECRET` está vazio, então o webhook responde 503 e **não
-processa nada**. Não é falta de verificação (ele compara o segredo em tempo
-constante e reconfirma com a API antes de liberar) — é que está desligado.
-Preencher torna a confirmação instantânea em vez de depender do casal voltar
-do checkout.
+### 3. Webhook do AbacatePay — segredo configurado, URL a confirmar
+
+`ABACATEPAY_WEBHOOK_SECRET` foi preenchido e a lógica está exercitada contra
+o build de produção local: sem segredo e com segredo errado devolve 401, com
+o certo devolve 200 (e 400 em JSON inválido).
+
+**Pendente:** o domínio. `casamentoweb.vercel.app` responde 307 redirecionando
+para `allyciaekauan.vercel.app`, e lá a rota dá 404 — ou seja, webhook
+cadastrado nesse endereço nunca chega neste app. `enlace.com.br` não resolve.
+Confirmar qual é a URL de produção antes de considerar o webhook ligado.
+
+O webhook é só velocidade: sem ele o pagamento é confirmado quando o casal
+volta do checkout.
 
 ### 4. Upload do álbum pós-festa
 

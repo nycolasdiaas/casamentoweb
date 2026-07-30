@@ -51,3 +51,60 @@ export async function setSectionEnabled(
 
   return linhas.length > 0;
 }
+
+/**
+ * Move uma seção uma posição para cima ou para baixo.
+ *
+ * Reescreve a coluna `position` da lista inteira em vez de trocar só o par:
+ * as posições semeadas podem ter buracos ou empates, e nesse caso uma troca
+ * simples não move nada. Renumerar de 0..n-1 deixa a ordem sempre coerente.
+ *
+ * `cover` e `footer` são âncoras — a capa abre o site e o rodapé fecha —
+ * então nem se movem nem servem de destino.
+ */
+export async function moveSection(
+  siteId: string,
+  sectionKey: string,
+  direcao: "up" | "down"
+): Promise<boolean> {
+  if (!isSectionKey(sectionKey) || !podeDesligar(sectionKey)) return false;
+
+  const atuais = await listSiteSections(siteId);
+  const moveis = atuais.filter(
+    (s) => isSectionKey(s.sectionKey) && podeDesligar(s.sectionKey as SectionKey)
+  );
+
+  const de = moveis.findIndex((s) => s.sectionKey === sectionKey);
+  if (de < 0) return false;
+  const para = direcao === "up" ? de - 1 : de + 1;
+  if (para < 0 || para >= moveis.length) return false; // já está na ponta
+
+  const reordenado = [...moveis];
+  [reordenado[de], reordenado[para]] = [reordenado[para], reordenado[de]];
+
+  // Mantém as âncoras onde estão e renumera o resto na ordem nova.
+  const posicoesMoveis = moveis
+    .map((s) => atuais.findIndex((a) => a.sectionKey === s.sectionKey))
+    .sort((a, b) => a - b);
+
+  const final = [...atuais];
+  reordenado.forEach((secao, i) => {
+    final[posicoesMoveis[i]] = secao;
+  });
+
+  await db.transaction(async (tx) => {
+    for (const [i, secao] of final.entries()) {
+      await tx
+        .update(siteSections)
+        .set({ position: i })
+        .where(
+          and(
+            eq(siteSections.siteId, siteId),
+            eq(siteSections.sectionKey, secao.sectionKey)
+          )
+        );
+    }
+  });
+
+  return true;
+}
