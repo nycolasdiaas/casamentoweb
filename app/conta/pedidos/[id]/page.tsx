@@ -22,6 +22,7 @@ import { getTemplate } from "@/lib/templates/registry";
 import { getTemplateStyle } from "@/lib/templates";
 import { parseThemeSpec, clampThemeFonts } from "@/lib/theme/spec";
 import { FONT_STYLES } from "@/lib/customization";
+import { fontVar } from "@/lib/fonts/types";
 import { SLOT_LABEL, type PhotoSlot } from "@/lib/repositories/sitePhotos";
 import { getSiteContent } from "@/lib/repositories/siteContent";
 import {
@@ -163,8 +164,22 @@ export default async function OrderTrackerPage({
         id: f.id,
         nome: f.name,
         descricao: f.description,
+        cssVar: fontVar(f.id),
       }))
     : [];
+  // Classes `variable` de TODAS as fontes do molde: é o que faz cada amostra
+  // do editor ser desenhada na própria fonte. Sem elas, `var(--f-x)` não
+  // resolve e todas sairiam iguais. O custo é o CSS das fontes do molde nesta
+  // página — aceitável porque é tela do casal, não do convidado.
+  const fontClassNames = template
+    ? Array.from(
+        new Set(
+          Object.values(template.fonts)
+            .map((f) => f?.variable)
+            .filter(Boolean) as string[]
+        )
+      ).join(" ")
+    : "";
 
   // Fotos com marcação de ponta, para as setas já chegarem desabilitadas em
   // quem é primeira ou última do próprio slot.
@@ -253,6 +268,7 @@ export default async function OrderTrackerPage({
           siteId={site.id}
           nomeDoModelo={nomeDoModelo}
           fontesDoModelo={fontesDoModelo}
+          fontClassNames={fontClassNames}
           values={{ ...temaAtual.palette, ...temaAtual.fonts }}
           fotoSlot={<PhotoOrder siteId={site.id} fotos={fotosOrdenaveis} />}
         />
