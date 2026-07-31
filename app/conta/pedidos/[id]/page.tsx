@@ -16,6 +16,7 @@ import OrderStatusTracker, {
 import PhotoManager from "@/components/account/PhotoManager";
 import ContentEditor from "@/components/account/ContentEditor";
 import SiteControls from "@/components/account/SiteControls";
+import LivePreview from "@/components/account/LivePreview";
 import ThemeEditor from "@/components/account/ThemeEditor";
 import PhotoOrder from "@/components/account/PhotoOrder";
 import { getTemplate } from "@/lib/templates/registry";
@@ -243,6 +244,10 @@ export default async function OrderTrackerPage({
           ar automaticamente. Já estamos vendo isso — se preferir, chame a gente
           no WhatsApp que resolvemos na hora.
         </p>
+      )}
+
+      {site !== null && site.status !== "archived" && (
+        <LivePreview previewToken={site.previewToken} />
       )}
 
       {site !== null && secoes.length > 0 && (
