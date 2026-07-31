@@ -118,6 +118,21 @@ verdade.
 
 ## Próximos passos, em ordem de valor
 
+### 0. Painel de montagem do casal (pedido do Anderson, 28/07)
+
+Prévia ao vivo enquanto escolhe, alternador PC/celular, layout e vídeo nos
+carrosséis — **no painel**, não no site do convidado. Detalhes, tamanhos e o
+que NÃO é, em
+[docs/proximo-passo-painel-de-montagem.md](../docs/proximo-passo-painel-de-montagem.md).
+
+A distinção que organiza: `/conta/*` (casal montando) e `/s/<slug>`
+(convidado) são produtos diferentes. Os pacotes não mudam.
+
+Começar pelo alternador PC/celular: um `<iframe>` de `/preview/<token>` no
+painel, largura alternando. Exige soltar `frame-ancestors` para `'self'` no
+next.config.ts — hoje é `'none'`.
+
+
 ### 1. Mural de recados (`guestbook`)
 
 **Única seção do contrato sem implementação.** As prévias já a mostram para
