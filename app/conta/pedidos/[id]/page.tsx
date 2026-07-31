@@ -247,7 +247,10 @@ export default async function OrderTrackerPage({
       )}
 
       {site !== null && site.status !== "archived" && (
-        <LivePreview previewToken={site.previewToken} />
+        <LivePreview
+          src={`/preview/${site.previewToken}`}
+          descricao="É o site de verdade, com o conteúdo de vocês. Depois de salvar alguma mudança, clique em atualizar."
+        />
       )}
 
       {site !== null && secoes.length > 0 && (

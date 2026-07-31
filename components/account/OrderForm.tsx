@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
+import LivePreview from "@/components/account/LivePreview";
 import {
   Cormorant_Garamond,
   Playfair_Display,
@@ -276,6 +277,12 @@ export default function OrderForm({
     order ? order.templateStyle ?? "" : "classico"
   );
 
+  // O pacote também é estado: a prévia mostra seções diferentes conforme o
+  // tier, então precisa reagir junto com o molde.
+  const [pacote, setPacote] = useState<PackageTier>(
+    order?.packageTier ?? (PACKAGES.find((p) => p.highlight)?.tier ?? "site")
+  );
+
   return (
     <form action={action} className="flex flex-col gap-8">
       <input type="hidden" name="orderId" value={orderId ?? ""} />
@@ -293,9 +300,8 @@ export default function OrderForm({
                   type="radio"
                   name="packageTier"
                   value={pkg.tier}
-                  defaultChecked={
-                    order ? order.packageTier === pkg.tier : pkg.highlight
-                  }
+                  checked={pacote === pkg.tier}
+                  onChange={() => setPacote(pkg.tier)}
                   className="accent-(--color-olive)"
                 />
                 <span className="text-sm font-semibold">{pkg.name}</span>
@@ -391,6 +397,17 @@ export default function OrderForm({
             </p>
           )}
         </div>
+
+        {/* Prévia do molde escolhido, aqui mesmo. Ainda não existe site
+            provisionado (isso só acontece ao ENVIAR o pedido), então a fonte
+            é a prévia do molde — que já reage ao modelo e ao pacote. */}
+        {templateStyle && (
+          <LivePreview
+            src={`/pacotes/estilos/${templateStyle}?pacote=${pacote}`}
+            titulo="Como este modelo fica"
+            descricao="Troquem o modelo ou o pacote acima e veja mudar aqui. Depois de enviar o pedido, esta prévia passa a mostrar o site com o conteúdo de vocês."
+          />
+        )}
 
         {/* Cores */}
         <ColorField

@@ -49,7 +49,10 @@ export default function AccountShell({
         </div>
       </header>
 
-      <main className="flex-1 max-w-3xl mx-auto w-full px-6 py-12 flex flex-col gap-8">
+      {/* max-w-5xl e não 3xl: a prévia do site mora aqui dentro, e em 768px
+          o quadro ficava estreito demais para o modo computador parecer
+          computador. Os blocos de texto seguem limitados por conta própria. */}
+      <main className="flex-1 max-w-5xl mx-auto w-full px-6 py-12 flex flex-col gap-8">
         {children}
       </main>
     </div>
