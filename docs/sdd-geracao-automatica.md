@@ -685,7 +685,7 @@ Resposta honesta: **muito menos do que parece, mas em pontos específicos e ineg
 | **1. Fatia vertical** | `cacheComponents: true` + revisão das rotas atuais; `ThemeSpec`+Zod; registry de fontes; **1 template (Clássico)** portado ponta a ponta; rota `/[slug]` cacheada | 5–7 d |
 | **2. Moldes** ✅ | Portar os 5 templates restantes para o contrato de seções — ver §4.4.1 | 5–8 d |
 | **3. Provisionamento** | `submitOrderAction` cria o site; upload de fotos; prévia por token; e-mail automático | 4–6 d |
-| **4. Autonomia do casal** | Editor de conteúdo em `/conta`; publicar/despublicar; `updateTag`; RSVP e presentes multi-tenant reais | 4–6 d |
+| **4. Autonomia do casal** 🟡 | Editor de conteúdo em `/conta` ✅ + `updateTag` ✅; falta publicar/despublicar pelo casal e RSVP/presentes multi-tenant na tela dele | 4–6 d |
 | **5. Robustez** | Rate limit público + moderação; webhook idempotente + assinatura; Sentry; subdomínio | 4–6 d |
 | **6. Opcional** | Domínio próprio; IA de estilo/copy | 3–5 d |
 

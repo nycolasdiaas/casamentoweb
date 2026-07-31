@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { COOKIE_NAME } from "@/lib/auth/session";
-import { USER_COOKIE_NAME } from "@/lib/auth/userSession";
+import { COOKIE_NAME, ADMIN_SESSION_DOMAIN } from "@/lib/auth/session";
+import { USER_COOKIE_NAME, USER_SESSION_DOMAIN } from "@/lib/auth/userSession";
 
 async function hmacHex(secret: string, payload: string): Promise<string> {
   const key = await crypto.subtle.importKey(
@@ -32,8 +32,12 @@ function timingSafeEqualHex(a: string, b: string): boolean {
   return diff === 0;
 }
 
+// `domain` precisa bater com o prefixo usado ao assinar em
+// lib/auth/session.ts e lib/auth/userSession.ts — é o que impede um cookie
+// de admin de ser aceito como cookie de casal.
 async function verifySignedCookie(
   value: string | undefined,
+  domain: string,
   extractExpiresAt: (payload: string) => number
 ): Promise<boolean> {
   if (!value) return false;
@@ -46,7 +50,7 @@ async function verifySignedCookie(
   const secret = process.env.ADMIN_SESSION_SECRET;
   if (!secret) return false;
 
-  const expectedSignature = await hmacHex(secret, payload);
+  const expectedSignature = await hmacHex(secret, `${domain}|${payload}`);
   if (!timingSafeEqualHex(signature, expectedSignature)) return false;
 
   const expiresAt = extractExpiresAt(payload);
@@ -64,6 +68,7 @@ export async function proxy(request: NextRequest) {
     // payload da sessão de admin: "adminId:expiresAt"
     const isValid = await verifySignedCookie(
       request.cookies.get(COOKIE_NAME)?.value,
+      ADMIN_SESSION_DOMAIN,
       (payload) => Number(payload.split(":")[1])
     );
     if (!isValid) {
@@ -73,11 +78,16 @@ export async function proxy(request: NextRequest) {
   }
 
   if (pathname.startsWith("/conta")) {
+    // Telas alcançadas por link de e-mail ou por quem ainda não entrou.
+    // "/conta/confirmar" PRECISA estar aqui: o link de confirmação costuma
+    // ser aberto no navegador do celular, sem sessão — barrar aqui faria o
+    // token nunca ser consumido.
     const publicContaPaths = [
       "/conta/entrar",
       "/conta/criar",
       "/conta/esqueci",
       "/conta/redefinir",
+      "/conta/confirmar",
     ];
     if (publicContaPaths.includes(pathname)) {
       return NextResponse.next();
@@ -86,6 +96,7 @@ export async function proxy(request: NextRequest) {
     // payload da sessão de usuário: "userId:expiresAt"
     const isValid = await verifySignedCookie(
       request.cookies.get(USER_COOKIE_NAME)?.value,
+      USER_SESSION_DOMAIN,
       (payload) => Number(payload.split(":")[1])
     );
     if (!isValid) {

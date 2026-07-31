@@ -26,3 +26,82 @@ html,
 body {
   overflow-x: clip;
 }
+
+/* Barra de rolagem horizontal escondida em trilhos que rolam de propósito
+   (ex: seletores das prévias). O conteúdo continua rolável por toque/trackpad
+   — some só a barra, que aparecia cortando o layout no mobile. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* --------------------------------------------------------------------------
+   Botões da plataforma.
+
+   As cores aqui são HEX LITERAL de propósito, não var(--color-olive): em
+   produção os CTAs principais ("Fazer meu pedido", "+ Novo pedido") saíram
+   sem fundo nenhum — texto branco sobre fundo claro, botão invisível. Com a
+   cor literal o botão não depende de nenhuma custom property resolver.
+   -------------------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  padding: 0.875rem 2rem;
+  text-align: center;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+.btn:focus-visible {
+  outline: 2px solid #b8985f;
+  outline-offset: 2px;
+}
+
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Ação principal: verde escuro sólido, contraste ~9:1 com o texto branco. */
+.btn-primary {
+  background-color: #2f3a29;
+  border-color: #2f3a29;
+  color: #ffffff;
+  box-shadow: 0 1px 2px rgb(47 58 41 / 0.28);
+}
+.btn-primary:hover:not(:disabled) {
+  background-color: #232c1f;
+  border-color: #232c1f;
+  box-shadow: 0 4px 12px rgb(47 58 41 / 0.24);
+}
+
+/* Ação secundária: contorno legível sobre papel e sobre branco. */
+.btn-secondary {
+  background-color: #ffffff;
+  border-color: #2f3a29;
+  color: #2f3a29;
+}
+.btn-secondary:hover:not(:disabled) {
+  background-color: #ebefe3;
+}
+
+/* Ação terciária/compacta dentro de listas e tabelas. */
+.btn-sm {
+  padding: 0.5rem 1.125rem;
+  font-size: 0.8125rem;
+}

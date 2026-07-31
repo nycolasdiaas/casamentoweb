@@ -14,6 +14,24 @@ import OrderStatusTracker, {
   type TrackerOrder,
 } from "@/components/account/OrderStatusTracker";
 import PhotoManager from "@/components/account/PhotoManager";
+import ContentEditor from "@/components/account/ContentEditor";
+import SiteControls from "@/components/account/SiteControls";
+import ThemeEditor from "@/components/account/ThemeEditor";
+import PhotoOrder from "@/components/account/PhotoOrder";
+import { getTemplate } from "@/lib/templates/registry";
+import { getTemplateStyle } from "@/lib/templates";
+import { parseThemeSpec, clampThemeFonts } from "@/lib/theme/spec";
+import { FONT_STYLES } from "@/lib/customization";
+import { fontVar } from "@/lib/fonts/types";
+import { SLOT_LABEL, type PhotoSlot } from "@/lib/repositories/sitePhotos";
+import { getSiteContent } from "@/lib/repositories/siteContent";
+import {
+  listSiteSections,
+  podeDesligar,
+} from "@/lib/repositories/siteSections";
+import { SECTION_LABELS } from "@/lib/site/sectionLabels";
+import { isSectionKey, type SectionKey } from "@/lib/templates/contract";
+import { toEditorValues } from "@/lib/site/contentFields";
 import { getSiteByOrderId } from "@/lib/repositories/sites";
 import {
   listSitePhotosFresh,
@@ -92,6 +110,95 @@ export default async function OrderTrackerPage({
   const podeSubirFotos = site !== null && isStorageEnabled();
   const fotos = podeSubirFotos ? await listSitePhotosFresh(site.id) : [];
 
+  // Conteúdo editável pelo casal (Fase 4). Lido sem cache de propósito: quem
+  // acabou de salvar precisa ver o próprio texto no formulário, não uma
+  // versão anterior.
+  const conteudo = site ? await getSiteContent(site.id) : null;
+  // Arquivado é decisão de tirar do ar; não faz sentido oferecer edição.
+  const podeEditarConteudo = site !== null && site.status !== "archived";
+
+  // Seções: o provisionamento semeia conforme o pacote, então o que está no
+  // banco já é o que este pacote libera — não precisa filtrar por tier aqui.
+  const linhasSecoes = site
+    ? (await listSiteSections(site.id)).filter((s) => isSectionKey(s.sectionKey))
+    : [];
+  // As setas só valem entre seções móveis: `cover` e `footer` são âncoras, e
+  // oferecer "subir" para quem já é o primeiro móvel só gera erro na volta.
+  const moveis = linhasSecoes.filter((s) =>
+    podeDesligar(s.sectionKey as SectionKey)
+  );
+  const secoes = linhasSecoes.map((s) => {
+    const key = s.sectionKey as SectionKey;
+    const idxMovel = moveis.findIndex((m) => m.sectionKey === s.sectionKey);
+    return {
+      key,
+      label: SECTION_LABELS[key].label,
+      descricao: SECTION_LABELS[key].descricao,
+      enabled: s.enabled,
+      fixa: !podeDesligar(key),
+      podeSubir: idxMovel > 0,
+      podeDescer: idxMovel >= 0 && idxMovel < moveis.length - 1,
+    };
+  });
+
+  // Tema (cores e fontes) editável pelo casal. As fontes ofertadas são as do
+  // MOLDE — o mesmo recorte que `clampThemeFonts` faz ao renderizar, para o
+  // formulário não oferecer o que o site descartaria.
+  const template = site ? getTemplate(site.templateId) : null;
+  const temaAtual =
+    site && template
+      ? clampThemeFonts(
+          parseThemeSpec(site.theme) ?? template.defaultTheme,
+          new Set(Object.keys(template.fonts)),
+          template.defaultTheme.fonts
+        )
+      : null;
+  // templateId é nullable: o casal pode ter pedido "montar do zero". Sem
+  // molde não há catálogo de fontes nem preset, então o editor de estilo não
+  // aparece — o site desses casos é montado à mão pela equipe.
+  const nomeDoModelo = site?.templateId
+    ? (getTemplateStyle(site.templateId)?.name ?? site.templateId)
+    : "";
+  const fontesDoModelo = template
+    ? FONT_STYLES.filter((f) => f.id in template.fonts).map((f) => ({
+        id: f.id,
+        nome: f.name,
+        descricao: f.description,
+        cssVar: fontVar(f.id),
+      }))
+    : [];
+  // Classes `variable` de TODAS as fontes do molde: é o que faz cada amostra
+  // do editor ser desenhada na própria fonte. Sem elas, `var(--f-x)` não
+  // resolve e todas sairiam iguais. O custo é o CSS das fontes do molde nesta
+  // página — aceitável porque é tela do casal, não do convidado.
+  const fontClassNames = template
+    ? Array.from(
+        new Set(
+          Object.values(template.fonts)
+            .map((f) => f?.variable)
+            .filter(Boolean) as string[]
+        )
+      ).join(" ")
+    : "";
+
+  // Fotos com marcação de ponta, para as setas já chegarem desabilitadas em
+  // quem é primeira ou última do próprio slot.
+  //
+  // A URL é `/f/<id>`, a mesma rota que o site usa — nunca URL do Storage.
+  // Ver §8.1 do SDD: a rota repassa os bytes de um bucket privado.
+  const fotosOrdenaveis = fotos.map((f) => {
+    const doSlot = fotos.filter((o) => o.slot === f.slot);
+    const idx = doSlot.findIndex((o) => o.id === f.id);
+    return {
+      id: f.id,
+      slot: f.slot,
+      slotLabel: SLOT_LABEL[f.slot as PhotoSlot] ?? f.slot,
+      url: `/f/${f.id}`,
+      primeira: idx === 0,
+      ultima: idx === doSlot.length - 1,
+    };
+  });
+
   return (
     <AccountShell active="pedidos">
       <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -136,6 +243,35 @@ export default async function OrderTrackerPage({
           ar automaticamente. Já estamos vendo isso — se preferir, chame a gente
           no WhatsApp que resolvemos na hora.
         </p>
+      )}
+
+      {site !== null && secoes.length > 0 && (
+        <SiteControls
+          siteId={site.id}
+          status={site.status}
+          slug={site.slug}
+          secoes={secoes}
+          jaFoiPublicado={site.publishedAt !== null}
+        />
+      )}
+
+      {podeEditarConteudo && (
+        <ContentEditor
+          siteId={site.id}
+          values={toEditorValues(conteudo)}
+          previewUrl={order.previewUrl ?? order.siteUrl}
+        />
+      )}
+
+      {site !== null && temaAtual !== null && (
+        <ThemeEditor
+          siteId={site.id}
+          nomeDoModelo={nomeDoModelo}
+          fontesDoModelo={fontesDoModelo}
+          fontClassNames={fontClassNames}
+          values={{ ...temaAtual.palette, ...temaAtual.fonts }}
+          fotoSlot={<PhotoOrder siteId={site.id} fotos={fotosOrdenaveis} />}
+        />
       )}
 
       {podeSubirFotos && (

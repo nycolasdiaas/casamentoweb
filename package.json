@@ -19,12 +19,14 @@
     "backup:full": "node scripts/backup-full.mjs",
     "backfill:legacy": "node scripts/backfill-legacy-site.mjs",
     "seed:gifts": "node scripts/seed-gifts.mjs",
-    "seed:demo": "node scripts/seed-demo-site.mjs"
+    "seed:demo": "node scripts/seed-demo-site.mjs",
+    "email:test": "node scripts/test-email.mjs"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
     "nanoid": "^5.1.15",
     "next": "^16.2.11",
+    "nodemailer": "^7.0.9",
     "postgres": "^3.4.9",
     "react": "19.2.4",
     "react-dom": "19.2.4"
@@ -35,6 +37,7 @@
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20",
+    "@types/nodemailer": "^7.0.4",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.0.2",

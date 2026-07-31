@@ -16,29 +16,94 @@ pedido → site provisionado → prévia → fotos do casal → pagamento → si
 | 1 | Cache Components, ThemeSpec, motor de templates | ✅ |
 | 2 | Os 6 moldes portados | ✅ |
 | 3 | Provisionamento, upload de fotos, publicação ao pagamento | ✅ |
+| 4 | Autonomia do casal | 🟡 falta RSVP/presentes na tela do casal |
 
-213 testes. `main` com tudo isso mergeado.
+`main` com as Fases 0–3 mergeadas.
+
+### Fase 4, o que já entrou
+
+O casal edita o próprio conteúdo em `/conta/pedidos/<id>`: nomes, data e hora,
+locais e endereços de cerimônia e festa, link do mapa, traje, história e
+recado dos presentes. Salvar chama `updateTag` nas três tags do site, então a
+mudança aparece na hora — read-your-own-writes, não stale.
+
+Peças: `lib/repositories/siteContent.ts` (escrita, upsert por causa do site
+legado), `lib/site/contentInput.ts` (validação à mão, sem Zod — o projeto não
+tem a dependência), `lib/site/contentFields.ts` (o caminho de volta para o
+formulário) e `components/account/ContentEditor.tsx`.
+
+O cuidado que custou os testes: **hora é gravada em UTC e exibida no fuso do
+site**. Formatar de volta com `toISOString()` devolveria 19:00 para uma
+cerimônia às 16:00 em Fortaleza, e cada salvamento empurraria mais três horas.
+`contentInput.test.ts` tem um caso que salva três vezes seguidas e confirma
+que o instante não escorrega.
+
+Também entrou o **controle do site**: ligar/desligar seção e tirar do ar /
+colocar de volta. `site_sections.enabled` já era respeitado pelo renderer
+(`SiteRenderer`), só não tinha quem escrevesse.
+
+Duas regras que os testes protegem:
+
+- **`cover` e `footer` não desligam** — sem elas o site não é um site, então
+  nem aparecem como opção.
+- **A primeira publicação continua sendo do pagamento.** O casal desarquiva
+  só o que já esteve no ar (`publishedAt` preenchido); senão arquivar e
+  desarquivar seria um jeito de publicar sem pagar.
+
+Arquivar não apaga nada: conteúdo, fotos e confirmações ficam, e
+`publishedAt` guarda a primeira ida ao ar.
+
+### Fase 4, o que falta
+
+- **RSVP e presentes na tela do casal.** As tabelas já têm `site_id`, mas o
+  casal não tem onde gerenciar grupos, convidados nem lista de presentes —
+  isso segue só no admin, e só para o casamento legado. É o maior pedaço
+  aberto, e é promessa dos pacotes "Site" e "Para Sempre".
+- **`rsvpDeadline` e `timezone`.** `rsvpDeadline` é o único campo de
+  `site_content` fora do editor — nenhum molde o usa ainda, e oferecê-lo
+  prometeria um prazo que o site não mostra. `timezone` é lido e não
+  editável (fixo em America/Fortaleza): casal de outro fuso veria hora
+  errada. Os dois entram junto com o RSVP.
 
 ---
 
-## Bloqueio: duas coisas nunca foram exercitadas de verdade
+## Bloqueio: o que nunca foi exercitado de verdade
 
-Nenhuma das duas dá para verificar sem uma pessoa na frente da tela. Ambas
-estão no caminho crítico de um cliente pagante — valem mais que qualquer
-item da lista abaixo.
+Está no caminho crítico de um cliente pagante — vale mais que qualquer item
+da lista abaixo. O item 1 caiu em 28/07; sobra o pagamento.
 
-### 1. Subir uma foto por um navegador de verdade
+### 1. ~~Subir uma foto por um navegador de verdade~~ — EXIF e compressão OK
 
-O que está verificado: o caminho do Storage inteiro (assinar, enviar, ler,
-apagar), a rota `/f/<id>`, o `next/image` otimizando e a revogação ao apagar.
+O que já estava verificado: o caminho do Storage inteiro (assinar, enviar,
+ler, apagar), a rota `/f/<id>`, o `next/image` otimizando e a revogação ao
+apagar.
 
-O que **não** está: a compressão por canvas e a orientação EXIF de foto de
-celular. `createImageBitmap` recebe `imageOrientation: "from-image"`, mas
-foto tirada na vertical em iPhone é o caso clássico de chegar deitada.
+**Resolvido em 28/07/2026.** `prepararFoto()` foi exercitada num Chrome de
+verdade (142, via CDP) com JPEGs sintéticos carregando `Orientation=6` — o
+raster deitado que o iPhone grava para foto tirada na vertical. As bordas do
+raster são coloridas para a orientação ser lida por pixel, não a olho:
 
-**Como testar:** entrar numa conta com pedido enviado, abrir
-`/conta/pedidos/<id>`, subir uma foto de celular na vertical e conferir se
-aparece de pé na prévia.
+| Entrada | Bitmap após EXIF | Gravado | Blob | Topo / base |
+|---|---|---|---|---|
+| 1600x1200, 76 KB | 1200x1600 | 1200x1600 | 41 KB | vermelho / azul ✅ |
+| 4032x3024, 2041 KB | 3024x4032 | 1200x1600 | 475 KB | vermelho / azul ✅ |
+
+A borda **esquerda** do raster vira o **topo**, que é o que `Orientation=6`
+manda. Chega de pé. O laço de qualidade também funciona: 2041 KB caíram para
+475 KB, abaixo do alvo de 500.
+
+Dois detalhes que valem saber:
+
+- **`imageOrientation: "from-image"` já é o padrão do Chrome atual** — sem a
+  opção o resultado é idêntico (`3024x4032`). Manter é certo mesmo assim: o
+  padrão antigo era `"none"`, e é o que roda em WebView velha.
+- **475 KB é raspando no alvo.** A imagem do teste é ruído sintético, o pior
+  caso para JPEG; foto real comprime bem melhor. Mas se o alvo apertar, é a
+  medida de referência.
+
+**O que ainda não foi exercitado pela interface:** o clique real no
+`<input type="file">` da tela `/conta/pedidos/<id>`. O que estava em aberto
+era a preparação da imagem, e essa parte agora está medida.
 
 ### 2. Um pagamento real
 
@@ -65,19 +130,31 @@ não pode ser tratado como melhoria: **é escrita pública e anônima**, então
 rate limit e moderação são requisito. Sem isso, o site do casamento de
 alguém vira mural aberto na internet.
 
-### 2. E-mail "sua prévia está pronta"
+### 2. ~~E-mail "sua prévia está pronta"~~ — entregue
 
-`lib/email.ts` só tem redefinição de senha. Hoje o casal só descobre a prévia
-se voltar à tela sozinho. Pequeno, e é o que transforma "enviei o pedido" em
-"recebi meu site".
+`sendPreviewReadyEmail` dispara no primeiro provisionamento, dentro de
+`after()`: falar com o SMTP é lento e pode falhar, e nem a espera nem a falha
+podem alcançar um pedido que já está registrado. Só quando
+`resultado.created` é true — reenviar o pedido não remanda o aviso. O link da
+prévia é lido do `previewUrl` gravado pelo provisionamento, não remontado.
 
-### 3. Fechar o webhook do AbacatePay
+`lib/email.ts` ganhou um segundo transporte antes disso: **Gmail SMTP** por
+senha de app, para não depender de domínio verificado. O Resend continua
+sendo o destino final. Teste de envio: `npm run email:test seu@email.com`.
 
-`ABACATEPAY_WEBHOOK_SECRET` está vazio, então o webhook responde 503 e **não
-processa nada**. Não é falta de verificação (ele compara o segredo em tempo
-constante e reconfirma com a API antes de liberar) — é que está desligado.
-Preencher torna a confirmação instantânea em vez de depender do casal voltar
-do checkout.
+### 3. Webhook do AbacatePay — segredo configurado, URL a confirmar
+
+`ABACATEPAY_WEBHOOK_SECRET` foi preenchido e a lógica está exercitada contra
+o build de produção local: sem segredo e com segredo errado devolve 401, com
+o certo devolve 200 (e 400 em JSON inválido).
+
+**Pendente:** o domínio. `casamentoweb.vercel.app` responde 307 redirecionando
+para `allyciaekauan.vercel.app`, e lá a rota dá 404 — ou seja, webhook
+cadastrado nesse endereço nunca chega neste app. `enlace.com.br` não resolve.
+Confirmar qual é a URL de produção antes de considerar o webhook ligado.
+
+O webhook é só velocidade: sem ele o pagamento é confirmado quando o casal
+volta do checkout.
 
 ### 4. Upload do álbum pós-festa
 
