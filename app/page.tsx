@@ -651,12 +651,17 @@ export default function PackagesPage() {
             >
               WhatsApp · {CONTACT.whatsappLabel}
             </a>
-            <a
-              href={`mailto:${CONTACT.email}`}
-              className="border border-white/40 text-sm font-medium px-8 py-3.5 rounded-full hover:bg-white/10 transition-colors"
-            >
-              {CONTACT.email}
-            </a>
+            {/* Só aparece se houver e-mail da MARCA. Ver lib/site.ts: o
+                pessoal saiu daqui, e mostrar um placeholder seria pior que
+                não mostrar nada. */}
+            {CONTACT.email && (
+              <a
+                href={`mailto:${CONTACT.email}`}
+                className="border border-white/40 text-sm font-medium px-8 py-3.5 rounded-full hover:bg-white/10 transition-colors"
+              >
+                {CONTACT.email}
+              </a>
+            )}
             <a
               href={`https://instagram.com/${CONTACT.instagram}`}
               target="_blank"

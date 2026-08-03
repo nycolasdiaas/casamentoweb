@@ -8,7 +8,17 @@ export const CONTACT = {
   // TROCAR: coloque seu número real, ex: "5585912345678"
   whatsappNumber: "5521982605543",
   whatsappLabel: "(21) 98260-5543",
-  email: "andersondiasss018@gmail.com",
+  // E-mail da MARCA, nunca o pessoal de quem construiu.
+  //
+  // Aqui estava um Gmail pessoal, exposto na landing para qualquer visitante.
+  // Além de parecer amador ao lado de "Enlace · Sites de casamento", é um
+  // endereço que a pessoa usa para outras coisas — publicá-lo num site de
+  // vendas é convidar spam para a caixa de entrada dela.
+  //
+  // `null` esconde o bloco de e-mail na landing em vez de mostrar um
+  // placeholder. Quando existir contato@enlace.com.br (ou o domínio que for),
+  // é só preencher aqui.
+  email: null as string | null,
   // TROCAR: seu perfil do Instagram (sem @)
   instagram: "enlace.sites",
 };
