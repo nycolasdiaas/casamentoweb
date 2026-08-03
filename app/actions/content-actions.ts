@@ -5,6 +5,7 @@ import { getSessionUserId } from "@/lib/auth/userSession";
 import { getSiteOwnedByUser } from "@/lib/repositories/sites";
 import { getSiteContent, saveSiteContent } from "@/lib/repositories/siteContent";
 import { parseContentForm } from "@/lib/site/contentInput";
+import { sitePixTag } from "@/lib/pix/resolve";
 
 // Edição do conteúdo do site pelo próprio casal — Fase 4 do SDD, objetivo 3
 // ("o casal edita o próprio conteúdo e vê o resultado na hora").
@@ -52,6 +53,11 @@ export async function saveSiteContentAction(
   updateTag(`site-view:${site.slug}`);
   updateTag(`site-preview:${site.previewToken}`);
   updateTag(`site:${site.slug}`);
+  // O Pix tem tag própria porque a seção de presentes o busca por siteId, sem
+  // conhecer o slug. Esquecer esta linha deixaria a chave antiga no ar por
+  // dias depois do casal trocá-la — dinheiro indo para a conta errada com o
+  // painel dizendo que está tudo certo.
+  updateTag(sitePixTag(site.id));
 
   return { saved: true };
 }

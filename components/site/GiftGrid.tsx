@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import GiftPixModal from "@/components/gifts/GiftPixModal";
+import type { PixParaConvidado } from "@/components/gifts/GiftPixModal";
 import { formatPriceCents } from "@/lib/format";
 import type { Gift } from "@/components/gifts/GiftGallery";
 
@@ -11,8 +12,21 @@ import type { Gift } from "@/components/gifts/GiftGallery";
  * Client component porque abre o modal do Pix. Estilizado só com os tokens
  * (var(--accent), var(--ink)...), então serve qualquer template — o desenho
  * muda pela paleta, não por JSX duplicado.
+ *
+ * `pix` vem de fora e pode ser `null`. NÃO existe fallback aqui de propósito:
+ * este componente já mostrou a chave de outra pessoa em todo site do produto,
+ * e a lição foi que "um valor padrão" para destino de dinheiro é sempre o
+ * destino errado de alguém.
  */
-export default function GiftGrid({ gifts }: { gifts: Gift[] }) {
+export default function GiftGrid({
+  gifts,
+  pix,
+  siteId,
+}: {
+  gifts: Gift[];
+  pix: PixParaConvidado | null;
+  siteId: string;
+}) {
   const [aberto, setAberto] = useState<Gift | null>(null);
 
   if (gifts.length === 0) return null;
@@ -20,14 +34,21 @@ export default function GiftGrid({ gifts }: { gifts: Gift[] }) {
   return (
     <>
       <div className="grid grid-cols-2 gap-3.5">
-        {gifts.map((gift) => (
+        {gifts.map((gift, i) => (
           <div
             key={gift.id}
-            className="border px-3.5 pt-5 pb-4 flex flex-col items-center gap-2 text-center transition-all hover:-translate-y-0.5 hover:shadow-lg"
-            style={{
-              background: "color-mix(in srgb, var(--paper) 88%, white)",
-              borderColor: "color-mix(in srgb, var(--accent) 50%, transparent)",
-            }}
+            className="motion-rise-in border px-3.5 pt-5 pb-4 flex flex-col items-center gap-2 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+            style={
+              {
+                background: "color-mix(in srgb, var(--paper) 88%, white)",
+                borderColor:
+                  "color-mix(in srgb, var(--accent) 50%, transparent)",
+                // Escalonado: os cartões entram um a um em vez de a grade
+                // inteira piscar de uma vez. O atraso para no 8º para a última
+                // linha de uma lista longa não ficar esperando meio segundo.
+                "--motion-delay": `${Math.min(i, 7) * 60}ms`,
+              } as React.CSSProperties
+            }
           >
             <div className="font-[family-name:var(--font-display)] text-[18.5px] font-medium leading-tight min-h-[46px] flex items-center">
               {gift.name}
@@ -53,7 +74,12 @@ export default function GiftGrid({ gifts }: { gifts: Gift[] }) {
       </div>
 
       {aberto && (
-        <GiftPixModal gift={aberto} onClose={() => setAberto(null)} />
+        <GiftPixModal
+          gift={aberto}
+          pix={pix}
+          siteId={siteId}
+          onClose={() => setAberto(null)}
+        />
       )}
     </>
   );

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import GiftPixModal from "@/components/gifts/GiftPixModal";
+import type { PixParaConvidado } from "@/components/gifts/GiftPixModal";
 import { formatPriceCents } from "@/lib/format";
 
 export type Gift = {
@@ -16,7 +17,21 @@ type Category = {
   gifts: Gift[];
 };
 
-export default function GiftGallery({ categories }: { categories: Category[] }) {
+/**
+ * Lista de presentes em página inteira (o `/presentes` do casal legado).
+ *
+ * Recebe `pix` e `siteId` pela mesma razão que o `GiftGrid`: o modal não tem
+ * mais chave de fallback. Ver o comentário lá.
+ */
+export default function GiftGallery({
+  categories,
+  pix,
+  siteId,
+}: {
+  categories: Category[];
+  pix: PixParaConvidado | null;
+  siteId: string;
+}) {
   const [selectedGift, setSelectedGift] = useState<Gift | null>(null);
 
   return (
@@ -59,6 +74,8 @@ export default function GiftGallery({ categories }: { categories: Category[] }) 
       {selectedGift && (
         <GiftPixModal
           gift={selectedGift}
+          pix={pix}
+          siteId={siteId}
           onClose={() => setSelectedGift(null)}
         />
       )}

@@ -71,6 +71,20 @@
       "when": 1785265688292,
       "tag": "0009_third_iceman",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1785548495009,
+      "tag": "0010_bumpy_malcolm_colcord",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1785590328327,
+      "tag": "0011_bored_dagger",
+      "breakpoints": true
     }
   ]
 }

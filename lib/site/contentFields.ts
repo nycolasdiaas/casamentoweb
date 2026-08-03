@@ -22,6 +22,10 @@ type ContentRow = {
   story: string | null;
   dressCode: string | null;
   giftMessage: string | null;
+  pixKey: string | null;
+  pixRecipient: string | null;
+  pixCity: string | null;
+  pixInstitution: string | null;
 } | null;
 
 function partesNoFuso(
@@ -68,5 +72,13 @@ export function toEditorValues(row: ContentRow): ContentEditorValues {
     story: row?.story ?? "",
     dressCode: row?.dressCode ?? "",
     giftMessage: row?.giftMessage ?? "",
+    // A chave volta como o casal a digitou depois de normalizada (CPF só
+    // dígitos, telefone com +55). É o mesmo valor que vai para o BR Code, e
+    // mostrá-lo é proposital: o casal precisa poder CONFERIR para onde o
+    // dinheiro vai, não confiar que digitou certo.
+    pixKey: row?.pixKey ?? "",
+    pixRecipient: row?.pixRecipient ?? "",
+    pixCity: row?.pixCity ?? "",
+    pixInstitution: row?.pixInstitution ?? "",
   };
 }

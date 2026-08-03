@@ -33,7 +33,7 @@ const DDL = [
      user_id uuid not null references test.users(id) on delete cascade,
      package_tier public.package_tier not null,
      template_style text,
-     primary_color text, secondary_color text, font_style text,
+     primary_color text, secondary_color text, tertiary_color text, font_style text,
      style_notes text, couple_names text, wedding_date text,
      photos_link text, notes text,
      status public.order_status not null default 'draft',
@@ -67,6 +67,8 @@ const DDL = [
      ceremony_venue text, ceremony_address text, ceremony_map_url text,
      reception_venue text, reception_address text,
      story text, dress_code text, gift_message text,
+     pix_key text, pix_key_type text,
+     pix_recipient text, pix_city text, pix_institution text,
      rsvp_deadline date,
      updated_at timestamptz not null default now()
    )`,
@@ -122,6 +124,18 @@ const DDL = [
      references test.sites(id) on delete restrict`,
   `alter table test.gifts add column if not exists site_id uuid
      references test.sites(id) on delete restrict`,
+
+  // Terceira cor no pedido (migração 0011).
+  `alter table test.orders add column if not exists tertiary_color text`,
+
+  // Pix por casal (migração 0010). O `create table if not exists` acima não
+  // alcança um schema `test` que já existe, então as colunas precisam vir
+  // também por alter — é o mesmo motivo do site_id logo acima.
+  `alter table test.site_content add column if not exists pix_key text`,
+  `alter table test.site_content add column if not exists pix_key_type text`,
+  `alter table test.site_content add column if not exists pix_recipient text`,
+  `alter table test.site_content add column if not exists pix_city text`,
+  `alter table test.site_content add column if not exists pix_institution text`,
 
   `create index if not exists idx_test_groups_site_id on test.groups (site_id)`,
   `create index if not exists idx_test_gifts_site_id on test.gifts (site_id)`,

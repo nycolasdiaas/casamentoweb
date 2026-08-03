@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { listGifts, groupGiftsByCategory } from "@/lib/repositories/gifts";
+import { groupGiftsByCategory } from "@/lib/repositories/gifts";
 import { getLegacySiteId, LEGACY_SITE_SLUG } from "@/lib/repositories/sites";
+import { loadGiftSection } from "@/lib/site/giftSection";
 import GiftGallery from "@/components/gifts/GiftGallery";
 import TrackView from "@/components/TrackView";
 
@@ -11,15 +12,9 @@ export const metadata: Metadata = {
 };
 
 export default async function GiftsPage() {
-  const gifts = await listGifts(await getLegacySiteId());
-  const categories = groupGiftsByCategory(
-    gifts.map(({ id, category, name, priceCents }) => ({
-      id,
-      category,
-      name,
-      priceCents,
-    }))
-  );
+  const siteId = await getLegacySiteId();
+  const { gifts, pix } = await loadGiftSection(siteId);
+  const categories = groupGiftsByCategory(gifts);
 
   return (
     <main className="flex-1 flex flex-col gap-10 px-6 py-12 max-w-4xl mx-auto w-full">
@@ -41,7 +36,7 @@ export default async function GiftsPage() {
           A lista está sendo preparada com carinho. Volte em breve!
         </p>
       ) : (
-        <GiftGallery categories={categories} />
+        <GiftGallery categories={categories} pix={pix} siteId={siteId} />
       )}
 
       <footer className="flex justify-center pt-4">
