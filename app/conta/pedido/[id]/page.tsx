@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { getSessionUserId } from "@/lib/auth/userSession";
 import { getOrderById } from "@/lib/repositories/orders";
 import AccountShell from "@/components/account/AccountShell";
-import OrderForm, { type OrderData } from "@/components/account/OrderForm";
+import OrderWizard, { type OrderData } from "@/components/account/wizard/OrderWizard";
 import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -36,7 +36,7 @@ export default async function EditOrderPage({
         </p>
       </div>
 
-      <OrderForm order={order as OrderData} orderId={order.id} />
+      <OrderWizard order={order as OrderData} orderId={order.id} />
     </AccountShell>
   );
 }

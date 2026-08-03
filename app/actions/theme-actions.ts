@@ -3,10 +3,15 @@
 import { updateTag } from "next/cache";
 import { getSessionUserId } from "@/lib/auth/userSession";
 import { getSiteOwnedByUser } from "@/lib/repositories/sites";
-import { saveSiteTheme, moveSitePhoto } from "@/lib/repositories/siteTheme";
+import {
+  saveSiteTheme,
+  moveSitePhoto,
+  setSiteTemplate,
+} from "@/lib/repositories/siteTheme";
 import { parseThemeForm } from "@/lib/site/themeInput";
 import { publishedSiteTags } from "@/lib/site/publish";
 import { getTemplate } from "@/lib/templates/registry";
+import { parseThemeSpec, clampThemeFonts } from "@/lib/theme/spec";
 import type { TemplateStyleId } from "@/lib/templates";
 
 // Cores, fontes e ordem das fotos, editáveis pelo casal depois da prévia.
@@ -70,6 +75,49 @@ export async function saveThemeAction(
   derrubarCache(site);
 
   return { saved: true, message: "Estilo salvo ✓ o site já está com as cores novas." };
+}
+
+/**
+ * Troca o MOLDE do site.
+ *
+ * Não existia caminho para isso: o molde era decidido no pedido e ficava. Se
+ * o casal pedisse "montar do zero" (ou se o pedido saísse sem molde), a tela
+ * de estilo não oferecia nada e a prévia ficava presa em "estamos preparando".
+ *
+ * O cuidado que não é opcional: **cada molde declara só as fontes dele**
+ * (§4.3 do SDD). Trocar de molde sem recortar as fontes deixaria o tema
+ * apontando para uma fonte que o molde novo não carrega — e aí `var(--f-x)`
+ * não resolve e o site renderiza na fonte padrão do navegador. Por isso o
+ * tema é reescrito já recortado ao catálogo do molde novo.
+ */
+export async function setTemplateAction(
+  _prev: ThemeActionResult,
+  formData: FormData
+): Promise<ThemeActionResult> {
+  const dono = await siteDoCasal(formData);
+  if ("error" in dono) return { error: dono.error };
+  const { site } = dono;
+
+  const escolhido = formData.get("templateId")?.toString() ?? "";
+  const template = getTemplate(escolhido as TemplateStyleId);
+  if (!template) return { error: "Escolham um dos modelos disponíveis." };
+
+  // Mantém a paleta do casal (a cor é escolha dele, não do molde) e recorta
+  // só as fontes, que são catálogo do molde.
+  const atual = parseThemeSpec(site.theme) ?? template.defaultTheme;
+  const novo = clampThemeFonts(
+    { ...atual, fonts: template.defaultTheme.fonts },
+    new Set(Object.keys(template.fonts)),
+    template.defaultTheme.fonts
+  );
+
+  await setSiteTemplate(site.id, escolhido, novo);
+  derrubarCache(site);
+
+  return {
+    saved: true,
+    message: `Modelo trocado para ${template.meta.name} ✓`,
+  };
 }
 
 export async function movePhotoAction(

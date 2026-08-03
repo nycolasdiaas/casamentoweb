@@ -1,6 +1,6 @@
 "use server";
 
-import { updateTag } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { getSessionUserId } from "@/lib/auth/userSession";
 import { getSiteOwnedByUser } from "@/lib/repositories/sites";
 import {
@@ -29,6 +29,19 @@ export type SiteActionResult =
 function derrubarCache(slug: string, previewToken: string) {
   for (const tag of publishedSiteTags(slug)) updateTag(tag);
   updateTag(`site-preview:${previewToken}`);
+
+  // E o PAINEL, que é outra história.
+  //
+  // As tags acima servem o site do CONVIDADO. A tela do casal lê
+  // `listSiteSections` direto do banco, sem tag nenhuma — então ela mudava no
+  // banco e continuava desenhada na ordem antiga até um recarregamento à mão.
+  // Era o que fazia as setinhas parecerem não funcionar.
+  //
+  // O padrão dinâmico (`[id]`) invalida a tela de qualquer pedido: a action
+  // conhece o site, não o pedido, e buscar um só para revalidar seria uma ida
+  // ao banco por clique de seta.
+  revalidatePath("/conta/pedidos/[id]/paginas", "page");
+  revalidatePath("/conta/pedidos/[id]", "page");
 }
 
 type SiteDoCasal = NonNullable<Awaited<ReturnType<typeof getSiteOwnedByUser>>>;

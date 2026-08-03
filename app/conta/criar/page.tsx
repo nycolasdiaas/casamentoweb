@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { Inter } from "next/font/google";
 import { signupAction } from "@/app/actions/account-actions";
+import PendingVeil from "@/components/ui/PendingVeil";
 import { SITE_NAME } from "@/lib/site";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -20,7 +21,13 @@ export default function SignupPage() {
     <main
       className={`${inter.className} flex-1 flex items-center justify-center bg-(--color-paper) px-6 py-16 text-(--color-olive)`}
     >
-      <div className="w-full max-w-sm flex flex-col gap-6">
+      <PendingVeil
+        ativo={pending}
+        label="Criando a conta de vocês"
+        sublabel="Estamos guardando os dados com segurança e preparando o e-mail de confirmação."
+      />
+
+      <div className="motion-rise-in w-full max-w-sm flex flex-col gap-6">
         <div className="text-center flex flex-col gap-2">
           <p className="text-xs font-medium tracking-[0.25em] uppercase text-(--color-gold)">
             {SITE_NAME}
@@ -40,20 +47,20 @@ export default function SignupPage() {
             name="name"
             placeholder="Nomes de vocês (ex: Ana & Pedro)"
             required
-            className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm focus:border-(--color-gold) focus:outline-none"
+            className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm transition-colors focus:border-(--color-gold) focus:outline-none"
           />
           <input
             type="email"
             name="email"
             placeholder="E-mail"
             required
-            className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm focus:border-(--color-gold) focus:outline-none"
+            className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm transition-colors focus:border-(--color-gold) focus:outline-none"
           />
           <input
             type="tel"
             name="whatsapp"
             placeholder="WhatsApp (com DDD)"
-            className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm focus:border-(--color-gold) focus:outline-none"
+            className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm transition-colors focus:border-(--color-gold) focus:outline-none"
           />
           {/* mín. 8 aqui e no servidor (signupAction) — antes o campo pedia 6
               e o servidor recusava, dando erro só depois de enviar. */}
@@ -63,7 +70,7 @@ export default function SignupPage() {
             placeholder="Senha (mín. 8 caracteres)"
             required
             minLength={8}
-            className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm focus:border-(--color-gold) focus:outline-none"
+            className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm transition-colors focus:border-(--color-gold) focus:outline-none"
           />
 
           {state?.error && (

@@ -18,12 +18,22 @@ export default function AdminLayout({
   return <Suspense fallback={<PainelCarregando />}>{children}</Suspense>;
 }
 
+/**
+ * O admin ganha esqueleto de LISTA, não a logo: aqui quem espera é a equipe,
+ * várias vezes por dia, e a silhueta das linhas diz o que vem — o rito da
+ * marca só cansaria quem já sabe onde está.
+ */
 function PainelCarregando() {
   return (
-    <main className="flex-1 flex flex-col gap-4 px-6 py-12 max-w-3xl mx-auto w-full">
-      <div className="h-6 w-40 rounded bg-(--color-olive)/10 animate-pulse" />
-      <div className="h-24 w-full rounded bg-(--color-olive)/10 animate-pulse" />
-      <div className="h-24 w-full rounded bg-(--color-olive)/10 animate-pulse" />
+    <main className="flex-1 flex flex-col gap-4 px-6 py-12 max-w-3xl mx-auto w-full text-(--color-olive)">
+      <div className="motion-skeleton h-6 w-40" />
+      {[0, 1, 2].map((i) => (
+        <div
+          key={i}
+          className="motion-skeleton h-24 w-full"
+          style={{ "--motion-delay": `${i * 90}ms` } as React.CSSProperties}
+        />
+      ))}
     </main>
   );
 }
