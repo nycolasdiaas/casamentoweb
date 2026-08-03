@@ -137,6 +137,10 @@ export const orders = pgTable(
     // personalização visual escolhida pelo casal (hex/estilo livres)
     primaryColor: text("primary_color"),
     secondaryColor: text("secondary_color"),
+    // Terceira cor: o fundo/papel. As duas primeiras definem tinta e acento;
+    // sem a terceira o casal não conseguia pedir um papel que não fosse o
+    // creme padrão do molde.
+    tertiaryColor: text("tertiary_color"),
     fontStyle: text("font_style"),
     styleNotes: text("style_notes"),
     coupleNames: text("couple_names"),
@@ -222,6 +226,25 @@ export const siteContent = pgTable("site_content", {
   story: text("story"),
   dressCode: text("dress_code"),
   giftMessage: text("gift_message"),
+  // Pix do casal. Antes disto havia UMA chave chumbada em lib/pix.ts, e todo
+  // site com lista de presentes mostrava a chave da mesma pessoa — o convidado
+  // presenteava e o dinheiro ia para a conta errada. Agora é dado do tenant.
+  //
+  // Tudo nullable de propósito: sem chave, a seção de presentes simplesmente
+  // não mostra forma de pagamento. Melhor não presentear do que presentear
+  // errado.
+  pixKey: text("pix_key"),
+  // Tipo já resolvido por parsePixKey na hora de salvar. Guardado porque o
+  // BR Code e o rótulo na tela precisam dele, e redescobrir a cada render
+  // repetiria a heurística CPF×celular (que é ambígua) a toda leitura.
+  pixKeyType: text("pix_key_type"),
+  // Nome e cidade vão DENTRO do BR Code (campos 59 e 60 do EMV), e o app do
+  // banco os exibe na confirmação. Limites do padrão: 25 e 15 caracteres.
+  pixRecipient: text("pix_recipient"),
+  pixCity: text("pix_city"),
+  // Só cosmético ("Nubank", "Inter"): ajuda o convidado a reconhecer para onde
+  // está mandando. Não entra no BR Code.
+  pixInstitution: text("pix_institution"),
   rsvpDeadline: date("rsvp_deadline"),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()

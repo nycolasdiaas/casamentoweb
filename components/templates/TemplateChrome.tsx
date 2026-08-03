@@ -34,8 +34,13 @@ export default function TemplateChrome({
       className="min-h-screen w-full flex justify-center"
       style={{ background: outerBg }}
     >
+      {/* Mesma largura do site de verdade: 480px no celular, 1120px no
+          desktop. Estas são as páginas de VENDA — quem está decidindo comprar
+          olha no computador, e um cartão de telefone encalhado no meio do
+          monitor vende o produto errado. O `@container` acompanha o motor de
+          templates, para as seções responderem à largura do cartão. */}
       <div
-        className="w-full max-w-[480px] flex flex-col shadow-2xl"
+        className="site-canvas @container w-full max-w-[480px] lg:max-w-[1120px] flex flex-col shadow-2xl"
         style={{ background: cardBg }}
       >
         <div

@@ -118,6 +118,38 @@ verdade.
 
 ## Próximos passos, em ordem de valor
 
+### 0. Fluxo de análise da concorrência (combinado 28/07)
+
+Análise humana → plano → **requisitos escritos** → só então implementar. O
+plano e o rastreio em
+[docs/plano-analise-concorrencia.md](../docs/plano-analise-concorrencia.md).
+
+Dois itens são do Anderson e bloqueiam o resto: a análise dos concorrentes
+(explicitamente humana, "not AI/automated") e mandar os links.
+
+A regra de **escrever o requisito antes de pedir implementação** nasceu de
+dois retrabalhos reais nesta sessão — está registrada no documento com os dois
+casos, para não virar ritual sem motivo.
+
+Fora da fila: **consertar a lista de presentes** já tem diagnóstico e é
+urgente (chave Pix pessoal chumbada no código, dinheiro do convidado indo para
+a conta errada). Não espera a análise.
+
+### 0.1 Painel de montagem do casal (pedido do Anderson, 28/07)
+
+Prévia ao vivo enquanto escolhe, alternador PC/celular, layout e vídeo nos
+carrosséis — **no painel**, não no site do convidado. Detalhes, tamanhos e o
+que NÃO é, em
+[docs/proximo-passo-painel-de-montagem.md](../docs/proximo-passo-painel-de-montagem.md).
+
+A distinção que organiza: `/conta/*` (casal montando) e `/s/<slug>`
+(convidado) são produtos diferentes. Os pacotes não mudam.
+
+Começar pelo alternador PC/celular: um `<iframe>` de `/preview/<token>` no
+painel, largura alternando. Exige soltar `frame-ancestors` para `'self'` no
+next.config.ts — hoje é `'none'`.
+
+
 ### 1. Mural de recados (`guestbook`)
 
 **Única seção do contrato sem implementação.** As prévias já a mostram para

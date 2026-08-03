@@ -100,5 +100,15 @@ export function trackerStepIndex(status: OrderStatus): number {
  * recebido mas ainda não iniciado.
  */
 export function canCancelOrder(status: OrderStatus): boolean {
-  return status === "draft" || status === "submitted";
+  // A linha é o PAGAMENTO, não a produção.
+  //
+  // A regra antiga era `draft || submitted`, escrita quando um humano movia o
+  // pedido de etapa. Com o provisionamento automático (Fase 3), o envio cria
+  // o site e salta para `preview_ready` no MESMO request — a janela de
+  // `submitted` dura milissegundos. Na prática o casal nunca conseguia
+  // cancelar: o botão simplesmente não aparecia.
+  //
+  // Depois de pago, cancelar deixa de ser um botão e vira conversa de
+  // estorno — por isso `paid` e `published` ficam de fora.
+  return status !== "paid" && status !== "published";
 }

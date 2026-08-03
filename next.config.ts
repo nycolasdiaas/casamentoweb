@@ -6,7 +6,10 @@ import type { NextConfig } from "next";
 // injeta scripts/estilos inline sem nonce; o XSS já é mitigado pelo escape
 // automático do React e ausência de dangerouslySetInnerHTML.
 const securityHeaders = [
-  { key: "X-Frame-Options", value: "DENY" },
+  // SAMEORIGIN, não DENY: o painel do casal embute a prévia do próprio site
+  // num <iframe> para ele ver como fica enquanto edita. Continua barrando
+  // enquadramento por terceiros, que é o que o clickjacking precisa.
+  { key: "X-Frame-Options", value: "SAMEORIGIN" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   {
@@ -20,7 +23,10 @@ const securityHeaders = [
   {
     key: "Content-Security-Policy",
     value:
-      "frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'",
+      // 'self' e não '*': só o nosso próprio painel pode enquadrar a prévia.
+      // Este é o header que vale nos navegadores modernos — o X-Frame-Options
+      // acima é o fallback para os antigos, e os dois precisam concordar.
+      "frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'",
   },
 ];
 

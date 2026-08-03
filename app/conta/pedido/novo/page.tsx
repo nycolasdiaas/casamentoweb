@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { getSessionUserId } from "@/lib/auth/userSession";
 import AccountShell from "@/components/account/AccountShell";
-import OrderForm from "@/components/account/OrderForm";
+import OrderWizard from "@/components/account/wizard/OrderWizard";
 import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -23,7 +23,7 @@ export default async function NewOrderPage() {
         </p>
       </div>
 
-      <OrderForm order={null} orderId={null} />
+      <OrderWizard order={null} orderId={null} />
     </AccountShell>
   );
 }

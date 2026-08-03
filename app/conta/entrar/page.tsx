@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Suspense, useActionState } from "react";
+import PendingVeil from "@/components/ui/PendingVeil";
 import { useSearchParams } from "next/navigation";
 import { Inter } from "next/font/google";
 import { signinAction } from "@/app/actions/account-actions";
@@ -31,7 +32,13 @@ export default function SigninPage() {
     <main
       className={`${inter.className} flex-1 flex items-center justify-center bg-(--color-paper) px-6 py-16 text-(--color-olive)`}
     >
-      <div className="w-full max-w-sm flex flex-col gap-6">
+      <PendingVeil
+        ativo={pending}
+        label="Entrando na conta de vocês"
+        sublabel="Conferindo os dados e abrindo o painel."
+      />
+
+      <div className="motion-rise-in w-full max-w-sm flex flex-col gap-6">
         <div className="text-center flex flex-col gap-2">
           <p className="text-xs font-medium tracking-[0.25em] uppercase text-(--color-gold)">
             {SITE_NAME}
@@ -49,14 +56,14 @@ export default function SigninPage() {
             name="email"
             placeholder="E-mail"
             required
-            className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm focus:border-(--color-gold) focus:outline-none"
+            className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm transition-colors focus:border-(--color-gold) focus:outline-none"
           />
           <input
             type="password"
             name="password"
             placeholder="Senha"
             required
-            className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm focus:border-(--color-gold) focus:outline-none"
+            className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm transition-colors focus:border-(--color-gold) focus:outline-none"
           />
 
           {state?.error && (

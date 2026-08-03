@@ -26,6 +26,14 @@ export type EditableContent = {
   story: string | null;
   dressCode: string | null;
   giftMessage: string | null;
+  // Pix do casal. `pixKeyType` não vem do formulário: é derivado por
+  // `parsePixKey` no momento de salvar, para a leitura não ter que refazer a
+  // heurística CPF×celular (que é ambígua) a cada render.
+  pixKey: string | null;
+  pixKeyType: string | null;
+  pixRecipient: string | null;
+  pixCity: string | null;
+  pixInstitution: string | null;
 };
 
 export async function getSiteContent(siteId: string) {

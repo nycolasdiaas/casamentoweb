@@ -17,9 +17,9 @@ import {
   createOrder,
   updateOrder,
   submitOrderById,
-  deleteOrder,
   getOrderById,
 } from "@/lib/repositories/orders";
+import { cancelarPedidoComSite } from "@/lib/site/cancelOrder";
 import { canCancelOrder } from "@/lib/orderStatus";
 import { provisionSiteForOrder } from "@/lib/site/provision";
 import { getUserById } from "@/lib/repositories/users";
@@ -136,6 +136,7 @@ function parseOrderForm(formData: FormData) {
   const primaryColor = formData.get("primaryColor")?.toString().trim() ?? "";
   const secondaryColor =
     formData.get("secondaryColor")?.toString().trim() ?? "";
+  const tertiaryColor = formData.get("tertiaryColor")?.toString().trim() ?? "";
   const fontStyle = formData.get("fontStyle")?.toString() ?? "";
 
   return {
@@ -144,11 +145,15 @@ function parseOrderForm(formData: FormData) {
       templateStyle: templateStyle || null,
       primaryColor: isHexColor(primaryColor) ? primaryColor : undefined,
       secondaryColor: isHexColor(secondaryColor) ? secondaryColor : undefined,
+      tertiaryColor: isHexColor(tertiaryColor) ? tertiaryColor : undefined,
       fontStyle: isFontStyle(fontStyle) ? fontStyle : undefined,
       styleNotes: formData.get("styleNotes")?.toString().trim() || undefined,
       coupleNames: formData.get("coupleNames")?.toString().trim() || undefined,
       weddingDate: formData.get("weddingDate")?.toString().trim() || undefined,
-      photosLink: formData.get("photosLink")?.toString().trim() || undefined,
+      // `photosLink` saiu do formulário: o casal sobe as fotos pela tela de
+      // acompanhamento, com a prévia do site do lado, onde ele vê onde cada
+      // foto cai. Pedir um link de Drive antes disso era pedir trabalho no
+      // momento errado — e ninguém abria a pasta.
       notes: formData.get("notes")?.toString().trim() || undefined,
     },
   };
@@ -270,9 +275,19 @@ export async function cancelOrderAction(formData: FormData) {
 
   const orderId = formData.get("orderId")?.toString() ?? "";
   const order = await getOwnedOrder(userId, orderId);
-  // Só cancela o que é do casal e ainda não entrou em produção.
-  if (order && canCancelOrder(order.status)) {
-    await deleteOrder(order.id);
+
+  // Só cancela o que é do casal e ainda não foi pago. E leva o site junto:
+  // sem isso, cancelar deixaria um site sem dono acumulando no banco — ver
+  // `cancelarPedidoComSite`.
+  //
+  // O status já barra pedido pago, mas `paymentStatus` é conferido de novo
+  // porque ele pode chegar a PAID antes de o status acompanhar (webhook ou
+  // retorno do checkout). Cancelar algo já pago apagaria a compra de alguém.
+  const pago =
+    order?.paymentStatus === "PAID" || !canCancelOrder(order?.status ?? "draft");
+
+  if (order && !pago) {
+    await cancelarPedidoComSite(order.id);
   }
 
   revalidatePath("/conta");

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import BrandLoader from "@/components/ui/BrandLoader";
 
 /**
  * Área do casal: mesma razão do /admin/layout.tsx — todas as telas dependem
@@ -14,11 +15,19 @@ export default function ContaLayout({
   return <Suspense fallback={<ContaCarregando />}>{children}</Suspense>;
 }
 
+/**
+ * Antes: dois retângulos cinzas pulsando, iguais aos de qualquer painel
+ * genérico. Agora a marca aparece na espera — é o momento em que o casal está
+ * olhando para a tela sem nada acontecer, e o único em que a logo tem toda a
+ * atenção dele.
+ */
 function ContaCarregando() {
   return (
-    <main className="flex-1 flex flex-col gap-4 px-6 py-12 max-w-2xl mx-auto w-full">
-      <div className="h-6 w-40 rounded bg-(--color-olive)/10 animate-pulse" />
-      <div className="h-32 w-full rounded bg-(--color-olive)/10 animate-pulse" />
+    <main className="flex-1 flex flex-col">
+      <BrandLoader
+        label="Abrindo o painel de vocês"
+        sublabel="Buscando os pedidos e o conteúdo do site."
+      />
     </main>
   );
 }

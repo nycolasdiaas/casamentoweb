@@ -135,7 +135,24 @@ snapshot rodou) com `created_at` (quando o grupo foi criado).
 
 Os testes rodam no schema `test` da mesma instância (`DATABASE_SCHEMA=test`).
 Eles **apagam tabelas inteiras** entre casos — por isso o schema separado.
-Ao adicionar tabela nova, atualize `scripts/setup-test-schema.mjs`.
+Ao adicionar **tabela ou coluna** nova, atualize `scripts/setup-test-schema.mjs`:
+o schema `test` não recebe migração, e esquecer disso derruba dezenas de casos
+com `column "x" does not exist` (aconteceu na 0010 e na 0011).
+
+## Nunca rode duas suítes ao mesmo tempo
+
+`npm run test` limpa as tabelas do schema `test` entre casos. Duas rodadas em
+paralelo — inclusive uma em segundo plano e outra em primeiro — apagam os dados
+uma da outra e produzem falhas que **não existem**. Custou duas investigações
+de falso positivo. Espere a primeira terminar.
+
+## Por que o limite de tempo é 20 s e não 5 s
+
+O banco é remoto e **uma ida custa 171 ms medidos**. O padrão do vitest (5 s)
+dá ~29 idas; só a limpeza entre casos gasta ~1 s e o provisionamento é uma
+transação longa. Os testes de `provision` e `publish` não eram lentos por
+defeito — a rede é que é. `lib/db/testCleanup.ts` faz a limpeza numa ida só
+(era 1707 ms em dez idas, agora 1101 ms).
 
 # Arquitetura
 
@@ -206,6 +223,156 @@ Não esqueça a tag `published-site-slugs`: é ela que alimenta o
 - **Apagar foto deixa a linha sair primeiro, o objeto depois.** Se o objeto
   não sair, sobra lixo invisível no bucket — melhor que o inverso, que deixaria
   foto quebrada no site.
+
+# Movimento (entrou em 01/08/2026)
+
+Duas bibliotecas, cada uma onde paga: **GSAP ScrollTrigger** para a
+coreografia de rolagem do site do convidado, **Motion** (motion.dev) para
+transição de tela e esqueleto no painel. O vocabulário de durações e curvas
+mora em `app/globals.css`.
+
+## Erro que já foi cometido duas vezes: animação tímida demais
+
+**Animação que roda e ninguém percebe é o mesmo que animação ausente.** A
+primeira versão usava 320 ms e 12 px de percurso, com um comentário no código
+dizendo "sobe 12px, nunca mais". O navegador confirmava a animação em
+`running` a cada navegação — e o dono do produto descreveu como "troca de tela
+crua". Hoje: `--t-base: 440ms`, percurso de 20 px, e a transição de tela usa
+escala e desfoque além do deslocamento. Abaixo de ~400 ms uma entrada suave
+não é lida como movimento, é lida como "a tela apareceu".
+
+O mesmo erro apareceu nas telas de espera: elas atrasavam o *aparecer* em
+180 ms sem tempo mínimo, então numa resposta rápida **nunca eram vistas**.
+Hoje `useDelayedFlag` segura ~700 ms.
+
+## Regras que continuam valendo
+
+- **A coreografia de rolagem usa `gsap.from`, nunca opacity 0 no CSS.** Com
+  `from`, o estado natural do HTML já é o final: se o JS não carregar, o
+  convidado vê o site inteiro, só sem animação. Segurança estrutural, não
+  remendo — a versão em CSS precisava de `@supports` para não deixar seção
+  invisível.
+- **GSAP entra por import dinâmico dentro do efeito.** Não vai no bundle
+  inicial nem bloqueia a hidratação. Medido: 194 KB gzip na primeira carga do
+  site do convidado, com o GSAP num chunk separado de 44 KB que chega depois.
+- **Motion só via `LazyMotion` + o componente `m`** (`MotionProvider`).
+  ~4,6 KB em vez de 34. `domAnimation`, não `domMax` — nada aqui usa layout
+  animation nem drag.
+- **`ScrollChoreography` mora no `SiteRenderer`**, não nos moldes: alcança os
+  6 de uma vez e um molde novo herda sem saber que existe.
+- **A capa (índice 0) nunca é revelada na rolagem.** Ela já está na tela
+  quando o convidado abre o link; animar o que já está visível faz piscar. A
+  capa tem entrada própria (`SplitReveal` / `.motion-word`).
+- **`prefers-reduced-motion: reduce` não desliga tudo.** O que confirma ação
+  (botão cedendo ao toque, "Copiado!") continua, porque é informação; o que sai
+  é deslocamento, escala e laço infinito. **O Motion não respeita isso
+  sozinho** — é preciso `useReducedMotion()`. O GSAP verifica antes de
+  importar, então quem pediu menos movimento nem paga o download.
+
+## Como conferir que a animação ACONTECE
+
+"O componente está importado" não é "a animação rodou". Dois scripts perguntam
+ao navegador:
+
+| Comando | O quê |
+|---|---|
+| `node scripts/verificar-animacao.mjs <url>` | conta seções marcadas pelo GSAP, confere que nada fica preso em opacity 0, e testa o caminho de movimento reduzido |
+| `node scripts/verificar-transicao.mjs` | navega de verdade entre telas e lista `document.getAnimations()` no instante da troca |
+
+# Pix é do casal, nunca do código
+
+`lib/pix.ts` existiu com uma chave pessoal chumbada, e todo molde a lia direto:
+qualquer casal com lista de presentes mostrava ao convidado o QR de outra
+pessoa. Não vazava dado — desviava dinheiro.
+
+- **Sem Pix próprio, sem forma de pagamento.** `getSitePix` devolve `null` e o
+  modal diz para falar com os noivos. Não existe chave de fallback, de exemplo
+  ou herdada: não há valor padrão seguro para "para onde vai o dinheiro".
+- **O BR Code é gerado, não guardado** — o campo 54 carrega o valor da cota, e
+  é por isso que o QR não pode ser uma imagem que o casal sobe.
+- **`lib/pix/sem-chave-global.test.ts` reprova se a constante voltar.** O bug
+  não era de lógica (o componente funcionava); era de onde o dado vinha. Por
+  isso o teste é estrutural, não de unidade.
+- **`updateTag(sitePixTag(siteId))` ao salvar conteúdo.** Esquecer deixa a
+  chave antiga no ar por dias — `cacheLife("days")` — com o painel dizendo que
+  já trocou.
+
+# Painel do casal: questionário e gerenciamento (01/08/2026)
+
+Duas telas que eram uma parede só cada, refeitas pelo mesmo motivo.
+
+- **O pedido é um questionário de 7 etapas** (`components/account/wizard/`).
+  Todo o estado vive no `OrderWizard`; o `<form>` só carrega campos ocultos. É
+  o que permite trocar de etapa sem perder resposta, animar a troca, e fazer o
+  modelo pronto **preencher as três cores** — com estado local em cada campo
+  isso não acontecia.
+- **O gerenciamento é um layout com menu e 6 rotas**
+  (`/conta/pedidos/<id>/{,paginas,conteudo,visual,fotos,presentes}`). O menu
+  mora no `layout.tsx` de propósito: ele não remonta ao navegar, então a barra
+  fica parada e só o conteúdo troca.
+- **`carregarGerenciamento` é a porta única** (`lib/site/manageData.ts`).
+  Sessão, existência e posse do pedido em um lugar só — repetir isso em seis
+  arquivos é como se esquece a verificação de dono em um deles.
+- **Contagem regressiva é calculada no CLIENTE.** No servidor seria `Date.now()`
+  durante o render: impuro, e com Cache Components a contagem congelaria dentro
+  do cache ("faltam 102 dias" por dias a fio). O lint `react-hooks/purity` pega.
+- **`useDelayedFlag` segura a tela de espera por ~700 ms, não atrasa o
+  aparecer.** A versão anterior fazia o contrário e, como o servidor responde
+  rápido, a tela nunca era vista — "criei o pedido e não aconteceu nada". Uma
+  tela de espera que ninguém vê não é otimização, é ausência.
+- **Ao acrescentar coluna, atualize `scripts/setup-test-schema.mjs`** — o
+  schema `test` não recebe migração. Custou duas rodadas: 0010 e 0011.
+
+# Widescreen do site do convidado (01/08/2026)
+
+O cartão de 480px é o desenho do **celular** — que é de onde o convidado abre o
+link do WhatsApp. Num monitor virava um telefone encalhado no meio da tela.
+
+- **`site-canvas` cresce em `lg` (1024px)**: 480px → 1120px. Antes de `lg` não
+  cresce porque tablet em retrato ainda lê melhor em coluna.
+- **As seções acompanham por variantes `lg:` na marcação de cada molde**, não
+  por CSS global sobrescrevendo o Tailwind — isso viraria guerra de
+  especificidade a cada seção nova. São 238 variantes, geradas
+  mecanicamente e conferidas no CSS compilado.
+- **Duas regras globais em `.site-canvas`** cobrem o que a marcação não
+  resolve: `p { max-width: 70ch }` (a 1120px um parágrafo passa de 200
+  caracteres por linha) e `[class*="aspect-"] { max-height: 74vh }` (um
+  `aspect-[3/4]` a 1120px pediria 1493px de altura).
+- **Ao portar molde novo, lembre das variantes `lg:`** — sem elas o molde
+  aparece com tipografia de celular esticada num cartão de 1120px.
+
+- **Travões de largura precisam de `lg:` também.** O ajuste mecânico pegou
+  espaçamento, tipografia e grade — mas `max-w-[250px]` numa foto de capa
+  continuou valendo no desktop e a imagem sumia no cartão de 1120px. Ao portar
+  molde, confira `w-[…]` e `max-w-[…]` em volta de foto.
+
+## Como conferir de verdade
+
+`npm run verify:template` confere tokens, **não confere largura nem escala**.
+Para ver o desenho: `npm run shot:template <pasta> <ids>` — cria um site
+descartável por molde (tema padrão, conteúdo real), fotografa em 1440px e
+390px e apaga tudo no `finally`.
+
+Quatro armadilhas que custaram tempo:
+
+- **`--window-size=390` NÃO funciona no Windows.** O Chrome tem largura mínima
+  de janela (~480px) e ignora o pedido; o `--screenshot` recorta a imagem para
+  390, e o resultado é uma captura cheia de texto cortado que **não existe no
+  layout**. Custou uma caçada a um bug imaginário. Por isso `shot:template`
+  fala CDP e usa `Emulation.setDeviceMetricsOverride`, além de MEDIR
+  `scrollWidth` — captura sozinha não distingue "cortado pelo layout" de
+  "recortado pela ferramenta". Para diagnosticar estouro:
+  `node scripts/medir-overflow.mjs <url> [largura]`.
+
+
+- **`--headless` (o antigo) captura antes do CSS carregar** e devolve HTML
+  cru. Use `--headless=new` com `--virtual-time-budget`.
+- **`pkill -f "next start"` não mata o servidor no Windows** — o processo é
+  `node`. Um servidor velho continua na porta 3000 servindo o build anterior,
+  e os hashes novos do CSS respondem **500**. Mate pela porta:
+  `Get-NetTCPConnection -LocalPort 3000 | Stop-Process`.
+- **Não troque `template_id` direto no banco para testar molde** — o `theme`
+  fica com fontes de outro catálogo e o site cai no "estamos preparando".
 
 # Pendências conhecidas
 

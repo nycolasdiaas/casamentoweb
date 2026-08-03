@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
               placeholder="E-mail"
               autoComplete="email"
               required
-              className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm focus:border-(--color-gold) focus:outline-none"
+              className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm transition-colors focus:border-(--color-gold) focus:outline-none"
             />
 
             {state?.error && (

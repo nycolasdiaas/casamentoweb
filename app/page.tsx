@@ -12,6 +12,7 @@ import {
   TESTIMONIALS,
 } from "@/lib/site";
 import HeroPreview from "@/components/landing/HeroPreview";
+import RevealOnScroll from "@/components/ui/RevealOnScroll";
 import FloatingWhatsApp from "@/components/landing/FloatingWhatsApp";
 import AccountNav, { LoggedOutLinks } from "@/components/landing/AccountNav";
 
@@ -112,8 +113,14 @@ const FAQ: [string, string][] = [
 export default function PackagesPage() {
   return (
     <div
+      id="landing"
       className={`${inter.className} flex-1 flex flex-col bg-white text-(--color-olive)`}
     >
+      {/* Revela os blocos um a um conforme a pessoa desce a página. Usa
+          `gsap.from`, então se o JS não carregar a landing aparece inteira —
+          só sem animação. Ver RevealOnScroll. */}
+      <RevealOnScroll raiz="#landing" />
+
       {/* Navegação */}
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-(--color-gold)/30">
         <nav className="max-w-6xl mx-auto w-full px-6 py-4 flex items-center justify-between gap-4">

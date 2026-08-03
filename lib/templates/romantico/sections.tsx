@@ -3,7 +3,7 @@ import PhotoSlot from "@/components/templates/PhotoSlot";
 import SitePhoto from "@/components/site/SitePhoto";
 import Countdown from "@/components/site/Countdown";
 import GiftGrid from "@/components/site/GiftGrid";
-import { listGifts } from "@/lib/repositories/gifts";
+import { loadGiftSection } from "@/lib/site/giftSection";
 import { listSitePhotos, photoAt, SLOT_CAPACITY } from "@/lib/repositories/sitePhotos";
 import type { SectionProps } from "@/lib/templates/contract";
 
@@ -62,7 +62,7 @@ function DotDivider() {
 /** Título manuscrito — a assinatura do molde. */
 function ScriptTitle({ children }: { children: React.ReactNode }) {
   return (
-    <div className="font-[family-name:var(--font-script)] text-[44px] leading-tight">
+    <div className="font-[family-name:var(--font-script)] text-[44px] leading-tight lg:text-[70.4px]">
       {children}
     </div>
   );
@@ -92,7 +92,7 @@ export async function Cover({ content, siteId }: SectionProps) {
   const [a, b] = [content.partnerA, content.partnerB];
 
   return (
-    <section className="relative px-6.5 pt-13 pb-12 overflow-hidden">
+    <section className="relative px-6.5 pt-13 pb-12 overflow-hidden lg:pb-20">
       {/* Ramo florido no canto — o enquadramento de jardim do molde. */}
       <svg
         width="190"
@@ -114,18 +114,18 @@ export async function Cover({ content, siteId }: SectionProps) {
 
       <div className="relative text-center">
         <div
-          className="text-[11px] tracking-[0.34em] uppercase"
+          className="text-[11px] tracking-[0.34em] uppercase lg:text-[12.1px]"
           style={{ color: FLOR_FUNDA }}
         >
           Com a bênção de suas famílias
         </div>
 
-        <h1 className="mt-4.5 font-[family-name:var(--font-script)] font-normal text-[56px] sm:text-[64px] leading-[1.02]">
+        <h1 style={{ "--motion-delay": "260ms" } as React.CSSProperties} className="motion-word mt-4.5 font-[family-name:var(--font-script)] font-normal text-[56px] sm:text-[64px] leading-[1.02] lg:text-[89.6px]">
           {a && b ? (
             <>
               {a}
               <span
-                className="block text-[30px] sm:text-[34px] leading-none"
+                className="block text-[30px] sm:text-[34px] leading-none lg:text-[48px]"
                 style={{ color: "var(--accent)" }}
               >
                 e
@@ -139,12 +139,12 @@ export async function Cover({ content, siteId }: SectionProps) {
 
         <DotDivider />
 
-        <p className="mt-4.5 italic text-[15px] leading-relaxed" style={{ color: tinta(85) }}>
+        <p className="mt-4.5 italic text-[15px] leading-relaxed lg:text-[18px]" style={{ color: tinta(85) }}>
           convidam você para celebrar
           <br />o dia do seu &ldquo;sim&rdquo;
         </p>
 
-        <OvalFrame className="mt-6.5 mx-auto w-[220px] sm:w-[236px]">
+        <OvalFrame className="mt-6.5 mx-auto w-[220px] sm:w-[236px] lg:w-[430px]">
           <SitePhoto
             photo={capa}
             label="Foto do casal"
@@ -155,7 +155,7 @@ export async function Cover({ content, siteId }: SectionProps) {
 
         {(content.weekdayLabel || content.weddingTimeLabel) && (
           <div
-            className="mt-7 text-[11px] tracking-[0.3em] uppercase"
+            className="mt-7 text-[11px] tracking-[0.3em] uppercase lg:text-[12.1px]"
             style={{ color: tinta(70) }}
           >
             {[content.weekdayLabel, content.weddingTimeLabel].filter(Boolean).join(" · ")}
@@ -163,7 +163,7 @@ export async function Cover({ content, siteId }: SectionProps) {
         )}
 
         {content.weddingDateLabel && (
-          <div className="mt-2 font-[family-name:var(--font-script)] text-[34px] sm:text-[37px] leading-tight">
+          <div className="mt-2 font-[family-name:var(--font-script)] text-[34px] sm:text-[37px] leading-tight lg:text-[54.4px]">
             {content.weddingDateLabel}
           </div>
         )}
@@ -193,7 +193,7 @@ export function CountdownSection({ content }: SectionProps) {
             Falta pouco…
           </div>
           <div
-            className="mt-2 text-[11px] tracking-[0.3em] uppercase"
+            className="mt-2 text-[11px] tracking-[0.3em] uppercase lg:text-[12.1px]"
             style={{ color: tinta(65) }}
           >
             para o nosso grande dia
@@ -220,13 +220,13 @@ export async function Story({ content, siteId }: SectionProps) {
       </div>
 
       <p
-        className="text-center text-[15.5px] leading-[1.8] whitespace-pre-line"
+        className="text-center text-[15.5px] leading-[1.8] whitespace-pre-line lg:text-[18.6px]"
         style={{ color: tinta(90) }}
       >
         {content.story}
       </p>
 
-      <OvalFrame className="mt-8 mx-auto w-[230px] sm:w-[250px]">
+      <OvalFrame className="mt-8 mx-auto w-[230px] sm:w-[250px] lg:w-[440px]">
         <SitePhoto
           photo={principal}
           label="A nossa história"
@@ -235,7 +235,7 @@ export async function Story({ content, siteId }: SectionProps) {
       </OvalFrame>
 
       {duas.length === 2 && (
-        <div className="mt-9 grid grid-cols-2 gap-4">
+        <div className="mt-9 grid grid-cols-2 gap-4 lg:grid-cols-4">
           {duas.map((foto, i) => (
             <figure key={foto.id} className="m-0 relative">
               <div
@@ -273,17 +273,17 @@ function GardenCard({
 }) {
   return (
     <div
-      className="rounded-[26px] px-6 py-7 text-center"
+      className="rounded-[26px] px-6 py-7 text-center lg:px-20 lg:py-12"
       style={{ background: "var(--paper)", border: `1px solid ${BORDA}` }}
     >
       <div className="flex justify-center">{icon}</div>
       <div
-        className="mt-2.5 text-[10.5px] tracking-[0.32em] uppercase"
+        className="mt-2.5 text-[10.5px] tracking-[0.32em] uppercase lg:text-[11.6px]"
         style={{ color: FLOR_FUNDA }}
       >
         {kicker}
       </div>
-      <div className="mt-2 font-semibold text-[19px]">{title}</div>
+      <div className="mt-2 font-semibold text-[19px] lg:text-[22.8px]">{title}</div>
       {lines.filter(Boolean).map((line) => (
         <div key={line} className="mt-1.5 text-sm leading-relaxed" style={{ color: tinta(80) }}>
           {line}
@@ -295,7 +295,7 @@ function GardenCard({
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block text-[11px] tracking-[0.22em] uppercase px-6.5 py-3.5 rounded-full transition-opacity hover:opacity-85"
+            className="inline-block text-[11px] tracking-[0.22em] uppercase px-6.5 py-3.5 rounded-full transition-opacity hover:opacity-85 lg:text-[12.1px]"
             style={{
               background: "var(--ink)",
               color: "var(--paper)",
@@ -373,16 +373,16 @@ export function Details({ content }: SectionProps) {
 
           {content.dressCode && (
             <div
-              className="rounded-[26px] px-6 py-7 text-center"
+              className="rounded-[26px] px-6 py-7 text-center lg:px-20 lg:py-12"
               style={{ background: "var(--paper)", border: `1px solid ${BORDA}` }}
             >
               <div
-                className="text-[10.5px] tracking-[0.32em] uppercase"
+                className="text-[10.5px] tracking-[0.32em] uppercase lg:text-[11.6px]"
                 style={{ color: FLOR_FUNDA }}
               >
                 Traje
               </div>
-              <div className="mt-2 font-[family-name:var(--font-script)] text-[34px] leading-tight">
+              <div className="mt-2 font-[family-name:var(--font-script)] text-[34px] leading-tight lg:text-[54.4px]">
                 {content.dressCode}
               </div>
             </div>
@@ -405,7 +405,7 @@ export async function Gallery({ siteId }: SectionProps) {
         <DotDivider />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {fotos.length > 0
           ? fotos.map((foto, i) => (
               <figure key={foto.id} className="m-0 relative">
@@ -446,7 +446,7 @@ export function Rsvp({ slug }: SectionProps) {
         </div>
 
         <div
-          className="rounded-[26px] px-6 py-7 text-center"
+          className="rounded-[26px] px-6 py-7 text-center lg:px-20 lg:py-12"
           style={{ background: FUNDO_SUAVE, border: `1px solid ${BORDA}` }}
         >
           <p className="text-sm leading-relaxed" style={{ color: tinta(85) }}>
@@ -455,7 +455,7 @@ export function Rsvp({ slug }: SectionProps) {
           </p>
           <Link
             href={`/s/${slug}`}
-            className="inline-block mt-5 text-[11px] tracking-[0.22em] uppercase px-6.5 py-3.5 rounded-full transition-opacity hover:opacity-85"
+            className="inline-block mt-5 text-[11px] tracking-[0.22em] uppercase px-6.5 py-3.5 rounded-full transition-opacity hover:opacity-85 lg:text-[12.1px]"
             style={{
               background: "var(--ink)",
               color: "var(--paper)",
@@ -471,7 +471,7 @@ export function Rsvp({ slug }: SectionProps) {
 }
 
 export async function Gifts({ siteId, content }: SectionProps) {
-  const gifts = await listGifts(siteId);
+  const { gifts, pix } = await loadGiftSection(siteId);
   if (gifts.length === 0) return null;
 
   return (
@@ -480,17 +480,11 @@ export async function Gifts({ siteId, content }: SectionProps) {
         <ScriptTitle>Lista de presentes</ScriptTitle>
         <DotDivider />
       </div>
-      <p className="mb-6 text-center text-[15px] leading-relaxed" style={{ color: tinta(85) }}>
+      <p className="mb-6 text-center text-[15px] leading-relaxed lg:text-[18px]" style={{ color: tinta(85) }}>
         {content.giftMessage ??
           "Ter você conosco já é presente. Mas, se o coração pedir, cada mimo abaixo vira uma lembrança da nossa lua de mel."}
       </p>
-      <GiftGrid
-        gifts={gifts.map((g) => ({
-          id: g.id,
-          category: g.category,
-          name: g.name,
-          priceCents: g.priceCents,
-        }))}
+      <GiftGrid gifts={gifts} pix={pix} siteId={siteId}
       />
     </section>
   );
@@ -505,7 +499,7 @@ export function Album({ content }: SectionProps) {
       </div>
 
       <div
-        className="rounded-[26px] px-6 py-8 text-center"
+        className="rounded-[26px] px-6 py-8 text-center lg:px-20 lg:py-14"
         style={{ background: FUNDO_SUAVE, border: `1px solid ${BORDA}` }}
       >
         <div className="flex justify-center">
@@ -522,7 +516,7 @@ export function Album({ content }: SectionProps) {
             <path d="M8 10 V7 a4 4 0 0 1 8 0 v3" />
           </svg>
         </div>
-        <div className="mt-3 font-[family-name:var(--font-script)] text-[34px] leading-tight">
+        <div className="mt-3 font-[family-name:var(--font-script)] text-[34px] leading-tight lg:text-[54.4px]">
           Um presente para depois
         </div>
         <p className="mt-2.5 text-sm leading-relaxed" style={{ color: tinta(80) }}>
@@ -540,10 +534,10 @@ export function Album({ content }: SectionProps) {
 export function Footer({ content }: SectionProps) {
   return (
     <footer
-      className="px-6.5 pt-13 pb-12 text-center"
+      className="px-6.5 pt-13 pb-12 text-center lg:pb-20"
       style={{ background: "var(--ink)", color: "var(--paper)" }}
     >
-      <div className="font-[family-name:var(--font-script)] text-[46px] leading-tight">
+      <div className="font-[family-name:var(--font-script)] text-[46px] leading-tight lg:text-[73.6px]">
         {content.coupleNames}
       </div>
 
@@ -563,7 +557,7 @@ export function Footer({ content }: SectionProps) {
 
       {content.weddingDateLabel && (
         <div
-          className="mt-4 text-[11px] tracking-[0.3em] uppercase"
+          className="mt-4 text-[11px] tracking-[0.3em] uppercase lg:text-[12.1px]"
           style={{ color: "color-mix(in srgb, var(--paper) 75%, transparent)" }}
         >
           {content.weddingDateLabel}

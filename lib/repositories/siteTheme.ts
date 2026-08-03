@@ -22,6 +22,25 @@ export async function saveSiteTheme(
 }
 
 /**
+ * Troca o molde do site, junto com o tema já recortado ao catálogo dele.
+ *
+ * Os dois campos vão na MESMA escrita de propósito: molde e tema são um par.
+ * Gravar o molde novo e o tema antigo deixaria o site apontando para fontes
+ * que o molde não carrega — meio segundo de inconsistência é meio segundo em
+ * que um convidado pode abrir o link e ver o site sem tipografia.
+ */
+export async function setSiteTemplate(
+  siteId: string,
+  templateId: string,
+  theme: ThemeSpec
+): Promise<void> {
+  await db
+    .update(sites)
+    .set({ templateId, theme, updatedAt: new Date() })
+    .where(eq(sites.id, siteId));
+}
+
+/**
  * Move uma foto dentro do próprio slot (a ordem do carrossel).
  *
  * Renumera o slot inteiro de 0..n-1 em transação, mesmo motivo das seções: as

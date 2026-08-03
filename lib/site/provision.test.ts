@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterAll } from "vitest";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
+import { limparSchemaDeTeste } from "@/lib/db/testCleanup";
 import {
   sites,
   siteContent,
@@ -11,14 +12,7 @@ import {
 } from "@/lib/db/schema";
 import { provisionSiteForOrder, type OrderForProvision } from "./provision";
 
-async function limpar() {
-  await db.delete(gifts);
-  await db.delete(siteSections);
-  await db.delete(siteContent);
-  await db.delete(sites);
-  await db.delete(orders);
-  await db.delete(users);
-}
+const limpar = limparSchemaDeTeste;
 
 beforeEach(limpar);
 afterAll(limpar);

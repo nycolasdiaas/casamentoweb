@@ -17,6 +17,10 @@ export type ContentEditorValues = {
   story: string;
   dressCode: string;
   giftMessage: string;
+  pixKey: string;
+  pixRecipient: string;
+  pixCity: string;
+  pixInstitution: string;
 };
 
 const campo =
@@ -244,6 +248,60 @@ export default function ContentEditor({
             defaultValue={values.giftMessage}
             rows={3}
             maxLength={1000}
+          />
+        </div>
+
+        <div className="flex flex-col gap-4 border-t border-(--color-gold)/30 pt-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.1em] text-(--color-gold)">
+            Pix dos presentes
+          </p>
+
+          {/* O aviso não é rodapé nem tooltip: é a primeira coisa da seção.
+              O casal está prestes a publicar um dado que qualquer convidado
+              com o link vai ver, e descobrir isso depois não tem desfazer. */}
+          <p className="rounded-xl border border-(--color-gold)/50 bg-(--color-blush) px-4 py-3 text-xs leading-relaxed text-(--color-olive)">
+            <strong className="font-semibold">
+              Esta chave fica visível para quem abrir o site.
+            </strong>{" "}
+            É assim que o convidado consegue presentear — mas escolham uma
+            chave que vocês não se importem de tornar pública. Chave aleatória
+            do banco é a mais discreta: não revela CPF, telefone nem e-mail.
+          </p>
+
+          <Campo
+            name="pixKey"
+            label="Chave Pix"
+            hint="CPF, CNPJ, e-mail, celular com DDD ou a chave aleatória do banco. Conferimos os dígitos antes de salvar. Em branco = a lista aparece sem forma de pagamento."
+            placeholder="00000000-0000-0000-0000-000000000000"
+            defaultValue={values.pixKey}
+          />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Campo
+              name="pixRecipient"
+              label="Nome de quem recebe"
+              hint="Aparece na confirmação do app do banco. Até 25 letras, sem acento — é limite do padrão do Pix, não nosso."
+              placeholder="Ana Paula Souza"
+              defaultValue={values.pixRecipient}
+              maxLength={25}
+            />
+            <Campo
+              name="pixCity"
+              label="Cidade de quem recebe"
+              hint="Também exigida pelo padrão. Até 15 letras."
+              placeholder="Fortaleza"
+              defaultValue={values.pixCity}
+              maxLength={15}
+            />
+          </div>
+
+          <Campo
+            name="pixInstitution"
+            label="Banco (opcional)"
+            hint="Só para o convidado reconhecer o destino. Não entra no código do Pix."
+            placeholder="Nubank"
+            defaultValue={values.pixInstitution}
+            maxLength={40}
           />
         </div>
 

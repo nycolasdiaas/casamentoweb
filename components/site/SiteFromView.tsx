@@ -93,8 +93,11 @@ function EmPreparacao({ view }: { view: SiteView }) {
       className="min-h-screen w-full flex justify-center"
       style={{ ...themeToCssVars(tema), background: "var(--outer)" }}
     >
+      {/* Mesma largura do site de verdade: esta tela é o que o convidado vê se
+          abrir o link cedo, e um cartão de 480px encalhado num monitor entrega
+          que é estado provisório mal-acabado. */}
       <div
-        className="w-full max-w-[480px] flex flex-col items-center justify-center gap-5 px-8 py-20 text-center shadow-2xl"
+        className="site-canvas w-full max-w-[480px] lg:max-w-[1120px] flex flex-col items-center justify-center gap-5 px-8 py-20 lg:px-24 lg:py-32 text-center shadow-2xl"
         style={{ background: "var(--paper)", color: "var(--ink)" }}
       >
         <div
@@ -102,7 +105,7 @@ function EmPreparacao({ view }: { view: SiteView }) {
           style={{ background: "var(--accent)" }}
           aria-hidden
         />
-        <h1 className="text-3xl leading-tight">{nomes}</h1>
+        <h1 className="text-3xl lg:text-5xl leading-tight">{nomes}</h1>
         <p className="text-sm leading-relaxed opacity-80">
           O site de vocês está sendo preparado
           {estilo ? ` no estilo ${estilo.name}` : ""}. Assim que estiver

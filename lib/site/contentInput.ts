@@ -1,4 +1,5 @@
 import type { EditableContent } from "@/lib/repositories/siteContent";
+import { parsePixKey } from "@/lib/pix/key";
 
 // Validação do formulário de conteúdo do casal.
 //
@@ -20,15 +21,49 @@ const LIMITES = {
   story: 5000,
   dressCode: 200,
   giftMessage: 1000,
+  // Os limites do Pix vêm do padrão EMV (campos 59 e 60), não de estética:
+  // acima disso o BR Code é recusado pelo app do banco. `buildBrCode` ainda
+  // corta por segurança, mas barrar aqui avisa o casal em vez de truncar o
+  // nome dele em silêncio.
+  pixRecipient: 25,
+  pixCity: 15,
+  pixInstitution: 40,
 } as const;
 
 type CampoTexto = keyof typeof LIMITES;
+
+/**
+ * Nome do campo como o casal o vê na tela. Sem isto o erro sai
+ * `O campo "pixRecipient" passou do limite` — nome de coluna vazando para
+ * quem está tentando corrigir o próprio site.
+ */
+const ROTULO: Record<CampoTexto, string> = {
+  coupleNames: "Nomes do casal",
+  partnerA: "Primeiro nome",
+  partnerB: "Segundo nome",
+  ceremonyVenue: "Local da cerimônia",
+  ceremonyAddress: "Endereço da cerimônia",
+  ceremonyMapUrl: "Link do mapa",
+  receptionVenue: "Local da festa",
+  receptionAddress: "Endereço da festa",
+  story: "Nossa história",
+  dressCode: "Traje",
+  giftMessage: "Recado dos presentes",
+  pixRecipient: "Nome de quem recebe o Pix",
+  pixCity: "Cidade de quem recebe",
+  pixInstitution: "Banco",
+};
 
 export type ContentInputResult =
   | { ok: true; value: EditableContent }
   | { ok: false; error: string };
 
-function texto(formData: FormData, campo: CampoTexto): string | null {
+// "pixKey" fica fora de LIMITES porque parsePixKey já é mais estrito que
+// qualquer contagem de caracteres: valida formato e dígito verificador.
+function texto(
+  formData: FormData,
+  campo: CampoTexto | "pixKey"
+): string | null {
   const bruto = formData.get(campo)?.toString() ?? "";
   // Normaliza fim de linha antes de medir: \r\n contaria dobrado e o casal
   // veria "passou do limite" com menos texto do que o limite diz.
@@ -123,7 +158,7 @@ export function parseContentForm(
     if (valor && valor.length > limite) {
       return {
         ok: false,
-        error: `O campo "${campo}" passou do limite de ${limite} caracteres.`,
+        error: `"${ROTULO[campo]}" passou do limite de ${limite} caracteres.`,
       };
     }
   }
@@ -141,6 +176,21 @@ export function parseContentForm(
     return { ok: false, error: "Data ou horário do casamento inválidos." };
   }
 
+  // Chave Pix: recusar é melhor que aceitar errado. Uma chave com dígito
+  // verificador inválido não devolve o dinheiro nem avisa ninguém — o
+  // convidado paga, o app aceita ou recusa lá na ponta, e o casal descobre
+  // depois do casamento. Por isso um único caractere fora do lugar barra o
+  // salvamento inteiro em vez de gravar "quase certo".
+  const pixBruta = texto(formData, "pixKey");
+  let pixKey: string | null = null;
+  let pixKeyType: string | null = null;
+  if (pixBruta !== null) {
+    const chave = parsePixKey(pixBruta);
+    if (!chave.ok) return { ok: false, error: chave.error };
+    pixKey = chave.normalizada;
+    pixKeyType = chave.type;
+  }
+
   return {
     ok: true,
     value: {
@@ -156,6 +206,11 @@ export function parseContentForm(
       story: texto(formData, "story"),
       dressCode: texto(formData, "dressCode"),
       giftMessage: texto(formData, "giftMessage"),
+      pixKey,
+      pixKeyType,
+      pixRecipient: texto(formData, "pixRecipient"),
+      pixCity: texto(formData, "pixCity"),
+      pixInstitution: texto(formData, "pixInstitution"),
     },
   };
 }
