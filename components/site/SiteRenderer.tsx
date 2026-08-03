@@ -5,6 +5,7 @@ import type { SiteContentView } from "@/lib/templates/contract";
 import type { ThemeSpec } from "@/lib/theme/spec";
 import type { PackageTier } from "@/lib/packages";
 import TrackView from "@/components/TrackView";
+import RevealOnScroll from "@/components/ui/RevealOnScroll";
 
 /**
  * Renderiza o site de um casal: molde + tokens + conteúdo.
@@ -51,11 +52,44 @@ export default function SiteRenderer({
       className={`${themeFontClassNames(theme, template.fonts)} min-h-screen w-full flex justify-center`}
       style={{ ...themeToCssVars(theme), background: "var(--outer)" }}
     >
+      {/*
+        `site-canvas`: 480px no celular, largura de verdade no desktop.
+
+        O cartão estreito era mobile-first de propósito — o convidado abre pelo
+        WhatsApp — mas num monitor virava um telefone encalhado no meio da
+        tela, com duas faixas enormes de fundo dos lados. Vertical agora é o
+        que acontece no celular, não o que acontece sempre.
+
+        A largura cresce em `lg` (1024px), não antes: tablet em retrato ainda
+        lê melhor em coluna. As seções acompanham por `lg:` na própria
+        marcação de cada molde — não por CSS global sobrescrevendo o Tailwind,
+        que viraria uma guerra de especificidade a cada seção nova.
+      */}
+      {/*
+        `@container` e não media query: o site renderiza DENTRO de um <iframe>
+        na prévia do painel, onde a janela tem 1440px mas o quadro pode ter
+        390px. Media query leria a janela e mostraria o desenho de desktop
+        dentro do "modo celular" — container query lê a largura do cartão, que
+        é o que de fato manda no desenho.
+
+        A largura vai de 480px (celular, o desenho base — o convidado abre
+        pelo WhatsApp) a 1120px no desktop.
+      */}
       <div
-        className="w-full max-w-[480px] flex flex-col shadow-2xl font-[family-name:var(--font-body)]"
+        className="site-canvas @container w-full max-w-[480px] lg:max-w-[1120px] flex flex-col shadow-2xl font-[family-name:var(--font-body)]"
         style={{ background: "var(--paper)", color: "var(--ink)" }}
       >
         <TrackView siteSlug={slug} />
+
+        {/* A coreografia de rolagem mora aqui, num componente só, e alcança
+            os 6 moldes de uma vez — um molde novo a herda sem saber que ela
+            existe. Ela lê os filhos de `.site-canvas` no cliente, então as
+            seções continuam sendo server components puros.
+
+            Passo mais lento e percurso maior que na landing: aqui é um
+            convite, e o ritmo faz parte da peça. */}
+        <RevealOnScroll raiz=".site-canvas" passo={0.11} percurso={30} />
+
         {chaves.map((key) => {
           const Section = template.sections[key]!;
           return <Section key={key} {...props} />;

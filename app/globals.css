@@ -6,6 +6,38 @@
   --color-olive: #3d4a36;
   --color-gold: #b8985f;
   --color-muted: #a8a39a;
+
+  /* ------------------------------------------------------------------------
+     Movimento.
+
+     Antes disto o produto tinha UMA declaração de transition na base inteira
+     (o .btn abaixo) e nenhum prefers-reduced-motion. Nada nascia: cada tela
+     aparecia pronta ou congelava. É o que fazia a interface parecer gerada.
+
+     Três durações, não catorze. A curva é a mesma em quase tudo de propósito:
+     movimento consistente lê como uma mão só, movimento variado lê como
+     colagem.
+     ---------------------------------------------------------------------- */
+
+  /* confirmação de toque — rápido o bastante para parecer resposta, não animação */
+  --t-rapido: 140ms;
+  /* Entrada de elemento — o padrão.
+     Era 320ms. Subiu para 440 porque a 320 a entrada competia com o próprio
+     tempo de resposta da tela e passava despercebida: a transição RODAVA e
+     ninguém via. Abaixo de ~400ms uma entrada suave não é registrada como
+     movimento, é registrada como "a tela apareceu". */
+  --t-base: 440ms;
+  /* transição de tela inteira, onde a pressa parece brusquidão */
+  --t-lento: 620ms;
+
+  /* Desaceleração forte: começa depressa e assenta devagar, como algo com
+     peso. É o que separa "caro" de "script rodando". */
+  --e-saida: cubic-bezier(0.16, 1, 0.3, 1);
+  --e-suave: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Escalonamento: cada elemento sobrescreve no style inline. Aqui só o
+     padrão, para quem não escalona não precisar declarar nada. */
+  --motion-delay: 0ms;
 }
 
 @theme inline {
@@ -38,6 +70,272 @@ body {
   display: none;
 }
 
+/* ==========================================================================
+   Vocabulário de movimento
+   ========================================================================== */
+
+@keyframes motion-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Sobe 12px enquanto aparece. 12 e não 40: deslocamento grande chama atenção
+   para si; pequeno faz o conteúdo parecer que assentou no lugar. */
+@keyframes motion-rise {
+  from {
+    opacity: 0;
+    /* 20px, não 12. A versão original dizia "12px, nunca mais" e essa
+       contenção era o defeito: com 12px de percurso em 320ms, a entrada não
+       era lida como movimento. 20px ainda é discreto o bastante para não
+       chamar atenção para si, e já é percebido. */
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Brilho que atravessa o esqueleto. Percorre o elemento em vez de piscar a
+   opacidade: pulsar parece "travado", varrer parece "carregando". */
+@keyframes motion-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* Respiração da logo nas telas de espera — 3% de escala, quase subliminar.
+   O suficiente para a tela não parecer congelada num carregamento longo. */
+@keyframes motion-breathe {
+  0%,
+  100% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.03);
+  }
+}
+
+.motion-fade-in {
+  animation: motion-fade var(--t-base) var(--e-saida) both;
+  animation-delay: var(--motion-delay);
+}
+
+.motion-rise-in {
+  animation: motion-rise var(--t-base) var(--e-saida) both;
+  animation-delay: var(--motion-delay);
+}
+
+.motion-breathe {
+  animation: motion-breathe 2.4s var(--e-suave) infinite;
+}
+
+/* Palavra saindo de desfocada para nítida — o "BlurText" do reactbits.dev,
+   que é a referência que o Anderson escolheu, sem os ~30 KB de framer-motion
+   que a versão original carrega. O desfoque é o que dá a sensação de foco
+   sendo ajustado; sem ele o efeito vira um fade comum. */
+@keyframes motion-word {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+  }
+}
+
+.motion-word {
+  animation: motion-word var(--t-lento) var(--e-saida) both;
+  animation-delay: var(--motion-delay);
+}
+
+/* Pétala caindo na tela de celebração. Cai, gira e desaparece antes de tocar
+   o fim — some no ar em vez de empilhar no rodapé. */
+@keyframes motion-petal {
+  0% {
+    opacity: 0;
+    transform: translateY(-10vh) rotate(0deg);
+  }
+  12% {
+    opacity: 0.85;
+  }
+  80% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(105vh) rotate(calc(360deg + var(--giro, 0deg)));
+  }
+}
+
+.motion-petal {
+  animation-name: motion-petal;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+/* Troca de etapa do questionário: a nova entra deslizando do lado para onde
+   a navegação vai. Avançar traz da direita, voltar traz da esquerda — é o que
+   dá a sensação de percorrer um caminho em vez de trocar de página. */
+@keyframes motion-step-next {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes motion-step-prev {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.motion-step-next {
+  animation: motion-step-next var(--t-base) var(--e-saida) both;
+}
+
+.motion-step-prev {
+  animation: motion-step-prev var(--t-base) var(--e-saida) both;
+}
+
+/* Filho que entra escalonado dentro de uma etapa. O índice vem do inline
+   style; assim uma etapa com 6 opções revela as 6 em cascata sem precisar de
+   uma classe por posição. */
+.motion-stagger > * {
+  animation: motion-rise var(--t-base) var(--e-saida) both;
+  animation-delay: calc(var(--motion-delay, 0ms) + var(--i, 0) * 55ms);
+}
+
+/* Bloco de esqueleto. A cor vem de currentColor para o esqueleto herdar a
+   paleta de onde estiver — no painel sai oliva, dentro da prévia sai na cor
+   do molde que o casal escolheu. */
+.motion-skeleton {
+  background-image: linear-gradient(
+    90deg,
+    color-mix(in srgb, currentColor 8%, transparent) 0%,
+    color-mix(in srgb, currentColor 16%, transparent) 50%,
+    color-mix(in srgb, currentColor 8%, transparent) 100%
+  );
+  background-size: 200% 100%;
+  animation: motion-shimmer 1.6s linear infinite;
+  animation-delay: var(--motion-delay);
+  border-radius: 0.375rem;
+}
+
+/* --------------------------------------------------------------------------
+   Widescreen do site do convidado.
+
+   O cartão de 480px é o desenho do CELULAR — que é de onde o convidado abre o
+   link do WhatsApp. Num monitor, ele virava um telefone encalhado no meio da
+   tela com duas faixas enormes de fundo dos lados.
+
+   As seções crescem por variantes `lg:` na marcação de cada molde. Estas duas
+   regras cobrem o que a marcação não resolve sozinha, e são globais porque
+   valem para os seis:
+   -------------------------------------------------------------------------- */
+@media (min-width: 1024px) {
+  /* Linha de leitura. A 1120px de largura, um parágrafo corrido passa de 200
+     caracteres por linha e o olho se perde ao voltar — é o defeito clássico
+     de layout largo. ~70ch é a medida confortável. */
+  .site-canvas p {
+    max-width: 70ch;
+  }
+
+  /* Centralizar SÓ onde o desenho centraliza.
+     Aplicar `margin-inline: auto` em todo parágrafo empurrava o texto para o
+     meio nos moldes alinhados à esquerda (Moderno, Editorial): o título ficava
+     na margem e o parágrafo recuado, parecendo indentação acidental. */
+  .site-canvas [class~="text-center"] p,
+  .site-canvas p[class~="text-center"] {
+    margin-inline: auto;
+  }
+
+  /* Foto não vira outdoor. Um `aspect-[3/4]` a 1120px de largura pediria
+     1493px de altura: o convidado rolaria três telas para passar de uma foto.
+     O recorte é absorvido pelo `object-cover` que as fotos já usam. */
+  .site-canvas [class*="aspect-"] {
+    max-height: 74vh;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   A revelação na rolagem NÃO mora mais aqui.
+   Ela virou coreografia em GSAP ScrollTrigger, em
+   components/site/ScrollChoreography.tsx, porque a CSS não escalona os
+   filhos de cada seção — só revelava o bloco inteiro de uma vez.
+   Manter as duas ao mesmo tempo faria a seção animar duas vezes.
+   -------------------------------------------------------------------------- */
+
+/* --------------------------------------------------------------------------
+   Respeito a prefers-reduced-motion.
+
+   "reduce" não é "desligue tudo": movimento que confirma uma ação (o botão
+   que responde ao toque, o "Copiado!") continua, porque é informação. O que
+   sai é deslocamento, escala e qualquer coisa que se repita para sempre —
+   parallax e loop são o que provoca enjoo em quem tem distúrbio vestibular.
+
+   Exigência de WCAG 2.1, e a base não tinha uma linha disto.
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .motion-stagger > * {
+    animation: motion-fade var(--t-rapido) var(--e-suave) both;
+    animation-delay: 0ms;
+  }
+
+  .motion-rise-in,
+  .motion-fade-in,
+  .motion-word,
+  .motion-step-next,
+  .motion-step-prev {
+    /* Aparece sem percorrer distância. Mantém o fade curtíssimo para a troca
+       de tela não ser um corte seco. */
+    animation: motion-fade var(--t-rapido) var(--e-suave) both;
+    animation-delay: 0ms;
+  }
+
+  /* Pétalas caindo são laço infinito e deslocamento grande — as duas coisas
+     que provocam enjoo em quem tem distúrbio vestibular. Somem por inteiro. */
+  .motion-petal {
+    display: none;
+  }
+
+  .motion-breathe,
+  .motion-skeleton {
+    animation: none;
+    /* Sem o brilho varrendo, o esqueleto precisa de contraste próprio para
+       continuar legível como "isto ainda vai carregar". */
+    background-image: none;
+    background-color: color-mix(in srgb, currentColor 12%, transparent);
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+}
+
 /* --------------------------------------------------------------------------
    Botões da plataforma.
 
@@ -60,10 +358,18 @@ body {
   border: 1px solid transparent;
   cursor: pointer;
   transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease,
-    box-shadow 0.15s ease,
-    transform 0.15s ease;
+    background-color var(--t-rapido) var(--e-suave),
+    border-color var(--t-rapido) var(--e-suave),
+    box-shadow var(--t-rapido) var(--e-suave),
+    transform var(--t-rapido) var(--e-suave);
+}
+
+/* O botão cede ao toque. É a micro-interação de maior retorno da base: sem
+   ela, clicar não devolve nada até a página responder, e meio segundo de
+   silêncio é o que faz o usuário clicar de novo. Fica sob reduced-motion de
+   propósito — confirma uma ação, não decora. */
+.btn:active:not(:disabled) {
+  transform: scale(0.975);
 }
 
 .btn:focus-visible {

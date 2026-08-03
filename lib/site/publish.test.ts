@@ -1,14 +1,8 @@
 import { describe, it, expect, beforeEach, afterAll } from "vitest";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import {
-  sites,
-  siteContent,
-  siteSections,
-  gifts,
-  orders,
-  users,
-} from "@/lib/db/schema";
+import { limparSchemaDeTeste } from "@/lib/db/testCleanup";
+import { sites, orders, users } from "@/lib/db/schema";
 import { provisionSiteForOrder } from "./provision";
 import { publishSiteForOrder, publishedSiteTags } from "./publish";
 
@@ -16,14 +10,7 @@ import { publishSiteForOrder, publishedSiteTags } from "./publish";
 // depois do pagamento é um casal que pagou e não recebeu — e um site que vai
 // ao ar SEM pagamento é receita perdida.
 
-async function limpar() {
-  await db.delete(gifts);
-  await db.delete(siteSections);
-  await db.delete(siteContent);
-  await db.delete(sites);
-  await db.delete(orders);
-  await db.delete(users);
-}
+const limpar = limparSchemaDeTeste;
 
 beforeEach(limpar);
 afterAll(limpar);

@@ -3,7 +3,8 @@ import PhotoSlot from "@/components/templates/PhotoSlot";
 import SitePhoto from "@/components/site/SitePhoto";
 import Countdown from "@/components/site/Countdown";
 import GiftGrid from "@/components/site/GiftGrid";
-import { listGifts } from "@/lib/repositories/gifts";
+import SplitReveal from "@/components/site/SplitReveal";
+import { loadGiftSection } from "@/lib/site/giftSection";
 import { listSitePhotos, photoAt, SLOT_CAPACITY } from "@/lib/repositories/sitePhotos";
 import type { SectionProps } from "@/lib/templates/contract";
 
@@ -46,12 +47,12 @@ function SectionTitle({
   return (
     <div className="text-center mb-7">
       <div
-        className="text-[10px] tracking-[0.4em] uppercase"
+        className="text-[10px] tracking-[0.4em] uppercase lg:text-[11px]"
         style={{ color: onDark ? DOURADO_CLARO : "var(--accent)" }}
       >
         {kicker}
       </div>
-      <h2 className="mt-2 font-[family-name:var(--font-display)] text-[36px] font-medium tracking-[0.02em] uppercase leading-none">
+      <h2 className="mt-2 font-[family-name:var(--font-display)] text-[36px] font-medium tracking-[0.02em] uppercase leading-none lg:text-[57.6px]">
         {title}
       </h2>
     </div>
@@ -102,24 +103,24 @@ export async function Cover({ content, siteId }: SectionProps) {
       />
 
       <div
-        className="relative z-10 flex justify-between items-center gap-3 px-5 py-5"
+        className="relative z-10 flex justify-between items-center gap-3 px-5 py-5 lg:px-14"
         style={{ color: "var(--paper)" }}
       >
         <Monograma content={content} size={38} />
         {content.ceremonyAddress && (
-          <div className="text-[9.5px] tracking-[0.34em] uppercase opacity-85 text-right">
+          <div className="text-[9.5px] tracking-[0.34em] uppercase opacity-85 text-right lg:text-[10.5px]">
             {content.ceremonyAddress}
           </div>
         )}
       </div>
 
       <div
-        className="relative z-10 mt-auto px-6 pb-14 text-center"
+        className="relative z-10 mt-auto px-6 pb-14 text-center lg:px-20"
         style={{ color: "var(--paper)" }}
       >
         {content.weddingDateParts && (
           <div
-            className="font-[family-name:var(--font-script)] text-[44px] leading-none"
+            className="font-[family-name:var(--font-script)] text-[44px] leading-none lg:text-[70.4px]"
             style={{ color: DOURADO_CLARO }}
           >
             {content.weddingDateParts.day}.{content.weddingDateParts.month}.
@@ -127,13 +128,13 @@ export async function Cover({ content, siteId }: SectionProps) {
           </div>
         )}
 
-        <h1 className="mt-3.5 font-[family-name:var(--font-display)] text-[58px] font-medium leading-[0.98] tracking-[0.02em] uppercase">
+        <h1 className="mt-3.5 font-[family-name:var(--font-display)] text-[58px] font-medium leading-[0.98] tracking-[0.02em] uppercase lg:text-[92.8px]">
           {a && b && content.partnerA && content.partnerB ? (
             <>
               {content.partnerA}
               <br />
               <span
-                className="font-[family-name:var(--font-script)] text-[46px]"
+                className="font-[family-name:var(--font-script)] text-[46px] lg:text-[73.6px]"
                 style={{ color: DOURADO_CLARO }}
               >
                 &amp;
@@ -142,18 +143,18 @@ export async function Cover({ content, siteId }: SectionProps) {
               {content.partnerB}
             </>
           ) : (
-            <span className="text-[44px] leading-[1.06]">{content.coupleNames}</span>
+            <span className="text-[44px] leading-[1.06] lg:text-[70.4px]"><SplitReveal text={content.coupleNames} atraso={260} /></span>
           )}
         </h1>
 
         <div className="mt-5 flex items-center justify-center gap-3">
           <span className="h-px w-10" style={{ background: papel(60) }} />
-          <span className="text-[10px] tracking-[0.42em] uppercase">Save the Date</span>
+          <span className="text-[10px] tracking-[0.42em] uppercase lg:text-[11px]">Save the Date</span>
           <span className="h-px w-10" style={{ background: papel(60) }} />
         </div>
 
         {(local || content.weddingTimeLabel) && (
-          <div className="mt-4 italic text-[17px] opacity-90">
+          <div className="mt-4 italic text-[17px] opacity-90 lg:text-[20.4px]">
             {[local, content.weddingTimeLabel].filter(Boolean).join(" · ")}
           </div>
         )}
@@ -166,12 +167,12 @@ export function CountdownSection({ content }: SectionProps) {
   if (!content.weddingDate) return null;
 
   return (
-    <section className="px-8 py-14" style={{ background: CREME }}>
+    <section className="px-8 py-14 lg:py-24" style={{ background: CREME }}>
       <div className="text-center mb-8">
-        <div className="text-[10px] tracking-[0.4em] uppercase text-(--accent)">
+        <div className="text-[10px] tracking-[0.4em] uppercase text-(--accent) lg:text-[11px]">
           A contagem começou
         </div>
-        <div className="mt-2 font-[family-name:var(--font-script)] text-[46px] leading-none">
+        <div className="mt-2 font-[family-name:var(--font-script)] text-[46px] leading-none lg:text-[73.6px]">
           falta pouco…
         </div>
       </div>
@@ -188,7 +189,7 @@ export async function Story({ content, siteId }: SectionProps) {
   const duas = fotos.filter((f) => f.slot === "gallery").slice(0, 2);
 
   return (
-    <section className="py-16">
+    <section className="py-16 lg:py-28">
       <div className="px-8">
         <SectionTitle kicker="Il nostro racconto" title="Nossa história" />
       </div>
@@ -200,13 +201,13 @@ export async function Story({ content, siteId }: SectionProps) {
       </div>
 
       <div className="px-8">
-        <p className="text-center text-[16px] leading-[1.8] whitespace-pre-line">
+        <p className="text-center text-[16px] leading-[1.8] whitespace-pre-line lg:text-[19.2px]">
           {content.story}
         </p>
       </div>
 
       {duas.length === 2 && (
-        <div className="mt-8 px-8 grid grid-cols-2 gap-4">
+        <div className="mt-8 px-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
           {duas.map((foto, i) => (
             <figure key={foto.id} className={`m-0 ${i === 1 ? "mt-6" : ""}`}>
               <SitePhoto photo={foto} label={`Momento ${i + 1}`} className="w-full aspect-[3/4]" />
@@ -216,7 +217,7 @@ export async function Story({ content, siteId }: SectionProps) {
       )}
 
       <div
-        className="mt-9 px-8 text-center font-[family-name:var(--font-script)] text-[36px] leading-tight"
+        className="mt-9 px-8 text-center font-[family-name:var(--font-script)] text-[36px] leading-tight lg:text-[57.6px]"
         style={{ color: "var(--accent)" }}
       >
         la dolce vita, insieme
@@ -248,14 +249,14 @@ function InfoCard({
         background: filled ? "var(--paper)" : "transparent",
       }}
     >
-      <div className="text-[10px] tracking-[0.34em] uppercase text-(--accent)">
+      <div className="text-[10px] tracking-[0.34em] uppercase text-(--accent) lg:text-[11px]">
         {kicker}
       </div>
-      <div className="mt-2 font-[family-name:var(--font-display)] text-[24px] font-medium leading-tight">
+      <div className="mt-2 font-[family-name:var(--font-display)] text-[24px] font-medium leading-tight lg:text-[34.8px]">
         {title}
       </div>
       {lines.filter(Boolean).map((line) => (
-        <div key={line} className="mt-1.5 text-[14.5px] leading-[1.7]" style={{ color: tinta(72) }}>
+        <div key={line} className="mt-1.5 text-[14.5px] leading-[1.7] lg:text-[17.4px]" style={{ color: tinta(72) }}>
           {line}
         </div>
       ))}
@@ -264,7 +265,7 @@ function InfoCard({
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-block mt-4 text-[10px] tracking-[0.24em] uppercase border-b pb-0.5"
+          className="inline-block mt-4 text-[10px] tracking-[0.24em] uppercase border-b pb-0.5 lg:text-[11px]"
           style={{ borderColor: "var(--accent)" }}
         >
           {cta}
@@ -280,7 +281,7 @@ export function Details({ content }: SectionProps) {
   if (!temAlgo) return null;
 
   return (
-    <section className="px-8 py-16" style={{ background: CREME_FUNDO }}>
+    <section className="px-8 py-16 lg:py-28" style={{ background: CREME_FUNDO }}>
       <SectionTitle kicker="Quando & onde" title="O grande dia" />
       <div className="flex flex-col gap-4.5">
         {content.ceremonyVenue && (
@@ -308,10 +309,10 @@ export function Details({ content }: SectionProps) {
 
         {content.dressCode && (
           <div className="p-6 text-center" style={{ border: `1px solid ${tinta(20)}` }}>
-            <div className="text-[10px] tracking-[0.34em] uppercase text-(--accent)">
+            <div className="text-[10px] tracking-[0.34em] uppercase text-(--accent) lg:text-[11px]">
               Dress code
             </div>
-            <div className="mt-2 font-[family-name:var(--font-script)] text-[38px] leading-none">
+            <div className="mt-2 font-[family-name:var(--font-script)] text-[38px] leading-none lg:text-[60.8px]">
               {content.dressCode}
             </div>
           </div>
@@ -329,14 +330,14 @@ export async function Gallery({ siteId }: SectionProps) {
   const [larga, ...resto] = fotos;
 
   return (
-    <section className="px-8 py-16" style={{ background: CREME_FUNDO }}>
+    <section className="px-8 py-16 lg:py-28" style={{ background: CREME_FUNDO }}>
       <SectionTitle kicker="Antes do grande dia" title="Nosso pré-wedding" />
 
       <div className="mb-3">
         <SitePhoto photo={larga} label="Ensaio" className="w-full aspect-[16/10]" />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {resto.length > 0
           ? resto.map((foto, i) => (
               <SitePhoto
@@ -358,27 +359,27 @@ export async function Gallery({ siteId }: SectionProps) {
 
 export function Rsvp({ slug }: SectionProps) {
   return (
-    <section className="px-8 py-16" style={{ background: "var(--ink)", color: "var(--paper)" }}>
+    <section className="px-8 py-16 lg:py-28" style={{ background: "var(--ink)", color: "var(--paper)" }}>
       <div className="text-center mb-6">
-        <div className="text-[10px] tracking-[0.4em] uppercase" style={{ color: DOURADO_CLARO }}>
+        <div className="text-[10px] tracking-[0.4em] uppercase lg:text-[11px]" style={{ color: DOURADO_CLARO }}>
           Confirme com carinho
         </div>
-        <h2 className="mt-2.5 font-[family-name:var(--font-display)] text-[38px] font-medium tracking-[0.02em] uppercase">
+        <h2 className="mt-2.5 font-[family-name:var(--font-display)] text-[38px] font-medium tracking-[0.02em] uppercase lg:text-[60.8px]">
           Kindly RSVP
         </h2>
-        <p className="mt-4 text-[15px] leading-[1.7]" style={{ color: papel(82) }}>
+        <p className="mt-4 text-[15px] leading-[1.7] lg:text-[18px]" style={{ color: papel(82) }}>
           Sua presença é o brinde mais esperado da festa.
         </p>
       </div>
 
-      <div className="px-5 py-7 text-center" style={{ border: `1px solid ${papel(28)}` }}>
-        <p className="text-[14.5px] leading-[1.7]" style={{ color: papel(80) }}>
+      <div className="px-5 py-7 text-center lg:px-14 lg:py-12" style={{ border: `1px solid ${papel(28)}` }}>
+        <p className="text-[14.5px] leading-[1.7] lg:text-[17.4px]" style={{ color: papel(80) }}>
           Cada família recebeu um link pessoal, com os nomes de quem foi
           convidado. Procure a mensagem que enviamos para confirmar.
         </p>
         <Link
           href={`/s/${slug}`}
-          className="inline-block mt-5 text-[11px] tracking-[0.24em] uppercase px-9 py-3.5 transition-opacity hover:opacity-85"
+          className="inline-block mt-5 text-[11px] tracking-[0.24em] uppercase px-9 py-3.5 transition-opacity hover:opacity-85 lg:text-[12.1px]"
           style={{ background: "var(--accent)", color: "var(--ink)" }}
         >
           Não recebi meu link
@@ -389,23 +390,17 @@ export function Rsvp({ slug }: SectionProps) {
 }
 
 export async function Gifts({ siteId, content }: SectionProps) {
-  const gifts = await listGifts(siteId);
+  const { gifts, pix } = await loadGiftSection(siteId);
   if (gifts.length === 0) return null;
 
   return (
-    <section className="px-8 py-16" style={{ background: CREME }}>
+    <section className="px-8 py-16 lg:py-28" style={{ background: CREME }}>
       <SectionTitle kicker="Con affetto" title="Lista de presentes" />
-      <p className="mb-6 text-center text-[15px] leading-[1.7]">
+      <p className="mb-6 text-center text-[15px] leading-[1.7] lg:text-[18px]">
         {content.giftMessage ??
           "Ter você conosco já é presente. Mas, se o coração pedir, cada mimo abaixo vira uma lembrança da nossa lua de mel."}
       </p>
-      <GiftGrid
-        gifts={gifts.map((g) => ({
-          id: g.id,
-          category: g.category,
-          name: g.name,
-          priceCents: g.priceCents,
-        }))}
+      <GiftGrid gifts={gifts} pix={pix} siteId={siteId}
       />
     </section>
   );
@@ -413,10 +408,10 @@ export async function Gifts({ siteId, content }: SectionProps) {
 
 export function Album({ content }: SectionProps) {
   return (
-    <section className="px-8 py-16" style={{ background: "var(--ink)", color: "var(--paper)" }}>
+    <section className="px-8 py-16 lg:py-28" style={{ background: "var(--ink)", color: "var(--paper)" }}>
       <SectionTitle kicker="Para matar a saudade" title="Álbum da festa" onDark />
 
-      <div className="px-6 py-9 text-center" style={{ border: `1px solid ${papel(28)}` }}>
+      <div className="px-6 py-9 text-center lg:px-20" style={{ border: `1px solid ${papel(28)}` }}>
         <div className="flex justify-center">
           <svg
             width="28"
@@ -432,12 +427,12 @@ export function Album({ content }: SectionProps) {
           </svg>
         </div>
         <div
-          className="mt-3.5 font-[family-name:var(--font-script)] text-[40px] leading-none"
+          className="mt-3.5 font-[family-name:var(--font-script)] text-[40px] leading-none lg:text-[64px]"
           style={{ color: DOURADO_CLARO }}
         >
           Um presente para depois
         </div>
-        <p className="mt-2.5 text-[14.5px] leading-[1.7]" style={{ color: papel(78) }}>
+        <p className="mt-2.5 text-[14.5px] leading-[1.7] lg:text-[17.4px]" style={{ color: papel(78) }}>
           As fotos da festa aparecem aqui
           {content.weddingDateLabel ? (
             <>
@@ -458,7 +453,7 @@ export function Footer({ content }: SectionProps) {
 
   return (
     <footer
-      className="text-center px-8 pt-14 pb-12"
+      className="text-center px-8 pt-14 pb-12 lg:pb-20"
       style={{
         background: "color-mix(in srgb, var(--ink) 88%, black)",
         color: "var(--paper)",
@@ -469,7 +464,7 @@ export function Footer({ content }: SectionProps) {
       </div>
 
       <div
-        className="mt-4.5 font-[family-name:var(--font-script)] text-[52px] leading-none"
+        className="mt-4.5 font-[family-name:var(--font-script)] text-[52px] leading-none lg:text-[83.2px]"
         style={{ color: DOURADO_CLARO }}
       >
         {content.coupleNames}
@@ -479,7 +474,7 @@ export function Footer({ content }: SectionProps) {
         <div className="mt-4.5 flex items-center justify-center gap-3">
           <span className="h-px w-9" style={{ background: papel(45) }} />
           <span
-            className="text-[10px] tracking-[0.32em] uppercase"
+            className="text-[10px] tracking-[0.32em] uppercase lg:text-[11px]"
             style={{ color: papel(72) }}
           >
             {[content.weddingDateLabel, local].filter(Boolean).join(" — ")}
