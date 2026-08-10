@@ -48,21 +48,33 @@ export const STATUS_META: Record<OrderStatus, StatusMeta> = {
       "Vocês ainda não enviaram o pedido. Terminem de montar e cliquem em enviar.",
     adminLabel: "Rascunho",
   },
+  // ATENÇÃO ao mexer nestes dois textos: eles PROMETIAM UMA ESPERA QUE NÃO
+  // EXISTE.
+  //
+  // Diziam "nossa equipe vai começar a montar em breve" e "logo a prévia
+  // aparece aqui" — copy da época em que um humano montava o site à mão. Com
+  // o provisionamento automático (Fase 3), `submitOrderAction` cria o site no
+  // MESMO request e o pedido já nasce em `preview_ready`: a prévia está pronta
+  // antes de o casal terminar de ler a frase.
+  //
+  // Prometer espera onde não há espera é vender o produto errado — o
+  // concorrente entrega o site em minutos e diz isso. Nunca reintroduza
+  // "em breve", "logo" ou "nossa equipe vai" aqui.
   submitted: {
     short: "Pedido recebido",
     icon: "📨",
-    title: "Recebemos o pedido de vocês!",
+    title: "Pedido recebido — a prévia já está pronta",
     description:
-      "Está tudo aqui. Nossa equipe vai começar a montar o site em breve — pode acompanhar por esta página.",
+      "O site de vocês foi criado agora. Abram a prévia, comecem a preencher o conteúdo e mudem o que quiserem: cada alteração aparece na hora.",
     adminLabel: "Pedido recebido",
   },
   in_production: {
-    short: "Em produção",
+    short: "Ajustes",
     icon: "🎨",
-    title: "Estamos montando o site de vocês",
+    title: "Estamos dando uma olhada no site de vocês",
     description:
-      "Mãos à obra! Estamos desenhando cada detalhe com base no que vocês pediram. Logo a prévia aparece aqui.",
-    adminLabel: "Em produção",
+      "A prévia continua no ar e vocês podem editar normalmente. Esta etapa só aparece quando pedimos ou fazemos um ajuste à mão.",
+    adminLabel: "Em ajustes (manual)",
   },
   preview_ready: {
     short: "Prévia pronta",

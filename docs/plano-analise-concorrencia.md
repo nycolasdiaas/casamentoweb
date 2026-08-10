@@ -125,6 +125,71 @@ Estado: a validação da chave digitada já existe e está testada
 
 ---
 
+## REQUISITO — o questionário passa a coletar o conteúdo (decidido 02/08/2026)
+
+Escrito ANTES de implementar, como manda o item 2 acima.
+
+### O problema que isto resolve
+
+Hoje são duas fases desconectadas: o questionário coleta pacote, nomes, data
+e estilo → o site nasce **vazio** → o casal vai preencher o conteúdo de
+verdade em outro lugar. A crítica do Nycolas foi exata:
+
+> "Por conta da dependência da criação do site não é possível aparecer
+> conteúdo editável e preenchível nas demais opções do menu lateral. Como se
+> cria um site sem seu conteúdo? O que vem primeiro?"
+
+Ele está certo. O casal responde 7 perguntas e recebe uma casca.
+
+### O que muda
+
+**Só o PAINEL** (`/conta/pedido/*`). O site do convidado não muda nada.
+
+O questionário cresce de 7 para ~12 etapas, mas **continua uma pergunta por
+tela** — é isso que o faz parecer leve mesmo com mais perguntas, e é o que o
+iCasei faz. As etapas novas coletam o que hoje só existe no painel:
+
+| Nova etapa | Alimenta |
+|---|---|
+| Onde e quando é a cerimônia | `ceremonyVenue`, `ceremonyAddress`, `ceremonyMapUrl` |
+| Onde é a festa | `receptionVenue`, `receptionAddress` |
+| Traje | `dressCode` |
+| A história de vocês | `story` |
+| Fotos (a capa, pelo menos) | `site_photos` |
+
+Ao enviar, `provisionSiteForOrder` grava tudo em `site_content` de uma vez —
+o site nasce **preenchido**, não vazio.
+
+### O que NÃO muda
+
+- Os pacotes (Convite / Site / Para Sempre).
+- As 6 telas de gerenciamento continuam existindo: elas viram **edição**, não
+  preenchimento inicial.
+- Nenhuma etapa vira obrigatória. Cada seção do molde já degrada sozinha
+  quando falta dado (§4.4 do SDD) — pular "história" continua sendo um estado
+  válido, não um erro.
+- O site continua sendo criado no MESMO request. Nada de espera.
+
+### Como saber que ficou pronto
+
+1. Um casal novo termina o questionário e a prévia já mostra nomes, data,
+   locais, traje e história — sem passar pelo painel.
+2. `/conta/pedidos/<id>/conteudo` abre com os campos **preenchidos**, não em
+   branco.
+3. Nenhuma etapa bloqueia o avanço por campo vazio, exceto as que já
+   bloqueiam hoje (pacote e nomes).
+4. `npm run test` continua em 293/293 — em especial `contentInput.test.ts`,
+   que protege o fuso horário da data.
+
+### Armadilha conhecida
+
+`parseContentForm` grava hora em UTC e o formulário lê de volta no fuso do
+site. Se as etapas novas mandarem data/hora por um caminho diferente do
+`contentInput.ts`, a cerimônia das 16h vira 19h e cada salvamento empurra
+mais três horas. Reusar `parseContentForm` não é opcional.
+
+---
+
 ## Onde anotar os achados (itens 1 e 6)
 
 Quando os links chegarem, colar aqui embaixo. Para cada concorrente:

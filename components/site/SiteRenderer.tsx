@@ -6,6 +6,7 @@ import type { ThemeSpec } from "@/lib/theme/spec";
 import type { PackageTier } from "@/lib/packages";
 import TrackView from "@/components/TrackView";
 import RevealOnScroll from "@/components/ui/RevealOnScroll";
+import PhotoLightbox from "@/components/site/PhotoLightbox";
 
 /**
  * Renderiza o site de um casal: molde + tokens + conteúdo.
@@ -89,6 +90,10 @@ export default function SiteRenderer({
             Passo mais lento e percurso maior que na landing: aqui é um
             convite, e o ritmo faz parte da peça. */}
         <RevealOnScroll raiz=".site-canvas" passo={0.11} percurso={30} />
+
+        {/* Ampliar foto. Escuta o clique por delegação, então alcança os 6
+            moldes sem que nenhum precise virar client component. */}
+        <PhotoLightbox />
 
         {chaves.map((key) => {
           const Section = template.sections[key]!;

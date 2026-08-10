@@ -12,15 +12,26 @@ import SiteSkeleton from "@/components/ui/SiteSkeleton";
  * O motivo de não acontecer nada era uma decisão minha errada: a versão
  * anterior atrasava o aparecer em 180 ms e não tinha tempo mínimo, então numa
  * resposta rápida ela simplesmente nunca era vista. Aqui é o contrário —
- * **aparece na hora e fica no mínimo `MINIMO_MS`**.
+ * **aparece na hora e dura o tempo REAL do provisionamento**.
  *
- * Isso acrescenta espera de verdade, e é uma escolha consciente: este é o
- * momento em que o site do casal nasce, e atravessá-lo em 200 ms desperdiça o
- * único instante do produto que merece ser comemorado. É o mesmo raciocínio
- * do iCasei, que segura a tela de confete até a barra encher.
+ * Ela NÃO segura nada. Uma versão intermediária tinha um piso de 2,6 s para
+ * a animação ser vista por inteiro — e isso virou a crítica "ter que aguardar
+ * o site", contra um concorrente que entrega em minutos. O provisionamento
+ * leva ~1 s; o resto era espera inventada. Se o servidor responder em 800 ms,
+ * esta tela dura 800 ms.
  */
 
-const MINIMO_MS = 2600;
+// Ritmo da cascata, NÃO tempo de espera.
+//
+// Era 2600ms, e eu o havia escolhido para a animação ser vista por inteiro.
+// Só que o provisionamento leva ~1s: o resto era espera que eu inventei — e
+// "ter que aguardar o site" foi exatamente a crítica que voltou, contra um
+// concorrente que entrega em minutos e não faz o casal esperar.
+//
+// Agora só distribui as etapas dentro do tempo REAL. A tela vive enquanto
+// `ativo`, que é do clique até o redirecionamento; se o servidor responder em
+// 800ms, ela dura 800ms.
+const RITMO_MS = 1200;
 
 const ETAPAS = [
   "Registrando o pedido de vocês",
@@ -58,7 +69,7 @@ export default function CelebrationScreen({
   useEffect(() => {
     if (!ativo) return;
 
-    const passoMs = MINIMO_MS / ETAPAS.length;
+    const passoMs = RITMO_MS / ETAPAS.length;
     const timers = ETAPAS.slice(1).map((_, i) =>
       setTimeout(() => setEtapa(i + 1), passoMs * (i + 1))
     );
@@ -68,9 +79,9 @@ export default function CelebrationScreen({
     // 100% e continua girando é a mentira clássica de tela de carregamento.
     const subida = setInterval(() => {
       setProgresso((p) => (p >= 92 ? 92 : p + 2));
-    }, MINIMO_MS / 46);
+    }, RITMO_MS / 46);
 
-    const fim = setTimeout(() => onTerminou?.(), MINIMO_MS);
+    const fim = setTimeout(() => onTerminou?.(), RITMO_MS);
 
     return () => {
       timers.forEach(clearTimeout);
