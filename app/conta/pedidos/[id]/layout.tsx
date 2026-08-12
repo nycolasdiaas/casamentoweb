@@ -49,37 +49,31 @@ export default async function GerenciarLayout({
       href: base,
       rotulo: "Início",
       descricao: "Onde o pedido está",
-      icone: "🏠",
     },
     {
       href: `${base}/paginas`,
       rotulo: "Páginas",
       descricao: "Ligue, desligue e ordene",
-      icone: "📄",
     },
     {
       href: `${base}/conteudo`,
       rotulo: "Conteúdo",
       descricao: "Nomes, data, locais, história",
-      icone: "✍️",
     },
     {
       href: `${base}/visual`,
       rotulo: "Visual",
       descricao: "Cores e tipografia",
-      icone: "🎨",
     },
     {
       href: `${base}/fotos`,
       rotulo: "Fotos",
       descricao: "Suba e organize",
-      icone: "📷",
     },
     {
       href: `${base}/presentes`,
       rotulo: "Presentes",
       descricao: "Pix e lista",
-      icone: "🎁",
       alerta: presentesSemPix,
     },
   ];

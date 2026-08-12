@@ -40,18 +40,20 @@ export default function OrderStatusTracker({
   const isPaid = order.paymentStatus === "PAID";
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       {/* Resumo do pedido */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-(--color-gold)/40 bg-white px-5 py-4">
-        <div className="flex flex-col">
-          <span className="text-base font-semibold">
+      <div className="surface-raised rounded-[3px] px-5 py-4 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-col gap-0.5">
+          <span className="t-display text-[20px] leading-snug text-(--c-ink)">
             {order.coupleNames ?? "Nosso site"}
           </span>
-          <span className="text-xs text-(--color-olive)/60">
+          <span className="meta text-(--c-ink-2)">
             Pacote {pkg?.name ?? order.packageTier}
           </span>
         </div>
-        <span className="text-lg font-bold">{amountLabel}</span>
+        {/* Valor em mono: alinha coluna e lê como documento, não como preço de
+            loja. */}
+        <span className="t-data text-[22px] text-(--c-ink)">{amountLabel}</span>
       </div>
 
       {/* Linha do tempo */}
@@ -64,27 +66,28 @@ export default function OrderStatusTracker({
 
           return (
             <li key={step} className="flex gap-4">
-              {/* Marcador + conector */}
+              {/* Marcador + conector. Quadrado, não círculo, e com o NÚMERO da
+                  etapa em mono no lugar do emoji: é a numeração de uma prova de
+                  gráfica. O ✓ do passo cumprido é glifo tipográfico, não emoji
+                  — carrega informação e sobrevive à decisão de tirar os emoji. */}
               <div className="flex flex-col items-center">
                 <span
                   aria-hidden
-                  className={`flex size-9 shrink-0 items-center justify-center rounded-full border-2 text-sm ${
+                  className={`t-data flex size-8 shrink-0 items-center justify-center rounded-[2px] border text-[13px] ${
                     state === "done"
-                      ? "border-(--color-olive) bg-(--color-olive) text-white"
+                      ? "border-(--c-ink) bg-(--c-ink) text-white"
                       : state === "active"
-                        ? "border-(--color-olive) bg-white ring-4 ring-(--color-olive)/15"
-                        : "border-(--color-gold)/40 bg-white text-(--color-muted)"
+                        ? "border-(--c-ink) border-2 bg-(--c-surface) text-(--c-ink)"
+                        : "border-(--c-rule) bg-(--c-surface) text-(--c-ink-2)"
                   }`}
                 >
-                  {state === "done" ? "✓" : meta.icon}
+                  {state === "done" ? "✓" : i + 1}
                 </span>
                 {!isLast && (
                   <span
                     aria-hidden
-                    className={`w-0.5 flex-1 my-1 ${
-                      state === "done"
-                        ? "bg-(--color-olive)"
-                        : "bg-(--color-gold)/30"
+                    className={`w-px flex-1 my-1 ${
+                      state === "done" ? "bg-(--c-ink)" : "bg-(--c-rule)"
                     }`}
                   />
                 )}
@@ -92,25 +95,33 @@ export default function OrderStatusTracker({
 
               {/* Conteúdo do passo */}
               <div className={`flex-1 pb-8 ${isLast ? "pb-0" : ""}`}>
-                <p
-                  className={`text-sm font-semibold ${
-                    state === "pending"
-                      ? "text-(--color-muted)"
-                      : "text-(--color-olive)"
-                  }`}
-                >
-                  {state === "active" ? meta.title : meta.short}
-                </p>
+                {state === "active" ? (
+                  <p className="t-display text-[22px] leading-snug text-(--c-ink)">
+                    {meta.title}
+                  </p>
+                ) : (
+                  <p
+                    className={`text-sm font-medium pt-1.5 ${
+                      state === "pending"
+                        ? "text-(--c-ink-2)"
+                        : "text-(--c-ink)"
+                    }`}
+                  >
+                    {meta.short}
+                  </p>
+                )}
 
                 {state === "active" && (
-                  <div className="mt-2 flex flex-col gap-4">
-                    <p className="text-sm text-(--color-olive)/75 leading-relaxed max-w-md">
+                  <div className="mt-3 flex flex-col gap-4">
+                    <p className="text-[15px] text-(--c-ink-2) leading-relaxed max-w-[52ch]">
                       {meta.description}
                     </p>
 
                     {order.adminMessage && (
-                      <div className="rounded-xl border border-(--color-olive)/25 bg-(--color-blush) px-4 py-3 text-sm text-(--color-olive) leading-relaxed">
-                        <span className="font-semibold">Recado da equipe: </span>
+                      <div className="surface-sunken rounded-[3px] px-4 py-3 text-[15px] text-(--c-ink) leading-relaxed max-w-[52ch]">
+                        <span className="meta text-(--c-ink-2) block mb-1">
+                          Recado da equipe
+                        </span>
                         {order.adminMessage}
                       </div>
                     )}
@@ -123,14 +134,14 @@ export default function OrderStatusTracker({
                             href={order.previewUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="rounded-full border border-(--color-olive)/40 px-6 py-3 text-sm font-medium transition-colors hover:bg-(--color-blush)"
+                            className="btn btn-quiet"
                           >
-                            👀 Ver a prévia do site
+                            Ver a prévia do site
                           </a>
                         )}
                         {isPaid ? (
-                          <p className="text-sm text-(--color-olive)">
-                            Pagamento confirmado ✓ — publicando o site.
+                          <p className="text-[15px] text-(--c-ink)">
+                            Pagamento confirmado — publicando o site.
                           </p>
                         ) : (
                           <div className="w-full max-w-xs">
@@ -149,9 +160,9 @@ export default function OrderStatusTracker({
                         href={order.siteUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="self-start rounded-full bg-(--color-olive) text-white px-8 py-3 text-sm font-medium transition-transform hover:scale-105"
+                        className="btn btn-ink self-start"
                       >
-                        🎉 Ver nosso site no ar
+                        Ver nosso site no ar
                       </a>
                     )}
                   </div>
@@ -163,13 +174,13 @@ export default function OrderStatusTracker({
       </ol>
 
       {/* Ajuda */}
-      <p className="text-xs text-(--color-muted) border-t border-(--color-gold)/30 pt-4">
+      <p className="text-[13px] text-(--c-ink-2) border-t border-(--c-rule) pt-4">
         Qualquer dúvida, é só chamar a gente no{" "}
         <a
           href={`https://wa.me/${CONTACT.whatsappNumber}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-medium text-(--color-olive) underline underline-offset-2"
+          className="font-medium text-(--c-ink) underline underline-offset-2"
         >
           WhatsApp
         </a>

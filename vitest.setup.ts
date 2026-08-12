@@ -55,6 +55,10 @@ const GOOGLE_FONT_LOADERS = [
   "Amatic_SC", "Caveat",
   // usadas só nas páginas de prévia
   "Archivo",
+  // plataforma (painel + landing), lib/fonts/ui.ts. NÃO entram no catálogo
+  // dos moldes de propósito: clampThemeFonts recorta a escolha do casal ao
+  // catálogo do molde, e fonte de painel vazando para lá destruiria o tema.
+  "Instrument_Serif", "IBM_Plex_Sans", "IBM_Plex_Mono",
 ];
 
 vi.mock("next/font/google", () =>

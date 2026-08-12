@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import PageTransition from "@/components/ui/PageTransition";
-import BrandLoader from "@/components/ui/BrandLoader";
+import EsperaDoPainel from "@/components/ui/EsperaDoPainel";
 
 /**
  * Transição e espera em TODA navegação dentro do painel do casal.
@@ -29,12 +29,9 @@ export default function ContaTemplate({
 }) {
   return (
     <Suspense
-      fallback={
-        <BrandLoader
-          label="Abrindo…"
-          sublabel="Buscando as informações de vocês."
-        />
-      }
+      // A espera decide sozinha se continua a criação do site ou se é uma
+      // navegação comum. Ver EsperaDoPainel.
+      fallback={<EsperaDoPainel />}
     >
       <PageTransition>{children}</PageTransition>
     </Suspense>

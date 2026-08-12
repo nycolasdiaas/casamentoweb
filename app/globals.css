@@ -298,9 +298,32 @@ body {
    Exigência de WCAG 2.1, e a base não tinha uma linha disto.
    -------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
+  /* "Reduce" pede menos MOVIMENTO, não menos vida.
+     Opacidade não tem vetor: não desloca, não escala, não gira, e por isso
+     não é o que provoca enjoo em quem tem distúrbio vestibular — o que
+     provoca é deslocamento, escala e laço, e esses continuam saindo abaixo.
+
+     A versão anterior zerava o `animation-delay` junto, e com isso matava a
+     CASCATA: tudo aparecia ao mesmo tempo, num fade de 140ms. O resultado era
+     indistinguível de "a tela apareceu pronta" — que é exatamente o defeito
+     que este vocabulário de movimento existe para corrigir, e a razão de
+     `--t-base` ter subido de 320 para 440ms.
+
+     Aqui a cascata fica de pé, só que em opacidade pura. */
+
+  /* Precisa estar dentro de uma REGRA. Declarada solta no `@media`, a custom
+     property é CSS inválido, o `animation` que a consome é descartado inteiro,
+     e o navegador cai de volta na regra de fora — que tem deslocamento. Ou
+     seja: o erro não deixava a animação sem efeito, deixava o `reduce` sem
+     efeito. */
+  :root {
+    --t-reduzido: 320ms;
+  }
+
   .motion-stagger > * {
-    animation: motion-fade var(--t-rapido) var(--e-suave) both;
-    animation-delay: 0ms;
+    animation: motion-fade var(--t-reduzido) var(--e-suave) both;
+    /* o escalonamento é preservado — é ele que dá ordem de leitura */
+    animation-delay: calc(var(--motion-delay, 0ms) + var(--i, 0) * 55ms);
   }
 
   .motion-rise-in,
@@ -308,10 +331,9 @@ body {
   .motion-word,
   .motion-step-next,
   .motion-step-prev {
-    /* Aparece sem percorrer distância. Mantém o fade curtíssimo para a troca
-       de tela não ser um corte seco. */
-    animation: motion-fade var(--t-rapido) var(--e-suave) both;
-    animation-delay: 0ms;
+    /* Aparece sem percorrer distância nenhuma, mas em tempo que o olho pega. */
+    animation: motion-fade var(--t-reduzido) var(--e-suave) both;
+    animation-delay: var(--motion-delay, 0ms);
   }
 
   /* Pétalas caindo são laço infinito e deslocamento grande — as duas coisas
@@ -410,4 +432,257 @@ body {
 .btn-sm {
   padding: 0.5rem 1.125rem;
   font-size: 0.8125rem;
+}
+
+/* ==========================================================================
+   Sistema visual da PLATAFORMA — Direção A, "Prensa"
+   (docs/sistema-visual.md, aprovado em 10/08/2026)
+
+   Papel de algodão prensado, tinta ferrogálica oxidada, e UMA cor saturada:
+   o vermelhão da marca de registro. O contraste é 14.8:1, contra os ~7:1 do
+   creme-com-oliva — é isso que tira o "lavado".
+
+   ADITIVO, e por dois motivos que não são estilo:
+
+   1. `--color-paper/olive/gold/blush` continuam declarados acima e INTOCADOS.
+      60 arquivos dependem deles, e entre eles estão `app/rsvp/[slug]/`,
+      `components/RsvpCard.tsx` e o site do casal legado — a rota que tem 22
+      confirmações de gente real e links já no WhatsApp.
+   2. Tudo aqui vive sob `.ui-prensa`. O escopo não é organização: é a
+      garantia estrutural de que nenhum destes tokens alcança
+      `lib/templates/*`, onde `npm run verify:template` reprova cor que não
+      venha do ThemeSpec do casal.
+   ========================================================================== */
+/* O fundo do painel precisa alcançar o ROOT, não só a casca.
+
+   O `body` global pinta `--color-paper` (#f2efe7, o creme antigo) e a casca é
+   `flex-1` dentro dele — mas ela não cobria os últimos ~48px, e sobrava uma
+   faixa creme quente no rodapé de um desenho cinza-frio. É o tipo de resquício
+   que denuncia migração pela metade.
+
+   `:has(.ui-prensa)` resolve isso SEM tocar no `body` global: a regra só
+   vale nas páginas que montam a casca da Prensa. `/rsvp/<slug>`, `/s/<slug>`
+   e o site do casal legado não têm `.ui-prensa` e seguem com o creme, que é
+   exatamente o que a restrição nº 1 exige.
+
+   Descendente, não `> ` (filho direto): entre o body e a casca existe um
+   wrapper sem classe, e a versão com filho direto simplesmente não casava.
+
+   Hex literal pelo mesmo motivo do `.btn`: o token vive DENTRO de
+   `.ui-prensa`, então o `body` (que é ancestral) não enxerga `var(--c-base)`. */
+body:has(.ui-prensa) {
+  background-color: #efefec;
+}
+
+.ui-prensa {
+  --c-base: #efefec; /* fundo — cinza-neutro, sem amarelo */
+  --c-surface: #ffffff; /* cards elevados */
+  --c-sunken: #e5e5e0; /* campos, trilhos, deboss */
+  --c-ink: #1a1d21; /* texto principal — 14.8:1 sobre a base */
+  --c-ink-2: #5a5f66; /* secundário — 6.4:1 */
+  --c-rule: #c9c9c2; /* fios de 1px */
+  --c-mark: #b8412c; /* marca de registro — UMA vez por tela */
+
+  /* Escala de espaçamento base 4. A escala importa menos que a regra de uso:
+     dentro de um componente 8–16, entre blocos irmãos 24–32, entre seções da
+     página 64–96. Era `gap-8` (32px) para os três casos, e um espaço só para
+     todas as relações é o que faz a tela parecer lista de cards em vez de
+     página desenhada. */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-12: 48px;
+  --s-16: 64px;
+  --s-24: 96px;
+
+  background-color: var(--c-base);
+  color: var(--c-ink);
+  font-family: var(--f-ui-body), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* --------------------------------------------------------------------------
+   Três níveis de superfície, em vez do `rounded-2xl border bg-white` único.
+   Sem peso, tudo é secundário — era esse o "vazio e sem vida".
+   -------------------------------------------------------------------------- */
+
+/* ELEVADO: a ação principal da tela. Superfície branca sobre a base, com o
+   fio e um deboss curtíssimo — sombra de papel apoiado, não de card flutuando. */
+.ui-prensa .surface-raised {
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-rule);
+  box-shadow: 0 1px 0 0 color-mix(in srgb, var(--c-ink) 6%, transparent);
+}
+
+/* PLANO: conteúdo comum. Só o fio. Sem fundo próprio, porque dar superfície a
+   tudo é o mesmo que não dar a nada. */
+.ui-prensa .surface-flat {
+  background-color: transparent;
+  border: 1px solid var(--c-rule);
+}
+
+/* SULCADO: campo e trilho. Afunda em vez de subir. */
+.ui-prensa .surface-sunken {
+  background-color: var(--c-sunken);
+  border: 1px solid color-mix(in srgb, var(--c-rule) 70%, transparent);
+}
+
+/* Rótulo de metadado: mono, caixa alta, tracking aberto. É a marca de
+   registro da gráfica aplicada à interface.
+
+   NÃO declara cor de propósito. Com `color` aqui a especificidade (0,2,0)
+   vencia o utilitário `text-(--c-mark)` do Tailwind (0,1,0) e o vermelhão de
+   registro — o único acento da tela — simplesmente não aparecia. Papel de
+   tipografia não é dono da cor; quem usa .meta declara a sua. */
+.ui-prensa .meta {
+  font-family: var(--f-ui-mono), ui-monospace, monospace;
+  font-size: 12.5px;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* --------------------------------------------------------------------------
+   Botões da plataforma na Prensa.
+
+   Hex literal pelo MESMO motivo documentado no `.btn` acima: em produção os
+   CTAs saíram sem fundo quando dependiam de custom property. Não repito o
+   erro só para o token ficar bonito.
+   -------------------------------------------------------------------------- */
+.ui-prensa .btn-ink {
+  background-color: #1a1d21;
+  border-color: #1a1d21;
+  color: #ffffff;
+  border-radius: 2px;
+  box-shadow: 0 1px 0 0 rgb(26 29 33 / 0.24);
+}
+.ui-prensa .btn-ink:hover:not(:disabled) {
+  background-color: #000000;
+  border-color: #000000;
+}
+
+.ui-prensa .btn-quiet {
+  background-color: transparent;
+  border-color: #c9c9c2;
+  color: #1a1d21;
+  border-radius: 2px;
+}
+.ui-prensa .btn-quiet:hover:not(:disabled) {
+  background-color: #e5e5e0;
+  border-color: #5a5f66;
+}
+
+/* O foco sai do dourado do tema antigo e vai para a tinta de registro. */
+.ui-prensa .btn:focus-visible,
+.ui-prensa a:focus-visible,
+.ui-prensa button:focus-visible {
+  outline: 2px solid #b8412c;
+  outline-offset: 2px;
+}
+
+/* Papéis de fonte. Classe própria em vez de entrada no `@theme` para não
+   mexer no bloco `@theme inline` existente, que declara `--font-serif` e
+   `--font-script` — as duas variáveis de que os 6 moldes e o `/rsvp`
+   dependem. Nada aqui as substitui; elas seguem intactas. */
+.ui-prensa .t-display {
+  font-family: var(--f-ui-display), ui-serif, Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.ui-prensa .t-data {
+  font-family: var(--f-ui-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------------------------
+   A ASSINATURA: o carimbo de prova.
+
+   O gasto de ousadia da refatoração inteira fica em UM elemento, num lugar só
+   — o estado do pedido em /conta/pedidos/<id>. Todo painel do mundo tem uma
+   pílula de status arredondada; um carimbo sobreimpresso de revisor sai do
+   vocabulário da gráfica, que é o mundo do produto, e não do "dashboard".
+
+   Não pede biblioteca: é `border`, `rotate()` e a mono. É estático, então
+   sobrevive a `prefers-reduced-motion` sem precisar de exceção. E é pintura
+   sobre um dado que já existe (STATUS_META), não um dado novo.
+
+   É a contenção do resto da interface — fio de 1px, sem sombra colorida, sem
+   gradiente, sem segundo acento — que faz o carimbo funcionar. Se aparecer um
+   segundo elemento ousado, os dois viram ruído.
+   -------------------------------------------------------------------------- */
+.ui-prensa .stamp {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 7px 14px;
+  border: 2px solid var(--c-mark);
+  /* O contorno vazado do carimbo de verdade: a borda de 2px por fora e um fio
+     de 1px por dentro, com a folga entre eles. */
+  box-shadow: inset 0 0 0 1px var(--c-mark);
+  border-radius: 2px;
+  color: var(--c-mark);
+  font-family: var(--f-ui-mono), ui-monospace, monospace;
+  text-transform: uppercase;
+  transform: rotate(-3.5deg);
+  transform-origin: center;
+  /* Tinta de carimbo nunca sai sólida. 0.9 dá o assentamento sem comprometer
+     o contraste: 5.5:1 sobre branco a cheio, ~5.0:1 aqui. */
+  opacity: 0.9;
+  user-select: none;
+}
+
+.ui-prensa .stamp-titulo {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  line-height: 1.3;
+}
+
+.ui-prensa .stamp-data {
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  line-height: 1.3;
+  opacity: 0.85;
+}
+
+/* --------------------------------------------------------------------------
+   O carimbo BATE, não aparece.
+
+   Ele é a assinatura do produto e cai na tela que o casal reabre para ver se
+   o site saiu do forno — é o único elemento que merece ser notado. Aparecer
+   pronto desperdiça isso.
+
+   O movimento é o de um carimbo de verdade: desce grande e torto, passa do
+   ponto ao encostar no papel (o 60%, com escala abaixo de 1) e assenta. Sem
+   esse exagero no meio, a escala vira um zoom e não uma batida.
+   -------------------------------------------------------------------------- */
+@keyframes stamp-bater {
+  0% {
+    opacity: 0;
+    transform: rotate(-12deg) scale(1.6);
+  }
+  60% {
+    opacity: 0.9;
+    transform: rotate(-2.6deg) scale(0.97);
+  }
+  100% {
+    opacity: 0.9;
+    transform: rotate(-3.5deg) scale(1);
+  }
+}
+
+.ui-prensa .stamp {
+  animation: stamp-bater 320ms var(--e-saida) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Escala e rotação saem — são deslocamento. A tinta continua chegando, só
+     que sem a batida: o carimbo já nasce assentado e só ganha opacidade. */
+  .ui-prensa .stamp {
+    animation: motion-fade var(--t-reduzido) var(--e-suave) both;
+  }
 }

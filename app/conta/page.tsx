@@ -13,39 +13,40 @@ export const metadata: Metadata = {
   title: `Minha conta | ${SITE_NAME}`,
 };
 
-function HubCard({
+/**
+ * Atalho como LINHA de uma lista com fio, não como card.
+ *
+ * Antes eram três `rounded-2xl border bg-white p-5` — o mesmo card do destaque
+ * e o mesmo card do pedido. Quando toda superfície tem o mesmo peso, nenhuma é
+ * principal, e é isso que fazia a tela parecer "vazia e sem vida" mesmo cheia
+ * de blocos. Aqui o atalho é secundário e se parece com secundário.
+ *
+ * O emoji de ícone saiu: é um dos tells mais fortes de interface gerada, e sem
+ * ele o rótulo passa a carregar o significado sozinho.
+ */
+function Atalho({
   href,
   title,
   desc,
-  icon,
   external,
 }: {
   href: string;
   title: string;
   desc: string;
-  icon: string;
   external?: boolean;
 }) {
   const className =
-    "flex flex-col gap-1 rounded-2xl border border-(--color-gold)/40 bg-white p-5 transition-colors hover:border-(--color-olive) hover:bg-(--color-blush)";
+    "flex flex-col gap-0.5 px-4 py-3.5 border-b border-(--c-rule) last:border-b-0 transition-colors hover:bg-(--c-sunken)";
   const inner = (
     <>
-      <span className="text-xl" aria-hidden>
-        {icon}
-      </span>
-      <span className="text-sm font-semibold">{title}</span>
-      <span className="text-xs text-(--color-olive)/60">{desc}</span>
+      <span className="text-sm font-medium text-(--c-ink)">{title}</span>
+      <span className="text-[13px] leading-snug text-(--c-ink-2)">{desc}</span>
     </>
   );
 
   if (external) {
     return (
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={className}
-      >
+      <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
         {inner}
       </a>
     );
@@ -69,96 +70,116 @@ export default async function AccountHubPage() {
 
   return (
     <AccountShell active="inicio">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-bold tracking-tight">
-          Olá, {user.name} 💚
-        </h1>
-        <p className="text-sm text-(--color-olive)/70 max-w-lg">
-          Bem-vindos ao painel de vocês. Aqui vocês montam pedidos, acompanham
-          a produção e chegam até o site no ar.
-        </p>
-      </div>
+      {/* UM filho só. O ritmo é declarado aqui dentro, com espaço que varia
+          conforme a relação entre os blocos: 8–16 dentro de um componente,
+          24–32 entre irmãos, 64–96 entre seções. Era gap-8 para os três casos,
+          e um espaço só para todas as relações é o que faz a tela parecer
+          lista de cards em vez de página desenhada. */}
+      <div className="flex flex-col">
+        <header className="flex flex-col gap-3">
+          <span className="meta text-(--c-ink-2)">Painel do casal</span>
+          <h1 className="t-display text-2xl md:text-[30px] leading-[1.15] text-(--c-ink)">
+            Olá, {user.name}
+          </h1>
+          <p className="text-base leading-relaxed text-(--c-ink-2) max-w-[52ch]">
+            Bem-vindos ao painel de vocês. Aqui vocês montam pedidos, acompanham
+            a produção e chegam até o site no ar.
+          </p>
+        </header>
 
-      {/* Destaque conforme o pedido mais recente */}
-      {!latest ? (
-        <section className="rounded-2xl border border-(--color-olive)/30 bg-(--color-blush) p-6 flex flex-col gap-3">
-          <span className="text-xs uppercase tracking-[0.1em] text-(--color-gold)">
-            Comecem por aqui
-          </span>
-          <p className="text-lg font-semibold">
-            Vamos montar o site de casamento de vocês? 💍
-          </p>
-          <p className="text-sm text-(--color-olive)/70 max-w-md">
-            Escolham o pacote e o estilo, mandem o material e a gente cuida do
-            resto. Nada é cobrado para montar o pedido.
-          </p>
-          <Link
-            href="/conta/pedido/novo"
-            className="self-start rounded-full bg-(--color-olive) text-white px-8 py-3 text-sm font-medium transition-transform hover:scale-105"
-          >
-            Fazer meu pedido
-          </Link>
-        </section>
-      ) : (
-        <section className="rounded-2xl border border-(--color-gold)/40 bg-white p-6 flex flex-col gap-3">
-          <span className="text-xs uppercase tracking-[0.1em] text-(--color-gold)">
-            {orders.length > 1 ? "Pedido mais recente" : "Seu pedido"}
-          </span>
-          <p className="text-lg font-semibold">
-            {STATUS_META[latest.status].icon} {STATUS_META[latest.status].short}
-          </p>
-          <p className="text-sm text-(--color-olive)/70">
-            {getPackage(latest.packageTier)?.name ?? latest.packageTier}
-            {latest.coupleNames ? ` · ${latest.coupleNames}` : ""}
-          </p>
-          <div className="flex flex-wrap gap-3 pt-1">
-            <Link
-              href={
-                latest.status === "draft"
-                  ? `/conta/pedido/${latest.id}`
-                  : `/conta/pedidos/${latest.id}`
-              }
-              className="rounded-full bg-(--color-olive) text-white px-6 py-3 text-sm font-medium transition-transform hover:scale-105"
-            >
-              {latest.status === "draft"
-                ? "Continuar meu pedido"
-                : "Acompanhar meu pedido"}
-            </Link>
-            <Link
-              href="/conta/pedido/novo"
-              className="rounded-full border border-(--color-olive)/30 px-6 py-3 text-sm font-medium transition-colors hover:bg-(--color-blush)"
-            >
-              Fazer novo pedido
-            </Link>
-          </div>
-        </section>
-      )}
+        {/* Grade de 12 colunas: o principal em 1–8, o metadado em 9–12. É o que
+            mata "centralizada demais" — antes era pilha vertical com mx-auto em
+            tudo. Abaixo de lg vira uma coluna só, que é o desenho de origem do
+            celular e não pode piorar. */}
+        <div className="mt-16 grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <section className="lg:col-span-8">
+            {!latest ? (
+              <div className="surface-raised rounded-[3px] p-6 lg:p-8 flex flex-col gap-4">
+                {/* A ÚNICA aparição do vermelhão de registro nesta tela. A
+                    contenção do resto é o que o faz funcionar. */}
+                <span className="meta text-(--c-mark)">Comecem por aqui</span>
+                <p className="t-display text-[26px] leading-tight text-(--c-ink)">
+                  Vamos montar o site de casamento de vocês?
+                </p>
+                <p className="text-base leading-relaxed text-(--c-ink-2) max-w-[46ch]">
+                  Escolham o pacote e o estilo, mandem o material e a gente cuida
+                  do resto. Nada é cobrado para montar o pedido.
+                </p>
+                <div className="pt-2">
+                  <Link href="/conta/pedido/novo" className="btn btn-ink">
+                    Fazer meu pedido
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div className="surface-raised rounded-[3px] p-6 lg:p-8 flex flex-col gap-4">
+                <div className="flex items-baseline justify-between gap-4">
+                  <span className="meta text-(--c-mark)">
+                    {orders.length > 1 ? "Pedido mais recente" : "Seu pedido"}
+                  </span>
+                  {/* Dado real, em mono: a marca de registro da gráfica
+                      aplicada à interface. */}
+                  <span className="t-data text-[12.5px] text-(--c-ink-2)">
+                    #{latest.id.slice(0, 8).toUpperCase()}
+                  </span>
+                </div>
 
-      {/* Atalhos */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <HubCard
-          href="/conta/pedidos"
-          icon="📦"
-          title="Meus pedidos"
-          desc={
-            orders.length > 0
-              ? `${orders.length} pedido${orders.length > 1 ? "s" : ""} · acompanhar`
-              : "Acompanhem cada etapa"
-          }
-        />
-        <HubCard
-          href="/#estilos"
-          icon="🎨"
-          title="Ver modelos"
-          desc="Inspiração de estilos"
-        />
-        <HubCard
-          href={`https://wa.me/${CONTACT.whatsappNumber}`}
-          icon="💬"
-          title="Falar no WhatsApp"
-          desc="Tirar dúvidas com a gente"
-          external
-        />
+                <p className="t-display text-[26px] leading-tight text-(--c-ink)">
+                  {STATUS_META[latest.status].short}
+                </p>
+
+                <p className="text-[15px] text-(--c-ink-2)">
+                  {getPackage(latest.packageTier)?.name ?? latest.packageTier}
+                  {latest.coupleNames ? ` · ${latest.coupleNames}` : ""}
+                </p>
+
+                <div className="flex flex-wrap gap-3 pt-2">
+                  <Link
+                    href={
+                      latest.status === "draft"
+                        ? `/conta/pedido/${latest.id}`
+                        : `/conta/pedidos/${latest.id}`
+                    }
+                    className="btn btn-ink"
+                  >
+                    {latest.status === "draft"
+                      ? "Continuar meu pedido"
+                      : "Acompanhar meu pedido"}
+                  </Link>
+                  <Link href="/conta/pedido/novo" className="btn btn-quiet">
+                    Fazer novo pedido
+                  </Link>
+                </div>
+              </div>
+            )}
+          </section>
+
+          <aside className="lg:col-span-4 flex flex-col gap-3">
+            <span className="meta text-(--c-ink-2)">Atalhos</span>
+            <nav className="surface-flat rounded-[3px] overflow-hidden">
+              <Atalho
+                href="/conta/pedidos"
+                title="Meus pedidos"
+                desc={
+                  orders.length > 0
+                    ? `${orders.length} pedido${orders.length > 1 ? "s" : ""} · acompanhar`
+                    : "Acompanhem cada etapa"
+                }
+              />
+              <Atalho
+                href="/#estilos"
+                title="Ver modelos"
+                desc="Inspiração de estilos"
+              />
+              <Atalho
+                href={`https://wa.me/${CONTACT.whatsappNumber}`}
+                title="Falar no WhatsApp"
+                desc="Tirar dúvidas com a gente"
+                external
+              />
+            </nav>
+          </aside>
+        </div>
       </div>
     </AccountShell>
   );

@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { ETAPAS, type EtapaId, type RegraEtapa } from "@/lib/wizard/etapas";
+import { CHAVE_CRIANDO } from "@/components/ui/EsperaDoPainel";
 import { useActionState } from "react";
 import {
   saveOrderAction,
@@ -161,13 +163,14 @@ export default function OrderWizard({
   };
 
   // ---- as etapas -----------------------------------------------------------
-  const PASSOS = [
-    {
-      titulo: "Qual pacote combina com vocês?",
-      subtitulo:
-        "Dá para mudar depois — nada aqui é definitivo até o pedido ser enviado.",
-      podeAvancar: true,
-      conteudo: (
+  // A LISTA (ordem, titulos, quais bloqueiam o avanco) mora em
+  // `lib/wizard/etapas.ts`. Aqui fica so o DESENHO de cada uma.
+  const regras: Record<RegraEtapa, boolean> = {
+    nomes: nomes.trim().length > 0,
+  };
+
+  const conteudos: Record<EtapaId, ReactNode> = {
+    pacote: (
         <div className="motion-stagger grid gap-3 sm:grid-cols-3">
           {PACKAGES.map((pkg, i) => {
             const ativo = pacote === pkg.tier;
@@ -192,13 +195,8 @@ export default function OrderWizard({
             );
           })}
         </div>
-      ),
-    },
-    {
-      titulo: "Como vocês se chamam?",
-      subtitulo: "É o nome que abre o convite. Dá para ajustar depois.",
-      podeAvancar: nomes.trim().length > 0,
-      conteudo: (
+    ),
+    nomes: (
         <div className="motion-stagger mx-auto flex max-w-md flex-col gap-5">
           <label style={{ ["--i" as string]: 0 }} className="flex flex-col gap-2">
             <span className="text-sm font-medium">Nomes de vocês</span>
@@ -228,14 +226,8 @@ export default function OrderWizard({
             </span>
           </label>
         </div>
-      ),
-    },
-    {
-      titulo: "Por onde vocês querem começar?",
-      subtitulo:
-        "Escolher um modelo já preenche as cores dele na próxima tela — e vocês trocam o que quiserem.",
-      podeAvancar: true,
-      conteudo: (
+    ),
+    modelo: (
         <div className="flex flex-col gap-4">
           <div className="motion-stagger grid gap-3 sm:grid-cols-3">
             {TEMPLATE_STYLES.map((estiloItem, i) => {
@@ -295,14 +287,8 @@ export default function OrderWizard({
             </div>
           )}
         </div>
-      ),
-    },
-    {
-      titulo: "As cores de vocês",
-      subtitulo:
-        "Três decisões: a tinta do texto, o acento dos detalhes e o papel de fundo.",
-      podeAvancar: true,
-      conteudo: (
+    ),
+    cores: (
         <div className="motion-stagger mx-auto flex max-w-2xl flex-col gap-7">
           <div style={{ ["--i" as string]: 0 }}>
             <ColorRow
@@ -329,13 +315,8 @@ export default function OrderWizard({
             />
           </div>
         </div>
-      ),
-    },
-    {
-      titulo: "A tipografia",
-      subtitulo: `${FONT_STYLES.length} opções. Escolham a que soa como vocês — ou pulem, e a gente sugere.`,
-      podeAvancar: true,
-      conteudo: (
+    ),
+    fonte: (
         <div className="flex max-h-[30rem] flex-col gap-6 overflow-y-auto rounded-2xl border border-(--color-gold)/30 bg-(--color-paper)/40 p-4">
           {FONT_CATEGORY_ORDER.map((categoria) => {
             const doGrupo = FONT_STYLES.filter((f) => f.category === categoria);
@@ -392,14 +373,8 @@ export default function OrderWizard({
             );
           })}
         </div>
-      ),
-    },
-    {
-      titulo: "Querem pedir mais alguma coisa?",
-      subtitulo:
-        "Aqui não tem limite: uma flor, um tema, uma cor que odeiam, um detalhe que sonharam.",
-      podeAvancar: true,
-      conteudo: (
+    ),
+    observacoes: (
         <div className="motion-stagger mx-auto flex max-w-xl flex-col gap-5">
           <label style={{ ["--i" as string]: 0 }} className="flex flex-col gap-2">
             <span className="text-sm font-medium">Observações de estilo</span>
@@ -433,13 +408,8 @@ export default function OrderWizard({
             uma cai.
           </p>
         </div>
-      ),
-    },
-    {
-      titulo: "Conferindo antes de mandar",
-      subtitulo: "Dá para voltar e mudar qualquer coisa.",
-      podeAvancar: true,
-      conteudo: (
+    ),
+    revisao: (
         <div className="motion-stagger mx-auto flex max-w-xl flex-col gap-2.5">
           {[
             ["Pacote", PACKAGES.find((p) => p.tier === pacote)?.name ?? "—"],
@@ -501,9 +471,17 @@ export default function OrderWizard({
             </span>
           </div>
         </div>
-      ),
-    },
-  ];
+    ),
+  };
+
+  // A lista vem do dado; o desenho vem do mapa acima. `podeAvancar` sai da
+  // regra declarada na etapa — sem regra, a etapa e pulavel, que e o padrao.
+  const PASSOS = ETAPAS.map((e) => ({
+    titulo: e.titulo,
+    subtitulo: e.subtitulo,
+    podeAvancar: e.exige ? regras[e.exige] : true,
+    conteudo: conteudos[e.id],
+  }));
 
   const etapa = PASSOS[passo];
   const ultima = passo === PASSOS.length - 1;
@@ -562,11 +540,16 @@ export default function OrderWizard({
                     // formulário e fora da transição do React, então a tela
                     // pinta na hora. Dentro da action ela nunca chegava a
                     // aparecer — ver o comentário em `enviando`.
-                    onClick={() => setEnviando(true)}
+                    onClick={() => {
+                      setEnviando(true);
+                      // Avisa a espera do painel que a próxima tela é a
+                      // continuação disto, e não uma navegação qualquer.
+                      sessionStorage.setItem(CHAVE_CRIANDO, "1");
+                    }}
                     disabled={pending || jaEnviado}
                     className="btn btn-primary"
                   >
-                    {jaEnviado ? "Pedido já enviado" : "Criar nosso site ✨"}
+                    {jaEnviado ? "Pedido já enviado" : "Criar nosso site"}
                   </button>
                 ) : (
                   <button
@@ -588,7 +571,7 @@ export default function OrderWizard({
                 )}
                 {state && "saved" in state && (
                   <p className="motion-rise-in text-sm text-(--color-olive)">
-                    Rascunho salvo ✓
+                    Rascunho salvo
                   </p>
                 )}
               </div>

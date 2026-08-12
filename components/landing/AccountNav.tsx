@@ -19,7 +19,7 @@ export default async function AccountNav() {
     return (
       <Link
         href="/conta"
-        className="bg-(--color-olive) text-white text-xs font-medium tracking-wide px-4 py-2 rounded-full hover:bg-(--color-olive)/90 transition-colors"
+        className="bg-(--c-ink) text-white text-xs font-medium tracking-wide px-4 py-2 rounded-[2px] hover:bg-(--c-ink)/90 transition-colors"
       >
         Minha conta
       </Link>
@@ -42,7 +42,7 @@ export function LoggedOutLinks() {
       </Link>
       <Link
         href="/conta/criar"
-        className="bg-(--color-olive) text-white text-xs font-medium tracking-wide px-4 py-2 rounded-full hover:bg-(--color-olive)/90 transition-colors"
+        className="bg-(--c-ink) text-white text-xs font-medium tracking-wide px-4 py-2 rounded-[2px] hover:bg-(--c-ink)/90 transition-colors"
       >
         Começar agora
       </Link>

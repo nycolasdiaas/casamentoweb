@@ -109,7 +109,7 @@ function EditorialTemplateInner() {
       >
         <div style={{ fontFamily: "var(--font-sans)", color: INK }} className="text-[14px]">
           {/* 1. Capa / Save the Date */}
-          <section className="px-6 pt-5 pb-12">
+          <section className="px-6 lg:px-[8vw] pt-5 pb-12 lg:pb-28">
             <div
               className="flex justify-between items-center pb-4"
               style={{ borderBottom: "1px solid rgba(20,20,20,.16)" }}
@@ -117,7 +117,7 @@ function EditorialTemplateInner() {
               <span className="text-[8.5px] tracking-[0.3em] uppercase" style={{ color: "rgba(20,20,20,.55)" }}>
                 Nossa história
               </span>
-              <span className="text-[17px] tracking-[0.08em]" style={{ fontFamily: serifFamily }}>
+              <span className="text-[17px] lg:text-[23px] tracking-[0.08em]" style={{ fontFamily: serifFamily }}>
                 Ana &amp; Pedro
               </span>
               <span
@@ -151,7 +151,7 @@ function EditorialTemplateInner() {
                 <PhotoSlot label="Foto principal do casal — retrato 3:4" className="w-full aspect-[3/4]" />
               </div>
               <p
-                className="mt-5.5 mx-auto max-w-[34ch] text-[10px] tracking-[0.24em] uppercase leading-[2]"
+                className="mt-5.5 mx-auto max-w-[34ch] text-[10px] lg:text-[12px] tracking-[0.24em] uppercase leading-[2]"
                 style={{ color: "rgba(20,20,20,.62)" }}
               >
                 Junte-se a nós em uma jornada de amor, alegria e felicidade
@@ -169,7 +169,7 @@ function EditorialTemplateInner() {
               className="absolute inset-0 pointer-events-none"
               style={{ background: "linear-gradient(180deg,rgba(15,15,15,.72),rgba(15,15,15,.82))" }}
             />
-            <div className="relative z-10 px-6 py-16 text-center" style={{ color: PAPER }}>
+            <div className="relative z-10 px-6 lg:px-[8vw] py-16 lg:py-36 text-center" style={{ color: PAPER }}>
               <div className="text-[9.5px] tracking-[0.34em] uppercase" style={{ color: "rgba(245,243,239,.7)" }}>
                 Que a contagem comece
               </div>
@@ -194,9 +194,9 @@ function EditorialTemplateInner() {
           </section>
 
           {/* 3. Nossa história */}
-          <section className="px-6 py-16">
+          <section className="px-6 lg:px-[8vw] py-16 lg:py-36">
             <div className="text-center mb-2">
-              <span className="text-[9px] tracking-[0.34em] uppercase" style={{ color: "rgba(20,20,20,.55)" }}>
+              <span className="text-[9px] lg:text-[11px] tracking-[0.34em] uppercase" style={{ color: "rgba(20,20,20,.55)" }}>
                 Capítulo um
               </span>
             </div>
@@ -228,7 +228,7 @@ function EditorialTemplateInner() {
           </section>
 
           {/* 4. Informações — roteiro (dark) + localização + dress code */}
-          <section className="px-6 pt-16 pb-8" style={{ background: INK, color: PAPER }}>
+          <section className="px-6 lg:px-[8vw] pt-16 lg:pt-36 pb-8" style={{ background: INK, color: PAPER }}>
             <div className="text-center">
               <div className="text-[9.5px] tracking-[0.34em] uppercase" style={{ color: "rgba(245,243,239,.6)" }}>
                 Uma prévia de
@@ -247,7 +247,7 @@ function EditorialTemplateInner() {
                 ["22h", "Pista & fogos"],
               ].map(([time, label]) => (
                 <div key={label} className="text-center">
-                  <div className="text-[27px] font-medium" style={{ fontFamily: serifFamily }}>
+                  <div className="text-[27px] lg:text-[42px] font-medium" style={{ fontFamily: serifFamily }}>
                     {time}
                   </div>
                   <div className="mt-1.5 text-[8.5px] tracking-[0.26em] uppercase" style={{ color: "rgba(245,243,239,.6)" }}>
@@ -257,7 +257,7 @@ function EditorialTemplateInner() {
               ))}
             </div>
           </section>
-          <section className="px-6 pt-14 pb-8 text-center" style={{ background: PAPER }}>
+          <section className="px-6 lg:px-[8vw] pt-14 lg:pt-32 pb-8 text-center" style={{ background: PAPER }}>
             <h3 className="text-[32px] font-medium tracking-[0.04em] uppercase" style={{ fontFamily: serifFamily }}>
               Localização
             </h3>
@@ -265,12 +265,12 @@ function EditorialTemplateInner() {
               <PhotoSlot label="Foto do local — 3:4" className="w-full aspect-[3/4]" />
             </div>
             <div className="flex justify-between gap-4 max-w-[360px] mx-auto text-left">
-              <div className="text-[10px] tracking-[0.2em] uppercase leading-[1.9]" style={{ color: "rgba(20,20,20,.7)" }}>
+              <div className="text-[10px] lg:text-[12px] tracking-[0.2em] uppercase leading-[1.9]" style={{ color: "rgba(20,20,20,.7)" }}>
                 Espaço Jardim
                 <br />
                 das Oliveiras
               </div>
-              <div className="text-[10px] tracking-[0.2em] uppercase leading-[1.9] text-right" style={{ color: "rgba(20,20,20,.7)" }}>
+              <div className="text-[10px] lg:text-[12px] tracking-[0.2em] uppercase leading-[1.9] text-right" style={{ color: "rgba(20,20,20,.7)" }}>
                 Eusébio
                 <br />
                 Fortaleza — CE
@@ -288,7 +288,7 @@ function EditorialTemplateInner() {
               </a>
             </div>
           </section>
-          <section className="px-6 pt-2 pb-16" style={{ background: PAPER }}>
+          <section className="px-6 lg:px-[8vw] pt-2 pb-16 lg:pb-36" style={{ background: PAPER }}>
             <div
               className="py-7 text-center"
               style={{
@@ -302,7 +302,7 @@ function EditorialTemplateInner() {
               <div className="mt-2 text-[30px] font-medium tracking-[0.02em] uppercase" style={{ fontFamily: serifFamily }}>
                 Black tie opcional
               </div>
-              <div className="mt-1.5 text-[12px] tracking-[0.06em]" style={{ color: "rgba(20,20,20,.62)" }}>
+              <div className="mt-1.5 text-[12px] lg:text-[15px] tracking-[0.06em]" style={{ color: "rgba(20,20,20,.62)" }}>
                 tons neutros, preto e off-white são muito bem-vindos
               </div>
             </div>
@@ -310,7 +310,7 @@ function EditorialTemplateInner() {
 
           {/* 5. RSVP — Site do Casamento */}
           {hasRsvp && (
-            <section className="px-6 py-16">
+            <section className="px-6 lg:px-[8vw] py-16 lg:py-36">
               <div className="text-center mb-6">
                 <div className="text-[9.5px] tracking-[0.34em] uppercase" style={{ color: "rgba(20,20,20,.55)" }}>
                   Confirme sua presença
@@ -325,7 +325,7 @@ function EditorialTemplateInner() {
 
               {!s.confirmed ? (
                 <div style={{ border: "1px solid rgba(20,20,20,.2)" }}>
-                  <div className="px-4.5 py-3.5 text-[9px] tracking-[0.28em] uppercase" style={{ borderBottom: "1px solid rgba(20,20,20,.2)" }}>
+                  <div className="px-4.5 py-3.5 text-[9px] lg:text-[11px] tracking-[0.28em] uppercase" style={{ borderBottom: "1px solid rgba(20,20,20,.2)" }}>
                     Convite — Família Martins
                   </div>
                   <div className="px-4.5 pt-0.5">
@@ -360,7 +360,7 @@ function EditorialTemplateInner() {
                       type="button"
                       onClick={s.confirm}
                       disabled={!s.canConfirm}
-                      className="w-full text-[10px] tracking-[0.26em] uppercase py-4 transition-opacity disabled:opacity-45"
+                      className="w-full text-[10px] lg:text-[12px] tracking-[0.26em] uppercase py-4 transition-opacity disabled:opacity-45"
                       style={{ background: INK, color: PAPER, fontFamily: "var(--font-sans)" }}
                     >
                       Enviar confirmação
@@ -368,7 +368,7 @@ function EditorialTemplateInner() {
                   </div>
                 </div>
               ) : (
-                <div className="px-6 py-9 text-center" style={{ background: INK, color: PAPER }}>
+                <div className="px-6 lg:px-[8vw] py-9 lg:py-20 text-center" style={{ background: INK, color: PAPER }}>
                   <h3 className="text-[44px] font-medium tracking-[0.02em] uppercase" style={{ fontFamily: serifFamily }}>
                     Até lá
                   </h3>
@@ -379,7 +379,7 @@ function EditorialTemplateInner() {
                   <button
                     type="button"
                     onClick={s.editAnswers}
-                    className="mt-4 text-[10px] tracking-[0.18em] uppercase underline underline-offset-4"
+                    className="mt-4 text-[10px] lg:text-[12px] tracking-[0.18em] uppercase underline underline-offset-4"
                     style={{ color: PAPER }}
                   >
                     ajustar resposta
@@ -391,7 +391,7 @@ function EditorialTemplateInner() {
 
           {/* 6. Lista de presentes — Para Sempre */}
           {hasGifts && (
-            <section className="px-6 py-16" style={{ background: GIFTBG }}>
+            <section className="px-6 lg:px-[8vw] py-16 lg:py-36" style={{ background: GIFTBG }}>
               <Head kicker="Se o coração pedir" title="Presentes" />
               <p className="mb-6 text-center text-[14px] leading-[1.7]" style={{ color: "rgba(20,20,20,.72)" }}>
                 Sem faqueiro, sem lista de loja. Cada cota é um pedaço da nossa
@@ -405,10 +405,10 @@ function EditorialTemplateInner() {
                     style={{ background: PAPER, border: "1px solid rgba(20,20,20,.16)" }}
                   >
                     <div className="flex-1">
-                      <div className="text-[19px] font-medium leading-tight" style={{ fontFamily: serifFamily }}>
+                      <div className="text-[19px] lg:text-[26px] font-medium leading-tight" style={{ fontFamily: serifFamily }}>
                         {gift.name}
                       </div>
-                      <div className="mt-0.5 text-[11px] tracking-[0.14em] uppercase" style={{ color: "rgba(20,20,20,.6)" }}>
+                      <div className="mt-0.5 text-[11px] lg:text-[13px] tracking-[0.14em] uppercase" style={{ color: "rgba(20,20,20,.6)" }}>
                         R$ {gift.priceReais}
                       </div>
                     </div>
@@ -428,15 +428,15 @@ function EditorialTemplateInner() {
 
           {/* 7. Mural — Site do Casamento */}
           {hasRsvp && (
-            <section className="px-6 py-16">
+            <section className="px-6 lg:px-[8vw] py-16 lg:py-36">
               <Head kicker="Deixe registrado" title="Mural" />
               <div className="flex flex-col">
                 {s.messages.map((msg, i) => (
                   <div key={`${msg.name}-${i}`} className="py-5.5" style={{ borderTop: "1px solid rgba(20,20,20,.16)" }}>
-                    <p className="italic text-[19px] leading-[1.55]" style={{ fontFamily: serifFamily, color: "#1a1a1a" }}>
+                    <p className="italic text-[19px] lg:text-[26px] leading-[1.55]" style={{ fontFamily: serifFamily, color: "#1a1a1a" }}>
                       &ldquo;{msg.text}&rdquo;
                     </p>
-                    <div className="mt-2.5 flex gap-2.5 items-baseline text-[9px] tracking-[0.2em] uppercase" style={{ color: "rgba(20,20,20,.55)" }}>
+                    <div className="mt-2.5 flex gap-2.5 items-baseline text-[9px] lg:text-[11px] tracking-[0.2em] uppercase" style={{ color: "rgba(20,20,20,.55)" }}>
                       <span className="font-medium" style={{ color: INK }}>{msg.name}</span>
                       <span>{msg.when}</span>
                     </div>
@@ -444,7 +444,7 @@ function EditorialTemplateInner() {
                 ))}
               </div>
               <div className="mt-6 pt-6" style={{ borderTop: "1px solid rgba(20,20,20,.16)" }}>
-                <div className="text-[9px] tracking-[0.26em] uppercase" style={{ color: "rgba(20,20,20,.6)" }}>
+                <div className="text-[9px] lg:text-[11px] tracking-[0.26em] uppercase" style={{ color: "rgba(20,20,20,.6)" }}>
                   Escreva para os noivos
                 </div>
                 <div className="mt-4 flex flex-col gap-4.5">
@@ -470,7 +470,7 @@ function EditorialTemplateInner() {
                     <button
                       type="button"
                       onClick={s.sendMessage}
-                      className="text-[10px] tracking-[0.2em] uppercase px-6 py-3.5 transition-opacity"
+                      className="text-[10px] lg:text-[12px] tracking-[0.2em] uppercase px-6 lg:px-[8vw] py-3.5 transition-opacity"
                       style={{ background: INK, color: PAPER, fontFamily: "var(--font-sans)" }}
                     >
                       Publicar recado
@@ -484,7 +484,7 @@ function EditorialTemplateInner() {
           {/* 8. Galeria pré-wedding + álbum — Para Sempre */}
           {hasGifts && (
             <>
-              <section className="px-6 py-16">
+              <section className="px-6 lg:px-[8vw] py-16 lg:py-36">
                 <Head kicker="Antes do grande dia" title="Pré-wedding" />
                 <p className="mb-6 text-center mx-auto max-w-[34ch] text-[14px] leading-[1.7]" style={{ color: "rgba(20,20,20,.72)" }}>
                   Nosso ensaio e a contagem para o altar. Uma prévia dos
@@ -498,10 +498,10 @@ function EditorialTemplateInner() {
                 </div>
               </section>
 
-              <section className="px-6 py-16" style={{ background: INK, color: PAPER }}>
+              <section className="px-6 lg:px-[8vw] py-16 lg:py-36" style={{ background: INK, color: PAPER }}>
                 {!s.albumUnlocked ? (
                   <div className="text-center">
-                    <div className="text-[9px] tracking-[0.3em] uppercase" style={{ color: "rgba(245,243,239,.55)" }}>
+                    <div className="text-[9px] lg:text-[11px] tracking-[0.3em] uppercase" style={{ color: "rgba(245,243,239,.55)" }}>
                       Depois da festa · álbum trancado
                     </div>
                     <div className="mt-4 flex justify-center" aria-hidden>
@@ -512,17 +512,17 @@ function EditorialTemplateInner() {
                       <br />
                       chegam em
                     </h2>
-                    <div className="mt-2.5 text-[34px] font-medium tracking-[0.05em]" style={{ fontFamily: serifFamily }}>
+                    <div className="mt-2.5 text-[34px] lg:text-[56px] font-medium tracking-[0.05em]" style={{ fontFamily: serifFamily }}>
                       20 · 09 · 26
                     </div>
-                    <p className="mt-4.5 mx-auto max-w-[32ch] text-[13px] leading-[1.7]" style={{ color: "rgba(245,243,239,.68)" }}>
+                    <p className="mt-4.5 mx-auto max-w-[32ch] text-[13px] lg:text-[16px] leading-[1.7]" style={{ color: "rgba(245,243,239,.68)" }}>
                       Aproveite a festa sem tela. Depois, volte aqui para reviver
                       tudo.
                     </p>
                     <button
                       type="button"
                       onClick={() => s.setAlbumPreview(true)}
-                      className="mt-6 text-[10px] tracking-[0.16em] uppercase underline underline-offset-4"
+                      className="mt-6 text-[10px] lg:text-[12px] tracking-[0.16em] uppercase underline underline-offset-4"
                       style={{ color: PAPER }}
                     >
                       Ver prévia (demonstração) →
@@ -531,7 +531,7 @@ function EditorialTemplateInner() {
                 ) : (
                   <div>
                     <div className="text-center mb-6.5">
-                      <div className="text-[9px] tracking-[0.3em] uppercase" style={{ color: "rgba(245,243,239,.55)" }}>
+                      <div className="text-[9px] lg:text-[11px] tracking-[0.3em] uppercase" style={{ color: "rgba(245,243,239,.55)" }}>
                         Depois da festa
                       </div>
                       <h2 className="mt-3 text-[38px] font-medium tracking-[0.02em] uppercase" style={{ fontFamily: serifFamily }}>
@@ -549,7 +549,7 @@ function EditorialTemplateInner() {
                         <button
                           type="button"
                           onClick={() => s.setAlbumPreview(false)}
-                          className="text-[10px] tracking-[0.16em] uppercase underline underline-offset-4"
+                          className="text-[10px] lg:text-[12px] tracking-[0.16em] uppercase underline underline-offset-4"
                           style={{ color: "rgba(245,243,239,.7)" }}
                         >
                           Voltar ao estado bloqueado
@@ -563,18 +563,18 @@ function EditorialTemplateInner() {
           )}
 
           {/* 9. Rodapé */}
-          <footer className="px-6 pt-14 pb-11 text-center" style={{ background: DEEP, color: PAPER }}>
+          <footer className="px-6 lg:px-[8vw] pt-14 lg:pt-32 pb-11 lg:pb-24 text-center" style={{ background: DEEP, color: PAPER }}>
             {/* clamp(): "#AnaEPedro" é uma palavra só, sem espaço pra
                 quebrar linha — em 60px fixo não cabia em 320px de largura. */}
             <div className="text-[clamp(42px,17vw,60px)] font-medium leading-[0.9] tracking-[0.01em]" style={{ fontFamily: serifFamily }}>
               #AnaEPedro
             </div>
-            <div className="mt-5.5 flex items-center justify-center gap-3.5 text-[9px] tracking-[0.24em] uppercase" style={{ color: "rgba(245,243,239,.6)" }}>
+            <div className="mt-5.5 flex items-center justify-center gap-3.5 text-[9px] lg:text-[11px] tracking-[0.24em] uppercase" style={{ color: "rgba(245,243,239,.6)" }}>
               <span>19 · 09 · 2026</span>
               <span className="inline-block rounded-full" style={{ width: 4, height: 4, background: "rgba(245,243,239,.5)" }} />
               <span>Fortaleza — CE</span>
             </div>
-            <div className="mt-6 pt-4 text-[9px] tracking-[0.16em] uppercase" style={{ borderTop: "1px solid rgba(245,243,239,.2)", color: "rgba(245,243,239,.4)" }}>
+            <div className="mt-6 pt-4 text-[9px] lg:text-[11px] tracking-[0.16em] uppercase" style={{ borderTop: "1px solid rgba(245,243,239,.2)", color: "rgba(245,243,239,.4)" }}>
               marque suas fotos · A &amp; P 2026
             </div>
           </footer>
@@ -594,8 +594,8 @@ function EditorialTemplateInner() {
             style={{ background: PAPER, border: `1px solid ${INK}` }}
           >
             <div className="flex justify-between items-center px-4.5 py-3.5" style={{ borderBottom: `1px solid ${INK}` }}>
-              <span className="text-[9px] tracking-[0.24em] uppercase">Pix — presente</span>
-              <button type="button" onClick={s.closeGift} aria-label="Fechar" className="text-[17px] leading-none p-1">
+              <span className="text-[9px] lg:text-[11px] tracking-[0.24em] uppercase">Pix — presente</span>
+              <button type="button" onClick={s.closeGift} aria-label="Fechar" className="text-[17px] lg:text-[23px] leading-none p-1">
                 ×
               </button>
             </div>
@@ -603,17 +603,17 @@ function EditorialTemplateInner() {
               <div className="text-[24px] font-medium leading-tight" style={{ fontFamily: serifFamily }}>
                 {s.gift.name}
               </div>
-              <div className="mt-1 text-[11px] tracking-[0.14em] uppercase" style={{ color: "rgba(20,20,20,.6)" }}>
+              <div className="mt-1 text-[11px] lg:text-[13px] tracking-[0.14em] uppercase" style={{ color: "rgba(20,20,20,.6)" }}>
                 R$ {s.gift.priceReais}
               </div>
               <div className="mt-4 flex justify-center bg-white p-3" style={{ border: "1px solid rgba(20,20,20,.18)" }}>
                 <FakeQrCanvas seed={s.gift.name} ink={INK} size={168} />
               </div>
-              <div className="mt-4 text-[9px] tracking-[0.26em] uppercase" style={{ color: "rgba(20,20,20,.6)" }}>
+              <div className="mt-4 text-[9px] lg:text-[11px] tracking-[0.26em] uppercase" style={{ color: "rgba(20,20,20,.6)" }}>
                 Pix copia e cola
               </div>
               <div
-                className="mt-1.5 font-mono text-[10px] leading-[1.55] break-all bg-white p-2.5 max-h-[72px] overflow-y-auto"
+                className="mt-1.5 font-mono text-[10px] lg:text-[12px] leading-[1.55] break-all bg-white p-2.5 max-h-[72px] overflow-y-auto"
                 style={{ border: "1px solid rgba(20,20,20,.18)", color: "#3a3a38" }}
               >
                 {buildDemoPixCode(s.gift.priceReais)}
@@ -621,7 +621,7 @@ function EditorialTemplateInner() {
               <button
                 type="button"
                 onClick={() => s.copyPixCode(buildDemoPixCode(s.gift!.priceReais))}
-                className="mt-3 w-full text-[10px] tracking-[0.22em] uppercase py-4 transition-opacity"
+                className="mt-3 w-full text-[10px] lg:text-[12px] tracking-[0.22em] uppercase py-4 transition-opacity"
                 style={{ background: INK, color: PAPER, fontFamily: "var(--font-sans)" }}
               >
                 {s.copied ? "Copiado ✓" : "Copiar código"}

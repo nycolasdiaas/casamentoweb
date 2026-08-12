@@ -125,52 +125,55 @@ export default function CelebrationScreen({
         ))}
       </div>
 
-      <div className="relative flex flex-col items-center gap-6">
-        <Image
-          src="/logo-enlace.png"
-          alt=""
-          aria-hidden
-          width={72}
-          height={72}
-          className="motion-breathe size-16 object-contain"
-        />
-
-        <div className="flex flex-col items-center gap-2">
-          <h2 className="text-2xl font-semibold text-(--color-olive) sm:text-3xl">
-            {nome ? `Vamos criar o site de vocês, ${nome}!` : "Vamos criar o site de vocês!"}
-          </h2>
-          <p className="max-w-sm text-sm leading-relaxed text-(--color-olive)/70">
-            Falta pouco para deixarmos tudo pronto para o grande dia.
-          </p>
-        </div>
-
-        <div className="flex w-full max-w-xs flex-col gap-2.5">
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-(--color-olive)/10">
-            <div
-              className="h-full rounded-full"
-              style={{
-                width: `${progresso}%`,
-                background: tinta,
-                transition: "width 400ms var(--e-saida)",
-              }}
-            />
-          </div>
-          <p
-            key={etapa}
-            className="motion-fade-in text-xs text-(--color-olive)/70"
-          >
-            {ETAPAS[etapa]}…
-          </p>
-        </div>
-
-        {/* A silhueta do que está nascendo, já na cor que o casal escolheu.
-            Escondida em telas baixas: numa janela curta, o esqueleto empurra a
-            barra de progresso e a frase para fora da vista, e a informação
-            vale mais que o enfeite. */}
-        <div className="hidden w-full max-w-[260px] sm:block">
+      {/* O ESQUELETO É O PROTAGONISTA, não um enfeite ao lado do texto.
+          Ele estava em `hidden sm:block` com teto de 260px: sumia no celular —
+          que é de onde a maioria envia o pedido — e no desktop era pequeno
+          demais para ser lido como "o site está nascendo". Agora ele lidera, e
+          o texto o acompanha. */}
+      <div className="relative flex w-full max-w-5xl flex-col items-center gap-8 lg:flex-row lg:items-center lg:justify-center lg:gap-16">
+        <div className="order-2 w-full max-w-[300px] sm:max-w-[360px] lg:order-1 lg:max-w-[420px]">
           <MotionProvider>
-            <SiteSkeleton accent={accent} className="shadow-xl" />
+            <SiteSkeleton accent={accent} className="shadow-2xl" />
           </MotionProvider>
+        </div>
+
+        <div className="order-1 flex flex-col items-center gap-6 lg:order-2 lg:items-start lg:text-left">
+          <Image
+            src="/logo-enlace.png"
+            alt=""
+            aria-hidden
+            width={72}
+            height={72}
+            className="motion-breathe size-16 object-contain"
+          />
+
+          <div className="flex flex-col items-center gap-2 lg:items-start">
+            <h2 className="text-2xl font-semibold text-(--color-olive) sm:text-3xl">
+              {nome ? `Vamos criar o site de vocês, ${nome}!` : "Vamos criar o site de vocês!"}
+            </h2>
+            <p className="max-w-sm text-sm leading-relaxed text-(--color-olive)/70">
+              Falta pouco para deixarmos tudo pronto para o grande dia.
+            </p>
+          </div>
+
+          <div className="flex w-full max-w-xs flex-col gap-2.5">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-(--color-olive)/10">
+              <div
+                className="h-full rounded-full"
+                style={{
+                  width: `${progresso}%`,
+                  background: tinta,
+                  transition: "width 400ms var(--e-saida)",
+                }}
+              />
+            </div>
+            <p
+              key={etapa}
+              className="motion-fade-in text-xs text-(--color-olive)/70"
+            >
+              {ETAPAS[etapa]}…
+            </p>
+          </div>
         </div>
       </div>
     </div>

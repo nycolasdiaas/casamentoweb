@@ -83,7 +83,7 @@ function SectionTitle({
   return (
     <div className="text-center mb-7">
       <div
-        className="text-[10px] tracking-[0.4em] uppercase"
+        className="text-[10px] lg:text-[12px] tracking-[0.4em] uppercase"
         style={{ color: ACCENT }}
       >
         {kicker}
@@ -126,7 +126,7 @@ function ToscanaTemplateInner() {
       >
         <div
           style={{ fontFamily: "var(--font-body)", color: INK }}
-          className="text-[15px]"
+          className="text-[15px] lg:text-[19px]"
         >
           {/* 1. Capa / Save the Date */}
           <section
@@ -166,7 +166,7 @@ function ToscanaTemplateInner() {
               </div>
             </div>
             <div
-              className="relative z-10 mt-auto px-6 pb-14 text-center"
+              className="relative z-10 mt-auto px-6 pb-14 lg:pb-32 text-center"
               style={{ color: PAPER }}
             >
               <div
@@ -195,7 +195,7 @@ function ToscanaTemplateInner() {
                   className="h-px w-10"
                   style={{ background: "rgba(243,237,221,.6)" }}
                 />
-                <span className="text-[10px] tracking-[0.42em] uppercase">
+                <span className="text-[10px] lg:text-[12px] tracking-[0.42em] uppercase">
                   Save the Date
                 </span>
                 <span
@@ -203,17 +203,17 @@ function ToscanaTemplateInner() {
                   style={{ background: "rgba(243,237,221,.6)" }}
                 />
               </div>
-              <div className="mt-4 italic text-[17px] opacity-90">
+              <div className="mt-4 italic text-[17px] lg:text-[23px] opacity-90">
                 Espaço Jardim das Oliveiras · 16h
               </div>
             </div>
           </section>
 
           {/* 2. Contagem regressiva */}
-          <section className="px-8 py-14" style={{ background: CREAM }}>
+          <section className="px-8 lg:px-[8vw] py-14 lg:py-32" style={{ background: CREAM }}>
             <div className="text-center mb-8">
               <div
-                className="text-[10px] tracking-[0.4em] uppercase"
+                className="text-[10px] lg:text-[12px] tracking-[0.4em] uppercase"
                 style={{ color: ACCENT }}
               >
                 A contagem começou
@@ -259,15 +259,15 @@ function ToscanaTemplateInner() {
           </section>
 
           {/* 3. Nossa história */}
-          <section className="py-16">
-            <div className="px-8">
+          <section className="py-16 lg:py-36">
+            <div className="px-8 lg:px-[8vw]">
               <SectionTitle kicker="Il nostro racconto" title="Nossa história" />
             </div>
             <PhotoSlot
               label="Foto larga do casal — 16:10"
               className="w-full aspect-[16/10] mb-7"
             />
-            <div className="px-8">
+            <div className="px-8 lg:px-[8vw]">
               <p className="text-center text-[16px] leading-[1.8]">
                 Foi diante de um mapa da Itália, sonhando uma viagem que nunca
                 aconteceu, que a Ana e o Pedro perceberam que já eram o destino
@@ -279,7 +279,7 @@ function ToscanaTemplateInner() {
                 guardamos o mesmo brinde: à vida boa, devagar, e a dois.
               </p>
             </div>
-            <div className="mt-8 px-8 grid grid-cols-2 gap-4">
+            <div className="mt-8 px-8 lg:px-[8vw] grid grid-cols-2 gap-4">
               <figure className="m-0">
                 <PhotoSlot label="Foto 3:4" className="w-full aspect-[3/4]" />
                 <figcaption
@@ -308,7 +308,7 @@ function ToscanaTemplateInner() {
           </section>
 
           {/* 4. Informações */}
-          <section className="px-8 py-16" style={{ background: CREAM2 }}>
+          <section className="px-8 lg:px-[8vw] py-16 lg:py-36" style={{ background: CREAM2 }}>
             <SectionTitle kicker="Quando & onde" title="O grande dia" />
             <div className="flex flex-col gap-4.5">
               <InfoCard
@@ -335,7 +335,7 @@ function ToscanaTemplateInner() {
                 style={{ border: `1px solid rgba(156,134,84,.55)` }}
               >
                 <div
-                  className="text-[10px] tracking-[0.34em] uppercase"
+                  className="text-[10px] lg:text-[12px] tracking-[0.34em] uppercase"
                   style={{ color: ACCENT }}
                 >
                   Dress code
@@ -361,12 +361,12 @@ function ToscanaTemplateInner() {
           {/* 5. RSVP — a partir do pacote Site do Casamento */}
           {hasRsvp && (
             <section
-              className="px-8 py-16"
+              className="px-8 lg:px-[8vw] py-16 lg:py-36"
               style={{ background: OLIVE, color: PAPER }}
             >
               <div className="text-center mb-6">
                 <div
-                  className="text-[10px] tracking-[0.4em] uppercase"
+                  className="text-[10px] lg:text-[12px] tracking-[0.4em] uppercase"
                   style={{ color: GOLD_ON_DARK }}
                 >
                   Confirme com carinho
@@ -377,7 +377,7 @@ function ToscanaTemplateInner() {
                 >
                   Kindly RSVP
                 </h2>
-                <p className="mt-4 text-[15px] leading-[1.7]" style={{ color: "rgba(243,237,221,.82)" }}>
+                <p className="mt-4 text-[15px] lg:text-[19px] leading-[1.7]" style={{ color: "rgba(243,237,221,.82)" }}>
                   Sua presença é o brinde mais esperado da festa.
                   <br />
                   Responda até <span className="italic">19 de agosto de 2026</span>.
@@ -434,7 +434,7 @@ function ToscanaTemplateInner() {
                       type="button"
                       onClick={s.confirm}
                       disabled={!s.canConfirm}
-                      className="text-[11px] tracking-[0.24em] uppercase px-9 py-3.5 transition-opacity disabled:opacity-45"
+                      className="text-[11px] lg:text-[13px] tracking-[0.24em] uppercase px-9 py-3.5 transition-opacity disabled:opacity-45"
                       style={{ background: ACCENT, color: DEEP, fontFamily: "var(--font-body)" }}
                     >
                       Confirmar presença
@@ -442,14 +442,14 @@ function ToscanaTemplateInner() {
                   </div>
                 </div>
               ) : (
-                <div style={{ border: "1px solid rgba(243,237,221,.28)" }} className="px-6 py-9 text-center">
+                <div style={{ border: "1px solid rgba(243,237,221,.28)" }} className="px-6 py-9 lg:py-20 text-center">
                   <div
                     className="text-[52px] leading-none"
                     style={{ fontFamily: scriptFamily, color: GOLD_LT }}
                   >
                     Grazie mille!
                   </div>
-                  <p className="mt-3.5 text-[15px] leading-[1.7]" style={{ color: "rgba(243,237,221,.85)" }}>
+                  <p className="mt-3.5 text-[15px] lg:text-[19px] leading-[1.7]" style={{ color: "rgba(243,237,221,.85)" }}>
                     Sua resposta chegou.
                     <br />
                     Já estamos guardando um lugar à mesa para você.
@@ -457,7 +457,7 @@ function ToscanaTemplateInner() {
                   <button
                     type="button"
                     onClick={s.editAnswers}
-                    className="mt-4 text-[11px] tracking-[0.18em] uppercase underline underline-offset-4"
+                    className="mt-4 text-[11px] lg:text-[13px] tracking-[0.18em] uppercase underline underline-offset-4"
                     style={{ color: GOLD_LT }}
                   >
                     ajustar resposta
@@ -469,7 +469,7 @@ function ToscanaTemplateInner() {
 
           {/* 6. Lista de presentes — só no Para Sempre */}
           {hasGifts && (
-            <section className="px-8 py-16">
+            <section className="px-8 lg:px-[8vw] py-16 lg:py-36">
               <SectionTitle kicker="Com carinho" title="Lista de presentes" />
               <p className="mb-7 text-center text-[15.5px] leading-[1.75]">
                 Cada mimo abaixo vira um capítulo da nossa lua de mel pela Itália
@@ -483,7 +483,7 @@ function ToscanaTemplateInner() {
                     style={{ background: CARD, border: "1px solid rgba(51,53,31,.16)" }}
                   >
                     <div
-                      className="text-[19px] font-medium leading-tight min-h-12 flex items-center"
+                      className="text-[19px] lg:text-[26px] font-medium leading-tight min-h-12 flex items-center"
                       style={{ fontFamily: serifFamily }}
                     >
                       {gift.name}
@@ -494,7 +494,7 @@ function ToscanaTemplateInner() {
                     <button
                       type="button"
                       onClick={() => s.openGift(i)}
-                      className="mt-0.5 text-[10px] tracking-[0.2em] uppercase px-4 py-2.5 transition-colors"
+                      className="mt-0.5 text-[10px] lg:text-[12px] tracking-[0.2em] uppercase px-4 py-2.5 transition-colors"
                       style={{
                         border: "1px solid rgba(51,53,31,.45)",
                         color: INK,
@@ -511,7 +511,7 @@ function ToscanaTemplateInner() {
 
           {/* 7. Mural de recados — a partir do pacote Site do Casamento */}
           {hasRsvp && (
-            <section className="px-8 py-16" style={{ background: CREAM2 }}>
+            <section className="px-8 lg:px-[8vw] py-16 lg:py-36" style={{ background: CREAM2 }}>
               <SectionTitle
                 kicker="Palavras para guardar"
                 title="Mural de recados"
@@ -524,7 +524,7 @@ function ToscanaTemplateInner() {
                     style={{ background: CARD, border: "1px solid rgba(51,53,31,.14)" }}
                   >
                     <p
-                      className="italic text-[17px] leading-[1.6]"
+                      className="italic text-[17px] lg:text-[23px] leading-[1.6]"
                       style={{ color: "#3d3f24", fontFamily: serifFamily }}
                     >
                       &ldquo;{msg.text}&rdquo;
@@ -560,7 +560,7 @@ function ToscanaTemplateInner() {
                     value={s.guestName}
                     onChange={(e) => s.setGuestName(e.target.value)}
                     placeholder="Maria da Graça"
-                    className="w-full text-[15px] px-3.5 py-3 bg-white focus:outline-none"
+                    className="w-full text-[15px] lg:text-[19px] px-3.5 py-3 bg-white focus:outline-none"
                     style={{ border: "1px solid rgba(51,53,31,.28)", color: INK }}
                   />
                   <textarea
@@ -569,14 +569,14 @@ function ToscanaTemplateInner() {
                     value={s.guestMessage}
                     onChange={(e) => s.setGuestMessage(e.target.value)}
                     placeholder="Escreva com o coração…"
-                    className="w-full resize-y text-[15px] px-3.5 py-3 bg-white focus:outline-none"
+                    className="w-full resize-y text-[15px] lg:text-[19px] px-3.5 py-3 bg-white focus:outline-none"
                     style={{ border: "1px solid rgba(51,53,31,.28)", color: INK }}
                   />
                   <div className="flex justify-center">
                     <button
                       type="button"
                       onClick={s.sendMessage}
-                      className="text-[11px] tracking-[0.24em] uppercase px-9 py-3.5 transition-opacity"
+                      className="text-[11px] lg:text-[13px] tracking-[0.24em] uppercase px-9 py-3.5 transition-opacity"
                       style={{ background: OLIVE, color: CREAM, fontFamily: "var(--font-body)" }}
                     >
                       Deixar recado
@@ -590,12 +590,12 @@ function ToscanaTemplateInner() {
           {/* 8. Galeria pré-wedding + álbum — só no Para Sempre */}
           {hasGifts && (
             <>
-              <section className="px-8 py-16" style={{ background: CREAM2 }}>
+              <section className="px-8 lg:px-[8vw] py-16 lg:py-36" style={{ background: CREAM2 }}>
                 <SectionTitle
                   kicker="Antes do grande dia"
                   title="Nosso pré-wedding"
                 />
-                <p className="mb-6 text-center text-[15px] leading-[1.7] max-w-[34ch] mx-auto">
+                <p className="mb-6 text-center text-[15px] lg:text-[19px] leading-[1.7] max-w-[34ch] mx-auto">
                   Fotos do ensaio e dos preparativos. Uma prévia antes do
                   grande dia.
                 </p>
@@ -610,12 +610,12 @@ function ToscanaTemplateInner() {
               </section>
 
               <section
-                className="px-8 py-16"
+                className="px-8 lg:px-[8vw] py-16 lg:py-36"
                 style={{ background: OLIVE, color: PAPER }}
               >
                 <div className="text-center mb-7">
                   <div
-                    className="text-[10px] tracking-[0.4em] uppercase"
+                    className="text-[10px] lg:text-[12px] tracking-[0.4em] uppercase"
                     style={{ color: GOLD_ON_DARK }}
                   >
                     Para matar a saudade
@@ -630,7 +630,7 @@ function ToscanaTemplateInner() {
 
                 {!s.albumUnlocked ? (
                   <div
-                    className="px-6 py-9 text-center"
+                    className="px-6 py-9 lg:py-20 text-center"
                     style={{ border: "1px solid rgba(243,237,221,.28)" }}
                   >
                     <div className="flex justify-center" aria-hidden>
@@ -678,7 +678,7 @@ function ToscanaTemplateInner() {
                         <button
                           type="button"
                           onClick={() => s.setAlbumPreview(false)}
-                          className="text-[10px] tracking-[0.16em] uppercase underline underline-offset-4"
+                          className="text-[10px] lg:text-[12px] tracking-[0.16em] uppercase underline underline-offset-4"
                           style={{ color: "rgba(243,237,221,.7)" }}
                         >
                           Voltar ao estado bloqueado
@@ -693,7 +693,7 @@ function ToscanaTemplateInner() {
 
           {/* 9. Rodapé */}
           <footer
-            className="text-center px-8 pt-14 pb-12"
+            className="text-center px-8 lg:px-[8vw] pt-14 lg:pt-32 pb-12 lg:pb-28"
             style={{ background: DEEP, color: PAPER }}
           >
             <div className="flex justify-center">
@@ -718,14 +718,14 @@ function ToscanaTemplateInner() {
             <div className="mt-4.5 flex items-center justify-center gap-3">
               <span className="h-px w-9" style={{ background: "rgba(201,185,138,.55)" }} />
               <span
-                className="text-[17px] tracking-[0.08em]"
+                className="text-[17px] lg:text-[23px] tracking-[0.08em]"
                 style={{ fontFamily: serifFamily, color: GOLD_ON_DARK }}
               >
                 #AnaEPedro
               </span>
               <span className="h-px w-9" style={{ background: "rgba(201,185,138,.55)" }} />
             </div>
-            <div className="mt-3 text-[10px] tracking-[0.32em] uppercase" style={{ color: "rgba(243,237,221,.72)" }}>
+            <div className="mt-3 text-[10px] lg:text-[12px] tracking-[0.32em] uppercase" style={{ color: "rgba(243,237,221,.72)" }}>
               19 · 09 · 2026 — Fortaleza, CE
             </div>
           </footer>
@@ -763,7 +763,7 @@ function ToscanaTemplateInner() {
               >
                 {s.gift.name}
               </div>
-              <div className="mt-1 text-[15px]" style={{ color: "rgba(51,53,31,.72)" }}>
+              <div className="mt-1 text-[15px] lg:text-[19px]" style={{ color: "rgba(51,53,31,.72)" }}>
                 R$ {s.gift.priceReais}
               </div>
               <div className="mt-4 flex justify-center">
@@ -783,13 +783,13 @@ function ToscanaTemplateInner() {
               <button
                 type="button"
                 onClick={() => s.copyPixCode(buildDemoPixCode(s.gift!.priceReais))}
-                className="mt-3.5 w-full text-[11px] tracking-[0.22em] uppercase py-3.5 transition-opacity"
+                className="mt-3.5 w-full text-[11px] lg:text-[13px] tracking-[0.22em] uppercase py-3.5 transition-opacity"
                 style={{ background: OLIVE, color: CREAM, fontFamily: "var(--font-body)" }}
               >
                 {s.copied ? "Copiado ✓" : "Copiar código"}
               </button>
               <p
-                className="mt-3.5 italic text-[13px] leading-[1.6]"
+                className="mt-3.5 italic text-[13px] lg:text-[16px] leading-[1.6]"
                 style={{ color: "rgba(51,53,31,.7)", fontFamily: serifFamily }}
               >
                 Assim que o Pix chegar, seu nome entra na nossa lista de
@@ -821,10 +821,10 @@ function InfoCard({
       className="px-6 py-7 text-center"
       style={{ background: CARD, border: "1px solid rgba(51,53,31,.16)" }}
     >
-      <div className="text-[10px] tracking-[0.34em] uppercase" style={{ color: ACCENT }}>
+      <div className="text-[10px] lg:text-[12px] tracking-[0.34em] uppercase" style={{ color: ACCENT }}>
         {kicker}
       </div>
-      <div className="mt-3 text-[26px] font-medium" style={{ fontFamily: serifFamily }}>
+      <div className="mt-3 text-[26px] lg:text-[40px] font-medium" style={{ fontFamily: serifFamily }}>
         {title}
       </div>
       <div className="mt-2 text-[14.5px] leading-[1.7]" style={{ color: "rgba(51,53,31,.78)" }}>
@@ -840,7 +840,7 @@ function InfoCard({
           href={MAPS}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[10.5px] tracking-[0.26em] uppercase px-8 py-3.5 transition-colors"
+          className="text-[10.5px] tracking-[0.26em] uppercase px-8 lg:px-[8vw] py-3.5 transition-colors"
           style={
             filled
               ? { background: ACCENT, color: CREAM, fontFamily: "var(--font-body)" }

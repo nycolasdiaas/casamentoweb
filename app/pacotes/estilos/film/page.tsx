@@ -87,7 +87,7 @@ function Head({ kicker, title }: { kicker: string; title: string }) {
   return (
     <div className="text-center mb-7">
       <div
-        className="text-[10px] tracking-[0.4em] uppercase"
+        className="text-[10px] lg:text-[12px] tracking-[0.4em] uppercase"
         style={{ color: ACCENT }}
       >
         {kicker}
@@ -136,7 +136,7 @@ function FilmTemplateInner() {
         tier={tier}
         onTierChange={setTier}
       >
-        <div style={{ fontFamily: "var(--font-body)", color: INK }} className="text-[15px]">
+        <div style={{ fontFamily: "var(--font-body)", color: INK }} className="text-[15px] lg:text-[19px]">
           {/* 1. Capa / Save the Date */}
           <section
             className="relative flex flex-col overflow-hidden"
@@ -160,7 +160,7 @@ function FilmTemplateInner() {
                 Estd · 2019
               </div>
             </div>
-            <div className="relative z-10 mt-auto px-7 pb-14 text-center" style={{ color: PAPER }}>
+            <div className="relative z-10 mt-auto px-7 pb-14 lg:pb-32 text-center" style={{ color: PAPER }}>
               <div className="flex justify-center mb-1.5">
                 <Ornament />
               </div>
@@ -198,9 +198,9 @@ function FilmTemplateInner() {
           </section>
 
           {/* 2. Contagem regressiva */}
-          <section className="px-8 py-14" style={{ background: CREAM }}>
+          <section className="px-8 lg:px-[8vw] py-14 lg:py-32" style={{ background: CREAM }}>
             <div className="text-center mb-7">
-              <div className="text-[10px] tracking-[0.4em] uppercase" style={{ color: ACCENT }}>
+              <div className="text-[10px] lg:text-[12px] tracking-[0.4em] uppercase" style={{ color: ACCENT }}>
                 A contagem começou
               </div>
               <div className="mt-1.5 text-[44px] leading-[0.9]" style={{ fontFamily: scriptFamily, color: DARK }}>
@@ -230,7 +230,7 @@ function FilmTemplateInner() {
           </section>
 
           {/* 3. Nossa história (colagem film) */}
-          <section className="px-8 pt-14 pb-16">
+          <section className="px-8 lg:px-[8vw] pt-14 lg:pt-32 pb-16 lg:pb-36">
             <h2
               className="text-center text-[33px] font-medium leading-tight tracking-[0.03em] uppercase"
               style={{ fontFamily: serifFamily }}
@@ -278,13 +278,13 @@ function FilmTemplateInner() {
               Sete verões depois, escolhemos Fortaleza, o mar e vocês para
               revelar o quadro mais importante de todos.
             </p>
-            <div className="mt-7 text-center text-[34px] leading-snug" style={{ fontFamily: scriptFamily, color: ACCENT }}>
+            <div className="mt-7 text-center text-[34px] lg:text-[56px] leading-snug" style={{ fontFamily: scriptFamily, color: ACCENT }}>
               do primeiro clique ao para sempre
             </div>
           </section>
 
           {/* 4. Informações */}
-          <section className="px-8 py-16" style={{ background: CREAM }}>
+          <section className="px-8 lg:px-[8vw] py-16 lg:py-36" style={{ background: CREAM }}>
             <Head kicker="Quando & onde" title="o grande dia" />
             <div className="flex flex-col gap-4">
               <InfoCard
@@ -301,7 +301,7 @@ function FilmTemplateInner() {
                 cta="Como chegar"
               />
               <div className="p-6 text-center" style={{ border: "1px solid rgba(165,96,58,.5)" }}>
-                <div className="text-[10px] tracking-[0.32em] uppercase" style={{ color: ACCENT }}>
+                <div className="text-[10px] lg:text-[12px] tracking-[0.32em] uppercase" style={{ color: ACCENT }}>
                   Dress code
                 </div>
                 <div className="mt-1.5 text-[38px] leading-none" style={{ fontFamily: scriptFamily, color: DARK }}>
@@ -321,16 +321,16 @@ function FilmTemplateInner() {
 
           {/* 5. RSVP — Site do Casamento */}
           {hasRsvp && (
-            <section className="px-8 py-16">
+            <section className="px-8 lg:px-[8vw] py-16 lg:py-36">
               <div className="text-center mb-5.5">
-                <div className="text-[10px] tracking-[0.4em] uppercase" style={{ color: ACCENT }}>
+                <div className="text-[10px] lg:text-[12px] tracking-[0.4em] uppercase" style={{ color: ACCENT }}>
                   Confirme sua presença
                 </div>
                 <div className="mt-1 text-[48px] leading-[0.9]" style={{ fontFamily: scriptFamily, color: DARK }}>
                   você vem?
                 </div>
               </div>
-              <p className="mb-6 text-center text-[15px] leading-[1.75]" style={{ color: "rgba(63,52,42,.85)" }}>
+              <p className="mb-6 text-center text-[15px] lg:text-[19px] leading-[1.75]" style={{ color: "rgba(63,52,42,.85)" }}>
                 Sua presença é a melhor foto do nosso álbum. Responda com carinho
                 até <span className="italic">19 de agosto de 2026</span>.
               </p>
@@ -369,7 +369,7 @@ function FilmTemplateInner() {
                       type="button"
                       onClick={s.confirm}
                       disabled={!s.canConfirm}
-                      className="text-[11px] tracking-[0.22em] uppercase px-9 py-4 transition-opacity disabled:opacity-45"
+                      className="text-[11px] lg:text-[13px] tracking-[0.22em] uppercase px-9 py-4 transition-opacity disabled:opacity-45"
                       style={{ background: ACCENT, color: PAPER, fontFamily: "var(--font-body)" }}
                     >
                       Confirmar presença
@@ -377,11 +377,11 @@ function FilmTemplateInner() {
                   </div>
                 </div>
               ) : (
-                <div className="px-6 py-9 text-center" style={{ background: CARD, border: "1px solid rgba(63,52,42,.16)" }}>
+                <div className="px-6 py-9 lg:py-20 text-center" style={{ background: CARD, border: "1px solid rgba(63,52,42,.16)" }}>
                   <div className="text-[52px] leading-[0.9]" style={{ fontFamily: scriptFamily, color: ACCENT }}>
                     Que alegria!
                   </div>
-                  <p className="mt-3 text-[15px] leading-[1.75]" style={{ color: "rgba(63,52,42,.85)" }}>
+                  <p className="mt-3 text-[15px] lg:text-[19px] leading-[1.75]" style={{ color: "rgba(63,52,42,.85)" }}>
                     Sua resposta chegou.
                     <br />
                     Já guardamos você no nosso rolo de filme.
@@ -389,7 +389,7 @@ function FilmTemplateInner() {
                   <button
                     type="button"
                     onClick={s.editAnswers}
-                    className="mt-4 text-[11px] tracking-[0.16em] uppercase underline underline-offset-4"
+                    className="mt-4 text-[11px] lg:text-[13px] tracking-[0.16em] uppercase underline underline-offset-4"
                     style={{ color: DARK }}
                   >
                     ajustar resposta
@@ -401,7 +401,7 @@ function FilmTemplateInner() {
 
           {/* 6. Lista de presentes — Para Sempre */}
           {hasGifts && (
-            <section className="px-8 py-16" style={{ background: CREAM }}>
+            <section className="px-8 lg:px-[8vw] py-16 lg:py-36" style={{ background: CREAM }}>
               <Head kicker="Com carinho" title="lista de presentes" />
               <p className="mb-6 text-center text-[15.5px] leading-[1.75]" style={{ color: "rgba(63,52,42,.85)" }}>
                 Cada mimo vira uma cena da nossa lua de mel pelo litoral cearense
@@ -423,7 +423,7 @@ function FilmTemplateInner() {
                     <button
                       type="button"
                       onClick={() => s.openGift(i)}
-                      className="mt-0.5 text-[10px] tracking-[0.2em] uppercase px-4 py-2.5 transition-colors"
+                      className="mt-0.5 text-[10px] lg:text-[12px] tracking-[0.2em] uppercase px-4 py-2.5 transition-colors"
                       style={{ border: "1px solid rgba(63,52,42,.42)", color: DARK, fontFamily: "var(--font-body)" }}
                     >
                       Presentear
@@ -436,7 +436,7 @@ function FilmTemplateInner() {
 
           {/* 7. Mural — Site do Casamento */}
           {hasRsvp && (
-            <section className="px-8 py-16">
+            <section className="px-8 lg:px-[8vw] py-16 lg:py-36">
               <Head kicker="Palavras para guardar" title="mural de recados" />
               <div className="flex flex-col gap-3.5">
                 {s.messages.map((msg, i) => (
@@ -444,7 +444,7 @@ function FilmTemplateInner() {
                     <div className="text-[30px] leading-[0.4]" style={{ fontFamily: scriptFamily, color: ACCENT }}>
                       &ldquo;
                     </div>
-                    <p className="mt-1.5 italic text-[17px] leading-[1.6]" style={{ color: "#4a3d31", fontFamily: serifFamily }}>
+                    <p className="mt-1.5 italic text-[17px] lg:text-[23px] leading-[1.6]" style={{ color: "#4a3d31", fontFamily: serifFamily }}>
                       {msg.text}
                     </p>
                     <div className="mt-2.5 flex items-baseline gap-2">
@@ -467,7 +467,7 @@ function FilmTemplateInner() {
                     value={s.guestName}
                     onChange={(e) => s.setGuestName(e.target.value)}
                     placeholder="Maria da Graça"
-                    className="w-full text-[15px] px-3.5 py-3 bg-white focus:outline-none"
+                    className="w-full text-[15px] lg:text-[19px] px-3.5 py-3 bg-white focus:outline-none"
                     style={{ border: "1px solid rgba(63,52,42,.28)", color: INK }}
                   />
                   <textarea
@@ -476,14 +476,14 @@ function FilmTemplateInner() {
                     value={s.guestMessage}
                     onChange={(e) => s.setGuestMessage(e.target.value)}
                     placeholder="Escreva com o coração…"
-                    className="w-full resize-y text-[15px] px-3.5 py-3 bg-white focus:outline-none"
+                    className="w-full resize-y text-[15px] lg:text-[19px] px-3.5 py-3 bg-white focus:outline-none"
                     style={{ border: "1px solid rgba(63,52,42,.28)", color: INK }}
                   />
                   <div className="flex justify-center">
                     <button
                       type="button"
                       onClick={s.sendMessage}
-                      className="text-[11px] tracking-[0.22em] uppercase px-9 py-4 transition-opacity"
+                      className="text-[11px] lg:text-[13px] tracking-[0.22em] uppercase px-9 py-4 transition-opacity"
                       style={{ background: DARK, color: PAPER, fontFamily: "var(--font-body)" }}
                     >
                       Deixar recado
@@ -497,7 +497,7 @@ function FilmTemplateInner() {
           {/* 8. Galeria pré-wedding + álbum — Para Sempre */}
           {hasGifts && (
             <>
-              <section className="px-8 py-16" style={{ background: CREAM }}>
+              <section className="px-8 lg:px-[8vw] py-16 lg:py-36" style={{ background: CREAM }}>
                 <Head kicker="Antes do grande dia" title="nosso pré-wedding" />
                 <p className="mb-6 text-center text-[14.5px] leading-[1.7] max-w-[34ch] mx-auto" style={{ color: "rgba(63,52,42,.78)" }}>
                   Fotos do ensaio e da contagem para o altar. Uma prévia dos
@@ -518,7 +518,7 @@ function FilmTemplateInner() {
                 </div>
               </section>
 
-              <section className="px-8 py-16" style={{ background: DARK, color: PAPER }}>
+              <section className="px-8 lg:px-[8vw] py-16 lg:py-36" style={{ background: DARK, color: PAPER }}>
                 <div className="text-center mb-6">
                   <div className="text-[9.5px] tracking-[0.34em] uppercase" style={{ color: "rgba(243,235,218,.6)" }}>
                     Depois da festa
@@ -564,7 +564,7 @@ function FilmTemplateInner() {
                         <button
                           type="button"
                           onClick={() => s.setAlbumPreview(false)}
-                          className="text-[10px] tracking-[0.16em] uppercase underline underline-offset-4"
+                          className="text-[10px] lg:text-[12px] tracking-[0.16em] uppercase underline underline-offset-4"
                           style={{ color: "rgba(243,235,218,.7)" }}
                         >
                           Voltar ao estado bloqueado
@@ -578,7 +578,7 @@ function FilmTemplateInner() {
           )}
 
           {/* 9. Rodapé */}
-          <footer className="text-center px-8 pt-14 pb-12" style={{ background: DARK, color: PAPER }}>
+          <footer className="text-center px-8 lg:px-[8vw] pt-14 lg:pt-32 pb-12 lg:pb-28" style={{ background: DARK, color: PAPER }}>
             <div className="flex justify-center mb-1.5">
               <Ornament />
             </div>
@@ -587,15 +587,15 @@ function FilmTemplateInner() {
             </div>
             <div className="mt-4 flex items-center justify-center gap-3">
               <span className="h-px w-8" style={{ background: "rgba(233,201,166,.55)" }} />
-              <span className="text-[17px] tracking-[0.06em]" style={{ fontFamily: serifFamily, color: GOLD_LT }}>
+              <span className="text-[17px] lg:text-[23px] tracking-[0.06em]" style={{ fontFamily: serifFamily, color: GOLD_LT }}>
                 #AnaEPedro
               </span>
               <span className="h-px w-8" style={{ background: "rgba(233,201,166,.55)" }} />
             </div>
-            <div className="mt-3 text-[10px] tracking-[0.3em] uppercase" style={{ color: "rgba(243,235,218,.72)" }}>
+            <div className="mt-3 text-[10px] lg:text-[12px] tracking-[0.3em] uppercase" style={{ color: "rgba(243,235,218,.72)" }}>
               19 · 09 · 2026 — Fortaleza, CE
             </div>
-            <div className="mt-5 italic text-[13px]" style={{ fontFamily: serifFamily, color: "rgba(243,235,218,.5)" }}>
+            <div className="mt-5 italic text-[13px] lg:text-[16px]" style={{ fontFamily: serifFamily, color: "rgba(243,235,218,.5)" }}>
               revelado com amor — para o nosso grande dia
             </div>
           </footer>
@@ -627,10 +627,10 @@ function FilmTemplateInner() {
               <div className="text-[9.5px] tracking-[0.3em] uppercase" style={{ color: ACCENT }}>
                 Presentear com Pix
               </div>
-              <div className="mt-2.5 text-[23px] font-medium leading-tight" style={{ fontFamily: serifFamily }}>
+              <div className="mt-2.5 text-[23px] lg:text-[34px] font-medium leading-tight" style={{ fontFamily: serifFamily }}>
                 {s.gift.name}
               </div>
-              <div className="mt-1 text-[15px]" style={{ color: "rgba(63,52,42,.72)" }}>
+              <div className="mt-1 text-[15px] lg:text-[19px]" style={{ color: "rgba(63,52,42,.72)" }}>
                 R$ {s.gift.priceReais}
               </div>
               <div className="mt-4 flex justify-center">
@@ -650,12 +650,12 @@ function FilmTemplateInner() {
               <button
                 type="button"
                 onClick={() => s.copyPixCode(buildDemoPixCode(s.gift!.priceReais))}
-                className="mt-3.5 w-full text-[11px] tracking-[0.22em] uppercase py-3.5 transition-opacity"
+                className="mt-3.5 w-full text-[11px] lg:text-[13px] tracking-[0.22em] uppercase py-3.5 transition-opacity"
                 style={{ background: DARK, color: PAPER, fontFamily: "var(--font-body)" }}
               >
                 {s.copied ? "Copiado ✓" : "Copiar código"}
               </button>
-              <p className="mt-3.5 italic text-[13px] leading-[1.6]" style={{ color: "rgba(63,52,42,.7)", fontFamily: serifFamily }}>
+              <p className="mt-3.5 italic text-[13px] lg:text-[16px] leading-[1.6]" style={{ color: "rgba(63,52,42,.7)", fontFamily: serifFamily }}>
                 Assim que o Pix chegar, seu nome entra na nossa lista de
                 agradecimentos.
               </p>
@@ -682,7 +682,7 @@ function InfoCard({
 }) {
   return (
     <div className="px-6 py-7 text-center" style={{ background: CARD, border: "1px solid rgba(63,52,42,.15)" }}>
-      <div className="text-[10px] tracking-[0.32em] uppercase" style={{ color: ACCENT }}>
+      <div className="text-[10px] lg:text-[12px] tracking-[0.32em] uppercase" style={{ color: ACCENT }}>
         {kicker}
       </div>
       <div className="mt-2.5 text-[25px] font-medium" style={{ fontFamily: serifFamily }}>
@@ -701,7 +701,7 @@ function InfoCard({
           href={MAPS}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[10.5px] tracking-[0.24em] uppercase px-8 py-3.5 transition-colors"
+          className="text-[10.5px] tracking-[0.24em] uppercase px-8 lg:px-[8vw] py-3.5 transition-colors"
           style={
             filled
               ? { background: ACCENT, color: PAPER, fontFamily: "var(--font-body)" }

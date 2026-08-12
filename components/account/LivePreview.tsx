@@ -74,15 +74,15 @@ export default function LivePreview({
         fullBleed
           ? // Truque do full-bleed: sai da coluna do painel e volta a ocupar a
             // largura da janela, sem precisar reestruturar o AccountShell.
-            "relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2 border-y border-(--color-gold)/40 bg-white px-4 py-6 sm:px-8"
-          : "rounded-2xl border border-(--color-gold)/40 bg-white p-6"
+            "relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2 border-y border-(--c-rule) bg-white px-4 py-6 sm:px-8"
+          : "surface-raised rounded-[3px] p-6"
       }`}
     >
       <div className="mx-auto flex w-full max-w-[1400px] flex-wrap items-end justify-between gap-3">
         <div className="flex flex-col gap-1">
           <h2 className="text-lg font-semibold">{titulo}</h2>
           {descricao && (
-            <p className="text-sm text-(--color-olive)/70 leading-relaxed">
+            <p className="text-sm text-(--c-ink-2) leading-relaxed">
               {descricao}
             </p>
           )}
@@ -92,14 +92,14 @@ export default function LivePreview({
           <div
             role="group"
             aria-label="Ver em"
-            className="flex items-center gap-1 rounded-full border border-(--color-gold)/50 p-1"
+            className="flex items-center gap-1 rounded-[3px] border border-(--c-rule) p-1"
           >
             {(
               [
-                { id: "desktop", icone: "🖥️", rotulo: "Computador" },
-                { id: "celular", icone: "📱", rotulo: "Celular" },
+                { id: "desktop", rotulo: "Computador" },
+                { id: "celular", rotulo: "Celular" },
               ] as const
-            ).map(({ id, icone, rotulo }) => {
+            ).map(({ id, rotulo }) => {
               const ativo = dispositivo === id;
               return (
                 <button
@@ -108,13 +108,12 @@ export default function LivePreview({
                   onClick={() => setDispositivo(id)}
                   aria-pressed={ativo}
                   title={rotulo}
-                  className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                  className={`flex items-center gap-1.5 rounded-[2px] px-3 py-1.5 text-xs font-medium transition-colors ${
                     ativo
-                      ? "bg-[#2f3a29] text-white"
-                      : "text-(--color-olive) hover:bg-(--color-blush)"
+                      ? "bg-[#1a1d21] text-white"
+                      : "text-(--c-ink) hover:bg-(--c-sunken)"
                   }`}
                 >
-                  <span aria-hidden>{icone}</span>
                   <span className="hidden sm:inline">{rotulo}</span>
                 </button>
               );
@@ -124,7 +123,7 @@ export default function LivePreview({
           <button
             type="button"
             onClick={() => setRecarga((n) => n + 1)}
-            className="btn btn-secondary btn-sm"
+            className="btn btn-quiet btn-sm"
           >
             Atualizar
           </button>
@@ -158,7 +157,7 @@ export default function LivePreview({
         </div>
       </div>
 
-      <p className="mx-auto w-full max-w-[1400px] text-xs text-(--color-muted) leading-relaxed">
+      <p className="mx-auto w-full max-w-[1400px] text-xs text-(--c-ink-2) leading-relaxed">
         {noCelular
           ? `Simulando ${larguraVirtual}px — é assim que o convidado vê ao abrir o link no WhatsApp.`
           : `Simulando ${larguraVirtual}px de tela cheia.`}{" "}
@@ -166,7 +165,7 @@ export default function LivePreview({
           href={src}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-medium text-(--color-olive) underline underline-offset-2"
+          className="font-medium text-(--c-ink) underline underline-offset-2"
         >
           Abrir em outra aba
         </a>

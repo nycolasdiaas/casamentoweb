@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import { PACKAGES } from "@/lib/packages";
 import { TEMPLATE_STYLES } from "@/lib/templates";
 import {
@@ -12,11 +11,12 @@ import {
   TESTIMONIALS,
 } from "@/lib/site";
 import HeroPreview from "@/components/landing/HeroPreview";
+import { uiPrensa } from "@/lib/fonts/ui";
+import PaperBackdrop from "@/components/webgl/PaperBackdrop";
+import SplitReveal from "@/components/site/SplitReveal";
 import RevealOnScroll from "@/components/ui/RevealOnScroll";
 import FloatingWhatsApp from "@/components/landing/FloatingWhatsApp";
 import AccountNav, { LoggedOutLinks } from "@/components/landing/AccountNav";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: `${SITE_NAME} | Sites de Casamento`,
@@ -34,34 +34,22 @@ const STYLE_FONT_CLASS: Record<string, string> = {
 };
 
 const FEATURES = [
-  {
-    icon: "📍",
-    title: "Mapa integrado",
+  {    title: "Mapa integrado",
     text: "Local da cerimônia e da festa com um toque para abrir no Google Maps ou Waze.",
   },
-  {
-    icon: "✅",
-    title: "RSVP por família",
+  {    title: "RSVP por família",
     text: "Cada família recebe um link exclusivo e confirma todo mundo de uma vez.",
   },
-  {
-    icon: "💚",
-    title: "Pix sem taxa",
+  {    title: "Pix sem taxa",
     text: "QR Code e copia e cola direto na conta do casal. 100% do presente chega.",
   },
-  {
-    icon: "👗",
-    title: "Dress code",
+  {    title: "Dress code",
     text: "Traje explicado com referências visuais, para ninguém errar no look.",
   },
-  {
-    icon: "💌",
-    title: "Mural de recados",
+  {    title: "Mural de recados",
     text: "Convidados deixam mensagens de carinho que ficam guardadas no site.",
   },
-  {
-    icon: "📸",
-    title: "Álbum pós-festa",
+  {    title: "Álbum pós-festa",
     text: "No pacote Para Sempre, o site vira o álbum permanente do casamento.",
   },
 ];
@@ -114,7 +102,7 @@ export default function PackagesPage() {
   return (
     <div
       id="landing"
-      className={`${inter.className} flex-1 flex flex-col bg-white text-(--color-olive)`}
+      className={`${uiPrensa} flex-1 flex flex-col bg-(--c-surface) text-(--c-ink)`}
     >
       {/* Revela os blocos um a um conforme a pessoa desce a página. Usa
           `gsap.from`, então se o JS não carregar a landing aparece inteira —
@@ -122,11 +110,11 @@ export default function PackagesPage() {
       <RevealOnScroll raiz="#landing" />
 
       {/* Navegação */}
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-(--color-gold)/30">
+      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-(--c-rule)">
         <nav className="max-w-6xl mx-auto w-full px-6 py-4 flex items-center justify-between gap-4">
-          <p className="text-lg font-semibold tracking-tight">
+          <p className="t-display text-[22px] leading-none tracking-tight">
             {SITE_NAME}
-            <span className="hidden sm:inline text-sm font-normal text-(--color-muted)">
+            <span className="hidden sm:inline text-sm font-normal text-(--c-ink-2)">
               {" "}
               · {SITE_TAGLINE}
             </span>
@@ -149,26 +137,62 @@ export default function PackagesPage() {
       </header>
 
       {/* Hero */}
-      <section className="bg-(--color-paper)">
-        <div className="max-w-6xl mx-auto w-full px-6 py-16 sm:py-24 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div className="flex flex-col items-center lg:items-start gap-6 text-center lg:text-left">
-            <p className="text-xs font-medium tracking-[0.25em] uppercase text-(--color-gold)">
+      {/* O hero é o único lugar da landing com o pano de fundo em WebGL.
+          `relative` + `isolate` para o canvas absoluto ficar preso a esta
+          seção e não vazar por cima do resto; o conteúdo sobe com z-10. */}
+      <section className="relative isolate overflow-hidden bg-(--c-base)">
+        <PaperBackdrop />
+        <div className="relative z-10 max-w-6xl mx-auto w-full px-6 py-16 sm:py-24 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          {/* A ENTRADA DA LANDING.
+
+              Ela não existia: o `RevealOnScroll` pula a primeira seção de
+              propósito (animar o que já está na tela faz piscar), então abrir
+              o site era uma tela aparecendo pronta — que é exatamente a
+              assinatura de interface gerada que o resto do projeto combateu.
+
+              É CSS puro, sem JavaScript: `motion-stagger` já escalona os
+              filhos pelo `--i`, e o `SplitReveal` do site do convidado é
+              server component. Nada aqui depende do GSAP, então funciona mesmo
+              quando ele não é baixado.
+
+              O estado natural do HTML continua sendo o final — se o CSS não
+              carregar, o texto está lá. */}
+          <div className="motion-stagger flex flex-col items-center lg:items-start gap-6 text-center lg:text-left">
+            <p
+              style={{ ["--i" as string]: 0 }}
+              className="text-xs font-medium tracking-[0.25em] uppercase text-(--c-ink-2)"
+            >
               {SITE_TAGLINE}
             </p>
-            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight max-w-xl leading-tight">
-              O site do seu casamento, do convite ao para sempre
+            {/* O título entra palavra por palavra, de desfocado para nítido.
+                Começa depois da sobrancelha (240ms) para a leitura ter ordem. */}
+            <h1
+              style={{ ["--i" as string]: 1 }}
+              className="t-display text-[40px] sm:text-[52px] tracking-tight max-w-xl leading-[1.05]"
+            >
+              <SplitReveal
+                text="O site do seu casamento, do convite ao para sempre"
+                passo={70}
+                atraso={240}
+              />
             </h1>
-            <p className="text-base sm:text-lg text-(--color-olive)/80 max-w-xl leading-relaxed">
+            <p
+              style={{ ["--i" as string]: 2 }}
+              className="text-base sm:text-lg text-(--c-ink-2) max-w-xl leading-relaxed"
+            >
               Convite digital, confirmação de presença e lista de presentes com
               Pix — sem mensalidade e sem taxa sobre os presentes. E o melhor:
               <strong className="font-semibold"> zero dor de cabeça</strong> —
               vocês escolhem o template, mandam as fotos e a história em
               minutos, e a gente cuida de absolutamente todo o resto.
             </p>
-            <div className="flex flex-wrap justify-center lg:justify-start gap-3 pt-2">
+            <div
+              style={{ ["--i" as string]: 3 }}
+              className="flex flex-wrap justify-center lg:justify-start gap-3 pt-2"
+            >
               <a
                 href="#pacotes"
-                className="bg-(--color-olive) text-white text-sm font-medium px-8 py-3.5 rounded-full hover:bg-(--color-olive)/90 transition-colors"
+                className="bg-(--c-ink) text-white text-sm font-medium px-8 py-3.5 rounded-[2px] hover:bg-(--c-ink)/90 transition-colors"
               >
                 Ver pacotes
               </a>
@@ -176,41 +200,50 @@ export default function PackagesPage() {
                 href={WHATSAPP_LINK}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="border border-(--color-olive)/30 text-sm font-medium px-8 py-3.5 rounded-full hover:bg-white transition-colors"
+                className="border border-(--c-rule) text-sm font-medium px-8 py-3.5 rounded-[2px] hover:bg-white transition-colors"
               >
                 Chamar no WhatsApp
               </a>
             </div>
-            <ul className="flex flex-wrap justify-center lg:justify-start gap-x-8 gap-y-2 pt-4 text-sm text-(--color-olive)/70">
+            <ul
+              style={{ ["--i" as string]: 4 }}
+              className="flex flex-wrap justify-center lg:justify-start gap-x-8 gap-y-2 pt-4 text-sm text-(--c-ink-2)"
+            >
               <li>✓ Sem mensalidade</li>
               <li>✓ Pix sem taxa — 100% para o casal</li>
               <li>✓ Entrega em até 7 dias</li>
             </ul>
           </div>
 
-          <div className="flex justify-center lg:justify-end">
+          {/* A miniatura entra por último e só com fade: ela já é o elemento
+              mais pesado da tela, e fazê-la deslizar junto com o texto daria
+              duas coisas grandes se mexendo ao mesmo tempo. */}
+          <div
+            style={{ ["--motion-delay" as string]: "560ms" }}
+            className="motion-fade-in flex justify-center lg:justify-end"
+          >
             <HeroPreview />
           </div>
         </div>
       </section>
 
       {/* Faixa de garantias */}
-      <section className="border-b border-(--color-gold)/30 bg-white">
-        <ul className="max-w-6xl mx-auto w-full px-6 py-5 flex flex-wrap items-center justify-center gap-x-10 gap-y-2 text-sm text-(--color-olive)/80">
+      <section className="border-b border-(--c-rule) bg-white">
+        <ul className="max-w-6xl mx-auto w-full px-6 py-5 flex flex-wrap items-center justify-center gap-x-10 gap-y-2 text-sm text-(--c-ink-2)">
           <li className="flex items-center gap-2">
-            <span aria-hidden className="text-(--color-gold)">✦</span>
+            <span aria-hidden className="text-(--c-ink-2)">✦</span>
             Atendimento pessoal no WhatsApp
           </li>
           <li className="flex items-center gap-2">
-            <span aria-hidden className="text-(--color-gold)">✦</span>
+            <span aria-hidden className="text-(--c-ink-2)">✦</span>
             Prévia do site antes da entrega
           </li>
           <li className="flex items-center gap-2">
-            <span aria-hidden className="text-(--color-gold)">✦</span>
+            <span aria-hidden className="text-(--c-ink-2)">✦</span>
             1 rodada de ajustes inclusa
           </li>
           <li className="flex items-center gap-2">
-            <span aria-hidden className="text-(--color-gold)">✦</span>
+            <span aria-hidden className="text-(--c-ink-2)">✦</span>
             Zero parte técnica para vocês
           </li>
         </ul>
@@ -220,18 +253,18 @@ export default function PackagesPage() {
       <section className="bg-white">
         <div className="max-w-6xl mx-auto w-full px-6 py-20 flex flex-col gap-10">
           <div className="flex flex-col gap-3 text-center">
-            <h2 className="text-3xl font-bold tracking-tight">
+            <h2 className="t-display text-[32px] tracking-tight leading-[1.15]">
               Vocês só se preocupam com o casamento
             </h2>
-            <p className="text-(--color-olive)/70 max-w-xl mx-auto">
+            <p className="text-(--c-ink-2) max-w-xl mx-auto">
               Nada de editor, formulário chato ou configuração. A
               personalização inteira acontece numa conversa de WhatsApp.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto w-full">
-            <div className="flex flex-col gap-4 rounded-2xl border border-(--color-gold)/40 bg-(--color-paper) p-8">
-              <p className="text-xs font-semibold tracking-[0.2em] uppercase text-(--color-gold)">
+            <div className="flex flex-col gap-4 rounded-2xl border border-(--c-rule) bg-(--c-base) p-8">
+              <p className="text-xs font-semibold tracking-[0.2em] uppercase text-(--c-ink-2)">
                 Vocês fazem
               </p>
               <ul className="flex flex-col gap-3 text-sm">
@@ -241,18 +274,18 @@ export default function PackagesPage() {
                   "Aprovam a prévia pelo WhatsApp (ajustes na mesma conversa)",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 leading-snug">
-                    <span aria-hidden className="text-(--color-gold)">✦</span>
+                    <span aria-hidden className="text-(--c-ink-2)">✦</span>
                     {item}
                   </li>
                 ))}
               </ul>
-              <p className="text-xs text-(--color-muted) pt-1">
+              <p className="text-xs text-(--c-ink-2) pt-1">
                 Só isso. Três mensagens e pronto.
               </p>
             </div>
 
-            <div className="flex flex-col gap-4 rounded-2xl bg-(--color-olive) text-white p-8">
-              <p className="text-xs font-semibold tracking-[0.2em] uppercase text-(--color-gold)">
+            <div className="flex flex-col gap-4 rounded-2xl bg-(--c-ink) text-white p-8">
+              <p className="text-xs font-semibold tracking-[0.2em] uppercase text-white/60">
                 A gente faz
               </p>
               <ul className="flex flex-col gap-3 text-sm">
@@ -264,7 +297,7 @@ export default function PackagesPage() {
                   "Suporte até (e depois de) o site estar no ar",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 leading-snug">
-                    <span aria-hidden className="text-(--color-gold)">✓</span>
+                    <span aria-hidden className="text-white/70">✓</span>
                     {item}
                   </li>
                 ))}
@@ -275,15 +308,15 @@ export default function PackagesPage() {
       </section>
 
       {/* Estilos e exemplos, unificados */}
-      <section id="estilos" className="scroll-mt-20 bg-(--color-paper)">
+      <section id="estilos" className="scroll-mt-20 bg-(--c-base)">
         <div className="max-w-6xl mx-auto w-full px-6 py-20 flex flex-col gap-10">
           <div className="flex flex-col gap-3 text-center">
-            <h2 className="text-3xl font-bold tracking-tight">
+            <h2 className="t-display text-[32px] tracking-tight leading-[1.15]">
               Escolha o estilo de vocês
             </h2>
-            <p className="text-(--color-olive)/70 max-w-lg mx-auto">
+            <p className="text-(--c-ink-2) max-w-lg mx-auto">
               Três direções visuais para começar — e a partir daí é{" "}
-              <strong className="font-semibold text-(--color-olive)">
+              <strong className="font-semibold text-(--c-ink)">
                 100% personalizável
               </strong>
               : cores, fontes, fotos, textos e seções, tudo ajustado até ficar
@@ -294,22 +327,22 @@ export default function PackagesPage() {
 
           <Link
             href="/isabelle-e-nycolas"
-            className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-xl border border-(--color-gold)/40 bg-white p-5 max-w-2xl mx-auto w-full transition-all hover:shadow-md hover:-translate-y-0.5"
+            className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-xl border border-(--c-rule) bg-white p-5 max-w-2xl mx-auto w-full transition-all hover:shadow-md hover:-translate-y-0.5"
           >
             <div className="flex items-center gap-4 min-w-0">
-              <span className="flex items-center justify-center size-12 rounded-full bg-(--color-blush) font-script text-xl text-(--color-gold) shrink-0">
+              <span className="flex items-center justify-center size-12 rounded-full bg-(--c-sunken) font-script text-xl text-(--c-ink-2) shrink-0">
                 I &amp; N
               </span>
               <div className="min-w-0">
                 <p className="text-sm font-semibold">
                   Isabelle &amp; Nycolas
                 </p>
-                <p className="text-xs text-(--color-olive)/60">
+                <p className="text-xs text-(--c-ink-2)">
                   Não é exemplo: o site real de um casal, no ar agora
                 </p>
               </div>
             </div>
-            <span className="text-xs font-medium text-(--color-olive) underline underline-offset-4 shrink-0">
+            <span className="text-xs font-medium text-(--c-ink) underline underline-offset-4 shrink-0">
               Ver site →
             </span>
           </Link>
@@ -319,7 +352,7 @@ export default function PackagesPage() {
               <li key={style.id} className="flex">
                 <Link
                   href={`/pacotes/estilos/${style.id}`}
-                  className="flex-1 flex flex-col gap-4 rounded-xl border border-(--color-gold)/40 bg-white p-6 transition-all hover:shadow-md hover:-translate-y-0.5"
+                  className="flex-1 flex flex-col gap-4 rounded-xl border border-(--c-rule) bg-white p-6 transition-all hover:shadow-md hover:-translate-y-0.5"
                 >
                   <div
                     className="flex items-center justify-center h-28 rounded-lg"
@@ -335,7 +368,7 @@ export default function PackagesPage() {
                   <div className="flex items-center justify-between">
                     <p className="font-semibold">
                       {style.name}
-                      <span className="ml-2 text-[10px] font-medium tracking-wide uppercase text-(--color-gold) border border-(--color-gold)/50 rounded-full px-2 py-0.5">
+                      <span className="ml-2 text-[10px] font-medium tracking-wide uppercase text-(--c-ink-2) border border-(--c-rule) rounded-[2px] px-2 py-0.5">
                         100% personalizável
                       </span>
                     </p>
@@ -349,10 +382,10 @@ export default function PackagesPage() {
                       ))}
                     </div>
                   </div>
-                  <p className="text-sm text-(--color-olive)/70 flex-1">
+                  <p className="text-sm text-(--c-ink-2) flex-1">
                     {style.description}
                   </p>
-                  <span className="text-xs font-medium text-(--color-olive) underline underline-offset-4">
+                  <span className="text-xs font-medium text-(--c-ink) underline underline-offset-4">
                     Ver modelo completo →
                   </span>
                 </Link>
@@ -366,10 +399,10 @@ export default function PackagesPage() {
       <section>
         <div className="max-w-6xl mx-auto w-full px-6 py-20 flex flex-col gap-10">
           <div className="flex flex-col gap-3 text-center">
-            <h2 className="text-3xl font-bold tracking-tight">
+            <h2 className="t-display text-[32px] tracking-tight leading-[1.15]">
               Tudo que acompanha o site
             </h2>
-            <p className="text-(--color-olive)/70 max-w-lg mx-auto">
+            <p className="text-(--c-ink-2) max-w-lg mx-auto">
               Pensado para os convidados usarem pelo celular, sem precisar de
               explicação.
             </p>
@@ -379,13 +412,12 @@ export default function PackagesPage() {
             {FEATURES.map((feature) => (
               <li
                 key={feature.title}
-                className="flex flex-col gap-2 rounded-xl border border-(--color-gold)/40 bg-white p-6"
+                className="flex flex-col gap-2 rounded-xl border border-(--c-rule) bg-white p-6"
               >
-                <span aria-hidden className="text-2xl">
-                  {feature.icon}
-                </span>
-                <p className="font-semibold">{feature.title}</p>
-                <p className="text-sm text-(--color-olive)/70 leading-relaxed">
+                <p className="text-[15px] font-medium text-(--c-ink)">
+                  {feature.title}
+                </p>
+                <p className="text-sm text-(--c-ink-2) leading-relaxed">
                   {feature.text}
                 </p>
               </li>
@@ -395,13 +427,13 @@ export default function PackagesPage() {
       </section>
 
       {/* Comparativo */}
-      <section className="bg-(--color-paper)">
+      <section className="bg-(--c-base)">
         <div className="max-w-6xl mx-auto w-full px-6 py-20 flex flex-col gap-10">
           <div className="flex flex-col gap-3 text-center">
-            <h2 className="text-3xl font-bold tracking-tight">
+            <h2 className="t-display text-[32px] tracking-tight leading-[1.15]">
               &ldquo;Mas tem site grátis por aí…&rdquo;
             </h2>
-            <p className="text-(--color-olive)/70 max-w-xl mx-auto">
+            <p className="text-(--c-ink-2) max-w-xl mx-auto">
               Tem — e ele se paga com uma taxa sobre cada presente que vocês
               recebem. Compare:
             </p>
@@ -410,7 +442,7 @@ export default function PackagesPage() {
           <div className="overflow-x-auto">
             <table className="w-full max-w-3xl mx-auto border-collapse bg-white rounded-xl overflow-hidden text-sm">
               <thead>
-                <tr className="bg-(--color-olive) text-white">
+                <tr className="bg-(--c-ink) text-white">
                   <th className="text-left font-medium px-5 py-4"></th>
                   <th className="text-left font-semibold px-5 py-4">
                     {SITE_NAME}
@@ -424,18 +456,18 @@ export default function PackagesPage() {
                 {COMPARISON.map(([label, us, them], index) => (
                   <tr
                     key={label}
-                    className={index % 2 ? "bg-(--color-paper)/50" : ""}
+                    className={index % 2 ? "bg-(--c-base)/50" : ""}
                   >
-                    <td className="px-5 py-3.5 text-(--color-olive)/70">
+                    <td className="px-5 py-3.5 text-(--c-ink-2)">
                       {label}
                     </td>
                     <td className="px-5 py-3.5 font-semibold">
-                      <span className="text-(--color-gold) mr-1.5" aria-hidden>
+                      <span className="text-(--c-ink-2) mr-1.5" aria-hidden>
                         ✓
                       </span>
                       {us}
                     </td>
-                    <td className="px-5 py-3.5 text-(--color-olive)/60">
+                    <td className="px-5 py-3.5 text-(--c-ink-2)">
                       {them}
                     </td>
                   </tr>
@@ -444,7 +476,7 @@ export default function PackagesPage() {
             </table>
           </div>
 
-          <p className="text-xs text-(--color-muted) text-center max-w-xl mx-auto">
+          <p className="text-xs text-(--c-ink-2) text-center max-w-xl mx-auto">
             Taxa de referência de 3,89% praticada pela principal plataforma
             gratuita de sites de casamento do Brasil (julho/2026).
           </p>
@@ -456,24 +488,24 @@ export default function PackagesPage() {
       {TESTIMONIALS.length > 0 && (
         <section>
           <div className="max-w-6xl mx-auto w-full px-6 py-20 flex flex-col gap-10">
-            <h2 className="text-3xl font-bold tracking-tight text-center">
+            <h2 className="t-display text-[32px] tracking-tight leading-[1.15] text-center">
               Quem já casou com a gente
             </h2>
             <ul className="flex flex-wrap justify-center gap-6">
               {TESTIMONIALS.map((testimonial) => (
                 <li
                   key={testimonial.couple}
-                  className="flex flex-col gap-4 max-w-md rounded-xl border border-(--color-gold)/40 bg-white p-8"
+                  className="flex flex-col gap-4 max-w-md rounded-xl border border-(--c-rule) bg-white p-8"
                 >
-                  <span aria-hidden className="font-script text-4xl text-(--color-gold) leading-none">
+                  <span aria-hidden className="font-script text-4xl text-(--c-ink-2) leading-none">
                     &ldquo;
                   </span>
-                  <p className="text-sm leading-relaxed text-(--color-olive)/80 italic">
+                  <p className="text-sm leading-relaxed text-(--c-ink-2) italic">
                     {testimonial.quote}
                   </p>
-                  <div className="pt-2 border-t border-(--color-gold)/30">
+                  <div className="pt-2 border-t border-(--c-rule)">
                     <p className="font-semibold text-sm">{testimonial.couple}</p>
-                    <p className="text-xs text-(--color-muted)">
+                    <p className="text-xs text-(--c-ink-2)">
                       {testimonial.detail}
                     </p>
                   </div>
@@ -485,11 +517,11 @@ export default function PackagesPage() {
       )}
 
       {/* Pacotes */}
-      <section id="pacotes" className="scroll-mt-20 bg-(--color-paper)">
+      <section id="pacotes" className="scroll-mt-20 bg-(--c-base)">
         <div className="max-w-6xl mx-auto w-full px-6 py-20 flex flex-col gap-10">
           <div className="flex flex-col gap-3 text-center">
-            <h2 className="text-3xl font-bold tracking-tight">Pacotes</h2>
-            <p className="text-(--color-olive)/70 max-w-lg mx-auto">
+            <h2 className="t-display text-[32px] tracking-tight leading-[1.15]">Pacotes</h2>
+            <p className="text-(--c-ink-2) max-w-lg mx-auto">
               Três formatos, um único cuidado. Sem surpresa no preço.
             </p>
           </div>
@@ -500,12 +532,12 @@ export default function PackagesPage() {
                 key={pkg.tier}
                 className={`relative flex flex-col gap-6 rounded-2xl p-8 ${
                   pkg.highlight
-                    ? "bg-(--color-olive) text-white shadow-lg"
-                    : "bg-white border border-(--color-gold)/40"
+                    ? "bg-(--c-ink) text-white shadow-lg"
+                    : "bg-white border border-(--c-rule)"
                 }`}
               >
                 {pkg.highlight && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-(--color-gold) text-white text-[10px] font-semibold tracking-[0.2em] uppercase px-4 py-1 rounded-full">
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-(--c-mark) text-white text-[10px] font-semibold tracking-[0.2em] uppercase px-4 py-1 rounded-[2px]">
                     {pkg.priceNote ?? "recomendado"}
                   </span>
                 )}
@@ -514,7 +546,7 @@ export default function PackagesPage() {
                   <h3 className="text-xl font-bold">{pkg.name}</h3>
                   <p
                     className={`text-xs uppercase tracking-wide ${
-                      pkg.highlight ? "text-white/70" : "text-(--color-muted)"
+                      pkg.highlight ? "text-white/70" : "text-(--c-ink-2)"
                     }`}
                   >
                     {pkg.tagline}
@@ -525,7 +557,7 @@ export default function PackagesPage() {
 
                 <p
                   className={`text-sm leading-relaxed ${
-                    pkg.highlight ? "text-white/85" : "text-(--color-olive)/80"
+                    pkg.highlight ? "text-white/85" : "text-(--c-ink-2)"
                   }`}
                 >
                   {pkg.description}
@@ -534,7 +566,10 @@ export default function PackagesPage() {
                 <ul className="flex flex-col gap-2.5 flex-1 text-sm">
                   {pkg.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-2 leading-snug">
-                      <span aria-hidden className="text-(--color-gold)">
+                      <span
+                        aria-hidden
+                        className={pkg.highlight ? "text-white/70" : "text-(--c-ink-2)"}
+                      >
                         ✓
                       </span>
                       {feature}
@@ -545,17 +580,17 @@ export default function PackagesPage() {
                 <div className="flex flex-col gap-3 pt-2">
                   <p
                     className={`text-xs text-center ${
-                      pkg.highlight ? "text-white/60" : "text-(--color-muted)"
+                      pkg.highlight ? "text-white/60" : "text-(--c-ink-2)"
                     }`}
                   >
                     {pkg.deliveryTime}
                   </p>
                   <Link
                     href="/conta/criar"
-                    className={`text-center text-sm font-medium px-6 py-3 rounded-full transition-colors ${
+                    className={`text-center text-sm font-medium px-6 py-3 rounded-[2px] transition-colors ${
                       pkg.highlight
-                        ? "bg-white text-(--color-olive) hover:bg-(--color-paper)"
-                        : "bg-(--color-olive) text-white hover:bg-(--color-olive)/90"
+                        ? "bg-white text-(--c-ink) hover:bg-(--c-base)"
+                        : "bg-(--c-ink) text-white hover:bg-(--c-ink)/90"
                     }`}
                   >
                     Começar agora
@@ -563,7 +598,7 @@ export default function PackagesPage() {
                   <Link
                     href={`/pacotes/estilos/classico?pacote=${pkg.tier}`}
                     className={`text-center text-xs font-medium underline underline-offset-4 ${
-                      pkg.highlight ? "text-white/80" : "text-(--color-olive)/70"
+                      pkg.highlight ? "text-white/80" : "text-(--c-ink-2)"
                     }`}
                   >
                     Ver exemplo
@@ -578,7 +613,7 @@ export default function PackagesPage() {
       {/* Como funciona */}
       <section>
         <div className="max-w-6xl mx-auto w-full px-6 py-20 flex flex-col gap-10">
-          <h2 className="text-3xl font-bold tracking-tight text-center">
+          <h2 className="t-display text-[32px] tracking-tight leading-[1.15] text-center">
             Como funciona
           </h2>
           <ol className="grid grid-cols-1 sm:grid-cols-4 gap-8 max-w-4xl mx-auto w-full">
@@ -589,11 +624,11 @@ export default function PackagesPage() {
               ["4", "Só compartilhar", "site no ar — domínio, hospedagem e técnica por nossa conta"],
             ].map(([step, title, text]) => (
               <li key={step} className="flex flex-col items-center gap-2 text-center">
-                <span className="flex items-center justify-center size-10 rounded-full bg-(--color-blush) text-(--color-olive) font-bold">
+                <span className="flex items-center justify-center size-10 rounded-[2px] bg-(--c-sunken) text-(--c-ink) font-bold">
                   {step}
                 </span>
                 <p className="text-sm font-semibold">{title}</p>
-                <p className="text-xs text-(--color-olive)/60 leading-relaxed">
+                <p className="text-xs text-(--c-ink-2) leading-relaxed">
                   {text}
                 </p>
               </li>
@@ -603,27 +638,27 @@ export default function PackagesPage() {
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="scroll-mt-20 bg-(--color-paper)">
+      <section id="faq" className="scroll-mt-20 bg-(--c-base)">
         <div className="max-w-3xl mx-auto w-full px-6 py-20 flex flex-col gap-8">
-          <h2 className="text-3xl font-bold tracking-tight text-center">
+          <h2 className="t-display text-[32px] tracking-tight leading-[1.15] text-center">
             Dúvidas frequentes
           </h2>
           <div className="flex flex-col gap-3">
             {FAQ.map(([question, answer]) => (
               <details
                 key={question}
-                className="group rounded-xl border border-(--color-gold)/40 bg-white px-6 py-4"
+                className="group rounded-xl border border-(--c-rule) bg-white px-6 py-4"
               >
                 <summary className="flex items-center justify-between gap-4 cursor-pointer list-none font-semibold text-sm">
                   {question}
                   <span
                     aria-hidden
-                    className="text-(--color-gold) transition-transform group-open:rotate-45"
+                    className="text-(--c-ink-2) transition-transform group-open:rotate-45"
                   >
                     +
                   </span>
                 </summary>
-                <p className="pt-3 text-sm text-(--color-olive)/75 leading-relaxed">
+                <p className="pt-3 text-sm text-(--c-ink-2) leading-relaxed">
                   {answer}
                 </p>
               </details>
@@ -633,9 +668,9 @@ export default function PackagesPage() {
       </section>
 
       {/* Contato */}
-      <section id="contato" className="scroll-mt-20 bg-(--color-olive) text-white">
+      <section id="contato" className="scroll-mt-20 bg-(--c-ink) text-white">
         <div className="max-w-6xl mx-auto w-full px-6 py-20 flex flex-col items-center gap-6 text-center">
-          <h2 className="text-3xl font-bold tracking-tight">
+          <h2 className="t-display text-[32px] tracking-tight leading-[1.15]">
             Vamos criar o site de vocês?
           </h2>
           <p className="text-white/80 max-w-md leading-relaxed">
@@ -647,7 +682,7 @@ export default function PackagesPage() {
               href={WHATSAPP_LINK}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-white text-(--color-olive) text-sm font-medium px-8 py-3.5 rounded-full hover:bg-(--color-paper) transition-colors"
+              className="bg-white text-(--c-ink) text-sm font-medium px-8 py-3.5 rounded-[2px] hover:bg-(--c-base) transition-colors"
             >
               WhatsApp · {CONTACT.whatsappLabel}
             </a>
@@ -657,7 +692,7 @@ export default function PackagesPage() {
             {CONTACT.email && (
               <a
                 href={`mailto:${CONTACT.email}`}
-                className="border border-white/40 text-sm font-medium px-8 py-3.5 rounded-full hover:bg-white/10 transition-colors"
+                className="border border-white/40 text-sm font-medium px-8 py-3.5 rounded-[2px] hover:bg-white/10 transition-colors"
               >
                 {CONTACT.email}
               </a>
@@ -666,7 +701,7 @@ export default function PackagesPage() {
               href={`https://instagram.com/${CONTACT.instagram}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="border border-white/40 text-sm font-medium px-8 py-3.5 rounded-full hover:bg-white/10 transition-colors"
+              className="border border-white/40 text-sm font-medium px-8 py-3.5 rounded-[2px] hover:bg-white/10 transition-colors"
             >
               @{CONTACT.instagram}
             </a>
@@ -675,12 +710,12 @@ export default function PackagesPage() {
       </section>
 
       {/* Rodapé */}
-      <footer className="bg-(--color-olive) text-white/60 border-t border-white/10">
+      <footer className="bg-(--c-ink) text-white/60 border-t border-white/10">
         <div className="max-w-6xl mx-auto w-full px-6 py-6 flex flex-wrap items-center justify-between gap-2 text-xs">
           <p>
             {SITE_NAME} · {SITE_TAGLINE}
           </p>
-          <p>Sem mensalidade · Pix sem taxa · Feito no Brasil 💚</p>
+          <p>Sem mensalidade · Pix sem taxa · Feito no Brasil</p>
         </div>
       </footer>
 

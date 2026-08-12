@@ -101,6 +101,45 @@ snapshot rodou) com `created_at` (quando o grupo foi criado).
   pacote libera e o molde não implementa, ordem repetida) estão em
   `lib/templates/registry.test.ts` e rodam para todo molde do registry.
 
+# Armadilhas do Turbopack em dev (custaram uma sessão)
+
+## O CSS de `app/globals.css` fica velho e NÃO adianta recarregar
+
+Editar `app/globals.css` com o `next dev` de pé serve o chunk de CSS
+**anterior**. Isso sobrevive a:
+
+- `reload` com cache desligado no navegador;
+- **reiniciar o servidor**;
+- `rm -rf .next/cache`.
+
+Só `rm -rf .next` inteiro resolve. O sintoma é traiçoeiro: a regra aparece no
+arquivo em disco, o `curl` no `.css` servido mostra a versão ANTIGA, e a
+conclusão fácil ("o utilitário não está sendo gerado") é falsa. Confirme sempre
+buscando o `<link rel=stylesheet>` e comparando com o disco antes de
+diagnosticar.
+
+Consequência prática: **escreva todo o CSS de uma tacada e nucleie uma vez
+só**, ou verifique direto no `npm run build`, que compila do zero.
+
+## Apagar `.next` quebra as fontes do Google por um tempo
+
+O download das ~34 fontes dos moldes é feito pelo **Turbopack (Rust)**, não
+pelo Node — então `--dns-result-order=ipv4first` não muda nada, e o `curl`
+funcionar não prova nada. Sem o cache do `.next`, os pedidos em paralelo
+falham em lote com
+
+    Error while requesting resource
+    There was an issue establishing a connection while requesting
+    https://fonts.googleapis.com/css2?family=...
+
+e as rotas que importam `lib/templates/registry.ts` (inclusive `/` e
+`/s/<slug>`) respondem **500**. Nada disso é defeito de código.
+
+É **intermitente e não converge**: rodadas medidas deram 5, 7, 31, 134, 171 e
+180 erros em sequência. A saída é repetir — `npm run build` num laço de 3 a 4
+tentativas passa. Não vale trocar para `--webpack` (estoura 10 min) nem mexer
+em config.
+
 # Armadilhas do `next/font`
 
 - **Cada fonte precisa ir para um `const` no escopo do módulo.** Dentro de

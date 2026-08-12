@@ -3,6 +3,7 @@ import { WHATSAPP_LINK } from "@/lib/site";
 import { PACKAGES, type PackageTier } from "@/lib/packages";
 import { TEMPLATE_STYLES, type TemplateStyleId } from "@/lib/templates";
 import type { ReactNode } from "react";
+import RevealOnScroll from "@/components/ui/RevealOnScroll";
 
 // Moldura comum das 3 prévias de template: fundo escuro "letterbox", cartão
 // central de até 480px (como as prévias foram desenhadas, pensando em
@@ -34,13 +35,17 @@ export default function TemplateChrome({
       className="min-h-screen w-full flex justify-center"
       style={{ background: outerBg }}
     >
-      {/* Mesma largura do site de verdade: 480px no celular, 1120px no
-          desktop. Estas são as páginas de VENDA — quem está decidindo comprar
-          olha no computador, e um cartão de telefone encalhado no meio do
-          monitor vende o produto errado. O `@container` acompanha o motor de
-          templates, para as seções responderem à largura do cartão. */}
+      {/* 480px no celular — que é o desenho de origem e não muda — e TELA
+          CHEIA a partir de 1024px.
+          Estas são as páginas de VENDA: quem está decidindo comprar olha no
+          computador, e antes o cartão parava em 1120px, deixando duas faixas
+          de fundo dos lados. O corte em `lg` é o mesmo do site de verdade;
+          tablet em retrato ainda lê melhor em coluna.
+          O `@container` acompanha o motor de templates, para as seções
+          responderem à largura do cartão. */}
       <div
-        className="site-canvas @container w-full max-w-[480px] lg:max-w-[1120px] flex flex-col shadow-2xl"
+        id="vitrine"
+        className="site-canvas @container w-full max-w-[480px] lg:max-w-none flex flex-col shadow-2xl"
         style={{ background: cardBg }}
       >
         <div
@@ -127,6 +132,12 @@ export default function TemplateChrome({
             pacote no template {styleName}
           </p>
         </div>
+
+        {/* A vitrine nao tinha NENHUMA revelacao na rolagem: as 6 paginas
+            apareciam prontas enquanto a pessoa descia. Mora aqui, no quadro,
+            para alcancar os 6 moldes de uma vez — e um molde novo herdar sem
+            precisar saber que existe. */}
+        <RevealOnScroll raiz="#vitrine" />
 
         {children}
 

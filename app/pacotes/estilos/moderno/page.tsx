@@ -82,12 +82,12 @@ function ModernoTemplateInner() {
         <div className="font-[family-name:var(--font-display)] text-[#1c1c1c]">
           {/* 1. Capa / Save the Date */}
           <section>
-            <div className="flex justify-between items-center px-5 py-3.5 border-b border-[#1c1c1c] font-[family-name:var(--font-mono)] text-[10px] tracking-[0.14em]">
+            <div className="flex justify-between items-center px-5 lg:px-[8vw] py-3.5 border-b border-[#1c1c1c] font-[family-name:var(--font-mono)] text-[10px] lg:text-[12px] tracking-[0.14em]">
               <span className="font-medium">A&amp;P</span>
               <span>FORTALEZA — CE</span>
             </div>
 
-            <div className="pt-8 px-5 flex gap-2.5">
+            <div className="pt-8 px-5 lg:px-[8vw] flex gap-2.5">
               {/* clamp() em vez de breakpoint fixo: em telas bem estreitas
                   (320px) "PEDRO" em 80px não cabia ao lado do texto vertical
                   ao lado e estourava a página. */}
@@ -103,7 +103,7 @@ function ModernoTemplateInner() {
               </h1>
               <div className="flex items-end pb-1">
                 <span
-                  className="text-[10px] tracking-[0.3em] text-[#1c1c1c]/55"
+                  className="text-[10px] lg:text-[12px] tracking-[0.3em] text-[#1c1c1c]/55"
                   style={{ writingMode: "vertical-rl" }}
                 >
                   DESDE 2019
@@ -111,7 +111,7 @@ function ModernoTemplateInner() {
               </div>
             </div>
 
-            <div className="flex justify-between items-baseline gap-3 px-5 pt-5 pb-4">
+            <div className="flex justify-between items-baseline gap-3 px-5 lg:px-[8vw] pt-5 pb-4">
               <div className="font-extrabold text-3xl tracking-[-0.02em]">
                 19.09.2026
               </div>
@@ -124,17 +124,17 @@ function ModernoTemplateInner() {
 
             <PhotoSlot label="Foto do casal, sangrada" className="aspect-[4/5] w-full" />
 
-            <div className="flex justify-between px-5 py-3 border-b border-[#1c1c1c] font-[family-name:var(--font-mono)] text-[10px] tracking-[0.16em]">
+            <div className="flex justify-between px-5 lg:px-[8vw] py-3 border-b border-[#1c1c1c] font-[family-name:var(--font-mono)] text-[10px] lg:text-[12px] tracking-[0.16em]">
               <span>SAVE THE DATE</span>
               <span style={{ color: ACCENT }}>↓ ROLE</span>
             </div>
           </section>
 
           {/* 2. Contagem regressiva */}
-          <section className="px-5 pt-10 pb-12">
+          <section className="px-5 lg:px-[8vw] pt-10 lg:pt-22 pb-12 lg:pb-28">
             <div className="flex items-center gap-3 mb-6">
               <span
-                className="font-[family-name:var(--font-mono)] text-[11px]"
+                className="font-[family-name:var(--font-mono)] text-[11px] lg:text-[13px]"
                 style={{ color: ACCENT }}
               >
                 02
@@ -152,7 +152,7 @@ function ModernoTemplateInner() {
               >
                 {s.countdown.days}
               </div>
-              <div className="font-[family-name:var(--font-mono)] text-[11px] tracking-[0.28em]">
+              <div className="font-[family-name:var(--font-mono)] text-[11px] lg:text-[13px] tracking-[0.28em]">
                 DIAS
               </div>
             </div>
@@ -176,16 +176,16 @@ function ModernoTemplateInner() {
                 </div>
               ))}
             </div>
-            <div className="mt-3 font-[family-name:var(--font-mono)] text-[10px] tracking-[0.14em] text-[#1c1c1c]/55">
+            <div className="mt-3 font-[family-name:var(--font-mono)] text-[10px] lg:text-[12px] tracking-[0.14em] text-[#1c1c1c]/55">
               ATÉ O &ldquo;SIM&rdquo; — 19.09.2026, 16H
             </div>
           </section>
 
           {/* 3. Nossa história */}
-          <section className="pt-2 pb-14">
+          <section className="pt-2 pb-14 lg:pb-32">
             <div className="flex items-center gap-3 mx-5 mb-6">
               <span
-                className="font-[family-name:var(--font-mono)] text-[11px]"
+                className="font-[family-name:var(--font-mono)] text-[11px] lg:text-[13px]"
                 style={{ color: ACCENT }}
               >
                 03
@@ -203,19 +203,19 @@ function ModernoTemplateInner() {
               <span style={{ color: ACCENT }}>.</span>
             </h2>
 
-            <p className="mx-5 mt-5 text-[15px] leading-relaxed text-[#1c1c1c]/90">
+            <p className="mx-5 mt-5 text-[15px] lg:text-[19px] leading-relaxed text-[#1c1c1c]/90">
               {DEMO_COUPLE.story}
             </p>
 
             <div className="mt-7">
               <PhotoSlot label="Foto larga, sangrada" className="aspect-[16/10] w-full" />
-              <div className="flex justify-between px-5 pt-2.5 font-[family-name:var(--font-mono)] text-[9.5px] tracking-[0.18em] text-[#1c1c1c]/60">
+              <div className="flex justify-between px-5 lg:px-[8vw] pt-2.5 font-[family-name:var(--font-mono)] text-[9.5px] tracking-[0.18em] text-[#1c1c1c]/60">
                 <span>FIG. 01</span>
                 <span>A FILA DO PASTEL, 2019</span>
               </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-3.5 px-5 items-start">
+            <div className="mt-6 grid grid-cols-2 gap-3.5 px-5 lg:px-[8vw] items-start">
               <figure className="mt-8 mb-0">
                 <PhotoSlot label="Foto 3:4" className="aspect-[3/4] w-full" />
                 <figcaption className="mt-2 font-[family-name:var(--font-mono)] text-[9.5px] tracking-[0.18em] text-[#1c1c1c]/60">
@@ -241,10 +241,10 @@ function ModernoTemplateInner() {
           </section>
 
           {/* 4. Informações */}
-          <section className="px-5 pt-2 pb-14">
+          <section className="px-5 lg:px-[8vw] pt-2 pb-14 lg:pb-32">
             <div className="flex items-center gap-3 mb-1.5">
               <span
-                className="font-[family-name:var(--font-mono)] text-[11px]"
+                className="font-[family-name:var(--font-mono)] text-[11px] lg:text-[13px]"
                 style={{ color: ACCENT }}
               >
                 04
@@ -318,10 +318,10 @@ function ModernoTemplateInner() {
 
           {/* 5. RSVP — a partir do pacote Site do Casamento */}
           {hasRsvp && (
-          <section className="px-5 pt-2 pb-14">
+          <section className="px-5 lg:px-[8vw] pt-2 pb-14 lg:pb-32">
             <div className="flex items-center gap-3 mb-6">
               <span
-                className="font-[family-name:var(--font-mono)] text-[11px]"
+                className="font-[family-name:var(--font-mono)] text-[11px] lg:text-[13px]"
                 style={{ color: ACCENT }}
               >
                 05
@@ -332,7 +332,7 @@ function ModernoTemplateInner() {
               </span>
             </div>
 
-            <h2 className="font-black text-[34px] leading-[0.95] tracking-[-0.03em] uppercase">
+            <h2 className="font-black text-[34px] lg:text-[56px] leading-[0.95] tracking-[-0.03em] uppercase">
               Você vai
               <span style={{ color: ACCENT }}>?</span>
             </h2>
@@ -343,7 +343,7 @@ function ModernoTemplateInner() {
 
             {!s.confirmed ? (
               <div className="mt-6 border border-[#1c1c1c]">
-                <div className="px-4 py-3 border-b border-[#1c1c1c] font-[family-name:var(--font-mono)] text-[10px] tracking-[0.2em]">
+                <div className="px-4 py-3 border-b border-[#1c1c1c] font-[family-name:var(--font-mono)] text-[10px] lg:text-[12px] tracking-[0.2em]">
                   CONVITE — FAMÍLIA MARTINS
                 </div>
                 <div className="px-4 pt-1">
@@ -363,7 +363,7 @@ function ModernoTemplateInner() {
                           <button
                             type="button"
                             onClick={() => s.setAnswer(guest, "yes")}
-                            className={`font-[family-name:var(--font-mono)] text-[10px] tracking-[0.14em] px-3.5 py-2.5 border transition-colors hover:border-[#1c1c1c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#bd5b32] ${
+                            className={`font-[family-name:var(--font-mono)] text-[10px] lg:text-[12px] tracking-[0.14em] px-3.5 py-2.5 border transition-colors hover:border-[#1c1c1c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#bd5b32] ${
                               answer === "yes"
                                 ? "bg-[#1c1c1c] border-[#1c1c1c] text-[#fafafa]"
                                 : "border-[#1c1c1c]/40 text-[#1c1c1c]"
@@ -374,7 +374,7 @@ function ModernoTemplateInner() {
                           <button
                             type="button"
                             onClick={() => s.setAnswer(guest, "no")}
-                            className={`font-[family-name:var(--font-mono)] text-[10px] tracking-[0.14em] px-3.5 py-2.5 border transition-colors hover:border-[#1c1c1c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#bd5b32] ${
+                            className={`font-[family-name:var(--font-mono)] text-[10px] lg:text-[12px] tracking-[0.14em] px-3.5 py-2.5 border transition-colors hover:border-[#1c1c1c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#bd5b32] ${
                               answer === "no"
                                 ? "text-[#fafafa]"
                                 : "border-[#1c1c1c]/40 text-[#1c1c1c]"
@@ -397,14 +397,14 @@ function ModernoTemplateInner() {
                     type="button"
                     onClick={s.confirm}
                     disabled={!s.canConfirm}
-                    className="w-full font-[family-name:var(--font-mono)] bg-[#1c1c1c] text-[#fafafa] text-[11px] tracking-[0.22em] py-4 border border-[#1c1c1c] transition-colors hover:bg-[#bd5b32] hover:border-[#bd5b32] disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#bd5b32]"
+                    className="w-full font-[family-name:var(--font-mono)] bg-[#1c1c1c] text-[#fafafa] text-[11px] lg:text-[13px] tracking-[0.22em] py-4 border border-[#1c1c1c] transition-colors hover:bg-[#bd5b32] hover:border-[#bd5b32] disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#bd5b32]"
                   >
                     CONFIRMAR →
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="mt-6 border border-[#1c1c1c] px-5 py-7">
+              <div className="mt-6 border border-[#1c1c1c] px-5 lg:px-[8vw] py-7">
                 <div
                   className="font-black text-[44px] leading-[0.9] tracking-[-0.03em] uppercase"
                   style={{ color: ACCENT }}
@@ -429,10 +429,10 @@ function ModernoTemplateInner() {
 
           {/* 6. Lista de presentes — só no Para Sempre */}
           {hasGifts && (
-          <section className="px-5 pt-2 pb-14">
+          <section className="px-5 lg:px-[8vw] pt-2 pb-14 lg:pb-32">
             <div className="flex items-center gap-3 mb-6">
               <span
-                className="font-[family-name:var(--font-mono)] text-[11px]"
+                className="font-[family-name:var(--font-mono)] text-[11px] lg:text-[13px]"
                 style={{ color: ACCENT }}
               >
                 06
@@ -443,7 +443,7 @@ function ModernoTemplateInner() {
               </span>
             </div>
 
-            <h2 className="font-black text-[34px] leading-[0.95] tracking-[-0.03em] uppercase">
+            <h2 className="font-black text-[34px] lg:text-[56px] leading-[0.95] tracking-[-0.03em] uppercase">
               Quer mimar
               <br />a gente
               <span style={{ color: ACCENT }}>?</span>
@@ -464,7 +464,7 @@ function ModernoTemplateInner() {
                   }
                   onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "none")}
                 >
-                  <div className="font-bold text-[15px] leading-tight tracking-[-0.01em] min-h-[56px]">
+                  <div className="font-bold text-[15px] lg:text-[19px] leading-tight tracking-[-0.01em] min-h-[56px]">
                     {gift.name}
                   </div>
                   <div className="font-[family-name:var(--font-mono)] text-xs text-[#1c1c1c]/70">
@@ -473,7 +473,7 @@ function ModernoTemplateInner() {
                   <button
                     type="button"
                     onClick={() => s.openGift(i)}
-                    className="font-[family-name:var(--font-mono)] bg-[#1c1c1c] text-[#fafafa] text-[10px] tracking-[0.18em] py-2.5 border border-[#1c1c1c] transition-colors hover:bg-[#bd5b32] hover:border-[#bd5b32] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#bd5b32]"
+                    className="font-[family-name:var(--font-mono)] bg-[#1c1c1c] text-[#fafafa] text-[10px] lg:text-[12px] tracking-[0.18em] py-2.5 border border-[#1c1c1c] transition-colors hover:bg-[#bd5b32] hover:border-[#bd5b32] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#bd5b32]"
                   >
                     PRESENTEAR
                   </button>
@@ -485,10 +485,10 @@ function ModernoTemplateInner() {
 
           {/* 7. Mural de recados — a partir do pacote Site do Casamento */}
           {hasRsvp && (
-          <section className="px-5 pt-2 pb-14">
+          <section className="px-5 lg:px-[8vw] pt-2 pb-14 lg:pb-32">
             <div className="flex items-center gap-3 mb-6">
               <span
-                className="font-[family-name:var(--font-mono)] text-[11px]"
+                className="font-[family-name:var(--font-mono)] text-[11px] lg:text-[13px]"
                 style={{ color: ACCENT }}
               >
                 07
@@ -499,7 +499,7 @@ function ModernoTemplateInner() {
               </span>
             </div>
 
-            <h2 className="font-black text-[34px] leading-[0.95] tracking-[-0.03em] uppercase">
+            <h2 className="font-black text-[34px] lg:text-[56px] leading-[0.95] tracking-[-0.03em] uppercase">
               Deixa registrado
               <span style={{ color: ACCENT }}>.</span>
             </h2>
@@ -530,7 +530,7 @@ function ModernoTemplateInner() {
             </div>
 
             <div className="mt-6">
-              <div className="font-[family-name:var(--font-mono)] text-[10px] tracking-[0.22em] text-[#1c1c1c]/60">
+              <div className="font-[family-name:var(--font-mono)] text-[10px] lg:text-[12px] tracking-[0.22em] text-[#1c1c1c]/60">
                 ESCREVE AÍ:
               </div>
               <div className="mt-3.5 flex flex-col gap-4.5">
@@ -540,7 +540,7 @@ function ModernoTemplateInner() {
                   value={s.guestName}
                   onChange={(e) => s.setGuestName(e.target.value)}
                   placeholder="Seu nome"
-                  className="w-full font-[family-name:var(--font-display)] text-[15px] font-medium text-[#1c1c1c] bg-transparent border-0 border-b border-[#1c1c1c] px-0.5 py-2.5 focus:outline-none focus:border-b-2 focus:border-[#bd5b32]"
+                  className="w-full font-[family-name:var(--font-display)] text-[15px] lg:text-[19px] font-medium text-[#1c1c1c] bg-transparent border-0 border-b border-[#1c1c1c] px-0.5 py-2.5 focus:outline-none focus:border-b-2 focus:border-[#bd5b32]"
                 />
                 <textarea
                   aria-label="Sua mensagem"
@@ -548,7 +548,7 @@ function ModernoTemplateInner() {
                   value={s.guestMessage}
                   onChange={(e) => s.setGuestMessage(e.target.value)}
                   placeholder="Seu recado (pode ser curto, pode ser piegas)"
-                  className="w-full resize-y font-[family-name:var(--font-display)] text-[15px] font-medium text-[#1c1c1c] bg-transparent border-0 border-b border-[#1c1c1c] px-0.5 py-2.5 focus:outline-none focus:border-b-2 focus:border-[#bd5b32]"
+                  className="w-full resize-y font-[family-name:var(--font-display)] text-[15px] lg:text-[19px] font-medium text-[#1c1c1c] bg-transparent border-0 border-b border-[#1c1c1c] px-0.5 py-2.5 focus:outline-none focus:border-b-2 focus:border-[#bd5b32]"
                 />
                 <div>
                   <button
@@ -569,7 +569,7 @@ function ModernoTemplateInner() {
           <section className="pt-2">
             <div className="flex items-center gap-3 mx-5 mb-5.5">
               <span
-                className="font-[family-name:var(--font-mono)] text-[11px]"
+                className="font-[family-name:var(--font-mono)] text-[11px] lg:text-[13px]"
                 style={{ color: ACCENT }}
               >
                 08
@@ -581,8 +581,8 @@ function ModernoTemplateInner() {
             </div>
 
             {!s.albumUnlocked ? (
-              <div className="bg-[#1c1c1c] text-[#fafafa] px-5 pt-12 pb-13">
-                <div className="font-[family-name:var(--font-mono)] text-[10px] tracking-[0.26em] text-[#fafafa]/60">
+              <div className="bg-[#1c1c1c] text-[#fafafa] px-5 lg:px-[8vw] pt-12 lg:pt-28 pb-13">
+                <div className="font-[family-name:var(--font-mono)] text-[10px] lg:text-[12px] tracking-[0.26em] text-[#fafafa]/60">
                   ÁLBUM TRANCADO
                 </div>
                 <div className="mt-3.5 font-black text-[38px] sm:text-[44px] leading-[0.92] tracking-[-0.03em] uppercase">
@@ -611,7 +611,7 @@ function ModernoTemplateInner() {
             ) : (
               <div className="pb-2">
                 <PhotoSlot label="Foto da festa, larga" className="aspect-[16/10] w-full" />
-                <div className="mt-3 grid grid-cols-2 gap-3 px-5">
+                <div className="mt-3 grid grid-cols-2 gap-3 px-5 lg:px-[8vw]">
                   {["Pista lotada", "O brinde", "Os padrinhos", "A saída"].map(
                     (label) => (
                       <PhotoSlot
@@ -622,15 +622,15 @@ function ModernoTemplateInner() {
                     )
                   )}
                 </div>
-                <div className="mt-3 px-5 font-[family-name:var(--font-mono)] text-[10px] tracking-[0.16em] text-[#1c1c1c]/55">
+                <div className="mt-3 px-5 lg:px-[8vw] font-[family-name:var(--font-mono)] text-[10px] lg:text-[12px] tracking-[0.16em] text-[#1c1c1c]/55">
                   ARRASTE AS MELHORES PRA CÁ →
                 </div>
                 {s.albumPreview && (
-                  <div className="mt-3 px-5">
+                  <div className="mt-3 px-5 lg:px-[8vw]">
                     <button
                       type="button"
                       onClick={() => s.setAlbumPreview(false)}
-                      className="font-[family-name:var(--font-mono)] text-[10px] tracking-[0.16em] text-[#1c1c1c]/60 underline underline-offset-4 hover:text-[#bd5b32]"
+                      className="font-[family-name:var(--font-mono)] text-[10px] lg:text-[12px] tracking-[0.16em] text-[#1c1c1c]/60 underline underline-offset-4 hover:text-[#bd5b32]"
                     >
                       VOLTAR AO ESTADO BLOQUEADO
                     </button>
@@ -642,12 +642,12 @@ function ModernoTemplateInner() {
           )}
 
           {/* 9. Rodapé */}
-          <footer className="bg-[#1c1c1c] text-[#fafafa] px-5 pt-11 pb-9 -mt-px">
+          <footer className="bg-[#1c1c1c] text-[#fafafa] px-5 lg:px-[8vw] pt-11 lg:pt-24 pb-9 lg:pb-20 -mt-px">
             <div className="font-black text-[38px] sm:text-[44px] leading-[0.9] tracking-[-0.035em] uppercase break-words">
               #AnaEPedro
               <span style={{ color: ACCENT }}>26</span>
             </div>
-            <div className="mt-3.5 flex justify-between gap-2.5 font-[family-name:var(--font-mono)] text-[10px] tracking-[0.16em] text-[#fafafa]/65">
+            <div className="mt-3.5 flex justify-between gap-2.5 font-[family-name:var(--font-mono)] text-[10px] lg:text-[12px] tracking-[0.16em] text-[#fafafa]/65">
               <span>19.09.2026</span>
               <span>FORTALEZA — CE</span>
             </div>
@@ -670,7 +670,7 @@ function ModernoTemplateInner() {
           >
             <div className="flex justify-between items-center px-4 py-3 border-b border-[#1c1c1c]">
               <span
-                className="font-[family-name:var(--font-mono)] text-[10px] tracking-[0.22em]"
+                className="font-[family-name:var(--font-mono)] text-[10px] lg:text-[12px] tracking-[0.22em]"
                 style={{ color: ACCENT }}
               >
                 PIX — PRESENTE
@@ -679,7 +679,7 @@ function ModernoTemplateInner() {
                 type="button"
                 onClick={s.closeGift}
                 aria-label="Fechar"
-                className="text-[17px] text-[#1c1c1c] p-1 leading-none hover:text-[#bd5b32] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#bd5b32]"
+                className="text-[17px] lg:text-[23px] text-[#1c1c1c] p-1 leading-none hover:text-[#bd5b32] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#bd5b32]"
               >
                 ×
               </button>
@@ -688,7 +688,7 @@ function ModernoTemplateInner() {
               <div className="font-extrabold text-xl leading-snug tracking-[-0.02em]">
                 {s.gift.name}
               </div>
-              <div className="mt-1 font-[family-name:var(--font-mono)] text-[13px] text-[#1c1c1c]/70">
+              <div className="mt-1 font-[family-name:var(--font-mono)] text-[13px] lg:text-[16px] text-[#1c1c1c]/70">
                 R$ {s.gift.priceReais}
               </div>
 
@@ -699,7 +699,7 @@ function ModernoTemplateInner() {
               <div className="mt-4 font-[family-name:var(--font-mono)] text-[9.5px] tracking-[0.24em] text-[#1c1c1c]/60">
                 PIX COPIA E COLA
               </div>
-              <div className="mt-1.5 font-[family-name:var(--font-mono)] text-[10px] leading-relaxed break-all bg-white border border-[#1c1c1c]/20 p-2.5 text-[#3a3a36] max-h-[72px] overflow-y-auto">
+              <div className="mt-1.5 font-[family-name:var(--font-mono)] text-[10px] lg:text-[12px] leading-relaxed break-all bg-white border border-[#1c1c1c]/20 p-2.5 text-[#3a3a36] max-h-[72px] overflow-y-auto">
                 {buildDemoPixCode(s.gift.priceReais)}
               </div>
 

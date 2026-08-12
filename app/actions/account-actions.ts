@@ -97,11 +97,14 @@ export async function signinAction(formData: FormData) {
 
   const admin = email ? await getAdminByEmail(email) : null;
   if (admin && (await verifyPassword(password, admin.passwordHash))) {
-    // Credencial certa, porta errada — não cria sessão nenhuma aqui.
-    return {
-      error:
-        "Essa é uma conta de administrador. Entre pela tela da equipe em /admin/login.",
-    };
+    // Credencial certa, porta errada — continua sem criar sessão nenhuma aqui.
+    //
+    // A resposta é a MESMA de senha errada, de propósito. A mensagem anterior
+    // ("essa é uma conta de administrador") dizia a quem digitasse um e-mail
+    // qualquer se aquele endereço era de admin — enumeração de conta de graça,
+    // e logo a mais interessante de descobrir. Quem é da equipe já sabe onde
+    // fica a porta dele.
+    return { error: "E-mail ou senha incorretos." };
   }
 
   // Nenhuma conta bateu. Se o e-mail nem existe, roda um scrypt descartável

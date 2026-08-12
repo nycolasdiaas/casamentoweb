@@ -6,6 +6,7 @@ import {
 } from "@/lib/repositories/orders";
 import { getChargeStatus } from "@/lib/payments/abacatepay";
 import CancelOrderButton from "@/components/account/CancelOrderButton";
+import ProofStamp from "@/components/account/ProofStamp";
 import OrderStatusTracker, {
   type TrackerOrder,
 } from "@/components/account/OrderStatusTracker";
@@ -75,12 +76,23 @@ export default async function GerenciarInicioPage({
   }
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-1.5">
-        <h1 className="text-2xl font-bold tracking-tight">O site de vocês</h1>
-        <p className="text-sm text-(--color-olive)/70">
-          Cada etapa, da produção até o site no ar.
-        </p>
+    <div className="flex flex-col gap-12">
+      {/* O carimbo fica ao lado do título, não dentro do acompanhamento: é a
+          primeira coisa que o casal procura ao reabrir a tela, e é aqui que a
+          ousadia da refatoração inteira foi gasta — uma vez, num lugar só. */}
+      <div className="flex flex-wrap items-start justify-between gap-6">
+        <div className="flex flex-col gap-3">
+          <span className="meta text-(--c-ink-2)">Nosso pedido</span>
+          <h1 className="t-display text-2xl md:text-[30px] leading-[1.15] text-(--c-ink)">
+            O site de vocês
+          </h1>
+          <p className="text-base leading-relaxed text-(--c-ink-2) max-w-[52ch]">
+            Cada etapa, da produção até o site no ar.
+          </p>
+        </div>
+        <div className="pt-2 pr-2">
+          <ProofStamp status={status} quando={order.updatedAt} />
+        </div>
       </div>
 
       <OrderStatusTracker
@@ -102,7 +114,7 @@ export default async function GerenciarInicioPage({
       {publicacaoFalhou && (
         <p
           role="alert"
-          className="rounded-xl border border-(--color-gold)/50 bg-(--color-blush) px-4 py-3 text-sm leading-relaxed text-(--color-olive)"
+          className="surface-sunken rounded-[3px] px-4 py-3 text-[15px] leading-relaxed text-(--c-ink) max-w-[60ch]"
         >
           Recebemos o pagamento de vocês, mas não conseguimos colocar o site no
           ar automaticamente. Já estamos vendo isso — se preferir, chame a gente
@@ -119,9 +131,9 @@ export default async function GerenciarInicioPage({
       )}
 
       {canCancelOrder(status) && (
-        <div className="flex flex-col gap-1 border-t border-(--color-gold)/30 pt-5">
+        <div className="flex flex-col gap-1 border-t border-(--c-rule) pt-5">
           <CancelOrderButton orderId={order.id} label="Cancelar este pedido" />
-          <p className="text-xs text-(--color-muted)">
+          <p className="text-[13px] text-(--c-ink-2)">
             Dá para cancelar enquanto o pedido ainda não entrou em produção.
           </p>
         </div>

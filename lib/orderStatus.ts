@@ -97,7 +97,7 @@ export const STATUS_META: Record<OrderStatus, StatusMeta> = {
     icon: "🎉",
     title: "O site de vocês está no ar!",
     description:
-      "Prontinho! O site está publicado e pronto para compartilhar com todo mundo. Parabéns, casal 💚",
+      "Prontinho! O site está publicado e pronto para compartilhar com todo mundo. Parabéns, casal!",
     adminLabel: "Site no ar (finalizado)",
   },
 };

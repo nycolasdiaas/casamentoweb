@@ -7,13 +7,13 @@ export default function HeroPreview() {
         <span className="size-2 rounded-full bg-(--color-gold)/50" />
         <span className="size-2 rounded-full bg-(--color-gold)/50" />
         <span className="size-2 rounded-full bg-(--color-gold)/50" />
-        <span className="ml-2 flex-1 rounded bg-white/80 px-2 py-0.5 text-[10px] text-(--color-muted) truncate">
+        <span className="ml-2 flex-1 rounded bg-white/80 px-2 py-0.5 text-[10px] text-(--color-olive) truncate">
           anaepedro.com.br
         </span>
       </div>
 
       <div className="flex flex-col items-center gap-3 bg-(--color-paper) px-6 py-8 text-center">
-        <p className="text-[9px] tracking-[0.3em] uppercase text-(--color-gold)">
+        <p className="text-[9px] tracking-[0.3em] uppercase text-(--color-olive)">
           Save the Date
         </p>
         <p className="font-script text-4xl text-(--color-olive)">Ana & Pedro</p>
@@ -34,7 +34,7 @@ export default function HeroPreview() {
               <span className="text-sm font-semibold text-(--color-olive) tabular-nums">
                 {value}
               </span>
-              <span className="text-[8px] tracking-[0.2em] uppercase text-(--color-muted)">
+              <span className="text-[8px] tracking-[0.2em] uppercase text-(--color-olive)">
                 {label}
               </span>
             </span>
@@ -43,10 +43,10 @@ export default function HeroPreview() {
 
         <div className="grid grid-cols-2 gap-2 w-full pt-2">
           <span className="flex items-center justify-center gap-1 bg-(--color-olive) text-white text-[10px] px-2 py-2">
-            Confirmar presença 💚
+            Confirmar presença
           </span>
           <span className="flex items-center justify-center gap-1 border border-(--color-gold) text-(--color-olive) text-[10px] px-2 py-2 bg-white">
-            Lista de presentes 🎁
+            Lista de presentes
           </span>
         </div>
       </div>

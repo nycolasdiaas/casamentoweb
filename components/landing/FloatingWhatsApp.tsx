@@ -7,7 +7,7 @@ export default function FloatingWhatsApp() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Conversar no WhatsApp"
-      className="fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-full bg-[#25D366] text-white pl-3 pr-4 py-3 shadow-lg hover:scale-105 transition-transform"
+      className="fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-full bg-[#075E54] text-white pl-3 pr-4 py-3 shadow-lg hover:scale-105 transition-transform"
     >
       <svg
         viewBox="0 0 24 24"

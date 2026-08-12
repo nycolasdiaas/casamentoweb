@@ -25,7 +25,7 @@ export default function CancelOrderButton({
       <input type="hidden" name="orderId" value={orderId} />
       <button
         type="submit"
-        className="text-xs text-red-700 underline underline-offset-2 hover:text-red-800"
+        className="whitespace-nowrap text-[13px] text-(--c-ink-2) underline underline-offset-2 transition-colors hover:text-(--c-mark) cursor-pointer"
       >
         {label}
       </button>

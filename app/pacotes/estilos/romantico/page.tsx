@@ -106,7 +106,7 @@ function RomanticoTemplateInner() {
       >
         <div className="font-[family-name:var(--font-body)] text-[#7c4a55]">
           {/* 1. Capa / Save the Date */}
-          <section className="relative px-6.5 pt-13 pb-12 overflow-hidden">
+          <section className="relative px-6 lg:px-[8vw].5 pt-13 pb-12 lg:pb-28 overflow-hidden">
             <svg
               width="190"
               height="190"
@@ -131,13 +131,13 @@ function RomanticoTemplateInner() {
             </svg>
 
             <div className="relative text-center">
-              <div className="text-[11px] tracking-[0.34em] uppercase text-[#b96a78]">
+              <div className="text-[11px] lg:text-[13px] tracking-[0.34em] uppercase text-[#b96a78]">
                 Com a bênção de suas famílias
               </div>
 
-              <h1 className="mt-4.5 font-[family-name:var(--font-script)] font-normal text-[56px] sm:text-[64px] leading-[1.02] text-[#7c4a55]">
+              <h1 className="mt-4.5 font-[family-name:var(--font-script)] font-normal text-[56px] lg:text-[96px] sm:text-[64px] leading-[1.02] text-[#7c4a55]">
                 Ana
-                <span className="block text-[30px] sm:text-[34px] text-[#d9a3ae] leading-none">
+                <span className="block text-[30px] sm:text-[34px] lg:text-[56px] text-[#d9a3ae] leading-none">
                   e
                 </span>
                 Pedro
@@ -145,7 +145,7 @@ function RomanticoTemplateInner() {
 
               <DotDivider />
 
-              <p className="mt-4.5 italic text-[15px] leading-relaxed text-[#7c4a55]/85">
+              <p className="mt-4.5 italic text-[15px] lg:text-[19px] leading-relaxed text-[#7c4a55]/85">
                 convidam você para celebrar
                 <br />o dia do seu &ldquo;sim&rdquo;
               </p>
@@ -158,10 +158,10 @@ function RomanticoTemplateInner() {
                 />
               </div>
 
-              <div className="mt-7 text-[11px] tracking-[0.3em] uppercase text-[#7c4a55]/70">
+              <div className="mt-7 text-[11px] lg:text-[13px] tracking-[0.3em] uppercase text-[#7c4a55]/70">
                 Sábado · 16h
               </div>
-              <div className="mt-2 font-[family-name:var(--font-script)] text-[34px] sm:text-[37px] leading-tight text-[#7c4a55]">
+              <div className="mt-2 font-[family-name:var(--font-script)] text-[34px] lg:text-[56px] sm:text-[37px] lg:text-[60px] leading-tight text-[#7c4a55]">
                 19 de setembro de 2026
               </div>
               <div className="mt-2.5 text-sm italic text-[#7c4a55]/85">
@@ -173,12 +173,12 @@ function RomanticoTemplateInner() {
           <Branch />
 
           {/* 2. Contagem regressiva */}
-          <section className="px-6.5 pt-11 pb-13 bg-[#fbe9ec]">
+          <section className="px-6 lg:px-[8vw].5 pt-11 lg:pt-24 pb-13 bg-[#fbe9ec]">
             <div className="text-center mb-6.5">
               <div className="font-[family-name:var(--font-script)] text-4xl leading-tight text-[#b96a78]">
                 Falta pouco…
               </div>
-              <div className="mt-2 text-[11px] tracking-[0.3em] uppercase text-[#7c4a55]/65">
+              <div className="mt-2 text-[11px] lg:text-[13px] tracking-[0.3em] uppercase text-[#7c4a55]/65">
                 para o nosso pôr do sol
               </div>
             </div>
@@ -197,7 +197,7 @@ function RomanticoTemplateInner() {
                   <div className="font-[family-name:var(--font-body)] font-medium text-[38px] leading-none tabular-nums text-[#7c4a55]">
                     {value}
                   </div>
-                  <div className="mt-1.5 text-[10px] tracking-[0.3em] uppercase text-[#b96a78]">
+                  <div className="mt-1.5 text-[10px] lg:text-[12px] tracking-[0.3em] uppercase text-[#b96a78]">
                     {label}
                   </div>
                 </div>
@@ -206,7 +206,7 @@ function RomanticoTemplateInner() {
           </section>
 
           {/* 3. Nossa história */}
-          <section className="px-6.5 pt-14 pb-15">
+          <section className="px-6 lg:px-[8vw].5 pt-14 lg:pt-32 pb-15">
             <div className="text-center mb-6">
               <div className="font-[family-name:var(--font-script)] text-[44px] leading-tight text-[#7c4a55]">
                 Nossa história
@@ -244,7 +244,7 @@ function RomanticoTemplateInner() {
                 label="A primeira dança, retrato"
                 className="w-full aspect-[250/318] rounded-[50%/38%]"
               />
-              <div className="mt-3 text-center italic text-[13px] text-[#7c4a55]/70">
+              <div className="mt-3 text-center italic text-[13px] lg:text-[16px] text-[#7c4a55]/70">
                 a primeira dança, 2019
               </div>
             </div>
@@ -271,7 +271,7 @@ function RomanticoTemplateInner() {
           <Branch />
 
           {/* 4. Informações */}
-          <section className="px-6.5 pt-12 pb-14 bg-[#fbe9ec]">
+          <section className="px-6 lg:px-[8vw].5 pt-12 lg:pt-28 pb-14 lg:pb-32 bg-[#fbe9ec]">
             <div className="text-center mb-6.5">
               <div className="font-[family-name:var(--font-script)] text-[44px] leading-tight text-[#7c4a55]">
                 O grande dia
@@ -279,7 +279,7 @@ function RomanticoTemplateInner() {
             </div>
 
             <div className="flex flex-col gap-4">
-              <div className="bg-[#fdf2f4] border border-[#ecc9d0] rounded-[26px] px-6 py-7 text-center">
+              <div className="bg-[#fdf2f4] border border-[#ecc9d0] rounded-[26px] px-6 lg:px-[8vw] py-7 text-center">
                 <div className="flex justify-center">
                   <svg width="30" height="30" viewBox="0 0 30 30" fill="none" aria-hidden>
                     <path
@@ -293,7 +293,7 @@ function RomanticoTemplateInner() {
                 <div className="mt-2.5 text-[10.5px] tracking-[0.32em] uppercase text-[#b96a78]">
                   Cerimônia · 16h
                 </div>
-                <div className="mt-2 font-semibold text-[19px]">
+                <div className="mt-2 font-semibold text-[19px] lg:text-[26px]">
                   {DEMO_COUPLE.venue}
                 </div>
                 <div className="mt-1.5 text-sm leading-relaxed text-[#7c4a55]/80">
@@ -301,7 +301,7 @@ function RomanticoTemplateInner() {
                   <br />
                   {DEMO_COUPLE.city}
                 </div>
-                <div className="mt-1 italic text-[13px] text-[#7c4a55]/65">
+                <div className="mt-1 italic text-[13px] lg:text-[16px] text-[#7c4a55]/65">
                   cheguem cedinho: o sol se põe às 17h30
                 </div>
                 <div className="mt-4 flex justify-center">
@@ -309,14 +309,14 @@ function RomanticoTemplateInner() {
                     href="https://maps.google.com/?q=Espa%C3%A7o+Jardim+das+Oliveiras,+Fortaleza"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-block bg-[#7c4a55] text-[#fdf2f4] text-[11px] tracking-[0.22em] uppercase px-6.5 py-3.5 rounded-full border border-[#7c4a55] transition-colors hover:bg-[#b96a78] hover:border-[#b96a78] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#b96a78]"
+                    className="inline-block bg-[#7c4a55] text-[#fdf2f4] text-[11px] lg:text-[13px] tracking-[0.22em] uppercase px-6 lg:px-[8vw].5 py-3.5 rounded-full border border-[#7c4a55] transition-colors hover:bg-[#b96a78] hover:border-[#b96a78] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#b96a78]"
                   >
                     Ver no mapa
                   </a>
                 </div>
               </div>
 
-              <div className="bg-[#fdf2f4] border border-[#ecc9d0] rounded-[26px] px-6 py-7 text-center">
+              <div className="bg-[#fdf2f4] border border-[#ecc9d0] rounded-[26px] px-6 lg:px-[8vw] py-7 text-center">
                 <div className="flex justify-center">
                   <svg width="30" height="30" viewBox="0 0 30 30" fill="none" aria-hidden>
                     <path
@@ -336,7 +336,7 @@ function RomanticoTemplateInner() {
                 <div className="mt-2.5 text-[10.5px] tracking-[0.32em] uppercase text-[#b96a78]">
                   Recepção · 18h
                 </div>
-                <div className="mt-2 font-semibold text-[19px]">
+                <div className="mt-2 font-semibold text-[19px] lg:text-[26px]">
                   No mesmo jardim
                 </div>
                 <div className="mt-1.5 text-sm leading-relaxed text-[#7c4a55]/80">
@@ -348,14 +348,14 @@ function RomanticoTemplateInner() {
                     href="https://maps.google.com/?q=Espa%C3%A7o+Jardim+das+Oliveiras,+Fortaleza"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-block bg-transparent text-[#7c4a55] text-[11px] tracking-[0.22em] uppercase px-6.5 py-3.5 rounded-full border border-[#d9a3ae] transition-colors hover:bg-[#7c4a55] hover:text-[#fdf2f4] hover:border-[#7c4a55] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#b96a78]"
+                    className="inline-block bg-transparent text-[#7c4a55] text-[11px] lg:text-[13px] tracking-[0.22em] uppercase px-6 lg:px-[8vw].5 py-3.5 rounded-full border border-[#d9a3ae] transition-colors hover:bg-[#7c4a55] hover:text-[#fdf2f4] hover:border-[#7c4a55] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#b96a78]"
                   >
                     Como chegar
                   </a>
                 </div>
               </div>
 
-              <div className="bg-[#fdf2f4] border border-dashed border-[#d9a3ae] rounded-[26px] px-6 py-6 text-center">
+              <div className="bg-[#fdf2f4] border border-dashed border-[#d9a3ae] rounded-[26px] px-6 lg:px-[8vw] py-6 text-center">
                 <div className="text-[10.5px] tracking-[0.32em] uppercase text-[#b96a78]">
                   Traje
                 </div>
@@ -372,7 +372,7 @@ function RomanticoTemplateInner() {
 
           {/* 5. RSVP — a partir do pacote Site do Casamento */}
           {hasRsvp && (
-          <section className="px-6.5 pt-14 pb-15">
+          <section className="px-6 lg:px-[8vw].5 pt-14 lg:pt-32 pb-15">
             <div className="text-center mb-5.5">
               <div className="font-[family-name:var(--font-script)] text-[44px] leading-tight text-[#7c4a55]">
                 Você vem?
@@ -380,7 +380,7 @@ function RomanticoTemplateInner() {
               <DotDivider />
             </div>
 
-            <p className="mb-6 text-center text-[15px] leading-relaxed text-[#7c4a55]/85">
+            <p className="mb-6 text-center text-[15px] lg:text-[19px] leading-relaxed text-[#7c4a55]/85">
               Cada cadeira do jardim tem um nome. Confirme o seu com carinho
               até{" "}
               <span className="italic font-medium">19 de agosto de 2026</span>
@@ -407,7 +407,7 @@ function RomanticoTemplateInner() {
                           <button
                             type="button"
                             onClick={() => s.setAnswer(guest, "yes")}
-                            className={`text-[11px] tracking-[0.12em] uppercase px-4 py-2.5 rounded-full border transition-colors hover:border-[#b96a78] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#b96a78] ${
+                            className={`text-[11px] lg:text-[13px] tracking-[0.12em] uppercase px-4 py-2.5 rounded-full border transition-colors hover:border-[#b96a78] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#b96a78] ${
                               answer === "yes"
                                 ? "bg-[#7c4a55] border-[#7c4a55] text-[#fdf2f4]"
                                 : "bg-[#fdf2f4] border-[#d9a3ae] text-[#7c4a55]"
@@ -418,7 +418,7 @@ function RomanticoTemplateInner() {
                           <button
                             type="button"
                             onClick={() => s.setAnswer(guest, "no")}
-                            className={`text-[11px] tracking-[0.12em] uppercase px-4 py-2.5 rounded-full border transition-colors hover:border-[#b96a78] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#b96a78] ${
+                            className={`text-[11px] lg:text-[13px] tracking-[0.12em] uppercase px-4 py-2.5 rounded-full border transition-colors hover:border-[#b96a78] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#b96a78] ${
                               answer === "no"
                                 ? "bg-[#a8877e] border-[#a8877e] text-[#fdf2f4]"
                                 : "bg-[#fdf2f4] border-[#d9a3ae] text-[#7c4a55]"
@@ -443,11 +443,11 @@ function RomanticoTemplateInner() {
                 </div>
               </div>
             ) : (
-              <div className="bg-[#fbe9ec] border border-[#ecc9d0] rounded-[26px] px-6 py-8.5 text-center">
+              <div className="bg-[#fbe9ec] border border-[#ecc9d0] rounded-[26px] px-6 lg:px-[8vw] py-8.5 text-center">
                 <div className="font-[family-name:var(--font-script)] text-[48px] leading-tight text-[#b96a78]">
                   Que alegria!
                 </div>
-                <p className="mt-3 text-[15px] leading-relaxed text-[#7c4a55]/85">
+                <p className="mt-3 text-[15px] lg:text-[19px] leading-relaxed text-[#7c4a55]/85">
                   Sua resposta chegou direitinho.
                   <br />O jardim ficou mais bonito com você nele.
                 </p>
@@ -465,14 +465,14 @@ function RomanticoTemplateInner() {
 
           {/* 6. Lista de presentes — só no Para Sempre */}
           {hasGifts && (
-          <section className="px-6.5 pt-12 pb-14 bg-[#fbe9ec]">
+          <section className="px-6 lg:px-[8vw].5 pt-12 lg:pt-28 pb-14 lg:pb-32 bg-[#fbe9ec]">
             <div className="text-center mb-5.5">
               <div className="font-[family-name:var(--font-script)] text-[44px] leading-tight text-[#7c4a55]">
                 Lista de presentes
               </div>
             </div>
 
-            <p className="mb-6 text-center text-[15px] leading-relaxed text-[#7c4a55]/85">
+            <p className="mb-6 text-center text-[15px] lg:text-[19px] leading-relaxed text-[#7c4a55]/85">
               O maior presente é ver o jardim cheio de quem amamos. Mas quem
               quiser deixar um mimo, cada um vira um pedacinho da lua de mel.
             </p>
@@ -504,12 +504,12 @@ function RomanticoTemplateInner() {
 
           {/* 7. Mural de recados — a partir do pacote Site do Casamento */}
           {hasRsvp && (
-          <section className="px-6.5 pt-14 pb-15">
+          <section className="px-6 lg:px-[8vw].5 pt-14 lg:pt-32 pb-15">
             <div className="text-center mb-5.5">
               <div className="font-[family-name:var(--font-script)] text-[44px] leading-tight text-[#7c4a55]">
                 Mural de recados
               </div>
-              <div className="mt-2 text-[11px] tracking-[0.3em] uppercase text-[#7c4a55]/65">
+              <div className="mt-2 text-[11px] lg:text-[13px] tracking-[0.3em] uppercase text-[#7c4a55]/65">
                 palavras que vamos guardar
               </div>
             </div>
@@ -530,7 +530,7 @@ function RomanticoTemplateInner() {
                     <circle cx="10" cy="10" r="6" fill="#d9a3ae" />
                     <circle cx="10" cy="10" r="2.6" fill="#b96a78" />
                   </svg>
-                  <p className="mt-1 italic text-[15px] leading-relaxed text-[#7c4a55]">
+                  <p className="mt-1 italic text-[15px] lg:text-[19px] leading-relaxed text-[#7c4a55]">
                     &ldquo;{msg.text}&rdquo;
                   </p>
                   <div className="mt-2.5 flex items-baseline gap-2">
@@ -563,7 +563,7 @@ function RomanticoTemplateInner() {
                     value={s.guestName}
                     onChange={(e) => s.setGuestName(e.target.value)}
                     placeholder="Maria da Graça"
-                    className="w-full text-[15px] text-[#7c4a55] bg-[#fdf2f4] border border-[#ecc9d0] rounded-[14px] px-4 py-3.5 transition-colors focus:border-[#b96a78] focus:outline-none"
+                    className="w-full text-[15px] lg:text-[19px] text-[#7c4a55] bg-[#fdf2f4] border border-[#ecc9d0] rounded-[14px] px-4 py-3.5 transition-colors focus:border-[#b96a78] focus:outline-none"
                   />
                 </div>
                 <div>
@@ -579,7 +579,7 @@ function RomanticoTemplateInner() {
                     value={s.guestMessage}
                     onChange={(e) => s.setGuestMessage(e.target.value)}
                     placeholder="Escreva com o coração…"
-                    className="w-full resize-y text-[15px] text-[#7c4a55] bg-[#fdf2f4] border border-[#ecc9d0] rounded-[14px] px-4 py-3.5 transition-colors focus:border-[#b96a78] focus:outline-none"
+                    className="w-full resize-y text-[15px] lg:text-[19px] text-[#7c4a55] bg-[#fdf2f4] border border-[#ecc9d0] rounded-[14px] px-4 py-3.5 transition-colors focus:border-[#b96a78] focus:outline-none"
                   />
                 </div>
                 <div className="flex justify-center">
@@ -598,18 +598,18 @@ function RomanticoTemplateInner() {
 
           {/* 8. Álbum pós-festa — só no Para Sempre */}
           {hasGifts && (
-          <section className="px-6.5 pt-12 pb-14 bg-[#fbe9ec]">
+          <section className="px-6 lg:px-[8vw].5 pt-12 lg:pt-28 pb-14 lg:pb-32 bg-[#fbe9ec]">
             <div className="text-center mb-5.5">
               <div className="font-[family-name:var(--font-script)] text-[44px] leading-tight text-[#7c4a55]">
                 Álbum da festa
               </div>
-              <div className="mt-2 text-[11px] tracking-[0.3em] uppercase text-[#7c4a55]/65">
+              <div className="mt-2 text-[11px] lg:text-[13px] tracking-[0.3em] uppercase text-[#7c4a55]/65">
                 para matar a saudade
               </div>
             </div>
 
             {!s.albumUnlocked ? (
-              <div className="bg-[#fdf2f4] border border-dashed border-[#d9a3ae] rounded-[26px] px-6 py-8.5 text-center">
+              <div className="bg-[#fdf2f4] border border-dashed border-[#d9a3ae] rounded-[26px] px-6 lg:px-[8vw] py-8.5 text-center">
                 <svg
                   width="34"
                   height="34"
@@ -624,7 +624,7 @@ function RomanticoTemplateInner() {
                   <path d="M8 10 V7 a4 4 0 0 1 8 0 v3" />
                   <circle cx="12" cy="15" r="1.6" fill="#d9a3ae" stroke="none" />
                 </svg>
-                <div className="mt-3 font-[family-name:var(--font-script)] text-[34px] leading-snug text-[#7c4a55]">
+                <div className="mt-3 font-[family-name:var(--font-script)] text-[34px] lg:text-[56px] leading-snug text-[#7c4a55]">
                   Um presente para depois
                 </div>
                 <p className="mt-2.5 text-sm leading-relaxed text-[#7c4a55]/80">
@@ -668,7 +668,7 @@ function RomanticoTemplateInner() {
                     </div>
                   ))}
                 </div>
-                <div className="mt-4 text-center italic text-[13px] text-[#7c4a55]/70">
+                <div className="mt-4 text-center italic text-[13px] lg:text-[16px] text-[#7c4a55]/70">
                   arraste para cá as fotos favoritas da festa
                 </div>
                 {s.albumPreview && (
@@ -676,7 +676,7 @@ function RomanticoTemplateInner() {
                     <button
                       type="button"
                       onClick={() => s.setAlbumPreview(false)}
-                      className="text-[11px] tracking-[0.16em] uppercase text-[#7c4a55]/70 underline underline-offset-4 hover:text-[#b96a78]"
+                      className="text-[11px] lg:text-[13px] tracking-[0.16em] uppercase text-[#7c4a55]/70 underline underline-offset-4 hover:text-[#b96a78]"
                     >
                       voltar ao estado bloqueado
                     </button>
@@ -688,7 +688,7 @@ function RomanticoTemplateInner() {
           )}
 
           {/* 9. Rodapé */}
-          <footer className="relative bg-[#7c4a55] text-[#fdf2f4] text-center px-6.5 pt-14 pb-12 overflow-hidden">
+          <footer className="relative bg-[#7c4a55] text-[#fdf2f4] text-center px-6 lg:px-[8vw].5 pt-14 lg:pt-32 pb-12 lg:pb-28 overflow-hidden">
             <svg
               width="170"
               height="170"
@@ -719,10 +719,10 @@ function RomanticoTemplateInner() {
                 </svg>
                 <div className="w-11 h-px bg-[#e7bcc4]/60" />
               </div>
-              <div className="mt-4 text-[19px] tracking-wide text-[#e7bcc4]">
+              <div className="mt-4 text-[19px] lg:text-[26px] tracking-wide text-[#e7bcc4]">
                 #AnaEPedroNoJardim
               </div>
-              <div className="mt-2 text-[11px] tracking-[0.28em] uppercase text-[#fdf2f4]/75">
+              <div className="mt-2 text-[11px] lg:text-[13px] tracking-[0.28em] uppercase text-[#fdf2f4]/75">
                 19 · 09 · 2026 — Fortaleza, CE
               </div>
               <div className="mt-5 italic text-[12.5px] text-[#fdf2f4]/55">
@@ -751,10 +751,10 @@ function RomanticoTemplateInner() {
               >
                 ×
               </button>
-              <div className="text-[10px] tracking-[0.3em] uppercase text-[#b96a78]">
+              <div className="text-[10px] lg:text-[12px] tracking-[0.3em] uppercase text-[#b96a78]">
                 Presentear com Pix
               </div>
-              <div className="mt-2.5 font-semibold text-[21px] leading-snug">
+              <div className="mt-2.5 font-semibold text-[21px] lg:text-[30px] leading-snug">
                 {s.gift.name}
               </div>
               <div className="mt-1 italic text-[14.5px] text-[#7c4a55]/75">
@@ -767,7 +767,7 @@ function RomanticoTemplateInner() {
                 </div>
               </div>
 
-              <div className="mt-4 text-[10px] tracking-[0.28em] uppercase text-[#7c4a55]/60">
+              <div className="mt-4 text-[10px] lg:text-[12px] tracking-[0.28em] uppercase text-[#7c4a55]/60">
                 Pix copia e cola
               </div>
               <div className="mt-2 font-mono text-[10.5px] leading-relaxed break-all text-left bg-white border border-[#ecc9d0] rounded-xl p-2.5 text-[#8a5a64] max-h-[72px] overflow-y-auto">

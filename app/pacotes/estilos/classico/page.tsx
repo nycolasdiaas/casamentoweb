@@ -88,9 +88,9 @@ function ClassicoTemplateInner() {
       >
         <div className="font-[family-name:var(--font-body)] text-[#3d4a36]">
           {/* 1. Capa / Save the Date */}
-          <section className="px-[18px] pt-[52px] pb-11">
+          <section className="px-[18px] lg:px-[8vw] pt-[52px] lg:pt-[96px] pb-11 lg:pb-24">
             <div className="border border-[#b8985f] p-1">
-              <div className="border border-[#b8985f]/55 px-[22px] pb-9">
+              <div className="border border-[#b8985f]/55 px-[22px] lg:px-[8vw] pb-9 lg:pb-20">
                 <div className="flex justify-center -mt-[38px]">
                   <div className="bg-[#f2efe7] px-3.5">
                     <div className="size-[76px] rounded-full border border-[#b8985f] flex items-center justify-center">
@@ -110,10 +110,10 @@ function ClassicoTemplateInner() {
                 </div>
 
                 <div className="text-center mt-6">
-                  <div className="font-[family-name:var(--font-script)] text-[37px] text-[#b8985f] leading-tight">
+                  <div className="font-[family-name:var(--font-script)] text-[37px] lg:text-[60px] text-[#b8985f] leading-tight">
                     Save the Date
                   </div>
-                  <h1 className="font-[family-name:var(--font-display)] font-medium text-[56px] leading-[1.04] tracking-wide mt-4">
+                  <h1 className="font-[family-name:var(--font-display)] font-medium text-[56px] lg:text-[96px] leading-[1.04] tracking-wide mt-4">
                     Ana
                     <span className="block font-[family-name:var(--font-script)] font-normal text-3xl text-[#b8985f] leading-[1.15]">
                       &amp;
@@ -124,13 +124,13 @@ function ClassicoTemplateInner() {
                   <div className="w-[72px] h-px bg-[#b8985f] mx-auto mt-5" />
                   <div className="w-11 h-px bg-[#b8985f] mx-auto mt-[5px]" />
 
-                  <div className="mt-5 text-[11px] tracking-[0.35em] uppercase text-[#3d4a36]/70">
+                  <div className="mt-5 text-[11px] lg:text-[13px] tracking-[0.35em] uppercase text-[#3d4a36]/70">
                     Sábado
                   </div>
                   <div className="mt-1.5 font-[family-name:var(--font-display)] text-2xl font-medium">
                     19 de setembro de 2026
                   </div>
-                  <div className="mt-0.5 italic text-[15px] text-[#3d4a36]/80">
+                  <div className="mt-0.5 italic text-[15px] lg:text-[19px] text-[#3d4a36]/80">
                     às quatro da tarde
                   </div>
 
@@ -155,12 +155,12 @@ function ClassicoTemplateInner() {
           </section>
 
           {/* 2. Contagem regressiva */}
-          <section className="bg-[#ebefe3] px-7 py-14 border-y border-[#b8985f]/35">
+          <section className="bg-[#ebefe3] px-7 py-14 lg:py-32 border-y border-[#b8985f]/35">
             <div className="text-center mb-7">
-              <div className="font-[family-name:var(--font-script)] text-[29px] text-[#b8985f] leading-tight">
+              <div className="font-[family-name:var(--font-script)] text-[29px] lg:text-[46px] text-[#b8985f] leading-tight">
                 falta pouco
               </div>
-              <h2 className="mt-1 mb-3.5 font-[family-name:var(--font-display)] text-[23px] font-semibold tracking-[0.24em] uppercase">
+              <h2 className="mt-1 mb-3.5 font-[family-name:var(--font-display)] text-[23px] lg:text-[34px] font-semibold tracking-[0.24em] uppercase">
                 Contagem regressiva
               </h2>
               <div className="w-[72px] h-px bg-[#b8985f] mx-auto" />
@@ -180,7 +180,7 @@ function ClassicoTemplateInner() {
                     <div className="font-[family-name:var(--font-display)] text-4xl font-medium leading-none tabular-nums">
                       {value}
                     </div>
-                    <div className="mt-1.5 text-[10px] tracking-[0.28em] uppercase text-[#3d4a36]/65">
+                    <div className="mt-1.5 text-[10px] lg:text-[12px] tracking-[0.28em] uppercase text-[#3d4a36]/65">
                       {label}
                     </div>
                   </div>
@@ -193,12 +193,12 @@ function ClassicoTemplateInner() {
           </section>
 
           {/* 3. Nossa história */}
-          <section className="px-7 py-16">
+          <section className="px-7 py-16 lg:py-36">
             <div className="text-center mb-6">
-              <div className="font-[family-name:var(--font-script)] text-[29px] text-[#b8985f] leading-tight">
+              <div className="font-[family-name:var(--font-script)] text-[29px] lg:text-[46px] text-[#b8985f] leading-tight">
                 a nossa
               </div>
-              <h2 className="mt-1 mb-3.5 font-[family-name:var(--font-display)] text-[23px] font-semibold tracking-[0.24em] uppercase">
+              <h2 className="mt-1 mb-3.5 font-[family-name:var(--font-display)] text-[23px] lg:text-[34px] font-semibold tracking-[0.24em] uppercase">
                 História
               </h2>
               <div className="w-[72px] h-px bg-[#b8985f] mx-auto" />
@@ -234,18 +234,18 @@ function ClassicoTemplateInner() {
               ))}
             </div>
 
-            <div className="mt-8 text-center font-[family-name:var(--font-script)] text-[27px] leading-snug text-[#b8985f]">
+            <div className="mt-8 text-center font-[family-name:var(--font-script)] text-[27px] lg:text-[42px] leading-snug text-[#b8985f]">
               do primeiro olhar ao para sempre
             </div>
           </section>
 
           {/* 4. Informações */}
-          <section className="bg-[#ebefe3] px-7 py-16 border-y border-[#b8985f]/35">
+          <section className="bg-[#ebefe3] px-7 py-16 lg:py-36 border-y border-[#b8985f]/35">
             <div className="text-center mb-7">
-              <div className="font-[family-name:var(--font-script)] text-[29px] text-[#b8985f] leading-tight">
+              <div className="font-[family-name:var(--font-script)] text-[29px] lg:text-[46px] text-[#b8985f] leading-tight">
                 quando &amp; onde
               </div>
-              <h2 className="mt-1 mb-3.5 font-[family-name:var(--font-display)] text-[23px] font-semibold tracking-[0.24em] uppercase">
+              <h2 className="mt-1 mb-3.5 font-[family-name:var(--font-display)] text-[23px] lg:text-[34px] font-semibold tracking-[0.24em] uppercase">
                 Informações
               </h2>
               <div className="w-[72px] h-px bg-[#b8985f] mx-auto" />
@@ -257,7 +257,7 @@ function ClassicoTemplateInner() {
                 <div className="text-[10.5px] tracking-[0.32em] uppercase text-[#b8985f]">
                   Cerimônia
                 </div>
-                <div className="mt-2.5 font-[family-name:var(--font-display)] text-[34px] font-medium leading-none">
+                <div className="mt-2.5 font-[family-name:var(--font-display)] text-[34px] lg:text-[56px] font-medium leading-none">
                   16h
                 </div>
                 <div className="mt-2.5 font-[family-name:var(--font-display)] text-lg font-medium">
@@ -268,7 +268,7 @@ function ClassicoTemplateInner() {
                   <br />
                   {DEMO_COUPLE.city}
                 </div>
-                <div className="mt-1.5 italic text-[13px] text-[#3d4a36]/65">
+                <div className="mt-1.5 italic text-[13px] lg:text-[16px] text-[#3d4a36]/65">
                   os portões abrem às 15h15
                 </div>
                 <div className="mt-4 flex justify-center">
@@ -287,7 +287,7 @@ function ClassicoTemplateInner() {
                 <div className="text-[10.5px] tracking-[0.32em] uppercase text-[#b8985f]">
                   Recepção
                 </div>
-                <div className="mt-2.5 font-[family-name:var(--font-display)] text-[34px] font-medium leading-none">
+                <div className="mt-2.5 font-[family-name:var(--font-display)] text-[34px] lg:text-[56px] font-medium leading-none">
                   18h
                 </div>
                 <div className="mt-2.5 font-[family-name:var(--font-display)] text-lg font-medium">
@@ -330,12 +330,12 @@ function ClassicoTemplateInner() {
 
           {/* 5. RSVP — a partir do pacote Site do Casamento */}
           {hasRsvp && (
-          <section className="px-7 py-16">
+          <section className="px-7 py-16 lg:py-36">
             <div className="text-center mb-6">
-              <div className="font-[family-name:var(--font-script)] text-[29px] text-[#b8985f] leading-tight">
+              <div className="font-[family-name:var(--font-script)] text-[29px] lg:text-[46px] text-[#b8985f] leading-tight">
                 você vem?
               </div>
-              <h2 className="mt-1 mb-3.5 font-[family-name:var(--font-display)] text-[23px] font-semibold tracking-[0.24em] uppercase">
+              <h2 className="mt-1 mb-3.5 font-[family-name:var(--font-display)] text-[23px] lg:text-[34px] font-semibold tracking-[0.24em] uppercase">
                 Confirmação
               </h2>
               <div className="w-[72px] h-px bg-[#b8985f] mx-auto" />
@@ -350,7 +350,7 @@ function ClassicoTemplateInner() {
             </p>
 
             {!s.confirmed ? (
-              <div className="border border-[#b8985f]/55 bg-[#f7f5ee] px-[22px] py-6">
+              <div className="border border-[#b8985f]/55 bg-[#f7f5ee] px-[22px] lg:px-[8vw] py-6">
                 <div className="text-center text-[10.5px] tracking-[0.3em] uppercase text-[#b8985f]">
                   Convite da Família Martins
                 </div>
@@ -369,7 +369,7 @@ function ClassicoTemplateInner() {
                           <button
                             type="button"
                             onClick={() => s.setAnswer(guest, "yes")}
-                            className={`text-[11px] tracking-[0.16em] uppercase px-4 py-2 border transition-colors hover:border-[#b8985f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#b8985f] ${
+                            className={`text-[11px] lg:text-[13px] tracking-[0.16em] uppercase px-4 py-2 border transition-colors hover:border-[#b8985f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#b8985f] ${
                               answer === "yes"
                                 ? "bg-[#3d4a36] border-[#3d4a36] text-[#f2efe7]"
                                 : "border-[#3d4a36]/40 text-[#3d4a36]"
@@ -380,7 +380,7 @@ function ClassicoTemplateInner() {
                           <button
                             type="button"
                             onClick={() => s.setAnswer(guest, "no")}
-                            className={`text-[11px] tracking-[0.16em] uppercase px-4 py-2 border transition-colors hover:border-[#b8985f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#b8985f] ${
+                            className={`text-[11px] lg:text-[13px] tracking-[0.16em] uppercase px-4 py-2 border transition-colors hover:border-[#b8985f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#b8985f] ${
                               answer === "no"
                                 ? "bg-[#7b7365] border-[#7b7365] text-[#f2efe7]"
                                 : "border-[#3d4a36]/40 text-[#3d4a36]"
@@ -430,12 +430,12 @@ function ClassicoTemplateInner() {
 
           {/* 6. Lista de presentes — só no Para Sempre */}
           {hasGifts && (
-          <section className="bg-[#ebefe3] px-7 py-16 border-y border-[#b8985f]/35">
+          <section className="bg-[#ebefe3] px-7 py-16 lg:py-36 border-y border-[#b8985f]/35">
             <div className="text-center mb-6">
-              <div className="font-[family-name:var(--font-script)] text-[29px] text-[#b8985f] leading-tight">
+              <div className="font-[family-name:var(--font-script)] text-[29px] lg:text-[46px] text-[#b8985f] leading-tight">
                 com carinho
               </div>
-              <h2 className="mt-1 mb-3.5 font-[family-name:var(--font-display)] text-[23px] font-semibold tracking-[0.24em] uppercase">
+              <h2 className="mt-1 mb-3.5 font-[family-name:var(--font-display)] text-[23px] lg:text-[34px] font-semibold tracking-[0.24em] uppercase">
                 Lista de presentes
               </h2>
               <div className="w-[72px] h-px bg-[#b8985f] mx-auto" />
@@ -474,12 +474,12 @@ function ClassicoTemplateInner() {
 
           {/* 7. Mural de recados — a partir do pacote Site do Casamento */}
           {hasRsvp && (
-          <section className="px-7 py-16">
+          <section className="px-7 py-16 lg:py-36">
             <div className="text-center mb-6">
-              <div className="font-[family-name:var(--font-script)] text-[29px] text-[#b8985f] leading-tight">
+              <div className="font-[family-name:var(--font-script)] text-[29px] lg:text-[46px] text-[#b8985f] leading-tight">
                 palavras para guardar
               </div>
-              <h2 className="mt-1 mb-3.5 font-[family-name:var(--font-display)] text-[23px] font-semibold tracking-[0.24em] uppercase">
+              <h2 className="mt-1 mb-3.5 font-[family-name:var(--font-display)] text-[23px] lg:text-[34px] font-semibold tracking-[0.24em] uppercase">
                 Mural de recados
               </h2>
               <div className="w-[72px] h-px bg-[#b8985f] mx-auto" />
@@ -496,7 +496,7 @@ function ClassicoTemplateInner() {
                     &ldquo;{msg.text}&rdquo;
                   </p>
                   <div className="mt-2.5 flex items-baseline gap-2">
-                    <span className="text-[11px] tracking-[0.18em] uppercase">
+                    <span className="text-[11px] lg:text-[13px] tracking-[0.18em] uppercase">
                       {msg.name}
                     </span>
                     <span className="text-[11.5px] text-[#3d4a36]/55">
@@ -525,7 +525,7 @@ function ClassicoTemplateInner() {
                     value={s.guestName}
                     onChange={(e) => s.setGuestName(e.target.value)}
                     placeholder="Maria da Graça"
-                    className="w-full text-[15px] text-[#3d4a36] bg-white border border-[#3d4a36]/30 px-3.5 py-3 transition-colors focus:border-[#b8985f] focus:outline-none"
+                    className="w-full text-[15px] lg:text-[19px] text-[#3d4a36] bg-white border border-[#3d4a36]/30 px-3.5 py-3 transition-colors focus:border-[#b8985f] focus:outline-none"
                   />
                 </div>
                 <div>
@@ -541,7 +541,7 @@ function ClassicoTemplateInner() {
                     value={s.guestMessage}
                     onChange={(e) => s.setGuestMessage(e.target.value)}
                     placeholder="Escreva com o coração…"
-                    className="w-full resize-y text-[15px] text-[#3d4a36] bg-white border border-[#3d4a36]/30 px-3.5 py-3 transition-colors focus:border-[#b8985f] focus:outline-none"
+                    className="w-full resize-y text-[15px] lg:text-[19px] text-[#3d4a36] bg-white border border-[#3d4a36]/30 px-3.5 py-3 transition-colors focus:border-[#b8985f] focus:outline-none"
                   />
                 </div>
                 <div className="flex justify-center">
@@ -560,12 +560,12 @@ function ClassicoTemplateInner() {
 
           {/* 8. Álbum pós-festa — só no Para Sempre */}
           {hasGifts && (
-          <section className="bg-[#ebefe3] px-7 py-16 border-t border-[#b8985f]/35">
+          <section className="bg-[#ebefe3] px-7 py-16 lg:py-36 border-t border-[#b8985f]/35">
             <div className="text-center mb-6">
-              <div className="font-[family-name:var(--font-script)] text-[29px] text-[#b8985f] leading-tight">
+              <div className="font-[family-name:var(--font-script)] text-[29px] lg:text-[46px] text-[#b8985f] leading-tight">
                 para matar a saudade
               </div>
-              <h2 className="mt-1 mb-3.5 font-[family-name:var(--font-display)] text-[23px] font-semibold tracking-[0.24em] uppercase">
+              <h2 className="mt-1 mb-3.5 font-[family-name:var(--font-display)] text-[23px] lg:text-[34px] font-semibold tracking-[0.24em] uppercase">
                 Álbum da festa
               </h2>
               <div className="w-[72px] h-px bg-[#b8985f] mx-auto" />
@@ -643,7 +643,7 @@ function ClassicoTemplateInner() {
                     <button
                       type="button"
                       onClick={() => s.setAlbumPreview(false)}
-                      className="text-[11px] tracking-[0.16em] uppercase text-[#3d4a36]/70 underline underline-offset-4 hover:text-[#b8985f]"
+                      className="text-[11px] lg:text-[13px] tracking-[0.16em] uppercase text-[#3d4a36]/70 underline underline-offset-4 hover:text-[#b8985f]"
                     >
                       voltar ao estado bloqueado
                     </button>
@@ -655,7 +655,7 @@ function ClassicoTemplateInner() {
           )}
 
           {/* 9. Rodapé */}
-          <footer className="bg-[#3d4a36] text-[#f2efe7] text-center px-7 pt-14 pb-11">
+          <footer className="bg-[#3d4a36] text-[#f2efe7] text-center px-7 pt-14 lg:pt-32 pb-11 lg:pb-24">
             <div className="flex justify-center">
               <div className="size-16 rounded-full border border-[#cbb287]/70 flex items-center justify-center gap-1">
                 <span className="font-[family-name:var(--font-display)] text-lg">
@@ -672,7 +672,7 @@ function ClassicoTemplateInner() {
             <div className="mt-4.5 font-[family-name:var(--font-script)] text-3xl text-[#cbb287] leading-tight">
               com amor,
             </div>
-            <div className="mt-1.5 font-[family-name:var(--font-display)] text-[28px] font-medium tracking-wide">
+            <div className="mt-1.5 font-[family-name:var(--font-display)] text-[28px] lg:text-[44px] font-medium tracking-wide">
               Ana &amp; Pedro
             </div>
 
@@ -684,7 +684,7 @@ function ClassicoTemplateInner() {
                 ? DEMO_COUPLE.customUrl
                 : "#AnaEPedro"}
             </div>
-            <div className="mt-2 text-[11px] tracking-[0.3em] uppercase text-[#f2efe7]/75">
+            <div className="mt-2 text-[11px] lg:text-[13px] tracking-[0.3em] uppercase text-[#f2efe7]/75">
               19 · 09 · 2026 — Fortaleza, CE
             </div>
             <div className="mt-5 italic text-[12.5px] text-[#f2efe7]/55">
@@ -703,7 +703,7 @@ function ClassicoTemplateInner() {
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-[340px] max-h-[90vh] overflow-y-auto bg-[#f2efe7] border border-[#b8985f] p-[5px]"
           >
-            <div className="border border-[#b8985f]/55 px-[22px] py-6 text-center relative font-[family-name:var(--font-body)] text-[#3d4a36]">
+            <div className="border border-[#b8985f]/55 px-[22px] lg:px-[8vw] py-6 text-center relative font-[family-name:var(--font-body)] text-[#3d4a36]">
               <button
                 type="button"
                 onClick={s.closeGift}
@@ -712,13 +712,13 @@ function ClassicoTemplateInner() {
               >
                 ×
               </button>
-              <div className="text-[10px] tracking-[0.32em] uppercase text-[#b8985f]">
+              <div className="text-[10px] lg:text-[12px] tracking-[0.32em] uppercase text-[#b8985f]">
                 Presentear com Pix
               </div>
               <div className="mt-2.5 font-[family-name:var(--font-display)] text-2xl font-medium leading-snug">
                 {s.gift.name}
               </div>
-              <div className="mt-1 text-[15px] text-[#3d4a36]/75">
+              <div className="mt-1 text-[15px] lg:text-[19px] text-[#3d4a36]/75">
                 R$ {s.gift.priceReais}
               </div>
 
@@ -728,7 +728,7 @@ function ClassicoTemplateInner() {
                 </div>
               </div>
 
-              <div className="mt-4 text-[10px] tracking-[0.3em] uppercase text-[#3d4a36]/60">
+              <div className="mt-4 text-[10px] lg:text-[12px] tracking-[0.3em] uppercase text-[#3d4a36]/60">
                 Pix copia e cola
               </div>
               <div className="mt-2 font-mono text-[10.5px] leading-relaxed break-all text-left bg-white border border-[#3d4a36]/20 p-2.5 text-[#5a624f] max-h-[72px] overflow-y-auto">

@@ -17,9 +17,9 @@ export default function PaymentButton({
     <form action={action} className="flex flex-col items-center gap-3 w-full">
       <input type="hidden" name="orderId" value={orderId} />
       <label className="flex flex-col gap-1 w-full text-left">
-        <span className="text-xs text-(--color-olive)/70">
+        <span className="text-xs text-(--c-ink-2)">
           CPF do pagador{" "}
-          <span className="text-(--color-muted)">(exigido pelo PIX)</span>
+          <span className="text-(--c-ink-2)">(exigido pelo PIX)</span>
         </span>
         <input
           name="payerTaxId"
@@ -27,21 +27,21 @@ export default function PaymentButton({
           required
           maxLength={14}
           placeholder="000.000.000-00"
-          className="rounded-lg border border-(--color-gold)/40 bg-white px-3 py-2 text-sm text-(--color-olive) focus:border-(--color-gold) focus:outline-none"
+          className="rounded-[3px] border border-(--c-rule) bg-white px-3 py-2 text-sm text-(--c-ink) focus:border-(--c-rule) focus:outline-none"
         />
       </label>
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-full bg-(--color-olive) text-white text-sm font-medium px-8 py-3.5 transition-transform hover:scale-105 disabled:opacity-60 disabled:hover:scale-100"
+        className="btn btn-ink w-full"
       >
         {pending ? "Abrindo pagamento..." : `Efetuar pagamento · ${amountLabel}`}
       </button>
-      <p className="text-[11px] text-(--color-muted)">
+      <p className="text-[11px] text-(--c-ink-2)">
         Pagamento por PIX · ambiente seguro
       </p>
       {state?.error && (
-        <p className="text-xs text-red-700 text-center max-w-xs">
+        <p className="text-xs text-(--c-mark) text-center max-w-xs">
           {state.error}{" "}
           <a
             href={`https://wa.me/${CONTACT.whatsappNumber}`}
