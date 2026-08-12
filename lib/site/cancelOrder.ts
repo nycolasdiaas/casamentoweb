@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { sites, sitePhotos } from "@/lib/db/schema";
+import { sites, sitePhotos, gifts, groups } from "@/lib/db/schema";
 import { deleteObject } from "@/lib/storage/supabase";
 import { deleteOrder } from "@/lib/repositories/orders";
 
@@ -28,7 +28,25 @@ export async function cancelarPedidoComSite(orderId: string): Promise<void> {
   // Site que JÁ esteve no ar não é apagado nem que o pedido suma. O casamento
   // de alguém não deixa de existir porque o pedido foi cancelado — é a mesma
   // regra que vale ao apagar a conta do casal.
-  const podeApagarSite = site && site.publishedAt === null;
+  //
+  // E o site com CONVIDADOS também fica. `groups.site_id` é `onDelete:
+  // "restrict"` de propósito: cada grupo carrega o slug de `/rsvp/<slug>`, que
+  // já foi distribuído no WhatsApp. Apagar isso é arrancar do ar o link pelo
+  // qual gente real confirma presença — e nenhum cancelamento de pedido vale
+  // esse preço. Aqui a checagem é explícita para o cancelamento NÃO FALHAR:
+  // sem ela, o `restrict` do banco derrubava a ação inteira com erro 500, e o
+  // casal via "This page couldn't load" em vez do pedido cancelado.
+  const [grupo] = site
+    ? await db
+        .select({ id: groups.id })
+        .from(groups)
+        .where(eq(groups.siteId, site.id))
+        .limit(1)
+    : [];
+
+  const podeApagarSite = Boolean(
+    site && site.publishedAt === null && grupo === undefined
+  );
 
   let caminhos: string[] = [];
   if (podeApagarSite) {
@@ -44,7 +62,23 @@ export async function cancelarPedidoComSite(orderId: string): Promise<void> {
   // falhar, ele ao menos não vê mais o pedido cancelado na lista.
   await deleteOrder(orderId);
 
-  if (podeApagarSite) {
+  if (podeApagarSite && site) {
+    // A lista de presentes sai ANTES do site, à mão.
+    //
+    // `gifts.site_id` também é `onDelete: "restrict"` — e era exatamente ele
+    // que estourava aqui:
+    //
+    //   update or delete on table "sites" violates foreign key constraint
+    //   "gifts_site_id_sites_id_fk" · Key (id)=(…) is still referenced
+    //
+    // O comentário antigo dizia que "foto e seção caem por cascata", o que é
+    // verdade, e concluía daí que estava tudo coberto. Não estava: `gifts` e
+    // `groups` ficaram em `restrict` na migração que os vinculou ao site, e
+    // ninguém revisitou este caminho. Presente é dado do casal para ESTE site
+    // que está sendo cancelado, então some junto; convidado não, e por isso é
+    // tratado acima impedindo a exclusão.
+    await db.delete(gifts).where(eq(gifts.siteId, site.id));
+
     // As linhas de foto e seção caem por cascata do próprio site.
     await db.delete(sites).where(eq(sites.id, site.id));
 
