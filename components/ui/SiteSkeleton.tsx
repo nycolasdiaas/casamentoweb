@@ -1,58 +1,44 @@
 "use client";
 
-import { m } from "motion/react";
+import { useRef } from "react";
+import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
 
 /**
- * O esqueleto do site sendo montado.
+ * O esqueleto do site SENDO CONSTRUÍDO.
  *
- * Não é um spinner com outra roupa: é a SILHUETA do que está chegando — capa,
- * nomes, data, contagem, seções. Com o mesmo tempo real de espera, o esqueleto
- * é lido como mais rápido que um indicador giratório, porque a atenção vai
- * para o conteúdo que vem em vez de ir para a espera. E aqui a promessa é
- * honesta: o provisionamento está mesmo criando o site nesse instante.
+ * Não é um spinner com outra roupa, e agora também não é um bloco que aparece:
+ * é a silhueta do que está chegando — capa, monograma, nomes, contagem,
+ * história, galeria — montada NA ORDEM em que um site de casamento se lê.
+ * Com o mesmo tempo real de espera, ver as peças nascendo é lido como mais
+ * rápido que ver um indicador girando, porque a atenção vai para o conteúdo
+ * que vem em vez de ir para a espera. E aqui a promessa é honesta: o
+ * provisionamento está mesmo criando o site nesse instante.
  *
- * Animado com `motion` (motion.dev) pelo componente `m` — a variante leve, que
- * só funciona sob um `LazyMotion`. Ver MotionProvider: ~4,6 KB em vez de 34.
+ * ── Por que GSAP e não CSS ──────────────────────────────────────────────────
  *
- * Por que motion e não CSS aqui: o brilho que atravessa cada bloco precisa
- * ENTRAR EM CASCATA, um bloco depois do outro, e continuar em laço. Em CSS
- * isso vira uma variável de atraso por bloco, escrita à mão; aqui é uma
- * propriedade (`delayChildren`) que o pai distribui sozinho.
+ * A construção é uma SEQUÊNCIA com sobreposição: a capa ainda está descendo
+ * quando o monograma estoura, e as linhas começam antes de a capa terminar.
+ * Em CSS isso vira uma variável de atraso por bloco, calculada à mão, que
+ * quebra a cada bloco novo. Numa timeline é a posição relativa ("-=0.15") e o
+ * `stagger` fazendo o trabalho.
  *
- * As cores saem de `currentColor`, então o esqueleto herda a paleta de onde
- * estiver: no painel sai oliva; recebendo a tinta do molde escolhido, sai na
- * cor do site do casal — a espera já parece o produto.
+ * `useGSAP` roda tudo dentro de um `gsap.context()` e REVERTE na desmontagem.
+ * Este componente vive numa tela que some assim que o site fica pronto — sem
+ * a limpeza, a timeline continuaria viva depois de o nó sair do DOM.
+ *
+ * ── As duas regras que continuam valendo ────────────────────────────────────
+ *
+ * 1. `gsap.from`, nunca opacity 0 no CSS. O estado natural do HTML já é o
+ *    final: se o JS não carregar, o esqueleto aparece inteiro, só sem
+ *    construção. Nenhuma animação pode ser capaz de deixar a tela em branco.
+ * 2. As cores saem de `currentColor`, então o esqueleto herda a paleta de onde
+ *    estiver — recebendo a tinta do molde escolhido, a espera já parece o
+ *    produto que o casal comprou.
  */
 
-const CASCATA = {
-  animate: { transition: { staggerChildren: 0.07 } },
-};
-
-/** Um bloco do esqueleto: entra subindo e depois respira em laço. */
-const BLOCO = {
-  initial: { opacity: 0, y: 8 },
-  animate: {
-    opacity: [0, 1, 0.55, 1],
-    y: 0,
-    transition: {
-      y: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as const },
-      opacity: {
-        duration: 1.9,
-        times: [0, 0.22, 0.6, 1],
-        repeat: Infinity,
-        repeatDelay: 0.15,
-      },
-    },
-  },
-};
-
 function Barra({ className }: { className: string }) {
-  return (
-    <m.div
-      variants={BLOCO}
-      className={`rounded-md bg-current/12 ${className}`}
-    />
-  );
+  return <div className={`sk-peca rounded-md bg-current/12 ${className}`} />;
 }
 
 export default function SiteSkeleton({
@@ -63,52 +49,127 @@ export default function SiteSkeleton({
   accent?: string | null;
   className?: string;
 }) {
+  const raiz = useRef<HTMLDivElement>(null);
+
+  useGSAP(
+    () => {
+      // Movimento reduzido do sistema, a menos que a pessoa tenha ligado o
+      // movimento neste site (ver InterruptorDeMovimento). Sem construção, o
+      // esqueleto fica parado e legível — que é o comportamento correto.
+      const querMenos =
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
+        document.documentElement.dataset.movimento !== "ligado";
+      if (querMenos) return;
+
+      const tl = gsap.timeline({
+        repeat: -1,
+        // A pausa entre uma construção e a próxima. Sem ela, o laço reinicia
+        // no mesmo quadro em que termina e parece engasgo, não repetição.
+        repeatDelay: 0.5,
+        defaults: { ease: "power3.out" },
+      });
+
+      tl
+        // A capa desce como uma persiana: a faixa alta que todo molde abre.
+        .from(".sk-capa", {
+          scaleY: 0,
+          transformOrigin: "top center",
+          duration: 0.55,
+        })
+        // O monograma estoura com peso. `back.out` passa do ponto e volta —
+        // é o que separa "surgiu" de "foi colocado ali".
+        .from(
+          ".sk-mono",
+          { scale: 0, opacity: 0, duration: 0.5, ease: "back.out(2.2)" },
+          "-=0.2"
+        )
+        // Os nomes e a data são DESENHADOS da esquerda, como texto sendo
+        // composto — não aparecem prontos.
+        .from(
+          ".sk-linha",
+          {
+            scaleX: 0,
+            transformOrigin: "left center",
+            duration: 0.45,
+            stagger: 0.08,
+          },
+          "-=0.25"
+        )
+        // A contagem regressiva: quatro caixas caindo no lugar.
+        .from(
+          ".sk-caixa",
+          {
+            y: 14,
+            opacity: 0,
+            scale: 0.85,
+            duration: 0.4,
+            stagger: 0.06,
+            ease: "back.out(1.7)",
+          },
+          "-=0.15"
+        )
+        // A história, linha a linha.
+        .from(
+          ".sk-texto",
+          {
+            scaleX: 0,
+            transformOrigin: "left center",
+            duration: 0.35,
+            stagger: 0.05,
+          },
+          "-=0.1"
+        )
+        // E as fotos por último, que é a ordem em que o casal as envia.
+        .from(
+          ".sk-foto",
+          { opacity: 0, scale: 0.9, duration: 0.4, stagger: 0.07 },
+          "-=0.1"
+        );
+    },
+    { scope: raiz }
+  );
+
   return (
-    <m.div
+    <div
+      ref={raiz}
       aria-hidden
-      initial="initial"
-      animate="animate"
-      variants={CASCATA}
       style={accent ? { color: accent } : undefined}
       className={`flex w-full flex-col overflow-hidden rounded-xl border border-current/15 bg-white ${className}`}
     >
       {/* Capa: a faixa alta que todo molde abre. O monograma no meio é o que
           faz a silhueta ser reconhecível como convite, e não como "post". */}
       <div className="relative flex h-44 items-center justify-center border-b border-current/10">
-        <Barra className="absolute inset-0 rounded-none" />
-        <m.div
-          variants={BLOCO}
-          className="relative size-14 rounded-full bg-current/20"
-        />
+        <div className="sk-capa absolute inset-0 bg-current/12" />
+        <div className="sk-mono relative size-14 rounded-full bg-current/20" />
       </div>
 
       <div className="flex flex-col items-center gap-3 px-6 py-7">
         {/* Nomes do casal — a linha mais larga, como no site real. */}
-        <Barra className="h-5 w-2/3" />
-        <Barra className="h-3 w-1/3" />
+        <Barra className="sk-linha h-5 w-2/3" />
+        <Barra className="sk-linha h-3 w-1/3" />
 
         {/* Contagem regressiva: quatro caixas. É o bloco que mais identifica
             um site de casamento à primeira vista. */}
         <div className="mt-3 flex w-full justify-center gap-2">
           {[0, 1, 2, 3].map((i) => (
-            <Barra key={i} className="h-12 w-14" />
+            <Barra key={i} className="sk-caixa h-12 w-14" />
           ))}
         </div>
       </div>
 
       {/* História (texto corrido) e galeria (grade). */}
       <div className="flex flex-col gap-2.5 border-t border-current/10 px-6 py-6">
-        <Barra className="h-3 w-1/4 self-center" />
+        <Barra className="sk-texto h-3 w-1/4 self-center" />
         {["w-full", "w-full", "w-4/5"].map((largura, i) => (
-          <Barra key={`${largura}-${i}`} className={`h-2.5 ${largura}`} />
+          <Barra key={`${largura}-${i}`} className={`sk-texto h-2.5 ${largura}`} />
         ))}
       </div>
 
       <div className="grid grid-cols-3 gap-2 border-t border-current/10 px-6 py-6">
         {[0, 1, 2].map((i) => (
-          <Barra key={i} className="aspect-square w-full" />
+          <Barra key={i} className="sk-foto aspect-square w-full" />
         ))}
       </div>
-    </m.div>
+    </div>
   );
 }
