@@ -18,6 +18,7 @@ import InterruptorDeMovimento from "@/components/ui/InterruptorDeMovimento";
 import RevealOnScroll from "@/components/ui/RevealOnScroll";
 import FloatingWhatsApp from "@/components/landing/FloatingWhatsApp";
 import AccountNav, { LoggedOutLinks } from "@/components/landing/AccountNav";
+import CtaPacote, { CtaPacoteFallback } from "@/components/landing/CtaPacote";
 
 export const metadata: Metadata = {
   title: `${SITE_NAME} | Sites de Casamento`,
@@ -591,16 +592,20 @@ export default function PackagesPage() {
                   >
                     {pkg.deliveryTime}
                   </p>
-                  <Link
-                    href="/conta/criar"
-                    className={`text-center text-sm font-medium px-6 py-3 rounded-[2px] transition-colors ${
+                  {(() => {
+                    const classeCta = `text-center text-sm font-medium px-6 py-3 rounded-[2px] transition-colors ${
                       pkg.highlight
                         ? "bg-white text-(--c-ink) hover:bg-(--c-base)"
                         : "bg-(--c-ink) text-white hover:bg-(--c-ink)/90"
-                    }`}
-                  >
-                    Começar agora
-                  </Link>
+                    }`;
+                    return (
+                      <Suspense
+                        fallback={<CtaPacoteFallback className={classeCta} />}
+                      >
+                        <CtaPacote className={classeCta} />
+                      </Suspense>
+                    );
+                  })()}
                   <Link
                     href={`/pacotes/estilos/classico?pacote=${pkg.tier}`}
                     className={`text-center text-xs font-medium underline underline-offset-4 ${
