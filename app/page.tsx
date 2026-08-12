@@ -14,6 +14,7 @@ import HeroPreview from "@/components/landing/HeroPreview";
 import { uiPrensa } from "@/lib/fonts/ui";
 import PaperBackdrop from "@/components/webgl/PaperBackdrop";
 import SplitReveal from "@/components/site/SplitReveal";
+import InterruptorDeMovimento from "@/components/ui/InterruptorDeMovimento";
 import RevealOnScroll from "@/components/ui/RevealOnScroll";
 import FloatingWhatsApp from "@/components/landing/FloatingWhatsApp";
 import AccountNav, { LoggedOutLinks } from "@/components/landing/AccountNav";
@@ -720,7 +721,11 @@ export default function PackagesPage() {
           <p>
             {SITE_NAME} · {SITE_TAGLINE}
           </p>
-          <p>Sem mensalidade · Pix sem taxa · Feito no Brasil</p>
+          <p className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+            <span>Sem mensalidade · Pix sem taxa · Feito no Brasil</span>
+            {/* So aparece para quem tem `reduce` ligado no sistema. */}
+            <InterruptorDeMovimento />
+          </p>
         </div>
       </footer>
 

@@ -320,17 +320,17 @@ body {
     --t-reduzido: 320ms;
   }
 
-  .motion-stagger > * {
+  html:not([data-movimento="ligado"]) .motion-stagger > * {
     animation: motion-fade var(--t-reduzido) var(--e-suave) both;
     /* o escalonamento é preservado — é ele que dá ordem de leitura */
     animation-delay: calc(var(--motion-delay, 0ms) + var(--i, 0) * 55ms);
   }
 
-  .motion-rise-in,
-  .motion-fade-in,
-  .motion-word,
-  .motion-step-next,
-  .motion-step-prev {
+  html:not([data-movimento="ligado"]) .motion-rise-in,
+  html:not([data-movimento="ligado"]) .motion-fade-in,
+  html:not([data-movimento="ligado"]) .motion-word,
+  html:not([data-movimento="ligado"]) .motion-step-next,
+  html:not([data-movimento="ligado"]) .motion-step-prev {
     /* Aparece sem percorrer distância nenhuma, mas em tempo que o olho pega. */
     animation: motion-fade var(--t-reduzido) var(--e-suave) both;
     animation-delay: var(--motion-delay, 0ms);
@@ -338,12 +338,12 @@ body {
 
   /* Pétalas caindo são laço infinito e deslocamento grande — as duas coisas
      que provocam enjoo em quem tem distúrbio vestibular. Somem por inteiro. */
-  .motion-petal {
+  html:not([data-movimento="ligado"]) .motion-petal {
     display: none;
   }
 
-  .motion-breathe,
-  .motion-skeleton {
+  html:not([data-movimento="ligado"]) .motion-breathe,
+  html:not([data-movimento="ligado"]) .motion-skeleton {
     animation: none;
     /* Sem o brilho varrendo, o esqueleto precisa de contraste próprio para
        continuar legível como "isto ainda vai carregar". */
@@ -682,7 +682,7 @@ body:has(.ui-prensa) {
 @media (prefers-reduced-motion: reduce) {
   /* Escala e rotação saem — são deslocamento. A tinta continua chegando, só
      que sem a batida: o carimbo já nasce assentado e só ganha opacidade. */
-  .ui-prensa .stamp {
+  html:not([data-movimento="ligado"]) .ui-prensa .stamp {
     animation: motion-fade var(--t-reduzido) var(--e-suave) both;
   }
 }

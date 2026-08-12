@@ -29,7 +29,20 @@ export default function RootLayout({
       lang="pt-BR"
       className={`${italiana.variable} ${script.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {/* Restaura a escolha de movimento ANTES da primeira pintura.
+            Se isto rodasse só na hidratação, quem já ligou as animações veria
+            a página entrar reduzida e "acordar" no quadro seguinte — o mesmo
+            flash que scripts de tema existem para evitar. É minúsculo e não
+            depende de React. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              'try{if(localStorage.getItem("enlace:movimento")==="ligado")document.documentElement.dataset.movimento="ligado"}catch(e){}',
+          }}
+        />
+        {children}
+      </body>
     </html>
   );
 }
