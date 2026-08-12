@@ -1,3 +1,9 @@
+"use client";
+
+import { useRef } from "react";
+import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
+import { Flip } from "gsap/Flip";
 import Link from "next/link";
 import { WHATSAPP_LINK } from "@/lib/site";
 import { PACKAGES, type PackageTier } from "@/lib/packages";
@@ -5,6 +11,8 @@ import { TEMPLATE_STYLES, type TemplateStyleId } from "@/lib/templates";
 import type { ReactNode } from "react";
 import RevealOnScroll from "@/components/ui/RevealOnScroll";
 import PaperBackdrop from "@/components/webgl/PaperBackdrop";
+
+gsap.registerPlugin(useGSAP, Flip);
 
 // Moldura comum das 3 prévias de template: fundo escuro "letterbox", cartão
 // central de até 480px (como as prévias foram desenhadas, pensando em
@@ -31,8 +39,81 @@ export default function TemplateChrome({
   onTierChange: (tier: PackageTier) => void;
   children: ReactNode;
 }) {
+  const raiz = useRef<HTMLDivElement>(null);
+  const estadoAntes = useRef<ReturnType<typeof Flip.getState> | null>(null);
+
+  /**
+   * Trocar de pacote muda QUAIS seções existem — é a única interação da
+   * vitrine que acontece sem sair da página, e por isso a única em que dá
+   * para animar o rearranjo em vez do redesenho.
+   *
+   * O truque do Flip é medir ANTES: aqui guardamos a posição de cada seção,
+   * o React troca o conteúdo, e o efeito abaixo interpola de uma para a
+   * outra. Sem esta captura no clique, não há "antes" com que comparar.
+   */
+  const trocarPacote = (novo: PackageTier) => {
+    if (novo === tier) return;
+    if (raiz.current) {
+      estadoAntes.current = Flip.getState(
+        raiz.current.querySelectorAll("section, [data-secao]")
+      );
+    }
+    onTierChange(novo);
+  };
+
+  useGSAP(
+    () => {
+      const querMenos =
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
+        document.documentElement.dataset.movimento !== "ligado";
+
+      // Sem estado guardado, não houve troca de pacote — nada a fazer aqui.
+      //
+      // NÃO existe animação de entrada nesta função, e é deliberado: quem
+      // revela as seções é o `RevealOnScroll` logo abaixo, com ScrollTrigger.
+      // Uma entrada aqui disputaria os MESMOS elementos com ele — duas
+      // animações escrevendo transform no mesmo nó — e ainda animaria a
+      // primeira seção, que já está na tela quando a página abre. Animar o
+      // que já está visível faz piscar, e é justamente por isso que o
+      // RevealOnScroll pula a primeira.
+      if (!estadoAntes.current) return;
+
+      // TROCA DE PACOTE: o rearranjo.
+      const estado = estadoAntes.current;
+      estadoAntes.current = null;
+      if (querMenos) return;
+
+      Flip.from(estado, {
+        duration: 0.55,
+        ease: "power2.inOut",
+        stagger: 0.03,
+        // `absolute` tira os alvos do fluxo durante a interpolação; sem isso,
+        // as seções que ficam empurram umas às outras enquanto animam e o
+        // movimento vira tranco.
+        absolute: true,
+        // Seção que o pacote novo LIBERA não tinha "antes": ela nasce.
+        onEnter: (elementos) =>
+          gsap.fromTo(
+            elementos,
+            { opacity: 0, scale: 0.96 },
+            { opacity: 1, scale: 1, duration: 0.45, ease: "power3.out" }
+          ),
+        // E a que o pacote novo não inclui sai, em vez de sumir num quadro.
+        onLeave: (elementos) =>
+          gsap.to(elementos, {
+            opacity: 0,
+            scale: 0.96,
+            duration: 0.3,
+            ease: "power2.in",
+          }),
+      });
+    },
+    { dependencies: [tier], scope: raiz }
+  );
+
   return (
     <div
+      ref={raiz}
       className="min-h-screen w-full flex justify-center"
       style={{ background: outerBg }}
     >
@@ -124,7 +205,7 @@ export default function TemplateChrome({
                     <button
                       key={pkg.tier}
                       type="button"
-                      onClick={() => onTierChange(pkg.tier)}
+                      onClick={() => trocarPacote(pkg.tier)}
                       className="shrink-0 whitespace-nowrap text-center leading-tight px-3 py-1.5 rounded-full border transition-colors"
                       style={{
                         background: active ? accent : "transparent",
