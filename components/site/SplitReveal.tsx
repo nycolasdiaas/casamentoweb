@@ -22,11 +22,22 @@ export default function SplitReveal({
   passo = 90,
   /** ms antes da primeira palavra — para entrar depois de outro elemento */
   atraso = 0,
+  /**
+   * Revela LETRA por letra em vez de palavra por palavra.
+   *
+   * Use com parcimônia e só em frase curta: letra a letra atrasa a leitura
+   * para impressionar, e num parágrafo isso vira obstáculo. Em título curto
+   * o efeito termina antes de a pessoa começar a ler, então não cobra nada.
+   * A quebra de linha continua acontecendo entre PALAVRAS — cada palavra é um
+   * inline-block com as letras dentro, senão o texto quebraria no meio dela.
+   */
+  porLetra = false,
   className = "",
 }: {
   text: string;
   passo?: number;
   atraso?: number;
+  porLetra?: boolean;
   className?: string;
 }) {
   // `split` simples: nomes de casal são "Ana & Pedro", "Isabelle e Nycolas".
@@ -36,7 +47,32 @@ export default function SplitReveal({
 
   return (
     <span aria-label={text} className={className}>
-      {palavras.map((palavra, i) => (
+      {porLetra
+        ? (() => {
+            let n = 0;
+            return palavras.map((palavra, i) => (
+              <Fragment key={`${palavra}-${i}`}>
+                <span className="inline-block whitespace-nowrap">
+                  {[...palavra].map((letra, j) => (
+                    <span
+                      key={j}
+                      aria-hidden
+                      className="motion-word inline-block"
+                      style={
+                        {
+                          "--motion-delay": `${atraso + n++ * passo}ms`,
+                        } as React.CSSProperties
+                      }
+                    >
+                      {letra}
+                    </span>
+                  ))}
+                </span>
+                {i < palavras.length - 1 ? " " : null}
+              </Fragment>
+            ));
+          })()
+        : palavras.map((palavra, i) => (
         <Fragment key={`${palavra}-${i}`}>
           <span
             aria-hidden
@@ -61,7 +97,7 @@ export default function SplitReveal({
               lados) e volta a ser uma oportunidade de quebra. */}
           {i < palavras.length - 1 ? " " : null}
         </Fragment>
-      ))}
+          ))}
     </span>
   );
 }

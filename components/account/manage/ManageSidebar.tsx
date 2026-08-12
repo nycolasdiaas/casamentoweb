@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import NumeroQueConta from "@/components/ui/NumeroQueConta";
 
 /**
  * Menu do painel de gerenciamento do casal.
@@ -50,15 +51,15 @@ export default function ManageSidebar({
 
   const dias = diasAte(weddingDate);
   const subtitulo =
-    dias === null
-      ? null
-      : dias > 1
-        ? `Faltam ${dias} dias para o casamento`
-        : dias === 1
-          ? "É amanhã!"
-          : dias === 0
-            ? "É hoje!"
-            : null;
+    dias === null ? null : dias > 1 ? (
+      <>
+        Faltam <NumeroQueConta valor={dias} /> dias para o casamento
+      </>
+    ) : dias === 1 ? (
+      "É amanhã!"
+    ) : dias === 0 ? (
+      "É hoje!"
+    ) : null;
 
   return (
     <aside className="flex flex-col gap-6 lg:sticky lg:top-6 lg:h-fit lg:w-72 lg:shrink-0">

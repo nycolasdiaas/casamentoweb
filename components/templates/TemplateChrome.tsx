@@ -4,6 +4,7 @@ import { PACKAGES, type PackageTier } from "@/lib/packages";
 import { TEMPLATE_STYLES, type TemplateStyleId } from "@/lib/templates";
 import type { ReactNode } from "react";
 import RevealOnScroll from "@/components/ui/RevealOnScroll";
+import PaperBackdrop from "@/components/webgl/PaperBackdrop";
 
 // Moldura comum das 3 prévias de template: fundo escuro "letterbox", cartão
 // central de até 480px (como as prévias foram desenhadas, pensando em
@@ -45,9 +46,21 @@ export default function TemplateChrome({
           responderem à largura do cartão. */}
       <div
         id="vitrine"
-        className="site-canvas @container w-full max-w-[480px] lg:max-w-none flex flex-col shadow-2xl"
+        className="site-canvas @container relative isolate w-full max-w-[480px] lg:max-w-none flex flex-col shadow-2xl"
         style={{ background: cardBg }}
       >
+        {/* A tinta em WebGL na cor de ACENTO deste molde: cada estilo ganha o
+            próprio papel sem uma linha de código por molde, e um molde novo
+            herda sem saber que existe.
+
+            `forca` baixa (0.09) porque aqui ela passa por baixo do conteúdo
+            inteiro, não só de um hero — no mesmo valor do hero viraria fundo
+            estampado e brigaria com a tipografia do molde.
+
+            Fica SÓ na vitrine. O site do convidado não paga os ~170 KB do
+            three: ele é aberto pelo WhatsApp, no celular, com meta de LCP de
+            2,5 s. */}
+        <PaperBackdrop tinta={accent} forca={0.09} />
         <div
           className="sticky top-0 z-50 flex flex-col gap-2.5 px-4 py-2.5 text-[11px]"
           style={{
@@ -139,7 +152,7 @@ export default function TemplateChrome({
             precisar saber que existe. */}
         <RevealOnScroll raiz="#vitrine" />
 
-        {children}
+        <div className="relative z-10 flex flex-col">{children}</div>
 
         <div
           className="flex flex-col items-center gap-3 px-6 py-12 text-center"

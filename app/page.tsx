@@ -158,11 +158,16 @@ export default function PackagesPage() {
               O estado natural do HTML continua sendo o final — se o CSS não
               carregar, o texto está lá. */}
           <div className="motion-stagger flex flex-col items-center lg:items-start gap-6 text-center lg:text-left">
+            {/* Letra a letra aqui, e SÓ aqui. A frase é curta, em caixa alta
+                com tracking aberto: o efeito termina antes de alguém começar a
+                ler, e o que se vê é tipo sendo composto — que é literalmente o
+                assunto do sistema visual. Num parágrafo isto viraria obstáculo,
+                e por isso o `porLetra` é opt-in e não o padrão. */}
             <p
               style={{ ["--i" as string]: 0 }}
               className="text-xs font-medium tracking-[0.25em] uppercase text-(--c-ink-2)"
             >
-              {SITE_TAGLINE}
+              <SplitReveal text={SITE_TAGLINE} porLetra passo={32} atraso={80} />
             </p>
             {/* O título entra palavra por palavra, de desfocado para nítido.
                 Começa depois da sobrancelha (240ms) para a leitura ter ordem. */}
