@@ -15,6 +15,7 @@ import { uiPrensa } from "@/lib/fonts/ui";
 import PaperBackdrop from "@/components/webgl/PaperBackdrop";
 import SplitReveal from "@/components/site/SplitReveal";
 import InterruptorDeMovimento from "@/components/ui/InterruptorDeMovimento";
+import ParallaxSuave from "@/components/ui/ParallaxSuave";
 import RevealOnScroll from "@/components/ui/RevealOnScroll";
 import FloatingWhatsApp from "@/components/landing/FloatingWhatsApp";
 import AccountNav, { LoggedOutLinks } from "@/components/landing/AccountNav";
@@ -229,7 +230,13 @@ export default function PackagesPage() {
             style={{ ["--motion-delay" as string]: "560ms" }}
             className="motion-fade-in flex justify-center lg:justify-end"
           >
-            <HeroPreview />
+            {/* A miniatura ganha profundidade ao rolar: ela se desloca um
+                pouco menos que a página. É o bloco mais pesado do hero, então
+                é nele que a defasagem se lê como camada — num texto ela viraria
+                obstáculo de leitura. */}
+            <ParallaxSuave percurso={48}>
+              <HeroPreview />
+            </ParallaxSuave>
           </div>
         </div>
       </section>
