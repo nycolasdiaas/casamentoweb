@@ -25,6 +25,7 @@
     "email:test": "node scripts/test-email.mjs"
   },
   "dependencies": {
+    "@gsap/react": "^2.1.2",
     "@types/three": "^0.185.4",
     "drizzle-orm": "^0.45.2",
     "gsap": "^3.15.0",
