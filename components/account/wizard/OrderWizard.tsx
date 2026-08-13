@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { ETAPAS, type EtapaId, type RegraEtapa } from "@/lib/wizard/etapas";
 import { CHAVE_CRIANDO } from "@/components/ui/EsperaDoPainel";
 import { useActionState } from "react";
@@ -22,6 +22,7 @@ import type { OrderStatus } from "@/lib/orderStatus";
 import LivePreview from "@/components/account/LivePreview";
 import WizardShell from "@/components/account/wizard/WizardShell";
 import ColorRow from "@/components/account/wizard/ColorRow";
+import { useConfirmacaoDeEscolha } from "@/components/account/wizard/useConfirmacaoDeEscolha";
 import CelebrationScreen from "@/components/account/wizard/CelebrationScreen";
 import { FONT_PREVIEW_CLASS, CATEGORY_PREVIEW_SIZE } from "@/components/account/wizard/fontPreview";
 
@@ -162,6 +163,11 @@ export default function OrderWizard({
     setPasso((p) => Math.max(0, Math.min(PASSOS.length - 1, p + delta)));
   };
 
+  // A confirmação visual da resposta. Ver useConfirmacaoDeEscolha — e o
+  // motivo de ela NÃO usar GSAP está documentado lá.
+  const escolhaRef = useRef<HTMLDivElement>(null);
+  useConfirmacaoDeEscolha(escolhaRef, `${pacote}|${modelo}`);
+
   // ---- as etapas -----------------------------------------------------------
   // A LISTA (ordem, titulos, quais bloqueiam o avanco) mora em
   // `lib/wizard/etapas.ts`. Aqui fica so o DESENHO de cada uma.
@@ -179,6 +185,7 @@ export default function OrderWizard({
                 key={pkg.tier}
                 type="button"
                 onClick={() => setPacote(pkg.tier)}
+                data-escolha={ativo ? "sim" : "nao"}
                 style={{ ["--i" as string]: i }}
                 className={`flex flex-col gap-1.5 rounded-2xl border-2 p-5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
                   ativo
@@ -237,6 +244,7 @@ export default function OrderWizard({
                   key={estiloItem.id}
                   type="button"
                   onClick={() => escolherModelo(estiloItem.id)}
+                  data-escolha={ativo ? "sim" : "nao"}
                   style={{ ["--i" as string]: i }}
                   className={`flex flex-col gap-2.5 rounded-2xl border-2 p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
                     ativo
@@ -590,7 +598,7 @@ export default function OrderWizard({
             </>
           }
         >
-          {etapa.conteudo}
+          <div ref={escolhaRef}>{etapa.conteudo}</div>
         </WizardShell>
       </form>
     </>
