@@ -16,7 +16,7 @@ export default function CopyLinkButton({ slug }: { slug: string }) {
     <button
       type="button"
       onClick={handleCopy}
-      className="text-xs font-serif tracking-[0.05em] border border-(--color-gold) px-3 py-1.5 text-(--color-olive)"
+      className="text-xs font-serif tracking-[0.05em] border border-(--c-rule) px-3 py-1.5 text-(--c-ink)"
     >
       {copied ? "Copiado!" : "Copiar link"}
     </button>

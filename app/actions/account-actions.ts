@@ -19,6 +19,7 @@ import {
   submitOrderById,
   getOrderById,
 } from "@/lib/repositories/orders";
+import { situacaoDePedidos, MENSAGEM_LIMITE } from "@/lib/orderLimits";
 import { cancelarPedidoComSite } from "@/lib/site/cancelOrder";
 import { canCancelOrder } from "@/lib/orderStatus";
 import { provisionSiteForOrder } from "@/lib/site/provision";
@@ -191,6 +192,14 @@ export async function saveOrderAction(formData: FormData) {
 
   // Primeiro salvamento de um pedido novo: cria e leva para a tela de edição
   // (que já tem o id) para os próximos salvamentos atualizarem o mesmo.
+  //
+  // A trava do limite mora AQUI, e não só no botão: esconder o link de novo
+  // pedido é cortesia com quem navega, não regra. Quem chegar em
+  // /conta/pedido/novo pela URL, por um link antigo ou por duas abas abertas
+  // passa por este mesmo caminho.
+  const situacao = await situacaoDePedidos(userId);
+  if (!situacao.podeCriar) return { error: MENSAGEM_LIMITE };
+
   const created = await createOrder(userId, parsed.input);
   revalidatePath("/conta/pedidos");
   redirect(`/conta/pedido/${created.id}`);
@@ -215,6 +224,10 @@ export async function submitOrderAction(formData: FormData) {
     await submitOrderById(existing.id);
     finalOrderId = existing.id;
   } else {
+    // Mesma trava do save: este ramo cria pedido do zero.
+    const situacao = await situacaoDePedidos(userId);
+    if (!situacao.podeCriar) return { error: MENSAGEM_LIMITE };
+
     const created = await createOrder(userId, parsed.input);
     await submitOrderById(created.id);
     finalOrderId = created.id;

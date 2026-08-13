@@ -54,28 +54,28 @@ export default function GiftAdmin({
         action={async (formData) => {
           await createGiftAction(formData);
         }}
-        className="flex flex-col gap-3 border border-(--color-gold) p-4"
+        className="flex flex-col gap-3 border border-(--c-rule) p-4"
       >
-        <h2 className="font-serif text-sm text-(--color-olive)">
+        <h2 className="font-serif text-sm text-(--c-ink)">
           Novo presente
         </h2>
         <GiftFields categories={categories} />
         <button
           type="submit"
-          className="bg-(--color-olive) text-white py-2 font-serif text-xs tracking-[0.1em]"
+          className="bg-(--c-ink) text-white py-2 font-serif text-xs tracking-[0.1em]"
         >
           Adicionar presente
         </button>
       </form>
 
       {gifts.length === 0 ? (
-        <p className="font-serif text-sm text-(--color-muted)">
+        <p className="font-serif text-sm text-(--c-ink-2)">
           Nenhum presente cadastrado ainda.
         </p>
       ) : (
         <ul className="flex flex-col gap-2">
           {gifts.map((gift) => (
-            <li key={gift.id} className="border border-(--color-gold)">
+            <li key={gift.id} className="border border-(--c-rule)">
               {editingId === gift.id ? (
                 <form
                   action={async (formData) => {
@@ -88,14 +88,14 @@ export default function GiftAdmin({
                   <div className="flex gap-2">
                     <button
                       type="submit"
-                      className="flex-1 bg-(--color-olive) text-white py-2 font-serif text-xs tracking-[0.1em]"
+                      className="flex-1 bg-(--c-ink) text-white py-2 font-serif text-xs tracking-[0.1em]"
                     >
                       Salvar
                     </button>
                     <button
                       type="button"
                       onClick={() => setEditingId(null)}
-                      className="flex-1 border border-(--color-gold) text-(--color-olive) py-2 font-serif text-xs tracking-[0.1em]"
+                      className="flex-1 border border-(--c-rule) text-(--c-ink) py-2 font-serif text-xs tracking-[0.1em]"
                     >
                       Cancelar
                     </button>
@@ -104,21 +104,21 @@ export default function GiftAdmin({
               ) : (
                 <div className="flex items-center justify-between gap-3 px-4 py-3">
                   <div className="flex flex-col min-w-0">
-                    <span className="font-serif text-xs text-(--color-muted)">
+                    <span className="font-serif text-xs text-(--c-ink-2)">
                       {gift.category}
                     </span>
-                    <span className="font-serif text-sm text-(--color-olive) truncate">
+                    <span className="font-serif text-sm text-(--c-ink) truncate">
                       {gift.name}
                     </span>
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
-                    <span className="font-serif text-sm text-(--color-olive)">
+                    <span className="font-serif text-sm text-(--c-ink)">
                       {formatPriceCents(gift.priceCents)}
                     </span>
                     <button
                       type="button"
                       onClick={() => setEditingId(gift.id)}
-                      className="font-serif text-xs text-(--color-olive) underline"
+                      className="font-serif text-xs text-(--c-ink) underline"
                     >
                       Editar
                     </button>
@@ -146,11 +146,11 @@ export default function GiftAdmin({
       )}
 
       <section className="flex flex-col gap-3">
-        <h2 className="font-serif text-sm text-(--color-olive)">
+        <h2 className="font-serif text-sm text-(--c-ink)">
           Quem já presenteou ({contributions.length})
         </h2>
         {contributions.length === 0 ? (
-          <p className="font-serif text-xs text-(--color-muted)">
+          <p className="font-serif text-xs text-(--c-ink-2)">
             Ninguém registrou um Pix por aqui ainda. Confira também o app do
             Mercado Pago — nem todo mundo se identifica.
           </p>
@@ -159,20 +159,20 @@ export default function GiftAdmin({
             {contributions.map((contribution) => (
               <li
                 key={contribution.id}
-                className="flex items-center justify-between gap-3 border border-(--color-gold) px-4 py-2"
+                className="flex items-center justify-between gap-3 border border-(--c-rule) px-4 py-2"
               >
-                <span className="font-serif text-sm text-(--color-olive) truncate">
+                <span className="font-serif text-sm text-(--c-ink) truncate">
                   {contribution.guestName ?? "Anônimo(a) 🕵️"} —{" "}
                   {contribution.giftName}
                 </span>
-                <span className="font-serif text-xs text-(--color-muted) shrink-0">
+                <span className="font-serif text-xs text-(--c-ink-2) shrink-0">
                   {formatDate(contribution.createdAt)}
                 </span>
               </li>
             ))}
           </ul>
         )}
-        <p className="font-serif text-xs text-(--color-muted)">
+        <p className="font-serif text-xs text-(--c-ink-2)">
           Registros feitos pelos convidados na página de presentes. A
           confirmação do valor é sempre no extrato do Mercado Pago.
         </p>
@@ -197,7 +197,7 @@ function GiftFields({
         defaultValue={gift?.category}
         placeholder="Categoria (ex: Lua de Mel)"
         required
-        className="border border-(--color-gold) px-3 py-2 text-sm font-serif"
+        className="border border-(--c-rule) px-3 py-2 text-sm font-serif"
       />
       <datalist id="gift-categories">
         {categories.map((category) => (
@@ -210,7 +210,7 @@ function GiftFields({
         defaultValue={gift?.name}
         placeholder="Nome do presente"
         required
-        className="border border-(--color-gold) px-3 py-2 text-sm font-serif"
+        className="border border-(--c-rule) px-3 py-2 text-sm font-serif"
       />
       <input
         type="text"
@@ -218,7 +218,7 @@ function GiftFields({
         inputMode="decimal"
         defaultValue={gift ? centsToInput(gift.priceCents) : ""}
         placeholder="Valor em R$ (vazio = convidado decide)"
-        className="border border-(--color-gold) px-3 py-2 text-sm font-serif"
+        className="border border-(--c-rule) px-3 py-2 text-sm font-serif"
       />
     </>
   );

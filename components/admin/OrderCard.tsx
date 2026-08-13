@@ -52,7 +52,7 @@ function CopyButton({ label, text }: { label: string; text: string }) {
     <button
       type="button"
       onClick={handleCopy}
-      className="font-serif text-xs tracking-[0.05em] border border-(--color-gold) text-(--color-olive) px-3 py-2 transition-colors hover:bg-(--color-blush)"
+      className="font-serif text-xs tracking-[0.05em] border border-(--c-rule) text-(--c-ink) px-3 py-2 transition-colors hover:bg-(--c-sunken)"
     >
       {copied ? "Copiado ✓" : label}
     </button>
@@ -63,15 +63,15 @@ function StatusBadge({ status }: { status: OrderStatus }) {
   const meta = STATUS_META[status];
   const tone =
     status === "draft"
-      ? "bg-(--color-blush) text-(--color-olive)/70"
+      ? "bg-(--c-sunken) text-(--c-ink-2)"
       : status === "published"
-        ? "bg-(--color-gold) text-white"
-        : "bg-(--color-olive) text-white";
+        ? "bg-(--c-mark) text-white"
+        : "bg-(--c-ink) text-white";
   return (
     <span
       className={`text-[10px] tracking-[0.1em] uppercase px-2 py-0.5 ${tone}`}
     >
-      {meta.icon} {meta.adminLabel}
+      {meta.adminLabel}
     </span>
   );
 }
@@ -82,16 +82,16 @@ export default function OrderCard({ order }: { order: AdminOrder }) {
   const [openHistory, setOpenHistory] = useState(false);
 
   return (
-    <li className="border border-(--color-gold)/50 bg-white">
+    <li className="border border-(--c-rule) bg-white">
       <div className="flex flex-wrap items-center justify-between gap-3 p-4">
         <div className="flex flex-col gap-0.5">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-serif text-base text-(--color-olive)">
+            <span className="font-serif text-base text-(--c-ink)">
               {order.coupleName}
             </span>
             <StatusBadge status={order.status} />
           </div>
-          <span className="font-serif text-xs text-(--color-muted)">
+          <span className="font-serif text-xs text-(--c-ink-2)">
             {order.packageName}
             {order.whatsapp ? ` · ${order.whatsapp}` : ""} · {order.updatedAt}
           </span>
@@ -100,7 +100,7 @@ export default function OrderCard({ order }: { order: AdminOrder }) {
           <button
             type="button"
             onClick={() => setOpenManage((v) => !v)}
-            className="font-serif text-xs tracking-[0.05em] border border-(--color-olive) bg-(--color-olive) text-white px-3 py-2 transition-colors hover:bg-(--color-olive)/90"
+            className="font-serif text-xs tracking-[0.05em] border border-(--c-ink) bg-(--c-ink) text-white px-3 py-2 transition-colors hover:bg-(--c-ink)/90"
           >
             {openManage ? "Fechar" : "Gerenciar"}
           </button>
@@ -109,14 +109,14 @@ export default function OrderCard({ order }: { order: AdminOrder }) {
           <button
             type="button"
             onClick={() => setOpenJson((v) => !v)}
-            className="font-serif text-xs tracking-[0.05em] text-(--color-olive) underline"
+            className="font-serif text-xs tracking-[0.05em] text-(--c-ink) underline"
           >
             {openJson ? "ocultar" : "ver JSON"}
           </button>
           <button
             type="button"
             onClick={() => setOpenHistory((v) => !v)}
-            className="font-serif text-xs tracking-[0.05em] text-(--color-olive) underline"
+            className="font-serif text-xs tracking-[0.05em] text-(--c-ink) underline"
           >
             {openHistory
               ? "ocultar histórico"
@@ -126,9 +126,9 @@ export default function OrderCard({ order }: { order: AdminOrder }) {
       </div>
 
       {openHistory && (
-        <div className="border-t border-(--color-gold)/40 bg-(--color-paper) p-4">
+        <div className="border-t border-(--c-rule) bg-(--c-base) p-4">
           {order.auditLog.length === 0 ? (
-            <p className="font-serif text-xs text-(--color-muted)">
+            <p className="font-serif text-xs text-(--c-ink-2)">
               Nenhuma alteração registrada ainda.
             </p>
           ) : (
@@ -136,16 +136,16 @@ export default function OrderCard({ order }: { order: AdminOrder }) {
               {order.auditLog.map((entry, i) => (
                 <li
                   key={i}
-                  className="font-serif text-xs text-(--color-olive)/85 leading-relaxed"
+                  className="font-serif text-xs text-(--c-ink)/85 leading-relaxed"
                 >
                   <span className="font-semibold">{entry.adminName}</span>{" "}
                   mudou <span className="italic">{entry.field}</span>
                   {": "}
-                  <span className="text-(--color-muted)">
+                  <span className="text-(--c-ink-2)">
                     {entry.oldValue ?? "vazio"}
                   </span>{" "}
                   → {entry.newValue ?? "vazio"}
-                  <span className="text-(--color-muted)"> · {entry.when}</span>
+                  <span className="text-(--c-ink-2)"> · {entry.when}</span>
                 </li>
               ))}
             </ul>
@@ -167,7 +167,7 @@ export default function OrderCard({ order }: { order: AdminOrder }) {
       )}
 
       {openJson && (
-        <pre className="overflow-x-auto bg-(--color-paper) border-t border-(--color-gold)/40 p-4 text-xs font-mono text-(--color-olive) whitespace-pre">
+        <pre className="overflow-x-auto bg-(--c-base) border-t border-(--c-rule) p-4 text-xs font-mono text-(--c-ink) whitespace-pre">
           {order.json}
         </pre>
       )}

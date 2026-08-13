@@ -22,7 +22,7 @@ export default function AdminTemplate({
 
 function ListaCarregando() {
   return (
-    <main className="flex-1 flex flex-col gap-4 px-6 py-12 max-w-3xl mx-auto w-full text-(--color-olive)">
+    <main className="flex-1 flex flex-col gap-4 px-6 py-12 max-w-3xl mx-auto w-full text-(--c-ink)">
       <div className="motion-skeleton h-6 w-40" />
       {[0, 1, 2].map((i) => (
         <div

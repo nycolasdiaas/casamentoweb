@@ -27,8 +27,8 @@ const STATUS_LABEL: Record<RsvpStatus, string> = {
 };
 
 const STATUS_BADGE_CLASS: Record<RsvpStatus, string> = {
-  pending: "bg-(--color-muted) text-white",
-  confirmed: "bg-(--color-olive) text-white",
+  pending: "bg-(--c-ink-2) text-white",
+  confirmed: "bg-(--c-ink) text-white",
   declined: "bg-red-700 text-white",
 };
 
@@ -86,8 +86,8 @@ export default function RsvpDashboard({ groups }: { groups: Group[] }) {
             onClick={() => setFilter(option.value)}
             className={`font-serif text-xs tracking-[0.05em] px-3 py-2 border transition-colors ${
               filter === option.value
-                ? "bg-(--color-olive) border-(--color-olive) text-white"
-                : "border-(--color-gold) text-(--color-olive)"
+                ? "bg-(--c-ink) border-(--c-ink) text-white"
+                : "border-(--c-rule) text-(--c-ink)"
             }`}
           >
             {option.label}
@@ -96,7 +96,7 @@ export default function RsvpDashboard({ groups }: { groups: Group[] }) {
       </div>
 
       {filteredRows.length === 0 ? (
-        <p className="font-serif text-sm text-(--color-muted)">
+        <p className="font-serif text-sm text-(--c-ink-2)">
           Nenhum convidado nesta categoria.
         </p>
       ) : (
@@ -106,7 +106,7 @@ export default function RsvpDashboard({ groups }: { groups: Group[] }) {
             return (
               <li
                 key={guest.id}
-                className="border border-(--color-gold)"
+                className="border border-(--c-rule)"
               >
                 <button
                   type="button"
@@ -115,7 +115,7 @@ export default function RsvpDashboard({ groups }: { groups: Group[] }) {
                   }
                   className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left"
                 >
-                  <span className="font-serif text-sm text-(--color-olive)">
+                  <span className="font-serif text-sm text-(--c-ink)">
                     {guest.name}
                   </span>
                   <span className="flex items-center gap-3">
@@ -124,24 +124,24 @@ export default function RsvpDashboard({ groups }: { groups: Group[] }) {
                     >
                       {STATUS_LABEL[guest.rsvpStatus]}
                     </span>
-                    <span className="font-serif text-xs text-(--color-muted)">
+                    <span className="font-serif text-xs text-(--c-ink-2)">
                       {isExpanded ? "−" : "+"}
                     </span>
                   </span>
                 </button>
 
                 {isExpanded && (
-                  <dl className="px-4 pb-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 font-serif text-xs text-(--color-olive)">
-                    <dt className="text-(--color-muted)">Grupo</dt>
+                  <dl className="px-4 pb-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 font-serif text-xs text-(--c-ink)">
+                    <dt className="text-(--c-ink-2)">Grupo</dt>
                     <dd>
                       {group.label ||
                         group.guests.map((g) => g.name).join(" & ")}
                     </dd>
 
-                    <dt className="text-(--color-muted)">Convite</dt>
+                    <dt className="text-(--c-ink-2)">Convite</dt>
                     <dd>/rsvp/{group.slug}</dd>
 
-                    <dt className="text-(--color-muted)">Respondido em</dt>
+                    <dt className="text-(--c-ink-2)">Respondido em</dt>
                     <dd>{formatDate(guest.respondedAt)}</dd>
                   </dl>
                 )}
@@ -156,9 +156,9 @@ export default function RsvpDashboard({ groups }: { groups: Group[] }) {
 
 function SummaryCard({ label, count }: { label: string; count: number }) {
   return (
-    <div className="border border-(--color-gold) px-3 py-4 flex flex-col items-center gap-1">
-      <span className="font-serif text-2xl text-(--color-olive)">{count}</span>
-      <span className="font-serif text-xs text-(--color-muted) text-center">
+    <div className="border border-(--c-rule) px-3 py-4 flex flex-col items-center gap-1">
+      <span className="font-serif text-2xl text-(--c-ink)">{count}</span>
+      <span className="font-serif text-xs text-(--c-ink-2) text-center">
         {label}
       </span>
     </div>

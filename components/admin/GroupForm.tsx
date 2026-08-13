@@ -12,9 +12,9 @@ export default function GroupForm() {
         await createGroupAction(formData);
         setGuestCount(1);
       }}
-      className="flex flex-col gap-3 border border-(--color-gold) p-4"
+      className="flex flex-col gap-3 border border-(--c-rule) p-4"
     >
-      <h2 className="font-serif text-sm text-(--color-olive)">
+      <h2 className="font-serif text-sm text-(--c-ink)">
         Novo convidado ou casal
       </h2>
 
@@ -22,7 +22,7 @@ export default function GroupForm() {
         type="text"
         name="label"
         placeholder="Etiqueta (opcional, ex: Família Silva)"
-        className="border border-(--color-gold) px-3 py-2 text-sm font-serif"
+        className="border border-(--c-rule) px-3 py-2 text-sm font-serif"
       />
 
       {Array.from({ length: guestCount }).map((_, index) => (
@@ -32,7 +32,7 @@ export default function GroupForm() {
           name="name"
           placeholder={`Nome ${index + 1}`}
           required
-          className="border border-(--color-gold) px-3 py-2 text-sm font-serif"
+          className="border border-(--c-rule) px-3 py-2 text-sm font-serif"
         />
       ))}
 
@@ -40,7 +40,7 @@ export default function GroupForm() {
         <button
           type="button"
           onClick={() => setGuestCount((count) => count + 1)}
-          className="text-xs font-serif text-(--color-olive) underline self-start"
+          className="text-xs font-serif text-(--c-ink) underline self-start"
         >
           + adicionar pessoa
         </button>
@@ -48,7 +48,7 @@ export default function GroupForm() {
 
       <button
         type="submit"
-        className="bg-(--color-olive) text-white py-2 font-serif text-xs tracking-[0.1em]"
+        className="bg-(--c-ink) text-white py-2 font-serif text-xs tracking-[0.1em]"
       >
         Criar convite
       </button>

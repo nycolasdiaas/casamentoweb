@@ -10,7 +10,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="self-start rounded-full bg-(--color-olive) text-white text-xs font-medium px-5 py-2.5 transition-colors hover:bg-(--color-olive)/90 disabled:opacity-60"
+      className="self-start rounded-full bg-(--c-ink) text-white text-xs font-medium px-5 py-2.5 transition-colors hover:bg-(--c-ink)/90 disabled:opacity-60"
     >
       {pending ? "Salvando..." : "Salvar alterações"}
     </button>
@@ -18,8 +18,8 @@ function SubmitButton() {
 }
 
 const inputClass =
-  "rounded-lg border border-(--color-gold)/40 bg-white px-3 py-2 text-sm text-(--color-olive) focus:border-(--color-gold) focus:outline-none";
-const labelClass = "flex flex-col gap-1 text-xs text-(--color-olive)/70";
+  "rounded-lg border border-(--c-rule) bg-white px-3 py-2 text-sm text-(--c-ink) focus:border-(--c-rule) focus:outline-none";
+const labelClass = "flex flex-col gap-1 text-xs text-(--c-ink-2)";
 
 export default function AdminOrderControls({
   orderId,
@@ -49,7 +49,7 @@ export default function AdminOrderControls({
   return (
     <form
       action={saveOrderAdminAction}
-      className="flex flex-col gap-3 border-t border-(--color-gold)/40 bg-(--color-paper) p-4"
+      className="flex flex-col gap-3 border-t border-(--c-rule) bg-(--c-base) p-4"
     >
       <input type="hidden" name="orderId" value={orderId} />
 
@@ -115,12 +115,12 @@ export default function AdminOrderControls({
       </label>
 
       {paymentStatus && (
-        <p className="text-xs text-(--color-muted)">
+        <p className="text-xs text-(--c-ink-2)">
           Pagamento:{" "}
           <span
             className={
               paymentStatus === "PAID"
-                ? "font-semibold text-(--color-olive)"
+                ? "font-semibold text-(--c-ink)"
                 : "font-semibold"
             }
           >

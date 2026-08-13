@@ -16,7 +16,7 @@ const STATUS_LABEL: Record<RsvpStatus, string> = {
 export default function GroupList({ groups }: { groups: Group[] }) {
   if (groups.length === 0) {
     return (
-      <p className="font-serif text-sm text-(--color-muted)">
+      <p className="font-serif text-sm text-(--c-ink-2)">
         Nenhum convidado cadastrado ainda.
       </p>
     );
@@ -27,10 +27,10 @@ export default function GroupList({ groups }: { groups: Group[] }) {
       {groups.map((group) => (
         <li
           key={group.id}
-          className="border border-(--color-gold) p-4 flex flex-col gap-2"
+          className="border border-(--c-rule) p-4 flex flex-col gap-2"
         >
           <div className="flex items-center justify-between gap-2">
-            <span className="font-serif text-sm text-(--color-olive)">
+            <span className="font-serif text-sm text-(--c-ink)">
               {group.label || group.guests.map((g) => g.name).join(" & ")}
             </span>
             <div className="flex gap-2">
@@ -52,7 +52,7 @@ export default function GroupList({ groups }: { groups: Group[] }) {
                 className="flex items-center justify-between text-xs font-serif"
               >
                 <span>{guest.name}</span>
-                <span className="text-(--color-muted)">
+                <span className="text-(--c-ink-2)">
                   {STATUS_LABEL[guest.rsvpStatus]}
                 </span>
               </li>

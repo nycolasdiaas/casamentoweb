@@ -14,7 +14,7 @@ export default function AdminLoginPage() {
   return (
     <main className="flex-1 flex items-center justify-center px-6 py-24">
       <form action={action} className="w-full max-w-xs flex flex-col gap-4">
-        <h1 className="font-serif text-lg text-(--color-olive) text-center">
+        <h1 className="font-serif text-lg text-(--c-ink) text-center">
           Acesso administrativo
         </h1>
 
@@ -24,7 +24,7 @@ export default function AdminLoginPage() {
           placeholder="E-mail"
           autoComplete="username"
           required
-          className="border border-(--color-gold) px-4 py-3 font-serif text-sm"
+          className="border border-(--c-rule) px-4 py-3 font-serif text-sm"
         />
 
         <input
@@ -33,7 +33,7 @@ export default function AdminLoginPage() {
           placeholder="Senha"
           autoComplete="current-password"
           required
-          className="border border-(--color-gold) px-4 py-3 font-serif text-sm"
+          className="border border-(--c-rule) px-4 py-3 font-serif text-sm"
         />
 
         {state?.error && (
@@ -43,7 +43,7 @@ export default function AdminLoginPage() {
         <button
           type="submit"
           disabled={pending}
-          className="bg-(--color-olive) text-white py-3 font-serif text-xs tracking-[0.1em] disabled:opacity-50"
+          className="bg-(--c-ink) text-white py-3 font-serif text-xs tracking-[0.1em] disabled:opacity-50"
         >
           {pending ? "Entrando..." : "Entrar"}
         </button>

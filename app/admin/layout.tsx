@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { uiPrensa } from "@/lib/fonts/ui";
 
 /**
  * Painel do admin: tudo aqui depende de sessão e lê o banco, então é
@@ -15,7 +16,14 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <Suspense fallback={<PainelCarregando />}>{children}</Suspense>;
+  // O escopo `.ui-prensa` precisa envolver o admin: os tokens --c-* vivem
+  // DENTRO dele, e sem isso a migração de cor não resolveria nada — as
+  // classes existiriam apontando para variáveis inexistentes.
+  return (
+    <div className={`${uiPrensa} flex-1 flex flex-col`}>
+      <Suspense fallback={<PainelCarregando />}>{children}</Suspense>
+    </div>
+  );
 }
 
 /**
@@ -25,7 +33,7 @@ export default function AdminLayout({
  */
 function PainelCarregando() {
   return (
-    <main className="flex-1 flex flex-col gap-4 px-6 py-12 max-w-3xl mx-auto w-full text-(--color-olive)">
+    <main className="flex-1 flex flex-col gap-4 px-6 py-12 max-w-3xl mx-auto w-full text-(--c-ink)">
       <div className="motion-skeleton h-6 w-40" />
       {[0, 1, 2].map((i) => (
         <div
