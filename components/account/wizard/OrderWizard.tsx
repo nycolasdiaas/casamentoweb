@@ -529,15 +529,26 @@ export default function OrderWizard({
           rodape={
             <>
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <button
-                  type="submit"
-                  name="intent"
-                  value="save"
-                  disabled={pending || jaEnviado}
-                  className="btn btn-secondary btn-sm"
-                >
-                  {pending && !enviando ? "Salvando…" : "Salvar rascunho"}
-                </button>
+                {/* "Salvar rascunho" some na ÚLTIMA etapa.
+                    Ali ele é redundante — enviar já grava tudo — e era uma
+                    armadilha: ficava colado no "Criar nosso site", com a mesma
+                    aparência de botão de formulário. Quem errava o alvo via
+                    "Salvando…", nenhum site criado e nenhuma animação, e
+                    concluía que a criação do pedido estava quebrada. Foi
+                    exatamente o que aconteceu em teste real.
+                    Nas outras etapas ele continua: ali salvar e sair é uma
+                    intenção legítima. */}
+                {!ultima && (
+                  <button
+                    type="submit"
+                    name="intent"
+                    value="save"
+                    disabled={pending || jaEnviado}
+                    className="btn btn-secondary btn-sm"
+                  >
+                    {pending && !enviando ? "Salvando…" : "Salvar rascunho"}
+                  </button>
+                )}
 
                 {ultima ? (
                   <button
