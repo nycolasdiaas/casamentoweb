@@ -738,17 +738,25 @@ export default function OrderWizard({
                 )}
               </div>
 
-              <p className="text-xs text-(--color-muted)">
-                Ficou em dúvida?{" "}
-                <Link
-                  href={WHATSAPP_LINK}
-                  target="_blank"
-                  className="underline underline-offset-2"
-                >
-                  Fale com a gente no WhatsApp
-                </Link>
-                .
-              </p>
+              {/* O WhatsApp é ÚLTIMO recurso, não saída padrão.
+                  Antes ele aparecia no rodapé de todas as sete etapas — a
+                  pessoa era convidada a sair da tela antes de ter qualquer
+                  problema, e o produto se descrevia como algo que precisa de
+                  socorro humano para ser usado. Agora só na revisão, onde a
+                  dúvida de fato pode existir, e sem pedir desculpa. */}
+              {ultima && (
+                <p className="text-xs text-(--color-muted)">
+                  Prefere combinar por mensagem?{" "}
+                  <Link
+                    href={WHATSAPP_LINK}
+                    target="_blank"
+                    className="underline underline-offset-2"
+                  >
+                    Chame no WhatsApp
+                  </Link>
+                  .
+                </p>
+              )}
             </>
           }
         >

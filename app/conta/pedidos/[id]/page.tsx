@@ -95,6 +95,35 @@ export default async function GerenciarInicioPage({
         </div>
       </div>
 
+      {/* A PRÉVIA VEM PRIMEIRO, antes do acompanhamento.
+          Ela estava no fim da página, depois do stepper e do bloco de
+          pagamento — o casal precisava rolar para encontrar a única coisa que
+          ele realmente quer ver. É o site dele; é o que abre a tela.
+          Não depende de status: existindo site, a prévia aparece. */}
+      {site !== null && site.status !== "archived" && (
+        <LivePreview
+          src={`/preview/${site.previewToken}`}
+          descricao="É o site de verdade, com o conteúdo de vocês. Depois de salvar alguma mudança, clique em atualizar."
+          fullBleed={false}
+        />
+      )}
+
+      {/* Sem site, o casal ficaria olhando um acompanhamento que nunca anda.
+          O provisionamento roda no mesmo request do envio; se ele falhou, o
+          pedido fica em "recebido" para sempre e a prévia nunca chega. Dizer
+          isso é melhor que deixar a tela em silêncio — e o texto não promete
+          prazo nenhum, porque não há prazo: há uma falha a investigar. */}
+      {site === null && (
+        <div className="surface-raised rounded-[3px] p-6 flex flex-col gap-2">
+          <span className="meta text-(--c-mark)">Prévia indisponível</span>
+          <p className="text-base leading-relaxed text-(--c-ink-2) max-w-[52ch]">
+            O site de vocês ainda não foi criado. Isso não é normal — o pedido
+            chegou, mas a montagem não completou. Fale com a gente e a gente
+            resolve na hora.
+          </p>
+        </div>
+      )}
+
       <OrderStatusTracker
         orderId={order.id}
         order={
@@ -120,14 +149,6 @@ export default async function GerenciarInicioPage({
           ar automaticamente. Já estamos vendo isso — se preferir, chame a gente
           no WhatsApp que resolvemos na hora.
         </p>
-      )}
-
-      {site !== null && site.status !== "archived" && (
-        <LivePreview
-          src={`/preview/${site.previewToken}`}
-          descricao="É o site de verdade, com o conteúdo de vocês. Depois de salvar alguma mudança, clique em atualizar."
-          fullBleed={false}
-        />
       )}
 
       {canCancelOrder(status) && (
