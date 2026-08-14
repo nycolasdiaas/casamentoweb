@@ -1,5 +1,7 @@
 "use server";
 
+import { ehCategoriaAlbum } from "@/lib/site/albumCategories";
+
 import crypto from "crypto";
 import { revalidatePath, updateTag } from "next/cache";
 import { getSessionUserId } from "@/lib/auth/userSession";
@@ -13,6 +15,7 @@ import {
   photoLimitForTier,
   SLOT_CAPACITY,
   type PhotoSlot,
+  setSitePhotoCategory,
 } from "@/lib/repositories/sitePhotos";
 import {
   ALLOWED_IMAGE_TYPES,
@@ -172,6 +175,36 @@ export async function confirmPhotoUploadAction(input: {
 
   invalidarSite(site.id, site.slug);
   return { photoId: foto.id };
+}
+
+/**
+ * Classifica uma foto do álbum ("entrada dos noivos", "os votos"...).
+ *
+ * A categoria é validada contra `CATEGORIAS_ALBUM`, nunca aceita como texto
+ * livre: ela vira nome de seção no site do convidado, e um valor inventado
+ * criaria uma seção fantasma que nenhum molde sabe desenhar.
+ *
+ * `null` é resposta válida — tirar a categoria devolve a foto para a galeria
+ * comum, e é assim que o casal desfaz uma classificação errada.
+ */
+export async function setPhotoCategoryAction(input: {
+  siteId: string;
+  photoId: string;
+  category: string | null;
+}): Promise<PhotoActionError | { saved: true }> {
+  const dono = await requireOwnedSite(input.siteId);
+  if ("error" in dono) return dono;
+  const { site } = dono;
+
+  if (input.category !== null && !ehCategoriaAlbum(input.category)) {
+    return { error: "Categoria desconhecida." };
+  }
+
+  const ok = await setSitePhotoCategory(site.id, input.photoId, input.category);
+  if (!ok) return { error: "Foto não encontrada." };
+
+  invalidarSite(site.id, site.slug);
+  return { saved: true };
 }
 
 export async function deletePhotoAction(input: {

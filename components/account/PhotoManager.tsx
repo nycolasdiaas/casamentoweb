@@ -6,7 +6,9 @@ import {
   requestPhotoUploadAction,
   confirmPhotoUploadAction,
   deletePhotoAction,
+  setPhotoCategoryAction,
 } from "@/app/actions/photo-actions";
+import { CATEGORIAS_ALBUM } from "@/lib/site/albumCategories";
 
 // Painel de fotos do casal.
 //
@@ -20,6 +22,7 @@ import {
 export type ManagedPhoto = {
   id: string;
   slot: string;
+  category?: string | null;
   width: number | null;
   height: number | null;
   blurDataUrl: string | null;
@@ -221,6 +224,25 @@ export default function PhotoManager({
       setEnviando(null);
     }
   }
+  /**
+   * Classifica a foto no álbum.
+   *
+   * Otimista: a lista muda na hora e só volta atrás se o servidor recusar.
+   * Categorizar dezenas de fotos é trabalho repetitivo — esperar uma ida ao
+   * banco a cada select transformaria a tarefa num castigo.
+   */
+  async function categorizar(photoId: string, category: string | null) {
+    const antes = photos;
+    setPhotos((atuais) =>
+      atuais.map((p) => (p.id === photoId ? { ...p, category } : p))
+    );
+    const res = await setPhotoCategoryAction({ siteId, photoId, category });
+    if ("error" in res) {
+      setErro(res.error);
+      setPhotos(antes);
+    }
+  }
+
 
   async function apagar(photoId: string) {
     setErro(null);
@@ -298,6 +320,28 @@ export default function PhotoManager({
                   >
                     {apagando === foto.id ? "…" : "✕"}
                   </button>
+
+                  {/* O seletor só aparece no ÁLBUM. Capa e galeria têm papel
+                      estrutural fixo no molde; categorizar ali não teria onde
+                      ser desenhado, e um controle que não faz nada é pior que
+                      controle nenhum. */}
+                  {spec.key === "album" && (
+                    <select
+                      value={foto.category ?? ""}
+                      onChange={(e) =>
+                        categorizar(foto.id, e.target.value || null)
+                      }
+                      aria-label="Momento do casamento"
+                      className="absolute inset-x-1 bottom-1 rounded-md bg-black/70 px-1.5 py-1 text-[10px] text-white outline-none"
+                    >
+                      <option value="">Sem categoria</option>
+                      {CATEGORIAS_ALBUM.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.rotulo}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </figure>
               ))}
 

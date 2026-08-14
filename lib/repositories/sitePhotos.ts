@@ -146,6 +146,27 @@ export async function getSitePhotoById(photoId: string) {
 }
 
 /** Apaga a linha e devolve o caminho no Storage, para o objeto sair junto. */
+/**
+ * Classifica uma foto no álbum. `null` tira a categoria.
+ *
+ * O `siteId` entra no WHERE junto com o id da foto — não é redundância: sem
+ * ele, quem soubesse o id de uma foto de outro casal poderia reclassificá-la.
+ * É a mesma trava do `deleteSitePhoto` logo abaixo, e a regra vale para toda
+ * consulta pública deste projeto (§1.2 do SDD).
+ */
+export async function setSitePhotoCategory(
+  siteId: string,
+  photoId: string,
+  category: string | null
+): Promise<boolean> {
+  const [alterada] = await db
+    .update(sitePhotos)
+    .set({ category })
+    .where(and(eq(sitePhotos.id, photoId), eq(sitePhotos.siteId, siteId)))
+    .returning({ id: sitePhotos.id });
+  return Boolean(alterada);
+}
+
 export async function deleteSitePhoto(
   siteId: string,
   photoId: string
