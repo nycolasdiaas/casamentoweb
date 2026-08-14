@@ -321,3 +321,58 @@ novo. Estes dois só entram depois que ele escolher os sites de referência.
   `npm run backup:full` e `npm run db:rehearse` antes.
 - O site do convidado continua sem three.js: 194 KB de primeira carga medidos
   e meta de LCP de 2,5 s no celular de quem abre pelo WhatsApp.
+
+## Estado ao fim da sessão de 12/08
+
+Entregues e em produção: **2.1** (questionário coleta conteúdo), **6** (prévia
+abre a tela do pedido), **7** (WhatsApp só na revisão), mais um defeito achado
+no caminho — as fotos eram servidas em 480px e esticadas no desktop.
+
+### 5c — categorias do álbum: PARADO ANTES DA MIGRAÇÃO, de propósito
+
+As categorias já existem como fonte única da verdade em
+`lib/site/albumCategories.ts`, na ordem do evento que o Anderson ditou. O que
+falta é tudo que toca o banco, e é aí que eu paro:
+
+1. `category text` (ANULÁVEL) em `site_photos`.
+2. `npm run backup:full` **antes**.
+3. `npm run db:generate` — nunca `push`. O `push` proporia dropar quatro
+   tabelas que existem em produção e não vieram por migração, incluindo os
+   snapshots de convidados dos últimos 30 dias.
+4. O `down` escrito **à mão** em `lib/db/migrations/down/` — o drizzle-kit só
+   gera o `up`.
+5. `npm run db:rehearse` — aplica numa transação contra o banco real e dá
+   ROLLBACK. Reprova sozinho se a migração derrubar tabela ou mexer em
+   contagem existente.
+6. `scripts/setup-test-schema.mjs` atualizado. O schema `test` NÃO recebe
+   migração; esquecer isso derrubou dezenas de casos na 0010 e na 0011.
+7. Só então: interface de organização e renderização por categoria nos moldes.
+
+**Por que parar aqui:** este banco tem um casamento no ar com 22 confirmações
+e links de `/rsvp/<slug>` já no WhatsApp dos convidados. Migração é a única
+coisa desta lista que não dá para desfazer com um `git revert`. O passo 4 —
+o `down` à mão — é o que o Anderson pediu para revisar antes de aplicar, e a
+regra do próprio repositório é "backup antes, rollback escrito antes".
+
+### 5b — o clique na foto: PENDENTE por falta de evidência
+
+Lendo o código, o lightbox não parece bloqueado: não há `<a>` em volta da
+foto, o anel decorativo tem `pointer-events-none`, e o filtro de tamanho não
+excluiria as fotos. **Não subi conserto especulativo.** Precisa de navegador
+para reproduzir — o MCP do Chrome caiu nesta sessão.
+
+Hipótese que vale testar primeiro: o que foi visto como "não abrem" pode ter
+sido a foto borrada de 480px, já corrigida.
+
+### 2.1b — etapa de fotos no questionário: PENDENTE
+
+O requisito prevê, e ficou de fora: o upload precisa de um `siteId` que só
+existe DEPOIS do provisionamento. Ou o questionário guarda os arquivos em
+memória e sobe no fim, ou o site nasce antes da última etapa. É decisão de
+arquitetura, não puxadinho.
+
+### 4a e 5a — BLOQUEADOS por referência
+
+O Anderson pediu explicitamente para parar de propor e passar a trabalhar
+sobre referência escolhida. "Melhorar a exposição" sem referência é propor de
+novo, e por isso estes dois não avançam até ele escolher os sites.
