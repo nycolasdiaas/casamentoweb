@@ -217,3 +217,107 @@ Nossa diferença estrutural hoje: o site do convidado é uma **rolagem única nu
 cartão de 480px**, mobile-first de propósito (o convidado abre pelo WhatsApp).
 Se a análise disser que múltiplas páginas ganham, isso é decisão de rumo — e
 passa pelo Nycolas, que escreveu os moldes.
+
+---
+
+# FEEDBACK 2 — registro e plano (12/08/2026)
+
+Pontos trazidos pelo Anderson, um a um. A coluna de estado foi apurada
+CONFERINDO O CÓDIGO, não de memória — três dos sete já estavam resolvidos, e
+as capturas que os acompanhavam eram de builds anteriores ao que está no ar.
+
+| # | Ponto | Estado |
+|---|---|---|
+| 1 | Cara de IA · centralizada, encurtada, desalinhada · fonte branca invisível | ✅ Passada 2 |
+| 2 | "Aguardar o site" | ✅ `fadd055` |
+| 2.1 | Questionário não coleta conteúdo | 🔴 aberto |
+| 4a | Landing: exposição do conteúdo | 🟡 depende de referência |
+| 4b | E-mail pessoal na landing | ✅ `638ded2` |
+| 5a | Site do convidado curto no desktop | 🟡 depende de referência |
+| 5b | Imagens do álbum não abrem | 🔴 aberto |
+| 5c | Álbum sem categorização | 🔴 aberto |
+| 6 | Prévia visível na tela do pedido, e sempre pronta | 🔴 aberto |
+| 7 | WhatsApp só em último caso | 🔴 aberto |
+
+O ponto 3 não foi enviado.
+
+## Por que o 1, o 2 e o 4b aparecem como resolvidos
+
+Não é discordância do feedback — é que ele foi escrito contra uma versão
+anterior. A prova de cada um:
+
+- **1**: o botão invisível da captura é `bg-(--color-olive) text-white`, e a
+  custom property não resolve em produção. Hoje é `.btn-quiet` com hex
+  literal. O trilho era 768px/1280px em trilhos diferentes; hoje é 1200px nos
+  dois, com desencontro medido em 0px.
+- **2**: a frase "nossa equipe vai começar a montar em breve" saiu em
+  `fadd055`, e `lib/orderStatus.ts` carrega uma trava contra reintroduzi-la.
+- **4b**: `grep` por `andersondiass018` não retorna nada.
+
+## A ordem de ataque, e o critério
+
+Por **impacto no que o casal recebe**, não por esforço. O 2.1 vem primeiro
+porque é o único que muda o produto, e porque ficou dois dias parado enquanto
+cor e animação avançavam.
+
+### 1º — 2.1: o questionário coleta o conteúdo
+
+O requisito já está escrito acima (seção de 02/08) e não mudou. O que barateou
+foi a implementação: a lista de etapas virou dado em `lib/wizard/etapas.ts`,
+então acrescentar etapa é editar uma lista.
+
+Restrições que continuam valendo:
+- Nenhuma etapa vira obrigatória — pular é estado válido, e cada seção do
+  molde degrada sozinha quando falta dado.
+- **Reusar `parseContentForm` não é opcional.** Ele grava hora em UTC e o
+  formulário lê no fuso do site; um caminho paralelo faz a cerimônia das 16h
+  virar 19h e ganhar três horas a cada salvamento.
+
+### 2º — 6: a prévia sempre pronta e visível
+
+Duas metades, e a primeira pode ser defeito:
+- **Sempre pronta.** A captura do Anderson mostra o pedido parado em "Pedido
+  recebido", não em "Prévia pronta". Se `provisionSiteForOrder` falhar, o
+  `catch` engole o erro e o pedido fica em `submitted` sem prévia — o casal vê
+  um site que nunca chega. REPRODUZIR antes de mexer.
+- **Visível.** Hoje o painel "Como está ficando" fica abaixo do acompanhamento.
+  Sobe para o topo da tela.
+
+### 3º — 5b: as imagens do álbum não abrem
+
+Reproduzir primeiro. Há um `PhotoLightbox` que depende de `.site-canvas`; se o
+seletor não casar, o clique não faz nada. Suspeita, não conclusão.
+
+### 4º — 7: WhatsApp em último caso
+
+Tirar o convite de WhatsApp do rodapé do questionário e dos lugares onde ele
+aparece como saída natural. Ele permanece no contato da landing e como último
+recurso, não como primeira opção — hoje ele é oferecido antes de a pessoa ter
+qualquer problema.
+
+### 5º — 5c: categorias do álbum
+
+Funcionalidade nova, e a maior do lote: precisa de coluna nova em
+`site_photos`, migração (aditiva, com backup e ensaio), interface de
+categorização e renderização por seção no molde. Categorias, na ordem pedida:
+
+1. Pre wedding
+2. Noivado
+3. O casamento — entrada dos noivos · entrada das madrinhas e padrinhos ·
+   familiares & amigos (protocolares) · entrega das alianças (damas e pajens) ·
+   os votos / troca de alianças · saída dos recém-casados · decoração e
+   detalhes · making-of da noiva
+
+### BLOQUEADOS por referência: 4a e 5a
+
+O Anderson pediu explicitamente para **parar de propor e passar a trabalhar
+sobre referência escolhida**. "Melhorar a exposição" sem referência é propor de
+novo. Estes dois só entram depois que ele escolher os sites de referência.
+
+## O que NÃO muda em nenhum destes
+
+- A rota `/rsvp/<slug>` e os slugs existentes.
+- Nada de `drizzle-kit push`; a migração do 5c é aditiva, com
+  `npm run backup:full` e `npm run db:rehearse` antes.
+- O site do convidado continua sem three.js: 194 KB de primeira carga medidos
+  e meta de LCP de 2,5 s no celular de quem abre pelo WhatsApp.

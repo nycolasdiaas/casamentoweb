@@ -115,6 +115,19 @@ export default function OrderWizard({
   const [estilo, setEstilo] = useState(order?.styleNotes ?? "");
   const [obs, setObs] = useState(order?.notes ?? "");
 
+  // ---- o CONTEÚDO do site ----------------------------------------------
+  // Estes campos NÃO moram em `orders`: vão direto para `site_content` no
+  // provisionamento. Pedido guarda a escolha (pacote, estilo, cores); o site
+  // guarda o que ele diz. Separar assim evitou migração e mantém uma fonte
+  // só para cada coisa.
+  const [hora, setHora] = useState("");
+  const [cerimoniaLocal, setCerimoniaLocal] = useState("");
+  const [cerimoniaEndereco, setCerimoniaEndereco] = useState("");
+  const [festaLocal, setFestaLocal] = useState("");
+  const [festaEndereco, setFestaEndereco] = useState("");
+  const [traje, setTraje] = useState("");
+  const [historia, setHistoria] = useState("");
+
   const [state, action, pending] = useActionState(
     async (
       _prev: ActionResult | undefined,
@@ -233,6 +246,124 @@ export default function OrderWizard({
             </span>
           </label>
         </div>
+    ),
+    cerimonia: (
+      <div className="motion-stagger mx-auto flex max-w-md flex-col gap-5">
+        <label style={{ ["--i" as string]: 0 }} className="flex flex-col gap-2">
+          <span className="text-sm font-medium">Local da cerimônia</span>
+          <input
+            value={cerimoniaLocal}
+            onChange={(e) => setCerimoniaLocal(e.target.value)}
+            placeholder="Ex: Igreja Nossa Senhora das Graças"
+            maxLength={160}
+            className={campoBase}
+          />
+        </label>
+        <label style={{ ["--i" as string]: 1 }} className="flex flex-col gap-2">
+          <span className="text-sm font-medium">Endereço</span>
+          <input
+            value={cerimoniaEndereco}
+            onChange={(e) => setCerimoniaEndereco(e.target.value)}
+            placeholder="Rua, número, bairro, cidade"
+            maxLength={300}
+            className={campoBase}
+          />
+          <span className="text-xs text-(--color-muted)">
+            Vira o botão de mapa no convite.
+          </span>
+        </label>
+        <label style={{ ["--i" as string]: 2 }} className="flex flex-col gap-2">
+          <span className="text-sm font-medium">Horário</span>
+          <input
+            type="time"
+            value={hora}
+            onChange={(e) => setHora(e.target.value)}
+            className={campoBase}
+          />
+        </label>
+      </div>
+    ),
+    festa: (
+      <div className="motion-stagger mx-auto flex max-w-md flex-col gap-5">
+        <label style={{ ["--i" as string]: 0 }} className="flex flex-col gap-2">
+          <span className="text-sm font-medium">Local da festa</span>
+          <input
+            value={festaLocal}
+            onChange={(e) => setFestaLocal(e.target.value)}
+            placeholder="Ex: Espaço Jardim das Oliveiras"
+            maxLength={160}
+            className={campoBase}
+          />
+        </label>
+        <label style={{ ["--i" as string]: 1 }} className="flex flex-col gap-2">
+          <span className="text-sm font-medium">Endereço</span>
+          <input
+            value={festaEndereco}
+            onChange={(e) => setFestaEndereco(e.target.value)}
+            placeholder="Rua, número, bairro, cidade"
+            maxLength={300}
+            className={campoBase}
+          />
+        </label>
+        <button
+          type="button"
+          style={{ ["--i" as string]: 2 }}
+          onClick={() => {
+            setFestaLocal(cerimoniaLocal);
+            setFestaEndereco(cerimoniaEndereco);
+          }}
+          className="self-start rounded-full border border-(--color-gold)/50 px-4 py-2 text-xs transition-colors hover:bg-(--color-blush)"
+        >
+          É no mesmo lugar da cerimônia
+        </button>
+      </div>
+    ),
+    traje: (
+      <div className="motion-stagger mx-auto flex max-w-md flex-col gap-4">
+        <label style={{ ["--i" as string]: 0 }} className="flex flex-col gap-2">
+          <span className="text-sm font-medium">Traje</span>
+          <input
+            value={traje}
+            onChange={(e) => setTraje(e.target.value)}
+            placeholder="Ex: Esporte fino"
+            maxLength={200}
+            className={campoBase}
+          />
+        </label>
+        <div className="motion-stagger flex flex-wrap gap-2">
+          {["Traje social", "Esporte fino", "Casual elegante", "Pé na areia"].map(
+            (sugestao, i) => (
+              <button
+                key={sugestao}
+                type="button"
+                style={{ ["--i" as string]: i }}
+                onClick={() => setTraje(sugestao)}
+                className="rounded-full border border-(--color-gold)/50 px-3.5 py-1.5 text-xs transition-colors hover:bg-(--color-blush)"
+              >
+                {sugestao}
+              </button>
+            )
+          )}
+        </div>
+      </div>
+    ),
+    historia: (
+      <div className="motion-stagger mx-auto flex max-w-xl flex-col gap-3">
+        <label style={{ ["--i" as string]: 0 }} className="flex flex-col gap-2">
+          <span className="text-sm font-medium">Nossa história</span>
+          <textarea
+            rows={7}
+            value={historia}
+            onChange={(e) => setHistoria(e.target.value)}
+            placeholder="Onde se conheceram, como foi o pedido, o que vocês querem que os convidados saibam…"
+            maxLength={5000}
+            className={`${campoBase} resize-y`}
+          />
+        </label>
+        <span style={{ ["--i" as string]: 1 }} className="text-xs text-(--color-muted)">
+          {historia.length}/5000
+        </span>
+      </div>
     ),
     modelo: (
         <div className="flex flex-col gap-4">
@@ -518,6 +649,18 @@ export default function OrderWizard({
         <input type="hidden" name="coupleNames" value={nomes} />
         <input type="hidden" name="weddingDate" value={data} />
         <input type="hidden" name="notes" value={obs} />
+
+        {/* O conteúdo do site. Os nomes batem com os de `parseContentForm`
+            de propósito: é ele que grava, e reusá-lo não é opcional — ele
+            trata o fuso da data, e um caminho paralelo faria a cerimônia das
+            16h virar 19h e ganhar três horas a cada salvamento. */}
+        <input type="hidden" name="weddingTime" value={hora} />
+        <input type="hidden" name="ceremonyVenue" value={cerimoniaLocal} />
+        <input type="hidden" name="ceremonyAddress" value={cerimoniaEndereco} />
+        <input type="hidden" name="receptionVenue" value={festaLocal} />
+        <input type="hidden" name="receptionAddress" value={festaEndereco} />
+        <input type="hidden" name="dressCode" value={traje} />
+        <input type="hidden" name="story" value={historia} />
 
         <WizardShell
           passo={passo}

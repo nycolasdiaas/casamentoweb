@@ -23,6 +23,8 @@ import { situacaoDePedidos, MENSAGEM_LIMITE } from "@/lib/orderLimits";
 import { cancelarPedidoComSite } from "@/lib/site/cancelOrder";
 import { canCancelOrder } from "@/lib/orderStatus";
 import { provisionSiteForOrder } from "@/lib/site/provision";
+import { parseContentForm } from "@/lib/site/contentInput";
+import { saveSiteContent } from "@/lib/repositories/siteContent";
 import { getUserById } from "@/lib/repositories/users";
 import { getBaseUrl } from "@/lib/baseUrl";
 import { PACKAGES, type PackageTier } from "@/lib/packages";
@@ -249,7 +251,39 @@ export async function submitOrderAction(formData: FormData) {
         console.error(
           `[provision] pedido ${finalOrderId} não provisionado: ${resultado.reason}`
         );
-      } else if (resultado.created && isEmailConfigured()) {
+      } else {
+        // O CONTEÚDO respondido no questionário entra AGORA, no mesmo request.
+        //
+        // Era esta a crítica do Nycolas: "como se cria um site sem seu
+        // conteúdo? O que vem primeiro?". Antes o questionário perguntava
+        // como o site ia PARECER e nunca o que ele ia DIZER, então o casal
+        // respondia sete perguntas e recebia uma casca — e as telas do menu
+        // lateral abriam vazias.
+        //
+        // `parseContentForm` e não um caminho próprio: ele grava a hora em UTC
+        // a partir do fuso do site, e duplicar isso faria a cerimônia das 16h
+        // virar 19h e ganhar três horas a cada salvamento.
+        //
+        // Falhar aqui NÃO derruba o pedido: o site já existe e o casal edita
+        // pelo painel. Perder o conteúdo é ruim; perder o pedido é pior.
+        try {
+          const conteudo = parseContentForm(formData);
+          if (conteudo.ok) {
+            await saveSiteContent(resultado.siteId, conteudo.value);
+          } else {
+            console.error(
+              `[provision] conteúdo do pedido ${finalOrderId} recusado: ${conteudo.error}`
+            );
+          }
+        } catch (erro) {
+          console.error(
+            `[provision] conteúdo do pedido ${finalOrderId} não gravado:`,
+            erro
+          );
+        }
+      }
+
+      if (resultado.ok && resultado.created && isEmailConfigured()) {
         // Só no primeiro provisionamento: `created` false significa que o site
         // já existia, e reenviar "sua prévia está pronta" seria ruído.
         //

@@ -40,6 +40,10 @@ import { FONT_STYLES } from "@/lib/customization";
 export type EtapaId =
   | "pacote"
   | "nomes"
+  | "cerimonia"
+  | "festa"
+  | "traje"
+  | "historia"
   | "modelo"
   | "cores"
   | "fonte"
@@ -74,6 +78,30 @@ export const ETAPAS: Etapa[] = [
     titulo: "Como vocês se chamam?",
     subtitulo: "É o nome que abre o convite. Dá para ajustar depois.",
     exige: "nomes",
+  },
+  {
+    id: "cerimonia",
+    titulo: "Onde e quando é a cerimônia?",
+    subtitulo:
+      "Vai direto para o convite e para o mapa. Ainda não fecharam? Deixem em branco e preencham depois.",
+  },
+  {
+    id: "festa",
+    titulo: "E a festa, onde vai ser?",
+    subtitulo:
+      "Se for no mesmo lugar da cerimônia, podem repetir — ou pular e ajustar depois.",
+  },
+  {
+    id: "traje",
+    titulo: "Como vocês querem que as pessoas se vistam?",
+    subtitulo:
+      "Uma linha basta: \"traje social\", \"esporte fino\", \"pé na areia\". É a dúvida número um de todo convidado.",
+  },
+  {
+    id: "historia",
+    titulo: "A história de vocês",
+    subtitulo:
+      "Como se conheceram, o pedido, o que quiserem contar. Pode ser curtinho — e pode ficar para depois.",
   },
   {
     id: "modelo",
