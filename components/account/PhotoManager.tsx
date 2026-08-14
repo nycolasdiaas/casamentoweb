@@ -58,6 +58,14 @@ const SLOTS: SlotSpec[] = [
     capacity: 12,
     aspect: "aspect-square",
   },
+  {
+    key: "album",
+    label: "Álbum da festa",
+    hint:
+      "As fotos do dia. Depois de subir, marque o momento de cada uma — é o que faz o álbum contar a história em vez de virar uma pilha.",
+    capacity: 120,
+    aspect: "aspect-square",
+  },
 ];
 
 /** Alvo de tamanho depois de comprimir. Acima disto a página fica lenta no 4G. */

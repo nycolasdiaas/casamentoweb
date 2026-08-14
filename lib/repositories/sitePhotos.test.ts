@@ -225,13 +225,15 @@ describe("limites", () => {
   it("reconhece só os slots que o molde usa", () => {
     expect(isPhotoSlot("cover")).toBe(true);
     expect(isPhotoSlot("gallery")).toBe(true);
-    // "album" são as fotos da festa — ainda não têm upload.
-    expect(isPhotoSlot("album")).toBe(false);
+    // "album" são as fotos da festa. Passou a ter upload quando o casal
+    // ganhou a classificação por momento (entrada dos noivos, votos, saída):
+    // sem upload, a categorização não teria foto nenhuma para classificar.
+    expect(isPhotoSlot("album")).toBe(true);
     expect(isPhotoSlot("../../etc/passwd")).toBe(false);
   });
 
   it("todo slot conhecido tem capacidade declarada", () => {
-    for (const slot of ["cover", "story", "gallery"] as PhotoSlot[]) {
+    for (const slot of ["cover", "story", "gallery", "album"] as PhotoSlot[]) {
       expect(SLOT_CAPACITY[slot]).toBeGreaterThan(0);
     }
   });

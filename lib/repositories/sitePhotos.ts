@@ -12,10 +12,12 @@ import type { PackageTier } from "@/lib/packages";
  * Onde a foto entra no molde. Vocabulário compartilhado com as seções, mas
  * guardado como texto: molde novo pode inventar slot sem migração.
  *
- * `album` fica de fora por enquanto — são as fotos da festa, que só existem
- * depois do casamento (a seção mostra o próprio estado de espera).
+ * `album` são as fotos DA FESTA, que só existem depois do casamento. Ele
+ * ficou de fora enquanto a seção era só um estado de espera; agora que o casal
+ * classifica cada foto por momento (entrada dos noivos, votos, saída...), o
+ * álbum precisa receber upload como qualquer outro slot.
  */
-export const PHOTO_SLOTS = ["cover", "story", "gallery"] as const;
+export const PHOTO_SLOTS = ["cover", "story", "gallery", "album"] as const;
 export type PhotoSlot = (typeof PHOTO_SLOTS)[number];
 
 export function isPhotoSlot(value: string): value is PhotoSlot {
@@ -27,12 +29,17 @@ export const SLOT_CAPACITY: Record<PhotoSlot, number> = {
   cover: 1, // a foto principal do casal
   story: 1, // a foto que acompanha a história
   gallery: 12, // a grade de momentos
+  // O álbum é o acervo da festa, não uma vitrine: cabe muito mais foto, e é
+  // ele que justifica o pacote Para Sempre. O teto por PACOTE abaixo continua
+  // valendo e é o que de fato limita.
+  album: 120,
 };
 
 export const SLOT_LABEL: Record<PhotoSlot, string> = {
   cover: "Foto principal",
   story: "A nossa história",
   gallery: "Galeria",
+  album: "Álbum da festa",
 };
 
 /**
