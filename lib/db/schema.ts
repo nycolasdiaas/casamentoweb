@@ -288,6 +288,14 @@ export const sitePhotos = pgTable(
       .notNull()
       .references(() => sites.id, { onDelete: "cascade" }),
     slot: text("slot").notNull(),
+    // Categoria do álbum: "entrada-noivos", "votos", "making-of"...
+    // A lista e a ORDEM vivem em lib/site/albumCategories.ts, fonte única.
+    //
+    // ANULÁVEL, e assim permanece. A migração é aditiva: nenhuma foto já
+    // enviada é reclassificada por adivinhação, e álbum existente continua
+    // funcionando igual. Tornar obrigatória, se um dia fizer sentido, é
+    // outra migração — depois de verificar em produção.
+    category: text("category"),
     // caminho no bucket privado; unique impede duas linhas para o mesmo objeto
     storagePath: text("storage_path").notNull().unique(),
     contentType: text("content_type").notNull(),

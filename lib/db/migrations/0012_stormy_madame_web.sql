@@ -1,0 +1,1 @@
+ALTER TABLE "site_photos" ADD COLUMN "category" text;

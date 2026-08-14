@@ -11,6 +11,7 @@ function fotoDe(overrides: Partial<SitePhotoRow> = {}): SitePhotoRow {
   return {
     id: "11111111-1111-1111-1111-111111111111",
     siteId: "22222222-2222-2222-2222-222222222222",
+    category: null,
     slot: "cover",
     storagePath: "site/foto.jpg",
     contentType: "image/jpeg",

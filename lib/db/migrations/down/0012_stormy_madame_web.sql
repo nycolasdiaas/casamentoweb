@@ -1,0 +1,11 @@
+-- Desfaz a 0012: tira a categoria do álbum de site_photos.
+--
+-- Escrito à MÃO porque o drizzle-kit só gera o `up`. Sem este arquivo não
+-- existe caminho de volta, e a regra do repositório é "backup antes, rollback
+-- escrito antes".
+--
+-- ATENÇÃO ao rodar: isto APAGA a classificação que os casais já tiverem feito.
+-- A coluna é anulável e aditiva, então derrubá-la não quebra nenhuma consulta
+-- existente — mas o trabalho de organizar o álbum se perde e não volta.
+-- Restaure de backups/ se precisar do conteúdo.
+ALTER TABLE "site_photos" DROP COLUMN IF EXISTS "category";

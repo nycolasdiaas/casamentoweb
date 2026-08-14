@@ -86,6 +86,7 @@ const DDL = [
      id uuid primary key default gen_random_uuid(),
      site_id uuid not null references test.sites(id) on delete cascade,
      slot text not null,
+     category text,
      storage_path text not null unique,
      content_type text not null,
      size_bytes integer not null,
@@ -131,6 +132,11 @@ const DDL = [
   // Pix por casal (migração 0010). O `create table if not exists` acima não
   // alcança um schema `test` que já existe, então as colunas precisam vir
   // também por alter — é o mesmo motivo do site_id logo acima.
+  // A coluna nasce numa tabela que JA existe no schema test, e o
+  // `create table if not exists` acima nao a acrescenta. Sem este alter, 14
+  // casos de sitePhotos quebram com "column category does not exist" — foi o
+  // que aconteceu na 0010 e na 0011, e aconteceu de novo aqui.
+  `alter table test.site_photos add column if not exists category text`,
   `alter table test.site_content add column if not exists pix_key text`,
   `alter table test.site_content add column if not exists pix_key_type text`,
   `alter table test.site_content add column if not exists pix_recipient text`,
