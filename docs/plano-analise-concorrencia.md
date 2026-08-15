@@ -376,3 +376,54 @@ arquitetura, não puxadinho.
 O Anderson pediu explicitamente para parar de propor e passar a trabalhar
 sobre referência escolhida. "Melhorar a exposição" sem referência é propor de
 novo, e por isso estes dois não avançam até ele escolher os sites.
+
+## Referências do Anderson, confrontadas com o que temos (15/08)
+
+Ele escolheu duas, e são eixos diferentes de propósito:
+
+- **iCasei** — profundidade de EDIÇÃO, principalmente na página gerencial.
+- **Squarespace** — o DESENHO dos templates.
+
+### O que as páginas de fato entregaram
+
+Pouco. As duas são páginas de venda. A do Squarespace **não descreve
+composição, tipografia, espaçamento nem os blocos** — julgar template de lá
+exige olhar os templates, não a página do produto.
+
+A do iCasei rendeu uma coisa concreta e verificável: **a lista de seções**.
+
+### Seções: iCasei × Enlace
+
+| iCasei | Enlace |
+|---|---|
+| Introdução | `cover` |
+| Save the date | `cover` |
+| Convite digital | `cover` |
+| Confirmação de presença | `rsvp` |
+| Lista de presentes | `gifts` |
+| Mapa do local | `details` |
+| Álbum de fotos | `gallery` + `album` |
+| **Dicas de estilo** | — (temos `dressCode` como texto, não seção) |
+| — | `countdown`, `story`, `guestbook` |
+
+**A leitura honesta: não há lacuna de funcionalidade.** Temos tudo que eles
+listam, mais contagem regressiva, história e mural. A única diferença real é
+que o traje deles é uma SEÇÃO ("dicas de estilo", com referência visual) e o
+nosso é uma linha de texto.
+
+Ou seja: o incômodo do Anderson com o iCasei **não é de recurso, é de
+edição** — o que bate com a frase dele ("dá para editar muita coisa,
+principalmente na página gerencial"). Isso é o item 4a, e é sobre o painel.
+
+### O que NÃO dá para fazer sem o Anderson
+
+Comparar a profundidade de edição exige entrar no painel do iCasei, que é
+autenticado. E julgar os templates do Squarespace exige olhá-los.
+
+Propor "melhorar a exposição" sem isso é exatamente o que ele pediu para
+parar: *"o Claude sempre segue o mesmo padrão, tu precisa guiar ele e não
+deixar ele propor"*.
+
+**O que destrava:** capturas do painel do iCasei nas telas que ele achou boas,
+e 2 ou 3 templates do Squarespace que ele gostou — com uma frase do porquê. A
+frase vale mais que o link: ela diz o que copiar e o que ignorar.

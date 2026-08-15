@@ -129,6 +129,9 @@ export const ETAPAS: Etapa[] = [
   {
     id: "revisao",
     titulo: "Conferindo antes de mandar",
-    subtitulo: "Dá para voltar e mudar qualquer coisa.",
+    // Diz o que vem DEPOIS. O envio leva direto para as fotos, e chegar lá sem
+    // aviso parece que o pedido pulou uma etapa.
+    subtitulo:
+      "Dá para voltar e mudar qualquer coisa. Ao enviar, o site é criado na hora e vocês já sobem as fotos.",
   },
 ];

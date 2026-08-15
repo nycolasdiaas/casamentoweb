@@ -313,10 +313,23 @@ export async function submitOrderAction(formData: FormData) {
     console.error(`[provision] falha no pedido ${finalOrderId}:`, error);
   }
 
-  // Volta para o início (hub), que lista os pedidos com o andamento.
+  // Vai direto para as FOTOS, não para o hub.
+  //
+  // O requisito previa uma etapa de fotos DENTRO do questionário, e ela nunca
+  // saiu por um impedimento real: o upload precisa de um `siteId`, e o site só
+  // existe depois deste envio. Segurar os arquivos em memória para subir
+  // depois significaria perdê-los no redirecionamento, e criar o site antes da
+  // última etapa faria todo abandono virar site órfão.
+  //
+  // A saída é a ordem, não a arquitetura: as fotos são a etapa seguinte, com o
+  // site já criado e o upload funcionando de verdade. O casal cai na tela onde
+  // pode subir, com a prévia a um clique — em vez de no hub, que é uma lista.
+  //
+  // Também é o passo que faltava para o site nascer completo: conteúdo veio no
+  // questionário, fotos vêm aqui, e nada abre vazio.
   revalidatePath("/conta");
   revalidatePath("/conta/pedidos");
-  redirect("/conta");
+  redirect(`/conta/pedidos/${finalOrderId}/fotos`);
 }
 
 export async function cancelOrderAction(formData: FormData) {
