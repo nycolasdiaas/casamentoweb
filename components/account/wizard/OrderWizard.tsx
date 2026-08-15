@@ -455,8 +455,12 @@ export default function OrderWizard({
           </div>
         </div>
     ),
+    // A rolagem PRÓPRIA da lista só existe a partir de sm. No celular, uma
+    // caixa rolável dentro de uma página rolável rouba o gesto: a pessoa
+    // arrasta querendo descer a página e desce a lista, ou fica presa no fim
+    // dela. Com a lista inteira no fluxo, o polegar faz uma coisa só.
     fonte: (
-        <div className="flex max-h-[30rem] flex-col gap-6 overflow-y-auto rounded-2xl border border-(--color-gold)/30 bg-(--color-paper)/40 p-4">
+        <div className="flex flex-col gap-6 rounded-2xl border border-(--color-gold)/30 bg-(--color-paper)/40 p-4 sm:max-h-[30rem] sm:overflow-y-auto">
           {FONT_CATEGORY_ORDER.map((categoria) => {
             const doGrupo = FONT_STYLES.filter((f) => f.category === categoria);
             if (doGrupo.length === 0) return null;

@@ -31,8 +31,8 @@ export default function AccountShell({
 }) {
   const linkClass = (tab: Tab) =>
     active === tab
-      ? "text-[13px] font-medium text-(--c-ink) border-b border-(--c-ink) pb-0.5"
-      : "text-[13px] text-(--c-ink-2) border-b border-transparent pb-0.5 transition-colors hover:text-(--c-ink) hover:border-(--c-rule)";
+      ? "inline-flex min-h-11 items-center text-[13px] font-medium text-(--c-ink) border-b border-(--c-ink) pb-0.5"
+      : "inline-flex min-h-11 items-center text-[13px] text-(--c-ink-2) border-b border-transparent pb-0.5 transition-colors hover:text-(--c-ink) hover:border-(--c-rule)";
 
   return (
     <div className={`${uiPrensa} flex-1 flex flex-col`}>
@@ -56,7 +56,7 @@ export default function AccountShell({
             <form action={signoutAction}>
               <button
                 type="submit"
-                className="text-[13px] text-(--c-ink-2) transition-colors hover:text-(--c-ink) cursor-pointer"
+                className="inline-flex min-h-11 items-center text-[13px] text-(--c-ink-2) transition-colors hover:text-(--c-ink) cursor-pointer"
               >
                 Sair
               </button>

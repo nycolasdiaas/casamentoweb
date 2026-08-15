@@ -52,7 +52,10 @@ export default function WizardShell({
             <button
               type="button"
               onClick={onVoltar}
-              className="flex items-center gap-1.5 text-sm text-(--color-olive)/70 transition-colors hover:text-(--color-olive)"
+              // -mx-2 px-2 py-3: a área de toque cresce para ~44px sem
+              // deslocar o texto da margem. No celular, 20px de altura é um
+              // alvo que se erra — e este é o botão de desfazer do fluxo.
+              className="-mx-2 flex min-h-11 items-center gap-1.5 px-2 py-3 text-sm text-(--color-olive)/70 transition-colors hover:text-(--color-olive)"
             >
               <span aria-hidden>←</span> Voltar
             </button>
