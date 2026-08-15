@@ -427,3 +427,76 @@ deixar ele propor"*.
 **O que destrava:** capturas do painel do iCasei nas telas que ele achou boas,
 e 2 ou 3 templates do Squarespace que ele gostou — com uma frase do porquê. A
 frase vale mais que o link: ela diz o que copiar e o que ignorar.
+
+## O que as capturas do Anderson mostraram (15/08)
+
+Ele mandou 3 telas do painel do iCasei e 2 de templates do Squarespace, com o
+comentário: *"gostei bastante de como a pessoa tem autonomia"* e *"o convite
+que a pessoa cria"*.
+
+### iCasei — o que de fato está nas telas
+
+**1. Painel inicial.** Barra lateral com título **e uma linha de descrição por
+item** ("Site — Personalize e edite cada detalhe", "Presentes — Gerencie
+listas, resgates e mais"). Quatro cartões de número no topo: Presentes (valor
+recebido), Confirmações, Mensagens, Visitas — cada um com dois links de ação
+("Resumo | Resgate", "Estatística | Ranking"). E um bloco **"Comece por
+aqui"** com barra de progresso: *2 de 5 passos concluídos, 40%*.
+
+**2. Editar convite digital.** É a tela mais forte das três, e explica a
+palavra "autonomia":
+
+- À esquerda, **"Áreas editáveis:"** — uma LISTA de cada elemento do convite,
+  com ícone do TIPO: `Aa` para texto, corrente para link, imagem para foto.
+  "Anderson e aa", "Divisor", "Informe o endereço aqui", "11/11/2026 às
+  03:00", "Confirmar presença", "Lista de presentes", "Imagem de fundo".
+- No centro, o convite renderizado ao vivo.
+- Embaixo: **Desfazer / Refazer**, "Salvar ajustes" e **"Baixar convite"**.
+
+**3. Galeria de convites.** Grade de modelos com nome e código (Minimal T244,
+Rustic T239, Bauhaus T238...), e selo "Exclusivo do plano Black" em alguns.
+
+### Squarespace — o que de fato está nas telas
+
+Foto grande de verdade (não miniatura), título em serifada enorme sobre muito
+branco, navegação mínima. Nos sites reais: capa full-bleed com o nome sobre a
+foto, ou nome centralizado com respiro generoso. E o Elysian oferece
+**8 paletas de cores prontas** para trocar com um clique.
+
+### O confronto honesto
+
+| | iCasei | Enlace hoje |
+|---|---|---|
+| Descrição por item de menu | sim | **sim** — já temos |
+| Cartões de número no painel | 4, com ações | **não** |
+| Onboarding com progresso | sim | não |
+| Lista de "áreas editáveis" | sim, por elemento e tipo | não — temos formulários |
+| Desfazer/Refazer | sim | não |
+| **Convite baixável para mandar no WhatsApp** | sim | **NÃO EXISTE** |
+| Galeria de modelos de convite | ~40 | 6 moldes de site |
+| Paletas prontas | — | não (Squarespace: 8) |
+
+### A leitura
+
+**"Autonomia" ali não é ter mais recursos — é ver o que dá para mexer.** A
+lista de áreas editáveis nomeia cada pedaço do convite e diz de que tipo ele
+é. Nosso formulário pede os mesmos dados e não mostra onde eles caem. O
+sentimento de controle vem daí.
+
+**E o convite baixável é um buraco de produto, não de interface.** O iCasei
+entrega um ARQUIVO que o casal manda no WhatsApp. A gente entrega um link. São
+coisas diferentes, e o convite é o que circula no grupo da família.
+
+### Ordem sugerida, do mais barato ao mais caro
+
+1. **Paletas prontas** no passo de cores (referência: Squarespace). Pequeno, e
+   ataca autonomia direto — hoje o casal escolhe cor a cor.
+2. **Cartões de número** na tela do pedido: confirmações, presentes, visitas.
+   Os dados existem (`siteEvents`, `guests`, `gifts`); falta a consulta.
+3. **Convite baixável.** O maior, e o único que fecha um buraco de produto.
+   Precisa de decisão: renderizar imagem no servidor ou no cliente.
+4. **Áreas editáveis + desfazer/refazer.** Reescrita do editor. Só depois de
+   1–3, e só se o incômodo persistir.
+
+**Nada disto entra sem o Anderson escolher a ordem** — são decisões de
+produto, não de execução.
