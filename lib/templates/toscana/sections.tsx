@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AlbumPorCategoria from "@/components/site/AlbumPorCategoria";
 import PhotoSlot from "@/components/templates/PhotoSlot";
 import SitePhoto from "@/components/site/SitePhoto";
 import Countdown from "@/components/site/Countdown";
@@ -406,7 +407,15 @@ export async function Gifts({ siteId, content }: SectionProps) {
   );
 }
 
-export function Album({ content }: SectionProps) {
+export async function Album({ content, siteId }: SectionProps) {
+  // O placeholder que este molde já desenhava vira o estado VAZIO: sem foto
+  // da festa, nada muda para quem visita hoje. Com foto, o álbum aparece
+  // separado por momento. Ver AlbumPorCategoria — a lógica é uma só para os
+  // seis moldes, então corrigir aqui corrige em todos.
+  return <AlbumPorCategoria siteId={siteId} vazio={<Vazio content={content} />} />;
+}
+
+function Vazio({ content }: { content: SectionProps["content"] }) {
   return (
     <section className="px-8 py-16 lg:py-28" style={{ background: "var(--ink)", color: "var(--paper)" }}>
       <SectionTitle kicker="Para matar a saudade" title="Álbum da festa" onDark />
