@@ -418,7 +418,7 @@ export default function OrderWizard({
           {modelo && (
             <div className="motion-fade-in">
               <LivePreview
-                src={`/pacotes/estilos/${modelo}?pacote=${pacote}`}
+                src={`/pacotes/estilos/${modelo}?pacote=${pacote}&embutido=1`}
                 titulo="Como este modelo fica"
                 descricao="Depois de enviar o pedido, esta prévia passa a mostrar o site com o conteúdo de vocês."
                 fullBleed={false}

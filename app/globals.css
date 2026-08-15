@@ -686,3 +686,47 @@ body:has(.ui-prensa) {
     animation: motion-fade var(--t-reduzido) var(--e-suave) both;
   }
 }
+
+/* --------------------------------------------------------------------------
+   Seção que o pacote acabou de liberar, na vitrine.
+
+   Trocar de plano rearranjava as seções e pronto — a crítica foi exata: "não
+   dá para ver o que mudou". O contorno responde à pergunta que a troca
+   levanta (o que este pacote me deu?) e sai sozinho depois de ~2s, porque é
+   resposta, não decoração.
+
+   A cor vem de `--accent`, o token do tema do casal, nunca de hex: é a mesma
+   regra que `verify:template` cobra dos moldes.
+   -------------------------------------------------------------------------- */
+.secao-nova {
+  position: relative;
+}
+
+.secao-nova::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 2px solid var(--accent, currentColor);
+  border-radius: 4px;
+  animation: secao-nova-sai 2.2s var(--e-suave) forwards;
+}
+
+@keyframes secao-nova-sai {
+  0%,
+  60% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* O contorno é INFORMAÇÃO — diz o que o pacote liberou — então ele fica.
+     O que sai é só o esmaecer, que vira um corte no fim. */
+  html:not([data-movimento="ligado"]) .secao-nova::after {
+    animation: none;
+    opacity: 0.85;
+  }
+}

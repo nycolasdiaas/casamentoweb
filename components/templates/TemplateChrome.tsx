@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { Flip } from "gsap/Flip";
@@ -39,6 +40,17 @@ export default function TemplateChrome({
   onTierChange: (tier: PackageTier) => void;
   children: ReactNode;
 }) {
+  /**
+   * Modo EMBUTIDO: sem a barra de navegação e sem o CTA do rodapé.
+   *
+   * A prévia do modelo aparece DENTRO do questionário, e ali a barra
+   * oferecia "← Pacotes" e "Minha conta" — dois convites para o casal
+   * abandonar o pedido no meio. Os seletores de modelo e de pacote também
+   * saem: a etapa já tem os dela, e dois controles para a mesma escolha
+   * na mesma tela é convite a divergirem.
+   */
+  const embutido = useSearchParams().get("embutido") === "1";
+
   const raiz = useRef<HTMLDivElement>(null);
   const estadoAntes = useRef<ReturnType<typeof Flip.getState> | null>(null);
 
@@ -91,13 +103,24 @@ export default function TemplateChrome({
         // as seções que ficam empurram umas às outras enquanto animam e o
         // movimento vira tranco.
         absolute: true,
-        // Seção que o pacote novo LIBERA não tinha "antes": ela nasce.
-        onEnter: (elementos) =>
-          gsap.fromTo(
+        // Seção que o pacote novo LIBERA não tinha "antes": ela nasce —
+        // e fica MARCADA por um instante.
+        //
+        // Trocar de plano só rearranjava, e a crítica foi exata: "não dá
+        // pra ver o que mudou". O contorno na cor de acento responde a
+        // pergunta que a troca levanta — o que este pacote me deu? — e
+        // some sozinho, porque é resposta, não decoração.
+        onEnter: (elementos) => {
+          elementos.forEach((el) => el.classList.add("secao-nova"));
+          gsap.delayedCall(2.2, () =>
+            elementos.forEach((el) => el.classList.remove("secao-nova"))
+          );
+          return gsap.fromTo(
             elementos,
             { opacity: 0, scale: 0.96 },
             { opacity: 1, scale: 1, duration: 0.45, ease: "power3.out" }
-          ),
+          );
+        },
         // E a que o pacote novo não inclui sai, em vez de sumir num quadro.
         onLeave: (elementos) =>
           gsap.to(elementos, {
@@ -142,6 +165,7 @@ export default function TemplateChrome({
             three: ele é aberto pelo WhatsApp, no celular, com meta de LCP de
             2,5 s. */}
         <PaperBackdrop tinta={accent} forca={0.09} />
+        {!embutido && (
         <div
           className="sticky top-0 z-50 flex flex-col gap-2.5 px-4 py-2.5 text-[11px]"
           style={{
@@ -164,10 +188,10 @@ export default function TemplateChrome({
               conteúdo e a linha estoura a tela em aparelhos estreitos — a
               rolagem horizontal (overflow-x-auto) é o fallback nesse caso. */}
           <div className="flex items-center gap-2">
-            <span className="shrink-0 w-12 tracking-[0.12em] uppercase text-[9px] opacity-55">
+            <span className="shrink-0 w-9 sm:w-12 tracking-[0.12em] uppercase text-[9px] opacity-55">
               Modelo
             </span>
-            <div className="flex-1 min-w-0 overflow-x-auto">
+            <div className="flex-1 min-w-0 overflow-x-auto no-scrollbar">
               <div className="flex gap-1.5 w-max">
                 {TEMPLATE_STYLES.map((t) => {
                   const active = t.id === styleId;
@@ -194,10 +218,10 @@ export default function TemplateChrome({
 
           {/* Trocar de pacote (muda quais seções aparecem) */}
           <div className="flex items-center gap-2">
-            <span className="shrink-0 w-12 tracking-[0.12em] uppercase text-[9px] opacity-55">
+            <span className="shrink-0 w-9 sm:w-12 tracking-[0.12em] uppercase text-[9px] opacity-55">
               Pacote
             </span>
-            <div className="flex-1 min-w-0 overflow-x-auto">
+            <div className="flex-1 min-w-0 overflow-x-auto no-scrollbar">
               <div className="flex gap-1.5 w-max">
                 {PACKAGES.map((pkg) => {
                   const active = pkg.tier === tier;
@@ -226,6 +250,7 @@ export default function TemplateChrome({
             pacote no template {styleName}
           </p>
         </div>
+        )}
 
         {/* A vitrine nao tinha NENHUMA revelacao na rolagem: as 6 paginas
             apareciam prontas enquanto a pessoa descia. Mora aqui, no quadro,
@@ -235,6 +260,7 @@ export default function TemplateChrome({
 
         <div className="relative z-10 flex flex-col">{children}</div>
 
+        {!embutido && (
         <div
           className="flex flex-col items-center gap-3 px-6 py-12 text-center"
           style={{ background: ink }}
@@ -252,6 +278,7 @@ export default function TemplateChrome({
             Quero um site assim
           </a>
         </div>
+        )}
       </div>
     </div>
   );

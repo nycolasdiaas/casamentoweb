@@ -32,7 +32,7 @@ export default async function GerenciarInicioPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ publicacao?: string }>;
+  searchParams: Promise<{ publicacao?: string; provisionamento?: string }>;
 }) {
   const { id } = await params;
   const { order, site } = await carregarGerenciamento(id);
@@ -63,8 +63,19 @@ export default async function GerenciarInicioPage({
   // exige derrubar cache, e isso não pode acontecer durante o render — então
   // manda para a rota que sabe fazer isso e volta. `publicacao=erro` corta o
   // laço se ela não conseguiu. Ver AGENTS.md.
-  const { publicacao } = await searchParams;
+  const { publicacao, provisionamento } = await searchParams;
   const publicacaoFalhou = publicacao === "erro";
+
+  // Pedido enviado e SEM site: o provisionamento falhou no envio e nada tenta
+  // de novo. Manda para a rota que cria, e volta. Mesmo desenho da publicação
+  // logo abaixo — escrita não pode acontecer no render de uma página.
+  //
+  // `provisionamento=erro` corta o laço; sem ele, uma falha persistente faria
+  // a tela redirecionar para si mesma sem parar.
+  const provisionamentoFalhou = provisionamento === "erro";
+  if (site === null && !provisionamentoFalhou) {
+    redirect(`/api/pedido/provisionar?pedido=${order.id}`);
+  }
   if (
     paymentStatus === "PAID" &&
     site !== null &&
@@ -113,7 +124,7 @@ export default async function GerenciarInicioPage({
           pedido fica em "recebido" para sempre e a prévia nunca chega. Dizer
           isso é melhor que deixar a tela em silêncio — e o texto não promete
           prazo nenhum, porque não há prazo: há uma falha a investigar. */}
-      {site === null && (
+      {site === null && provisionamentoFalhou && (
         <div className="surface-raised rounded-[3px] p-6 flex flex-col gap-2">
           <span className="meta text-(--c-mark)">Prévia indisponível</span>
           <p className="text-base leading-relaxed text-(--c-ink-2) max-w-[52ch]">
@@ -124,6 +135,14 @@ export default async function GerenciarInicioPage({
         </div>
       )}
 
+      {/* O acompanhamento SOME quando o site não existe.
+          O passo 1 afirma "Pedido recebido — a prévia já está pronta", texto
+          escrito assumindo que o provisionamento sempre completa no mesmo
+          request. Quando ele falha, essa frase aparecia logo abaixo do aviso
+          dizendo o contrário — a tela se contradizia. Acompanhar o progresso
+          de algo que não começou também não informa nada: o aviso acima é a
+          informação inteira nesse estado. */}
+      {!(site === null && provisionamentoFalhou) && (
       <OrderStatusTracker
         orderId={order.id}
         order={
@@ -139,6 +158,7 @@ export default async function GerenciarInicioPage({
           } satisfies TrackerOrder
         }
       />
+      )}
 
       {publicacaoFalhou && (
         <p
