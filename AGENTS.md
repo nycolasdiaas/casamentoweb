@@ -413,6 +413,33 @@ Quatro armadilhas que custaram tempo:
 - **Não troque `template_id` direto no banco para testar molde** — o `theme`
   fica com fontes de outro catálogo e o site cai no "estamos preparando".
 
+# A branch `feedback-001` NÃO deve ser mesclada
+
+Existe uma branch `feedback-001` (sem o `fix/`) com um commit de 27/07 que
+nunca entrou na `main`: `7160ade`, com 57 arquivos e +3.974 linhas. Ela parece
+trabalho perdido, e não é — é a arquitetura **anterior** à multi-tenancy:
+
+| No órfão | Na main hoje |
+|---|---|
+| `lib/repositories/orderPhotos.ts` (foto presa ao PEDIDO) | `sitePhotos.ts` (foto do SITE) |
+| `lib/storage.ts` | `lib/storage/supabase.ts` |
+| `PhotoUploader` + `OrderPhotoSection` | `PhotoManager` |
+| migração 0008 | 0012 |
+
+Mesclar ressuscitaria `order_photos` — que é justamente uma das quatro tabelas
+que o AGENTS.md manda não deixar o `drizzle-kit push` dropar, porque sobrou de
+um push antigo. O caminho de foto foi refeito por site, e voltar atrás
+quebraria o álbum, a categorização e a galeria.
+
+**O que de fato se perdeu ali: a verificação de e-mail.** `schema.ts` declara
+`email_verification_tokens`, a tabela existe em produção, e NÃO há código na
+`main` que a use — ele só existe no órfão
+(`email-verification-actions.ts`, `repositories/emailVerification.ts`,
+`EmailVerificationBanner`, `/conta/confirmar`). É feature a reconstruir sobre
+a arquitetura de hoje, não a resgatar por merge.
+
+A branch fica onde está, como registro. Não apague — mas também não mescle.
+
 # Pendências conhecidas
 
 - **Álbum pós-festa ainda é placeholder**: as fotos da festa (slot `album`)
