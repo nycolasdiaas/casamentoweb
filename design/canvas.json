@@ -1,0 +1,23 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "title": "Gerenciar — proposta", "x": 0, "y": 0, "w": 1200, "h": 900 },
+    { "file": "Convite.dc.html", "title": "Convite baixável — novo", "x": 1280, "y": 0, "w": 1000, "h": 760 }
+  ],
+  "annotations": [
+    {
+      "id": "o-que-mudou",
+      "x": 0,
+      "y": -190,
+      "w": 520,
+      "text": "O QUE PEGUEI DO iCASEI\n\n• Régua de números no topo (confirmados, presentes, recados, visitas)\n• Lista de \"áreas editáveis\" ao lado da prévia — cada pedaço nomeado, com o tipo\n• Desfazer / Refazer\n• Progresso do que falta, com ação em cada linha\n\nO QUE NÃO PEGUEI\n\n• Os quatro cartões azuis: viraram uma régua em mono, na linguagem de ficha de gráfica\n• Onboarding de 5 passos genérico: virou \"O que falta\", com tarefas do SEU site"
+    },
+    {
+      "id": "decisao-convite",
+      "x": 1280,
+      "y": -190,
+      "w": 460,
+      "text": "O BURACO DE PRODUTO\n\nO iCasei entrega um ARQUIVO. A gente entrega um link — e é o arquivo que circula no grupo da família.\n\nPrecisa da sua decisão antes de eu construir: a imagem é gerada no servidor (fiel, custa infra) ou no navegador (barato, depende do aparelho)?"
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

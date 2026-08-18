@@ -1,0 +1,119 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; }
+    a { color: #b8412c; }
+    a:hover { color: #8f3222; }
+  </style>
+</helmet>
+
+<div style="width: 1000px; min-height: 760px; background: #efefec; color: #1a1d21; font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif; padding: 32px 40px 48px;">
+
+  <div style="display: flex; flex-direction: column; gap: 8px; padding-bottom: 24px; border-bottom: 1px solid #c9c9c2;">
+    <div style="font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 12.5px; letter-spacing: 0.06em; text-transform: uppercase; color: #b8412c;">Novo — não existe hoje</div>
+    <div style="font-family: ui-serif, 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif; font-size: 30px; line-height: 1.15;">O convite que circula no WhatsApp</div>
+    <div style="font-size: 16px; line-height: 1.55; color: #5a5f66; max-width: 60ch;">Hoje entregamos um link. O iCasei entrega um arquivo — e é o arquivo que o casal manda no grupo da família.</div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 280px minmax(0, 1fr) 220px; gap: 28px; align-items: start; padding-top: 28px;">
+
+    <!-- Coluna 1: as areas editaveis do convite -->
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div style="background: #ffffff; border: 1px solid #c9c9c2; border-radius: 3px; box-shadow: 0 1px 0 0 rgba(26,29,33,0.06); overflow: hidden;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px; border-bottom: 1px solid #c9c9c2;">
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <span style="font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #5a5f66;">Modelo</span>
+            <span style="font-size: 14px; font-weight: 500;">Clássico</span>
+          </div>
+          <span style="border: 1px solid #c9c9c2; border-radius: 2px; padding: 5px 12px; font-size: 12px;">Trocar</span>
+        </div>
+
+        <div style="font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #5a5f66; padding: 10px 14px; background: #e5e5e0; border-bottom: 1px solid #c9c9c2;">Áreas editáveis</div>
+
+        <sc-for list="{{ campos }}" as="c" hint-placeholder-count="6">
+          <div style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-bottom: 1px solid #e5e5e0; background: {{ c.fundo }};">
+            <span style="flex-shrink: 0; display: flex; color: #5a5f66;">
+              <sc-if value="{{ c.ehTexto }}" hint-placeholder-val="{{ true }}">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3.5 4.5h9"></path><path d="M8 4.5v7"></path></svg>
+              </sc-if>
+              <sc-if value="{{ c.ehLink }}" hint-placeholder-val="{{ false }}">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6.6 9.4a3 3 0 0 0 4.2 0l1.7-1.7a3 3 0 1 0-4.2-4.2l-.9.9"></path><path d="M9.4 6.6a3 3 0 0 0-4.2 0L3.5 8.3a3 3 0 1 0 4.2 4.2l.9-.9"></path></svg>
+              </sc-if>
+              <sc-if value="{{ c.ehImagem }}" hint-placeholder-val="{{ false }}">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="3.5" width="11" height="9"></rect><path d="M2.5 10.5l3-3 3 3 2-2 3 3"></path></svg>
+              </sc-if>
+            </span>
+            <span style="font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ c.nome }}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display: flex; gap: 14px; font-size: 13px; color: #5a5f66;">
+        <span>Desfazer</span>
+        <span>Refazer</span>
+      </div>
+    </div>
+
+    <!-- Coluna 2: o convite -->
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
+      <div style="width: 320px; background: #f2efe7; border: 1px solid #c9c9c2; padding: 40px 32px; text-align: center;">
+        <div style="border: 1px solid #b8985f; padding: 28px 20px;">
+          <div style="font-family: ui-serif, 'Iowan Old Style', Palatino, Georgia, serif; font-size: 28px; color: #3d4a36; line-height: 1.2;">{{ nomes }}</div>
+          <div style="width: 44px; height: 1px; background: #b8985f; margin: 14px auto;"></div>
+          <div style="font-size: 11.5px; line-height: 1.7; color: #5a5f66;">{{ chamada }}</div>
+          <div style="font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 13px; letter-spacing: 0.08em; color: #3d4a36; margin-top: 14px;">{{ dataHora }}</div>
+          <div style="font-size: 11.5px; color: #5a5f66; margin-top: 8px; line-height: 1.6;">{{ local }}</div>
+          <div style="display: flex; justify-content: center; gap: 8px; margin-top: 22px;">
+            <div style="background: #3d4a36; color: #f2efe7; font-size: 10px; padding: 8px 12px;">Confirmar presença</div>
+            <div style="border: 1px solid #b8985f; color: #3d4a36; font-size: 10px; padding: 8px 12px;">Lista de presentes</div>
+          </div>
+          <div style="font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 9.5px; color: #8a8578; margin-top: 18px; letter-spacing: 0.04em;">{{ endereco }}</div>
+        </div>
+      </div>
+      <div style="font-size: 13px; color: #5a5f66;">Prévia — 1080 × 1350, o formato que o WhatsApp não corta</div>
+    </div>
+
+    <!-- Coluna 3: o que sai daqui -->
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="background: #1a1d21; color: #ffffff; border-radius: 2px; padding: 11px 16px; text-align: center; font-size: 14px; font-weight: 500;">Baixar convite</div>
+      <div style="border: 1px solid #c9c9c2; border-radius: 2px; padding: 11px 16px; text-align: center; font-size: 14px; font-weight: 500;">Enviar no WhatsApp</div>
+      <div style="border-top: 1px solid #c9c9c2; margin-top: 8px; padding-top: 14px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #5a5f66;">Decisão pendente</div>
+        <div style="font-size: 13px; line-height: 1.6; color: #5a5f66;">A imagem é gerada no servidor ou no navegador? Muda o custo e a fidelidade. Precisa da sua escolha antes de eu construir.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"nomes":{"editor":"text","default":"Anderson &amp; Isabelle"},"chamada":{"editor":"text","default":"Juntamente com suas famílias\nconvidam para o seu casamento"},"dataHora":{"editor":"text","default":"11.11.2026 · 16H"},"local":{"editor":"text","default":"Igreja Nossa Senhora das Graças\nFortaleza — CE"},"endereco":{"editor":"text","default":"enlace.com.br/anderson-e-isabelle"}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      nomes: this.props.nomes ?? 'Anderson & Isabelle',
+      chamada: this.props.chamada ?? 'Juntamente com suas famílias\nconvidam para o seu casamento',
+      dataHora: this.props.dataHora ?? '11.11.2026 · 16H',
+      local: this.props.local ?? 'Igreja Nossa Senhora das Graças\nFortaleza — CE',
+      endereco: this.props.endereco ?? 'enlace.com.br/anderson-e-isabelle',
+      campos: [
+        { nome: 'Anderson & Isabelle',   ehTexto: true,  ehLink: false, ehImagem: false, fundo: '#e5e5e0' },
+        { nome: 'Juntamente com suas…',  ehTexto: true,  ehLink: false, ehImagem: false, fundo: '#ffffff' },
+        { nome: '11.11.2026 · 16H',      ehTexto: true,  ehLink: false, ehImagem: false, fundo: '#ffffff' },
+        { nome: 'Igreja N. S. das Graças', ehTexto: true, ehLink: false, ehImagem: false, fundo: '#ffffff' },
+        { nome: 'Imagem de fundo',       ehTexto: false, ehLink: false, ehImagem: true,  fundo: '#ffffff' },
+        { nome: 'Confirmar presença',    ehTexto: false, ehLink: true,  ehImagem: false, fundo: '#ffffff' },
+        { nome: 'Lista de presentes',    ehTexto: false, ehLink: true,  ehImagem: false, fundo: '#ffffff' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

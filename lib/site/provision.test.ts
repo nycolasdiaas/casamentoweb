@@ -213,6 +213,49 @@ describe("provisionSiteForOrder", () => {
   });
 });
 
+describe("provisionSiteForOrder — data de casamento", () => {
+  /**
+   * REGRESSÃO REAL, achada no log de produção.
+   *
+   * O <input type="date"> aceita ano de até 6 dígitos. Um dedo escorregado
+   * ("13131") passava pelo navegador, passava pelo JS e só estourava no
+   * Postgres — DENTRO da transação do provisionamento. A transação inteira
+   * caía, o site nunca nascia, o pedido travava em "recebido" e a rota de
+   * reprovisionar devolvia 500 a cada tentativa.
+   *
+   * Um caractere a mais num campo de data derrubava o pedido inteiro.
+   */
+  it("não deixa um ano absurdo derrubar o provisionamento", async () => {
+    const order = await criarPedido({ weddingDate: "13131-03-11" });
+
+    const r = await provisionSiteForOrder(order, "Conta do Casal");
+
+    // O site NASCE — a data ruim é descartada, o pedido não é perdido.
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+
+    const [conteudo] = await db
+      .select()
+      .from(siteContent)
+      .where(eq(siteContent.siteId, r.siteId));
+    expect(conteudo.weddingDate).toBeNull();
+  });
+
+  it("aceita uma data de casamento de verdade", async () => {
+    const order = await criarPedido({ weddingDate: "2027-05-22" });
+
+    const r = await provisionSiteForOrder(order, "Conta do Casal");
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+
+    const [conteudo] = await db
+      .select()
+      .from(siteContent)
+      .where(eq(siteContent.siteId, r.siteId));
+    expect(conteudo.weddingDate).not.toBeNull();
+  });
+});
+
 describe("provisionSiteForOrder — ciclo do pedido", () => {
   // Sem isto o site existiria mas ninguém veria: a tela de acompanhamento só
   // mostra o botão da prévia quando o pedido está em preview_ready.

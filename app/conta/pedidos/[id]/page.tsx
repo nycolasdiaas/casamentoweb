@@ -11,6 +11,10 @@ import OrderStatusTracker, {
   type TrackerOrder,
 } from "@/components/account/OrderStatusTracker";
 import LivePreview from "@/components/account/LivePreview";
+import ReguaDeNumeros from "@/components/account/manage/ReguaDeNumeros";
+import OQueFalta from "@/components/account/manage/OQueFalta";
+import { metricasDoSite } from "@/lib/repositories/siteMetrics";
+import { oQueFalta } from "@/lib/site/oQueFalta";
 import { carregarGerenciamento } from "@/lib/site/manageData";
 import { canCancelOrder, type OrderStatus } from "@/lib/orderStatus";
 import type { PackageTier } from "@/lib/packages";
@@ -86,6 +90,15 @@ export default async function GerenciarInicioPage({
     redirect(`/api/pagamento/confirmar?pedido=${order.id}`);
   }
 
+  // Só busca quando HÁ site — e em paralelo, porque cada ida ao banco custa
+  // ~171ms medidos e as duas abrem a tela.
+  const [metricas, falta] = site
+    ? await Promise.all([
+        metricasDoSite(site.id),
+        oQueFalta(site.id, order.id, order.packageTier as PackageTier),
+      ])
+    : [null, null];
+
   return (
     <div className="flex flex-col gap-12">
       {/* O carimbo fica ao lado do título, não dentro do acompanhamento: é a
@@ -106,6 +119,11 @@ export default async function GerenciarInicioPage({
         </div>
       </div>
 
+      {/* Os números do site. Vêm do painel do iCasei, mas em régua de mono em
+          vez dos quatro cartões coloridos — o cartão chamaria mais atenção que
+          a prévia, e a prévia é o que o casal veio ver. */}
+      {metricas && <ReguaDeNumeros metricas={metricas} />}
+
       {/* A PRÉVIA VEM PRIMEIRO, antes do acompanhamento.
           Ela estava no fim da página, depois do stepper e do bloco de
           pagamento — o casal precisava rolar para encontrar a única coisa que
@@ -118,6 +136,8 @@ export default async function GerenciarInicioPage({
           fullBleed={false}
         />
       )}
+
+      {falta && <OQueFalta {...falta} />}
 
       {/* Sem site, o casal ficaria olhando um acompanhamento que nunca anda.
           O provisionamento roda no mesmo request do envio; se ele falhou, o

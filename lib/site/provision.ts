@@ -56,8 +56,18 @@ function parseWeddingDate(raw: string | null): Date | null {
   const iso = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? `${raw}T00:00:00-03:00` : raw;
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return null;
-  // Data absurda (ano < 2000) é dado de teste, não casamento.
-  if (d.getFullYear() < 2000) return null;
+  // Ano fora de [2000, 2100] é digitação, não casamento — e o TETO importa
+  // tanto quanto o piso.
+  //
+  // O <input type="date"> do HTML aceita ano de até 6 dígitos. Um dedo
+  // escorregado ("13131") passa pelo navegador, passa pelo JS (que representa
+  // o ano 13131 sem reclamar) e só estoura no Postgres, DENTRO da transação
+  // do provisionamento. Resultado medido em produção: o insert em
+  // site_content falhava, a transação inteira caía, o site nunca nascia, o
+  // pedido travava em "recebido" e a rota de reprovisionar devolvia 500 a
+  // cada tentativa. Um caractere a mais num campo de data derrubava o pedido.
+  const ano = d.getFullYear();
+  if (ano < 2000 || ano > 2100) return null;
   return d;
 }
 

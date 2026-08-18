@@ -139,6 +139,18 @@ function parseOrderForm(formData: FormData) {
     return { error: "Estilo de template inválido." as const };
   }
 
+  // A data é validada AQUI para o casal ser avisado, e não descobrir depois
+  // que o site nasceu sem contagem regressiva. O provisionamento tem a
+  // própria trava (parseWeddingDate), mas ela é a rede de segurança: recusa
+  // calada, sem ninguém para avisar.
+  const dataBruta = formData.get("weddingDate")?.toString().trim() ?? "";
+  if (dataBruta) {
+    const anoDigitado = new Date(dataBruta).getFullYear();
+    if (Number.isNaN(anoDigitado) || anoDigitado < 2000 || anoDigitado > 2100) {
+      return { error: "Confira o ano do casamento — a data não parece certa." as const };
+    }
+  }
+
   const primaryColor = formData.get("primaryColor")?.toString().trim() ?? "";
   const secondaryColor =
     formData.get("secondaryColor")?.toString().trim() ?? "";

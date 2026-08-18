@@ -18,6 +18,14 @@ export type ItemMenu = {
   descricao: string;
   /** avisa que algo exige atenção nesta tela (ex: lista sem chave Pix) */
   alerta?: boolean;
+  /**
+   * Estado da tela, em uma palavra ("3 fotos", "falta").
+   *
+   * Vem do protótipo aprovado: o menu deixa de ser só navegação e passa a
+   * dizer o que já está resolvido. Sem isto o casal precisa ABRIR cada uma
+   * das seis telas para descobrir onde parou.
+   */
+  selo?: string;
 };
 
 /**
@@ -119,6 +127,11 @@ export default function ManageSidebar({
                     title="Precisa da atenção de vocês"
                     className="size-1.5 shrink-0 rounded-full bg-(--c-mark)"
                   />
+                )}
+                {item.selo && (
+                  <span className="t-data ml-auto text-[11px] tracking-[0.06em] text-(--c-ink-2)">
+                    {item.selo}
+                  </span>
                 )}
               </span>
               <span className="hidden text-[13px] leading-snug text-(--c-ink-2) lg:block">
