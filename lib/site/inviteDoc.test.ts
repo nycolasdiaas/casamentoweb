@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { parseInviteDoc, prenderNaTela } from "./inviteDoc";
 import { quebrarLinhas } from "./inviteRender";
+import { clipPathDe, pontos } from "./inviteShapes";
 
 /**
  * O documento do convite vem do NAVEGADOR e mora numa coluna `jsonb`, que não
@@ -45,6 +46,63 @@ describe("parseInviteDoc", () => {
     expect(parseInviteDoc(null).blocos).toEqual([]);
     expect(parseInviteDoc("nada").blocos).toEqual([]);
     expect(parseInviteDoc({ blocos: "nem lista" }).blocos).toEqual([]);
+  });
+});
+
+describe("formas", () => {
+  it("aceita as oito e cai no retângulo quando a forma não existe", () => {
+    const doc = parseInviteDoc({
+      blocos: [
+        { tipo: "forma", id: "a", forma: "hexagono" },
+        { tipo: "forma", id: "b", forma: "octógono-imaginário" },
+      ],
+    });
+    expect((doc.blocos[0] as { forma: string }).forma).toBe("hexagono");
+    expect((doc.blocos[1] as { forma: string }).forma).toBe("retangulo");
+  });
+
+  it("preenchimento vazio é válido — é a forma só de contorno", () => {
+    const doc = parseInviteDoc({
+      blocos: [{ tipo: "forma", id: "a", preenchimento: "", espessura: 4 }],
+    });
+    expect((doc.blocos[0] as { preenchimento: string }).preenchimento).toBe("");
+  });
+
+  it("prende a opacidade entre 0 e 1", () => {
+    const doc = parseInviteDoc({
+      blocos: [
+        { tipo: "forma", id: "a", opacidade: 9 },
+        { tipo: "forma", id: "b", opacidade: -3 },
+      ],
+    });
+    expect((doc.blocos[0] as { opacidade: number }).opacidade).toBe(1);
+    expect((doc.blocos[1] as { opacidade: number }).opacidade).toBe(0);
+  });
+
+  it("a geometria do polígono é a MESMA no CSS e no SVG", () => {
+    // O editor desenha com clip-path e o export com <polygon>. Se os vértices
+    // divergissem, o casal receberia um convite diferente do que desenhou.
+    const p = pontos("losango")!;
+    expect(clipPathDe("losango")).toBe(
+      `polygon(${p.map(([x, y]) => `${x * 100}% ${y * 100}%`).join(", ")})`
+    );
+    // Retângulo e círculo não são polígonos: têm primitiva própria dos dois
+    // lados (border-radius / <rect>, <ellipse>).
+    expect(clipPathDe("circulo")).toBeNull();
+    expect(clipPathDe("retangulo")).toBeNull();
+  });
+});
+
+describe("rotação", () => {
+  it("todo bloco nasce com rotação, e lixo vira zero", () => {
+    const doc = parseInviteDoc({
+      blocos: [
+        { tipo: "texto", id: "a", texto: "x", rotacao: 45 },
+        { tipo: "linha", id: "b", rotacao: "muito" },
+      ],
+    });
+    expect(doc.blocos[0].rotacao).toBe(45);
+    expect(doc.blocos[1].rotacao).toBe(0);
   });
 });
 

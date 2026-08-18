@@ -74,6 +74,20 @@ snapshot rodou) com `created_at` (quando o grupo foi criado).
 - **`generateStaticParams` precisa devolver ao menos um param.** Quando os
   valores são segredo (tokens de prévia), use um placeholder que cai no
   `notFound()`.
+- **`searchParams` no corpo de uma página com `generateStaticParams` reprova
+  o build.** É dado não cacheado: lê-lo fora de `<Suspense>` trava a rota
+  inteira e o `next build` responde *"Uncached data was accessed outside of
+  `<Suspense>`"* — apontando o `<body>`, nunca a linha culpada. O `next dev`
+  não reclama.
+  A saída é mover o trecho que usa `searchParams` para um componente próprio,
+  embrulhá-lo em `<Suspense>` e passar a promise adiante **sem `await`**: a
+  casca fica estática, só o pedaço da busca espera. Modelo em
+  `app/s/[slug]/meu-convite/page.tsx`.
+  **Isto agora é lint** (`enlace/searchparams-em-suspense`, em
+  `eslint-rules/`), então aparece no editor com a linha certa. A regra só
+  acusa quando há `generateStaticParams`, porque é ele que faz o build
+  prerenderizar — três páginas do painel leem `searchParams` no corpo e
+  passam justamente por não serem prerenderizadas hoje.
 - **`cacheTag`/`cacheLife` só existem no runtime do Next** — são mockados em
   `vitest.setup.ts`. Testes com `vi.mock("next/cache")` local precisam
   incluir os dois, senão sobrescrevem o mock global.

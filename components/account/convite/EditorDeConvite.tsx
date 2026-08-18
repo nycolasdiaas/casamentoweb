@@ -4,14 +4,17 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import {
   CONVITE_ALTURA,
   CONVITE_LARGURA,
+  FORMAS,
   novoId,
   prenderNaTela,
   type Bloco,
+  type FormaId,
   type InviteDoc,
 } from "@/lib/site/inviteDoc";
-import { quebrarLinhas } from "@/lib/site/inviteRender";
+import { clipPathDe, NOME_DA_FORMA } from "@/lib/site/inviteShapes";
 import { salvarConviteAction } from "@/app/actions/invite-actions";
 import { useHistorico } from "@/components/account/manage/useHistorico";
+import BlocoVisual, { estiloDoBloco } from "./BlocoVisual";
 
 /**
  * O editor de convites — blocos livres.
@@ -59,10 +62,60 @@ const FONTES = [
   { id: "script", rotulo: "Manuscrita" },
 ] as const;
 
-function familia(fonte: "serif" | "sans" | "script"): string {
-  if (fonte === "sans") return "var(--font-sans, sans-serif)";
-  if (fonte === "script") return "cursive";
-  return "var(--font-serif, serif)";
+/**
+ * Campo numérico no lugar de barra deslizante.
+ *
+ * A barra não diz em que valor está nem deixa repetir o mesmo número em dois
+ * blocos — e "espessura 2" é exatamente o tipo de coisa que o casal quer
+ * igual nas duas linhas do convite. Com número dá para ler, digitar e copiar.
+ *
+ * As setas continuam existindo (é `type="number"`), então ajustar de um em um
+ * segue fácil para quem prefere clicar.
+ */
+function Numero({
+  rotulo,
+  valor,
+  min,
+  max,
+  passo = 1,
+  sufixo,
+  aoMudar,
+  aoComecar,
+  aoTerminar,
+}: {
+  rotulo: string;
+  valor: number;
+  min: number;
+  max: number;
+  passo?: number;
+  sufixo?: string;
+  aoMudar: (v: number) => void;
+  aoComecar: () => void;
+  aoTerminar: () => void;
+}) {
+  return (
+    <label className="flex items-center justify-between gap-3 text-[13px]">
+      {rotulo}
+      <span className="flex items-center gap-1">
+        <input
+          type="number"
+          value={Number.isFinite(valor) ? Math.round(valor * 1000) / 1000 : min}
+          min={min}
+          max={max}
+          step={passo}
+          onFocus={aoComecar}
+          onBlur={aoTerminar}
+          onChange={(e) => {
+            const v = Number(e.target.value);
+            if (!Number.isFinite(v)) return;
+            aoMudar(Math.min(Math.max(v, min), max));
+          }}
+          className="min-h-11 w-[5.5rem] border border-(--c-rule) bg-white px-2 text-right text-[13px]"
+        />
+        {sufixo && <span className="text-(--c-ink-2)">{sufixo}</span>}
+      </span>
+    </label>
+  );
 }
 
 export default function EditorDeConvite({
@@ -89,7 +142,13 @@ export default function EditorDeConvite({
   const [salvando, iniciarSalvamento] = useTransition();
   const [salvo, setSalvo] = useState(true);
   const telaRef = useRef<HTMLDivElement>(null);
+  const molduraRef = useRef<HTMLDivElement>(null);
   const antesDoGesto = useRef<InviteDoc>(docInicial);
+
+  // Zoom da TELA, não do convite: mexe em como o casal enxerga, nunca no
+  // documento. Por isso não entra no histórico nem marca "não salvo" — dar
+  // desfazer depois de aproximar seria desfazer a coisa errada.
+  const [zoom, setZoom] = useState(1);
 
   const bloco = doc.blocos.find((b) => b.id === selecionado) ?? null;
 
@@ -209,6 +268,32 @@ export default function EditorDeConvite({
     return () => window.removeEventListener("keydown", aoTeclar);
   }, [apagarSelecionado, selecionado]);
 
+  /**
+   * Zoom com a roda do mouse.
+   *
+   * Escuta em `wheel` com `passive: false` porque precisa de `preventDefault`
+   * — sem isso a página rola junto e o convite foge da tela. React registra
+   * `onWheel` como passivo, então o listener vai à mão, no efeito.
+   *
+   * Sem Ctrl também dá zoom: aqui a tela É o documento, e rolar a página no
+   * meio do desenho não é o que a pessoa quer. Trackpad manda `deltaMode` em
+   * pixels e roda de mouse em linhas — normalizar pelo sinal, e não pela
+   * magnitude, deixa os dois com o mesmo passo.
+   */
+  useEffect(() => {
+    const el = molduraRef.current;
+    if (!el) return;
+    function aoRolar(e: WheelEvent) {
+      if (e.deltaY === 0) return;
+      e.preventDefault();
+      setZoom((z) =>
+        Math.min(Math.max(z * (e.deltaY < 0 ? 1.1 : 1 / 1.1), 0.4), 4)
+      );
+    }
+    el.addEventListener("wheel", aoRolar, { passive: false });
+    return () => el.removeEventListener("wheel", aoRolar);
+  }, []);
+
   function salvar() {
     iniciarSalvamento(async () => {
       const r = await salvarConviteAction(siteId, inviteId, orderId, doc, nome);
@@ -228,20 +313,34 @@ export default function EditorDeConvite({
   return (
     <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
       {/* ── a tela ──────────────────────────────────────────────────────── */}
+      {/* A tela cresce até 900px e usa a ALTURA da janela como limite: o
+          convite é 4:5, então limitar só a largura numa tela larga faria o
+          cartão passar do rodapé. `min()` resolve os dois de uma vez. */}
       <div className="flex-1">
+        {/* A moldura rola quando o zoom passa do tamanho dela; a tela dentro
+            é que cresce. `getBoundingClientRect` já devolve a medida COM o
+            zoom aplicado, então a conta do arrasto (posição em fração da
+            largura) continua valendo sem correção — foi por isso que o
+            arrasto não precisou mudar. */}
         <div
-          ref={telaRef}
-          onPointerMove={aoMover}
-          onPointerUp={aoSoltar}
-          onPointerCancel={aoSoltar}
-          onPointerDown={() => setSelecionado(null)}
-          className="relative mx-auto w-full max-w-[420px] touch-none select-none overflow-hidden rounded-[3px] border border-(--c-rule)"
-          style={{
-            aspectRatio: `${CONVITE_LARGURA} / ${CONVITE_ALTURA}`,
-            background: doc.fundo,
-            containerType: "inline-size",
-          }}
+          ref={molduraRef}
+          className="mx-auto overflow-auto overscroll-contain rounded-[3px] bg-(--c-sunken)/40 p-3"
+          style={{ maxHeight: "calc(100svh - 13rem)" }}
         >
+          <div
+            ref={telaRef}
+            onPointerMove={aoMover}
+            onPointerUp={aoSoltar}
+            onPointerCancel={aoSoltar}
+            onPointerDown={() => setSelecionado(null)}
+            className="relative mx-auto touch-none select-none overflow-hidden border border-(--c-rule)"
+            style={{
+              width: `calc(min(100%, 820px, calc((100svh - 16rem) * 0.8)) * ${zoom})`,
+              aspectRatio: `${CONVITE_LARGURA} / ${CONVITE_ALTURA}`,
+              background: doc.fundo,
+              containerType: "size",
+            }}
+          >
           {doc.blocos.map((b) => {
             const ativo = b.id === selecionado;
             return (
@@ -249,61 +348,13 @@ export default function EditorDeConvite({
                 key={b.id}
                 onPointerDown={(e) => aoPegar(e, b, "mover")}
                 style={{
-                  position: "absolute",
-                  left: `${b.x * 100}%`,
-                  top: `${b.y * 100}%`,
-                  width: `${b.w * 100}%`,
+                  ...estiloDoBloco(b),
                   outline: ativo ? "1.5px solid var(--c-mark)" : undefined,
                   outlineOffset: 2,
                   cursor: "grab",
                 }}
               >
-                {b.tipo === "linha" && (
-                  <div
-                    style={{
-                      height: `${(b.espessura / CONVITE_ALTURA) * 100}cqh`,
-                      minHeight: 1,
-                      background: b.cor,
-                    }}
-                  />
-                )}
-
-                {b.tipo === "foto" && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={`/f/${b.fotoId}`}
-                    alt=""
-                    draggable={false}
-                    style={{
-                      width: "100%",
-                      aspectRatio: String(b.proporcao || 1),
-                      objectFit: "cover",
-                      borderRadius: `${(b.raio / CONVITE_LARGURA) * 100}%`,
-                    }}
-                  />
-                )}
-
-                {b.tipo === "texto" && (
-                  <div
-                    style={{
-                      fontSize: `${b.tamanho * 100}cqw`,
-                      color: b.cor,
-                      fontWeight: b.peso,
-                      textAlign: b.alinhamento,
-                      letterSpacing: `${b.espacamento}em`,
-                      lineHeight: 1.25,
-                      whiteSpace: "pre-wrap",
-                      fontFamily: familia(b.fonte),
-                    }}
-                  >
-                    {quebrarLinhas(
-                      b.texto,
-                      b.w * CONVITE_LARGURA,
-                      b.tamanho * CONVITE_LARGURA,
-                      b.fonte
-                    ).join("\n")}
-                  </div>
-                )}
+                <BlocoVisual bloco={b} />
 
                 {/* Alça de largura: só no bloco escolhido, para a tela não
                     virar um campo de bolinhas. */}
@@ -317,12 +368,38 @@ export default function EditorDeConvite({
               </div>
             );
           })}
+          </div>
         </div>
 
-        <p className="mt-3 text-center text-[12px] text-(--c-ink-2)">
-          Arraste os blocos. Toque num bloco para editar; a bolinha muda a
-          largura.
-        </p>
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-3 text-[12px] text-(--c-ink-2)">
+          <span>Arraste os blocos. A roda do mouse aproxima e afasta.</span>
+          <span className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setZoom((z) => Math.max(z / 1.2, 0.4))}
+              aria-label="Afastar"
+              className="size-8 border border-(--c-rule) transition-colors hover:bg-white"
+            >
+              −
+            </button>
+            <button
+              type="button"
+              onClick={() => setZoom(1)}
+              className="min-w-14 border border-(--c-rule) px-2 py-1 tabular-nums transition-colors hover:bg-white"
+              title="Voltar ao tamanho normal"
+            >
+              {Math.round(zoom * 100)}%
+            </button>
+            <button
+              type="button"
+              onClick={() => setZoom((z) => Math.min(z * 1.2, 4))}
+              aria-label="Aproximar"
+              className="size-8 border border-(--c-rule) transition-colors hover:bg-white"
+            >
+              +
+            </button>
+          </span>
+        </div>
       </div>
 
       {/* ── o painel ────────────────────────────────────────────────────── */}
@@ -367,6 +444,56 @@ export default function EditorDeConvite({
           </button>
         </div>
 
+        {/* ÁREAS EDITÁVEIS — a lista de tudo que existe no convite.
+            Vem da tela de gerenciamento do iCasei, e resolve um problema real:
+            bloco pequeno, atrás de outro ou arrastado para o canto é difícil
+            de acertar com o dedo. Pela lista, sempre dá para escolher.
+            Também é o que mostra que aquele texto invisível AINDA EXISTE. */}
+        {doc.blocos.length > 0 && (
+          <div className="surface-raised flex flex-col rounded-[3px]">
+            <span className="meta border-b border-(--c-rule) px-4 py-3 text-(--c-ink-2)">
+              Áreas editáveis
+            </span>
+            <ul className="max-h-64 overflow-y-auto">
+              {doc.blocos.map((b) => (
+                <li key={b.id}>
+                  <button
+                    type="button"
+                    onClick={() => setSelecionado(b.id)}
+                    className={`flex min-h-11 w-full items-center gap-2 border-b border-(--c-rule) px-4 py-2 text-left text-[13px] transition-colors last:border-b-0 ${
+                      b.id === selecionado
+                        ? "bg-(--c-sunken) text-(--c-ink)"
+                        : "text-(--c-ink-2) hover:bg-white"
+                    }`}
+                  >
+                    <span
+                      aria-hidden
+                      className="w-5 shrink-0 text-center text-[11px] uppercase"
+                    >
+                      {b.tipo === "texto"
+                        ? "Aa"
+                        : b.tipo === "foto"
+                          ? "▣"
+                          : b.tipo === "linha"
+                            ? "―"
+                            : "◆"}
+                    </span>
+                    <span className="truncate">
+                      {b.tipo === "texto"
+                        ? b.texto.trim() || "Texto vazio"
+                        : b.tipo === "foto"
+                          ? "Foto"
+                          : b.tipo === "linha"
+                            ? "Divisor"
+                            : NOME_DA_FORMA[b.forma]}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div className="surface-raised flex flex-col gap-2 rounded-[3px] p-4">
           <span className="meta text-(--c-ink-2)">Acrescentar</span>
           <div className="flex flex-wrap gap-2">
@@ -376,6 +503,7 @@ export default function EditorDeConvite({
                 acrescentar({
                   tipo: "texto",
                   id: novoId(),
+      rotacao: 0,
                   x: 0.15,
                   y: 0.45,
                   w: 0.7,
@@ -399,6 +527,7 @@ export default function EditorDeConvite({
                 acrescentar({
                   tipo: "linha",
                   id: novoId(),
+      rotacao: 0,
                   x: 0.4,
                   y: 0.5,
                   w: 0.2,
@@ -410,6 +539,50 @@ export default function EditorDeConvite({
             >
               Linha
             </button>
+          </div>
+
+          {/* As formas. O botão MOSTRA a forma em vez de nomeá-la: numa paleta
+              de oito, ler "hexágono" é mais lento que ver o hexágono. O nome
+              fica no title e no aria-label, para quem navega por leitor de
+              tela ou passa o mouse. */}
+          <span className="meta mt-1 text-(--c-ink-2)">Formas</span>
+          <div className="grid grid-cols-4 gap-2">
+            {FORMAS.map((f) => (
+              <button
+                key={f}
+                type="button"
+                title={NOME_DA_FORMA[f]}
+                aria-label={`Acrescentar ${NOME_DA_FORMA[f]}`}
+                onClick={() =>
+                  acrescentar({
+                    tipo: "forma",
+                    id: novoId(),
+      rotacao: 0,
+                    x: 0.3,
+                    y: 0.35,
+                    w: 0.4,
+                    forma: f,
+                    proporcao: 1,
+                    preenchimento: "#b8985f",
+                    contorno: "#b8985f",
+                    espessura: 0,
+                    opacidade: 1,
+                    raio: 24,
+                  })
+                }
+                className="flex aspect-square items-center justify-center border border-(--c-rule) transition-colors hover:border-(--c-ink) hover:bg-white"
+              >
+                <span
+                  aria-hidden
+                  className="size-5 bg-(--c-ink-2)"
+                  style={{
+                    clipPath: clipPathDe(f) ?? undefined,
+                    borderRadius:
+                      f === "circulo" ? "50%" : f === "arredondado" ? 5 : 0,
+                  }}
+                />
+              </button>
+            ))}
           </div>
 
           {fotos.length > 0 ? (
@@ -425,6 +598,7 @@ export default function EditorDeConvite({
                       acrescentar({
                         tipo: "foto",
                         id: novoId(),
+      rotacao: 0,
                         x: 0.25,
                         y: 0.2,
                         w: 0.5,
@@ -492,41 +666,44 @@ export default function EditorDeConvite({
                   className="w-full resize-y border border-(--c-rule) bg-white p-2 text-[14px]"
                 />
 
-                <label className="flex items-center justify-between text-[13px]">
-                  Tamanho
-                  <input
-                    type="range"
-                    min={0.015}
-                    max={0.16}
-                    step={0.005}
-                    value={bloco.tamanho}
-                    onPointerDown={marcarGesto}
-                    onPointerUp={fecharGesto}
-                    onChange={(e) =>
-                      trocarBloco(bloco.id, { tamanho: Number(e.target.value) })
-                    }
-                    className="w-[55%]"
-                  />
-                </label>
+                {/* O tamanho é guardado em FRAÇÃO da largura (0.04), que não
+                    quer dizer nada para quem edita. O campo mostra px do
+                    convite de 1080 — o número que a pessoa reconhece de
+                    qualquer editor — e converte na entrada e na saída. */}
+                <Numero
+                  rotulo="Tamanho"
+                  sufixo="px"
+                  valor={bloco.tamanho * CONVITE_LARGURA}
+                  min={8}
+                  max={220}
+                  aoMudar={(v) =>
+                    trocarBloco(bloco.id, { tamanho: v / CONVITE_LARGURA })
+                  }
+                  aoComecar={marcarGesto}
+                  aoTerminar={fecharGesto}
+                />
 
-                <label className="flex items-center justify-between text-[13px]">
-                  Espaçamento
-                  <input
-                    type="range"
-                    min={0}
-                    max={0.6}
-                    step={0.05}
-                    value={bloco.espacamento}
-                    onPointerDown={marcarGesto}
-                    onPointerUp={fecharGesto}
-                    onChange={(e) =>
-                      trocarBloco(bloco.id, {
-                        espacamento: Number(e.target.value),
-                      })
-                    }
-                    className="w-[55%]"
-                  />
-                </label>
+                <Numero
+                  rotulo="Espaçamento"
+                  valor={bloco.espacamento * 100}
+                  min={0}
+                  max={100}
+                  passo={5}
+                  aoMudar={(v) => trocarBloco(bloco.id, { espacamento: v / 100 })}
+                  aoComecar={marcarGesto}
+                  aoTerminar={fecharGesto}
+                />
+
+                <Numero
+                  rotulo="Rotação"
+                  sufixo="°"
+                  valor={bloco.rotacao}
+                  min={-180}
+                  max={180}
+                  aoMudar={(v) => trocarBloco(bloco.id, { rotacao: v })}
+                  aoComecar={marcarGesto}
+                  aoTerminar={fecharGesto}
+                />
 
                 <label className="flex items-center justify-between text-[13px]">
                   Fonte
@@ -607,63 +784,62 @@ export default function EditorDeConvite({
 
             {bloco.tipo === "foto" && (
               <>
-                <label className="flex items-center justify-between text-[13px]">
-                  Formato
-                  <input
-                    type="range"
-                    min={0.6}
-                    max={1.8}
-                    step={0.05}
-                    value={bloco.proporcao}
-                    onPointerDown={marcarGesto}
-                    onPointerUp={fecharGesto}
-                    onChange={(e) =>
-                      trocarBloco(bloco.id, {
-                        proporcao: Number(e.target.value),
-                      })
-                    }
-                    className="w-[55%]"
-                  />
-                </label>
-                <label className="flex items-center justify-between text-[13px]">
-                  Cantos
-                  <input
-                    type="range"
-                    min={0}
-                    max={540}
-                    step={20}
-                    value={bloco.raio}
-                    onPointerDown={marcarGesto}
-                    onPointerUp={fecharGesto}
-                    onChange={(e) =>
-                      trocarBloco(bloco.id, { raio: Number(e.target.value) })
-                    }
-                    className="w-[55%]"
-                  />
-                </label>
+                <Numero
+                  rotulo="Proporção"
+                  valor={bloco.proporcao}
+                  min={0.3}
+                  max={3}
+                  passo={0.05}
+                  aoMudar={(v) => trocarBloco(bloco.id, { proporcao: v })}
+                  aoComecar={marcarGesto}
+                  aoTerminar={fecharGesto}
+                />
+                <Numero
+                  rotulo="Cantos"
+                  sufixo="px"
+                  valor={bloco.raio}
+                  min={0}
+                  max={540}
+                  passo={10}
+                  aoMudar={(v) => trocarBloco(bloco.id, { raio: v })}
+                  aoComecar={marcarGesto}
+                  aoTerminar={fecharGesto}
+                />
+                <Numero
+                  rotulo="Rotação"
+                  sufixo="°"
+                  valor={bloco.rotacao}
+                  min={-180}
+                  max={180}
+                  aoMudar={(v) => trocarBloco(bloco.id, { rotacao: v })}
+                  aoComecar={marcarGesto}
+                  aoTerminar={fecharGesto}
+                />
               </>
             )}
 
             {bloco.tipo === "linha" && (
               <>
-                <label className="flex items-center justify-between text-[13px]">
-                  Espessura
-                  <input
-                    type="range"
-                    min={1}
-                    max={12}
-                    step={1}
-                    value={bloco.espessura}
-                    onPointerDown={marcarGesto}
-                    onPointerUp={fecharGesto}
-                    onChange={(e) =>
-                      trocarBloco(bloco.id, {
-                        espessura: Number(e.target.value),
-                      })
-                    }
-                    className="w-[55%]"
-                  />
-                </label>
+                <Numero
+                  rotulo="Espessura"
+                  sufixo="px"
+                  valor={bloco.espessura}
+                  min={1}
+                  max={60}
+                  aoMudar={(v) => trocarBloco(bloco.id, { espessura: v })}
+                  aoComecar={marcarGesto}
+                  aoTerminar={fecharGesto}
+                />
+                <Numero
+                  rotulo="Rotação"
+                  sufixo="°"
+                  valor={bloco.rotacao}
+                  min={-180}
+                  max={180}
+                  aoMudar={(v) => trocarBloco(bloco.id, { rotacao: v })}
+                  aoComecar={marcarGesto}
+                  aoTerminar={fecharGesto}
+                />
                 <label className="flex items-center justify-between text-[13px]">
                   Cor
                   <input
@@ -672,6 +848,137 @@ export default function EditorDeConvite({
                     onChange={(e) => {
                       const antes = doc;
                       trocarBloco(bloco.id, { cor: e.target.value });
+                      registrar(antes);
+                    }}
+                    className="size-11 border border-(--c-rule)"
+                  />
+                </label>
+              </>
+            )}
+
+            {bloco.tipo === "forma" && (
+              <>
+                <label className="flex items-center justify-between text-[13px]">
+                  Forma
+                  <select
+                    value={bloco.forma}
+                    onChange={(e) => {
+                      const antes = doc;
+                      trocarBloco(bloco.id, {
+                        forma: e.target.value as FormaId,
+                      });
+                      registrar(antes);
+                    }}
+                    className="min-h-11 border border-(--c-rule) bg-white px-2 text-[13px]"
+                  >
+                    {FORMAS.map((f) => (
+                      <option key={f} value={f}>
+                        {NOME_DA_FORMA[f]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <Numero
+                  rotulo="Proporção"
+                  valor={bloco.proporcao}
+                  min={0.2}
+                  max={4}
+                  passo={0.05}
+                  aoMudar={(v) => trocarBloco(bloco.id, { proporcao: v })}
+                  aoComecar={marcarGesto}
+                  aoTerminar={fecharGesto}
+                />
+
+                {bloco.forma === "arredondado" && (
+                  <Numero
+                    rotulo="Cantos"
+                    sufixo="px"
+                    valor={bloco.raio}
+                    min={0}
+                    max={400}
+                    passo={4}
+                    aoMudar={(v) => trocarBloco(bloco.id, { raio: v })}
+                    aoComecar={marcarGesto}
+                    aoTerminar={fecharGesto}
+                  />
+                )}
+
+                <Numero
+                  rotulo="Contorno"
+                  sufixo="px"
+                  valor={bloco.espessura}
+                  min={0}
+                  max={40}
+                  aoMudar={(v) => trocarBloco(bloco.id, { espessura: v })}
+                  aoComecar={marcarGesto}
+                  aoTerminar={fecharGesto}
+                />
+
+                <Numero
+                  rotulo="Opacidade"
+                  sufixo="%"
+                  valor={bloco.opacidade * 100}
+                  min={0}
+                  max={100}
+                  passo={5}
+                  aoMudar={(v) => trocarBloco(bloco.id, { opacidade: v / 100 })}
+                  aoComecar={marcarGesto}
+                  aoTerminar={fecharGesto}
+                />
+
+                <Numero
+                  rotulo="Rotação"
+                  sufixo="°"
+                  valor={bloco.rotacao}
+                  min={-180}
+                  max={180}
+                  aoMudar={(v) => trocarBloco(bloco.id, { rotacao: v })}
+                  aoComecar={marcarGesto}
+                  aoTerminar={fecharGesto}
+                />
+
+                {/* Preenchimento com botão de LIMPAR: forma só de contorno é
+                    metade do uso (moldura em volta do texto), e sem um jeito
+                    de esvaziar a cor não dá para chegar lá. */}
+                <div className="flex items-center justify-between text-[13px]">
+                  Preenchimento
+                  <span className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const antes = doc;
+                        trocarBloco(bloco.id, {
+                          preenchimento: bloco.preenchimento ? "" : "#b8985f",
+                        });
+                        registrar(antes);
+                      }}
+                      className="text-[12px] underline underline-offset-2 text-(--c-ink-2)"
+                    >
+                      {bloco.preenchimento ? "sem cor" : "com cor"}
+                    </button>
+                    <input
+                      type="color"
+                      value={bloco.preenchimento || "#b8985f"}
+                      aria-label="Cor de preenchimento"
+                      onChange={(e) => {
+                        const antes = doc;
+                        trocarBloco(bloco.id, { preenchimento: e.target.value });
+                        registrar(antes);
+                      }}
+                      className="size-11 border border-(--c-rule)"
+                    />
+                  </span>
+                </div>
+
+                <label className="flex items-center justify-between text-[13px]">
+                  Cor do contorno
+                  <input
+                    type="color"
+                    value={bloco.contorno || "#b8985f"}
+                    onChange={(e) => {
+                      const antes = doc;
+                      trocarBloco(bloco.id, { contorno: e.target.value });
                       registrar(antes);
                     }}
                     className="size-11 border border-(--c-rule)"

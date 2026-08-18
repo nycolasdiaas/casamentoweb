@@ -26,6 +26,7 @@ export function conviteInicial(
     {
       tipo: "texto",
       id: novoId(),
+      rotacao: 0,
       x: 0.1,
       y: 0.16,
       w: 0.8,
@@ -41,6 +42,7 @@ export function conviteInicial(
     {
       tipo: "texto",
       id: novoId(),
+      rotacao: 0,
       x: 0.08,
       y: 0.3,
       w: 0.84,
@@ -56,6 +58,7 @@ export function conviteInicial(
     {
       tipo: "linha",
       id: novoId(),
+      rotacao: 0,
       x: 0.44,
       y: 0.47,
       w: 0.12,
@@ -68,6 +71,7 @@ export function conviteInicial(
     blocos.push({
       tipo: "texto",
       id: novoId(),
+      rotacao: 0,
       x: 0.1,
       y: 0.54,
       w: 0.8,
@@ -86,6 +90,7 @@ export function conviteInicial(
     blocos.push({
       tipo: "texto",
       id: novoId(),
+      rotacao: 0,
       x: 0.1,
       y: 0.62,
       w: 0.8,
@@ -103,6 +108,7 @@ export function conviteInicial(
   blocos.push({
     tipo: "texto",
     id: novoId(),
+      rotacao: 0,
     x: 0.1,
     y: 0.86,
     w: 0.8,

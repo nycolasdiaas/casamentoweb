@@ -4,6 +4,7 @@ import {
   type Bloco,
   type InviteDoc,
 } from "@/lib/site/inviteDoc";
+import { pontos } from "@/lib/site/inviteShapes";
 
 /**
  * Desenha o convite como SVG, para o `sharp` rasterizar.
@@ -87,12 +88,60 @@ function desenharBloco(
   L = CONVITE_LARGURA,
   A = CONVITE_ALTURA
 ): string {
+  const desenho = desenharConteudo(b, fotos, L, A);
+  if (!b.rotacao || !desenho) return desenho;
+  // Gira em torno do centro da caixa — a mesma origem do `transform-origin`
+  // do CSS no editor, senão o bloco girado sairia deslocado no arquivo.
+  const cx = b.x * L + (b.w * L) / 2;
+  const cy = b.y * A + alturaAproximada(b, L) / 2;
+  return `<g transform="rotate(${b.rotacao} ${cx} ${cy})">${desenho}</g>`;
+}
+
+/** Altura da caixa, para achar o centro de rotação. */
+function alturaAproximada(b: Bloco, L: number): number {
+  const w = b.w * L;
+  if (b.tipo === "foto" || b.tipo === "forma") return w / (b.proporcao || 1);
+  if (b.tipo === "linha") return b.espessura;
+  const tamanho = b.tamanho * L;
+  return quebrarLinhas(b.texto, w, tamanho, b.fonte).length * tamanho * 1.25;
+}
+
+function desenharConteudo(
+  b: Bloco,
+  fotos: Map<string, string>,
+  L: number,
+  A: number
+): string {
   const x = b.x * L;
   const y = b.y * A;
   const w = b.w * L;
 
   if (b.tipo === "linha") {
     return `<rect x="${x}" y="${y}" width="${w}" height="${b.espessura}" fill="${b.cor}"/>`;
+  }
+
+  if (b.tipo === "forma") {
+    const h = w / (b.proporcao || 1);
+    // Forma sem preenchimento é "none", não transparente: no SVG, `fill` vazio
+    // herda preto.
+    const pintura =
+      `fill="${b.preenchimento || "none"}"` +
+      (b.espessura > 0 && b.contorno
+        ? ` stroke="${b.contorno}" stroke-width="${b.espessura}"`
+        : "") +
+      (b.opacidade < 1 ? ` opacity="${b.opacidade}"` : "");
+
+    if (b.forma === "circulo") {
+      return `<ellipse cx="${x + w / 2}" cy="${y + h / 2}" rx="${w / 2}" ry="${h / 2}" ${pintura}/>`;
+    }
+    if (b.forma === "retangulo" || b.forma === "arredondado") {
+      const r = b.forma === "arredondado" ? Math.min(b.raio, w / 2, h / 2) : 0;
+      return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" ry="${r}" ${pintura}/>`;
+    }
+    const p = pontos(b.forma);
+    if (!p) return "";
+    const coords = p.map(([px, py]) => `${x + px * w},${y + py * h}`).join(" ");
+    return `<polygon points="${coords}" ${pintura}/>`;
   }
 
   if (b.tipo === "foto") {

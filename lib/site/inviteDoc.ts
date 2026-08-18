@@ -31,12 +31,24 @@ export const CONVITE_ALTURA = 1350;
 /** Teto de convites por site. O casal pede variações; não pede acervo. */
 export const MAX_CONVITES = 5;
 
-export type BlocoTexto = {
-  tipo: "texto";
+/**
+ * Campos que todo bloco tem.
+ *
+ * `rotacao` mora aqui, e não só no texto, porque girar é do BLOCO: uma foto
+ * inclinada e uma linha diagonal são pedidos tão comuns quanto um título
+ * torto. Em graus, positivo no sentido horário — a mesma convenção do CSS e
+ * do SVG, para não haver conversão entre o editor e o export.
+ */
+export type BlocoBase = {
   id: string;
   x: number;
   y: number;
   w: number;
+  rotacao: number;
+};
+
+export type BlocoTexto = BlocoBase & {
+  tipo: "texto";
   texto: string;
   tamanho: number;
   cor: string;
@@ -48,12 +60,8 @@ export type BlocoTexto = {
   link: string;
 };
 
-export type BlocoFoto = {
+export type BlocoFoto = BlocoBase & {
   tipo: "foto";
-  id: string;
-  x: number;
-  y: number;
-  w: number;
   /** Proporção da caixa (largura/altura). A foto preenche cortando o excesso. */
   proporcao: number;
   /** id em `site_photos`. A foto sai por /f/<id>, nunca por URL do Storage. */
@@ -62,17 +70,49 @@ export type BlocoFoto = {
   raio: number;
 };
 
-export type BlocoLinha = {
+export type BlocoLinha = BlocoBase & {
   tipo: "linha";
-  id: string;
-  x: number;
-  y: number;
-  w: number;
   cor: string;
   espessura: number;
 };
 
-export type Bloco = BlocoTexto | BlocoFoto | BlocoLinha;
+/**
+ * As formas que o casal pode acrescentar.
+ *
+ * O conjunto é fechado de propósito: são as que dão para desenhar em SVG e em
+ * CSS com a MESMA geometria, para o que ele vê no editor ser o que sai no
+ * arquivo. Curva de Bézier livre exigiria um editor de nós — outro produto.
+ */
+export const FORMAS = [
+  "retangulo",
+  "arredondado",
+  "circulo",
+  "triangulo",
+  "triangulo-baixo",
+  "losango",
+  "pentagono",
+  "hexagono",
+] as const;
+
+export type FormaId = (typeof FORMAS)[number];
+
+export type BlocoForma = BlocoBase & {
+  tipo: "forma";
+  forma: FormaId;
+  /** largura/altura da caixa. 1 = quadrada. */
+  proporcao: number;
+  /** Vazio = sem preenchimento (só contorno). */
+  preenchimento: string;
+  contorno: string;
+  /** 0 = sem contorno. Em px do convite de 1080. */
+  espessura: number;
+  /** 0..1. Deixa a forma virar fundo sem tapar o texto. */
+  opacidade: number;
+  /** Só vale em "arredondado". Em px do convite de 1080. */
+  raio: number;
+};
+
+export type Bloco = BlocoTexto | BlocoFoto | BlocoLinha | BlocoForma;
 
 export type InviteDoc = {
   versao: 1;
@@ -101,7 +141,13 @@ function parseBloco(bruto: unknown): Bloco | null {
   const id = txt(b.id, "");
   if (!id) return null;
 
-  const base = { id, x: num(b.x, 0.1), y: num(b.y, 0.1), w: num(b.w, 0.5) };
+  const base = {
+    id,
+    x: num(b.x, 0.1),
+    y: num(b.y, 0.1),
+    w: num(b.w, 0.5),
+    rotacao: num(b.rotacao, 0),
+  };
 
   if (b.tipo === "texto") {
     return {
@@ -141,6 +187,23 @@ function parseBloco(bruto: unknown): Bloco | null {
       tipo: "linha",
       cor: cor(b.cor, "#b8985f"),
       espessura: num(b.espessura, 2),
+    };
+  }
+
+  if (b.tipo === "forma") {
+    return {
+      ...base,
+      tipo: "forma",
+      forma: umDe(b.forma, FORMAS, "retangulo"),
+      proporcao: num(b.proporcao, 1),
+      // Preenchimento vazio é válido: é a forma só de contorno. Por isso o
+      // campo aceita "" e não cai no padrão como as outras cores.
+      preenchimento:
+        b.preenchimento === "" ? "" : cor(b.preenchimento, "#b8985f"),
+      contorno: b.contorno === "" ? "" : cor(b.contorno, "#b8985f"),
+      espessura: num(b.espessura, 0),
+      opacidade: Math.min(Math.max(num(b.opacidade, 1), 0), 1),
+      raio: num(b.raio, 24),
     };
   }
 
