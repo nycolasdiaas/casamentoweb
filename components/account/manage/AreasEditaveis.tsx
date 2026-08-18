@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import { saveSiteContentAction } from "@/app/actions/content-actions";
+import { useHistorico } from "@/components/account/manage/useHistorico";
 
 /**
  * As áreas editáveis do site — cada pedaço nomeado, com o tipo à vista.
@@ -135,7 +136,34 @@ export default function AreasEditaveis({
 }) {
   const [state, action, pending] = useActionState(saveSiteContentAction, undefined);
   const [aberto, setAberto] = useState<string | null>(null);
-  const [rascunho, setRascunho] = useState<Valores>(valores);
+
+  // O histórico guarda UM passo por campo editado, não por tecla. Ver
+  // useHistorico — dentro do campo aberto vale o ⌘Z nativo do input.
+  const {
+    presente: rascunho,
+    escrever: setRascunho,
+    registrar,
+    desfazer,
+    refazer,
+    podeDesfazer,
+    podeRefazer,
+  } = useHistorico<Valores>(valores);
+
+  // O valor de quando a linha ABRIU. É ele que vai para o passado quando a
+  // edição fecha — sem isso não há "antes" para desfazer.
+  const aoAbrir = useRef<Valores>(valores);
+
+  const alternar = (nome: string) => {
+    if (aberto === nome) {
+      registrar(aoAbrir.current);
+      setAberto(null);
+      return;
+    }
+    // Trocar de linha também fecha a anterior: um campo por passo.
+    if (aberto !== null) registrar(aoAbrir.current);
+    aoAbrir.current = rascunho;
+    setAberto(nome);
+  };
 
   const mudou = (CAMPOS as Campo[]).some(
     (c) => (rascunho[c.nome] ?? "") !== (valores[c.nome] ?? "")
@@ -168,7 +196,7 @@ export default function AreasEditaveis({
 
               <button
                 type="button"
-                onClick={() => setAberto(estaAberto ? null : campo.nome)}
+                onClick={() => alternar(campo.nome)}
                 aria-expanded={estaAberto}
                 className="flex min-h-11 w-full items-center gap-2.5 px-4 py-3 text-left transition-colors hover:bg-(--c-sunken)"
               >
@@ -245,6 +273,33 @@ export default function AreasEditaveis({
       </ul>
 
       <div className="flex flex-col gap-2 border-t border-(--c-rule) px-4 py-3">
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={desfazer}
+            disabled={!podeDesfazer}
+            className="inline-flex min-h-11 items-center gap-1.5 text-[13px] text-(--c-ink-2) transition-colors hover:text-(--c-ink) disabled:opacity-40 disabled:hover:text-(--c-ink-2)"
+          >
+            <svg aria-hidden width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M6 4L2.5 7.5L6 11" />
+              <path d="M2.5 7.5H9a4 4 0 0 1 0 8H7" />
+            </svg>
+            Desfazer
+          </button>
+          <button
+            type="button"
+            onClick={refazer}
+            disabled={!podeRefazer}
+            className="inline-flex min-h-11 items-center gap-1.5 text-[13px] text-(--c-ink-2) transition-colors hover:text-(--c-ink) disabled:opacity-40 disabled:hover:text-(--c-ink-2)"
+          >
+            <svg aria-hidden width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M10 4L13.5 7.5L10 11" />
+              <path d="M13.5 7.5H7a4 4 0 0 0 0 8h2" />
+            </svg>
+            Refazer
+          </button>
+        </div>
+
         <button
           type="submit"
           disabled={pending || !mudou}

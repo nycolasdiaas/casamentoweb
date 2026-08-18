@@ -14,6 +14,7 @@ import LivePreview from "@/components/account/LivePreview";
 import ReguaDeNumeros from "@/components/account/manage/ReguaDeNumeros";
 import OQueFalta from "@/components/account/manage/OQueFalta";
 import AreasEditaveis from "@/components/account/manage/AreasEditaveis";
+import BaixarConvite from "@/components/account/manage/BaixarConvite";
 import { getSiteContent } from "@/lib/repositories/siteContent";
 import { toEditorValues } from "@/lib/site/contentFields";
 import { metricasDoSite } from "@/lib/repositories/siteMetrics";
@@ -146,9 +147,15 @@ export default async function GerenciarInicioPage({
               telas diferentes é o que faz um formulário parecer burocracia.
               A tela /conteudo continua para quem quer o formulário completo,
               com Pix e mensagem de presente. */}
-          {valoresEditaveis && (
-            <AreasEditaveis siteId={site.id} valores={valoresEditaveis} />
-          )}
+          <div className="flex flex-col gap-4">
+            {valoresEditaveis && (
+              <AreasEditaveis siteId={site.id} valores={valoresEditaveis} />
+            )}
+            <BaixarConvite
+              siteId={site.id}
+              temData={Boolean(valoresEditaveis?.weddingDate)}
+            />
+          </div>
 
         <LivePreview
           src={`/preview/${site.previewToken}`}
