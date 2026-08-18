@@ -25,6 +25,7 @@ export async function limparSchemaDeTeste(): Promise<void> {
     delete from site_sections;
     delete from site_content;
     delete from site_photos;
+    delete from site_invites;
     delete from site_events;
     delete from site_daily_stats;
     delete from sites;

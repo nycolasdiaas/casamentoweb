@@ -78,4 +78,25 @@ describe("generateSiteSlug", () => {
     const slug = await generateSiteSlug("!!!", async () => false);
     expect(slug).toBe("casamento");
   });
+
+  // Caso REAL de produção: uma URL colada no campo dos nomes virou o endereço
+  // público do site (`https-github-com-accordavaliacao-api-res`). O campo é
+  // texto livre e ninguém digita errado de propósito — mas cola.
+  it("drops pasted URLs instead of turning them into the address", () => {
+    expect(
+      slugifyCoupleNames("https://github.com/acme/repo/pull/19")
+    ).not.toContain("github");
+    expect(slugifyCoupleNames("Ana e Pedro www.instagram.com/ana")).toBe(
+      "ana-e-pedro"
+    );
+    expect(slugifyCoupleNames("Ana e Pedro ana@gmail.com")).toBe("ana-e-pedro");
+  });
+
+  // A limpeza não pode recusar casal de verdade: nome com número, com hífen
+  // ou de uma palavra só continua virando endereço.
+  it("keeps names that only look unusual", () => {
+    expect(slugifyCoupleNames("Ana-Maria e João")).toBe("ana-maria-e-joao");
+    expect(slugifyCoupleNames("Casamento 2026")).toBe("casamento-2026");
+    expect(slugifyCoupleNames("Iracema")).toBe("iracema");
+  });
 });

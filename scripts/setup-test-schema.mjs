@@ -99,6 +99,18 @@ const DDL = [
   `create index if not exists idx_test_site_photos_site_slot
      on test.site_photos (site_id, slot, position)`,
 
+  `create table if not exists test.site_invites (
+     id uuid primary key default gen_random_uuid(),
+     site_id uuid not null references test.sites(id) on delete cascade,
+     name text not null,
+     doc jsonb not null,
+     created_at timestamptz not null default now(),
+     updated_at timestamptz not null default now()
+   )`,
+
+  `create index if not exists idx_test_site_invites_site
+     on test.site_invites (site_id)`,
+
   `create table if not exists test.site_events (
      id bigserial primary key,
      site_id uuid not null references test.sites(id) on delete cascade,

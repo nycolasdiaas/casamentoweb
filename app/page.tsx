@@ -7,7 +7,6 @@ import {
   SITE_NAME,
   SITE_TAGLINE,
   CONTACT,
-  WHATSAPP_LINK,
   TESTIMONIALS,
 } from "@/lib/site";
 import HeroPreview from "@/components/landing/HeroPreview";
@@ -17,7 +16,6 @@ import SplitReveal from "@/components/site/SplitReveal";
 import InterruptorDeMovimento from "@/components/ui/InterruptorDeMovimento";
 import ParallaxSuave from "@/components/ui/ParallaxSuave";
 import RevealOnScroll from "@/components/ui/RevealOnScroll";
-import FloatingWhatsApp from "@/components/landing/FloatingWhatsApp";
 import AccountNav, { LoggedOutLinks } from "@/components/landing/AccountNav";
 import CtaPacote, { CtaPacoteFallback } from "@/components/landing/CtaPacote";
 
@@ -37,22 +35,28 @@ const STYLE_FONT_CLASS: Record<string, string> = {
 };
 
 const FEATURES = [
-  {    title: "Mapa integrado",
+  {
+    title: "Mapa integrado",
     text: "Local da cerimônia e da festa com um toque para abrir no Google Maps ou Waze.",
   },
-  {    title: "RSVP por família",
+  {
+    title: "RSVP por família",
     text: "Cada família recebe um link exclusivo e confirma todo mundo de uma vez.",
   },
-  {    title: "Pix sem taxa",
+  {
+    title: "Pix sem taxa",
     text: "QR Code e copia e cola direto na conta do casal. 100% do presente chega.",
   },
-  {    title: "Dress code",
+  {
+    title: "Dress code",
     text: "Traje explicado com referências visuais, para ninguém errar no look.",
   },
-  {    title: "Mural de recados",
+  {
+    title: "Mural de recados",
     text: "Convidados deixam mensagens de carinho que ficam guardadas no site.",
   },
-  {    title: "Álbum pós-festa",
+  {
+    title: "Álbum pós-festa",
     text: "No pacote Para Sempre, o site vira o álbum permanente do casamento.",
   },
 ];
@@ -62,7 +66,7 @@ const COMPARISON: [string, string, string][] = [
   ["Design", "Exclusivo, com a cara do casal", "Template usado por milhares"],
   ["Taxa sobre os presentes", "0% — Pix direto na conta", "≈ 3,89% sobre cada presente"],
   ["Em R$ 10.000 de presentes", "R$ 0 de taxa", "≈ R$ 389 de taxa"],
-  ["Suporte", "WhatsApp direto com quem faz", "Central de ajuda"],
+  ["Suporte", "Atendimento de quem faz o produto", "Central de ajuda"],
   ["Depois da festa", "Vira álbum permanente (Para Sempre)", "Depende do plano"],
 ];
 
@@ -85,11 +89,11 @@ const FAQ: [string, string][] = [
   ],
   [
     "Como funciona a personalização?",
-    "Vocês criam a conta, escolhem o pacote e o template, e mandam o material pela plataforma: fotos por link (Google Drive, Dropbox...), história e preferências. A gente monta, envia a prévia pelo WhatsApp e vocês pedem os ajustes respondendo a mensagem. Nenhum editor, nada técnico.",
+    "Vocês criam a conta, escolhem o pacote e o template e respondem um questionário curto. O site fica pronto na hora, e a prévia aparece na tela de acompanhamento do pedido. Dali em diante vocês editam o conteúdo, trocam as fotos e ajustam as cores quando quiserem — sem depender da gente.",
   ],
   [
     "O que precisamos enviar?",
-    "Fotos em boa qualidade, a história de vocês (pode ser curtinha), data, horário e local. No pacote Para Sempre, também a lista de presentes com valores e a chave Pix. Tudo pelo WhatsApp mesmo.",
+    "Fotos em boa qualidade, a história de vocês (pode ser curtinha), data, horário e local. No pacote Para Sempre, também a lista de presentes com valores e a chave Pix. Tudo direto no painel de vocês.",
   ],
   [
     "Podemos pedir mudanças?",
@@ -97,7 +101,7 @@ const FAQ: [string, string][] = [
   ],
   [
     "Funciona bem no celular?",
-    "É feito primeiro para o celular: seus convidados vão abrir o link pelo WhatsApp, e tudo — confirmação, presentes, mapa — funciona perfeitamente na tela do telefone.",
+    "É feito primeiro para o celular: seus convidados vão abrir o link pelo telefone, e tudo — confirmação, presentes, mapa — funciona perfeitamente na tela pequena.",
   ],
 ];
 
@@ -205,12 +209,10 @@ export default function PackagesPage() {
                 Ver pacotes
               </a>
               <a
-                href={WHATSAPP_LINK}
-                target="_blank"
-                rel="noopener noreferrer"
+                href="/conta"
                 className="border border-(--c-rule) text-sm font-medium px-8 py-3.5 rounded-[2px] hover:bg-white transition-colors"
               >
-                Chamar no WhatsApp
+                Criar meu site
               </a>
             </div>
             <ul
@@ -246,7 +248,7 @@ export default function PackagesPage() {
         <ul className="max-w-6xl mx-auto w-full px-6 py-5 flex flex-wrap items-center justify-center gap-x-10 gap-y-2 text-sm text-(--c-ink-2)">
           <li className="flex items-center gap-2">
             <span aria-hidden className="text-(--c-ink-2)">✦</span>
-            Atendimento pessoal no WhatsApp
+            Editor pronto, sem instalar nada
           </li>
           <li className="flex items-center gap-2">
             <span aria-hidden className="text-(--c-ink-2)">✦</span>
@@ -271,8 +273,8 @@ export default function PackagesPage() {
               Vocês só se preocupam com o casamento
             </h2>
             <p className="text-(--c-ink-2) max-w-xl mx-auto">
-              Nada de editor, formulário chato ou configuração. A
-              personalização inteira acontece numa conversa de WhatsApp.
+              Nada de configuração, servidor ou código. Vocês escrevem o
+              conteúdo e escolhem o visual; o resto é por nossa conta.
             </p>
           </div>
 
@@ -285,7 +287,7 @@ export default function PackagesPage() {
                 {[
                   "Escolhem o pacote e o estilo visual",
                   "Mandam fotos (por link) e a história aqui na plataforma",
-                  "Aprovam a prévia pelo WhatsApp (ajustes na mesma conversa)",
+                  "Ajustam a prévia no painel, quantas vezes quiserem",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 leading-snug">
                     <span aria-hidden className="text-(--c-ink-2)">✦</span>
@@ -638,7 +640,7 @@ export default function PackagesPage() {
             {[
               ["1", "Criem a conta", "escolham o pacote e o estilo do template de vocês"],
               ["2", "Mandem o material", "fotos por link, história e data — tudo aqui, em minutos"],
-              ["3", "Confirmem no WhatsApp", "a gente fecha os detalhes e envia a prévia — 1 rodada de ajustes inclusa"],
+              ["3", "Vejam a prévia na hora", "o site nasce pronto; editem o conteúdo e o visual quantas vezes quiserem"],
               ["4", "Só compartilhar", "site no ar — domínio, hospedagem e técnica por nossa conta"],
             ].map(([step, title, text]) => (
               <li key={step} className="flex flex-col items-center gap-2 text-center">
@@ -692,17 +694,15 @@ export default function PackagesPage() {
             Vamos criar o site de vocês?
           </h2>
           <p className="text-white/80 max-w-md leading-relaxed">
-            Chama no WhatsApp e conta a data do casamento — respondemos com o
-            passo a passo e o prazo certinho.
+            Criem a conta, escolham o pacote e vejam a prévia do site de
+            vocês em poucos minutos.
           </p>
           <div className="flex flex-wrap justify-center gap-3 pt-2">
             <a
-              href={WHATSAPP_LINK}
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/conta"
               className="bg-white text-(--c-ink) text-sm font-medium px-8 py-3.5 rounded-[2px] hover:bg-(--c-base) transition-colors"
             >
-              WhatsApp · {CONTACT.whatsappLabel}
+              Criar meu site
             </a>
             {/* Só aparece se houver e-mail da MARCA. Ver lib/site.ts: o
                 pessoal saiu daqui, e mostrar um placeholder seria pior que
@@ -741,7 +741,6 @@ export default function PackagesPage() {
         </div>
       </footer>
 
-      <FloatingWhatsApp />
     </div>
   );
 }

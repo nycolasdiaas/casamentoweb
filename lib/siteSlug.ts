@@ -33,11 +33,38 @@ const MAX_LENGTH = 40;
 const MIN_LENGTH = 3;
 
 /**
+ * Tira de um nome de casal o que claramente não é nome de casal.
+ *
+ * O campo é texto livre e vira o ENDEREÇO PÚBLICO do site. Um caso real em
+ * produção: alguém colou uma URL do GitHub no campo dos nomes e o site nasceu
+ * em `https-github-com-accordavaliacao-api-res`. Não quebrou nada — e é
+ * justamente por isso que passou.
+ *
+ * Aqui a limpeza é conservadora de propósito: só remove esquema de URL,
+ * domínio e `@`, que nunca fazem parte do nome de ninguém. Nomes com número,
+ * hífen ou uma palavra só continuam passando — inventar regra de "nome de
+ * verdade" recusaria gente real, e recusar um casal legítimo é pior que um
+ * slug feio.
+ */
+function limparNaoNome(input: string): string {
+  const limpo = input
+    .replace(/https?:\/\/\S+/gi, " ")
+    .replace(/www\.\S+/gi, " ")
+    .replace(/\S+@\S+\.\S+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  // Sobrou nada porque o campo era SÓ uma URL. Aí não há nome a preservar:
+  // devolve vazio e deixa o chamador cair no "casamento" genérico, que é um
+  // endereço honesto — melhor que publicar o link que a pessoa colou.
+  return limpo;
+}
+
+/**
  * Converte "Ana & Pedro" em "ana-e-pedro": minúsculas, sem acento, "&" vira
  * "e", e só sobram letras, números e hífen.
  */
 export function slugifyCoupleNames(input: string): string {
-  return input
+  return limparNaoNome(input)
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "") // tira acentos (marcas combinantes)
     .replace(/&/g, " e ")

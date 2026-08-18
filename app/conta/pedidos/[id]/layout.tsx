@@ -4,6 +4,7 @@ import ManageSidebar, {
 } from "@/components/account/manage/ManageSidebar";
 import { carregarGerenciamento } from "@/lib/site/manageData";
 import { getSiteContent } from "@/lib/repositories/siteContent";
+import { listInvites } from "@/lib/repositories/siteInvites";
 import { listGifts } from "@/lib/repositories/gifts";
 import { listSiteSections } from "@/lib/repositories/siteSections";
 import { countSitePhotos } from "@/lib/repositories/sitePhotos";
@@ -43,9 +44,14 @@ export default async function GerenciarLayout({
   // que é exatamente a diferença de autonomia que o Anderson apontou no
   // painel do iCasei. O selo é UMA palavra: mais que isso vira legenda e
   // compete com o rótulo do item.
-  const [fotos, presentes] = site
-    ? await Promise.all([countSitePhotos(site.id), listGifts(site.id)])
-    : [0, []];
+  const [fotos, presentes, convitesDoSite] = site
+    ? await Promise.all([
+        countSitePhotos(site.id),
+        listGifts(site.id),
+        listInvites(site.id),
+      ])
+    : [0, [], []];
+  const convites = convitesDoSite.length;
 
   const conteudoPronto = Boolean(
     conteudo?.coupleNames?.trim() && conteudo?.weddingDate
@@ -88,6 +94,12 @@ export default async function GerenciarLayout({
       rotulo: "Fotos",
       descricao: "Suba e organize",
       selo: fotos > 0 ? String(fotos) : "FALTA",
+    },
+    {
+      href: `${base}/convites`,
+      rotulo: "Convites",
+      descricao: "Desenhe e baixe",
+      selo: convites > 0 ? String(convites) : undefined,
     },
     {
       href: `${base}/presentes`,

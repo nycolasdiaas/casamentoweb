@@ -439,7 +439,7 @@ export function Rsvp({ slug }: SectionProps) {
         </div>
         <div className="p-4.5">
           <Link
-            href={`/s/${slug}`}
+            href={`/s/${slug}/meu-convite`}
             className="block w-full text-[10px] tracking-[0.26em] uppercase py-4 transition-opacity hover:opacity-85 lg:text-[11px]"
             style={{ background: "var(--ink)", color: "var(--paper)" }}
           >

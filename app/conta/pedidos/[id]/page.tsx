@@ -15,6 +15,7 @@ import ReguaDeNumeros from "@/components/account/manage/ReguaDeNumeros";
 import OQueFalta from "@/components/account/manage/OQueFalta";
 import AreasEditaveis from "@/components/account/manage/AreasEditaveis";
 import BaixarConvite from "@/components/account/manage/BaixarConvite";
+import { listInvites } from "@/lib/repositories/siteInvites";
 import { getSiteContent } from "@/lib/repositories/siteContent";
 import { toEditorValues } from "@/lib/site/contentFields";
 import { metricasDoSite } from "@/lib/repositories/siteMetrics";
@@ -96,13 +97,15 @@ export default async function GerenciarInicioPage({
 
   // Só busca quando HÁ site — e em paralelo, porque cada ida ao banco custa
   // ~171ms medidos e as duas abrem a tela.
-  const [metricas, falta, conteudo] = site
+  const [metricas, falta, conteudo, convitesDoSite] = site
     ? await Promise.all([
         metricasDoSite(site.id),
         oQueFalta(site.id, order.id, order.packageTier as PackageTier),
         getSiteContent(site.id),
+        listInvites(site.id),
       ])
-    : [null, null, null];
+    : [null, null, null, []];
+  const convites = convitesDoSite.length;
 
   // `toEditorValues` e nao uma conversao propria: ele traduz o timestamp para
   // dia+hora NO FUSO DO SITE e devolve hora vazia quando e meia-noite (o
@@ -151,10 +154,7 @@ export default async function GerenciarInicioPage({
             {valoresEditaveis && (
               <AreasEditaveis siteId={site.id} valores={valoresEditaveis} />
             )}
-            <BaixarConvite
-              siteId={site.id}
-              temData={Boolean(valoresEditaveis?.weddingDate)}
-            />
+            <BaixarConvite orderId={id} quantidade={convites} />
           </div>
 
         <LivePreview

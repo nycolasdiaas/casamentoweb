@@ -92,6 +92,13 @@
       "when": 1786743410931,
       "tag": "0012_stormy_madame_web",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1787092372964,
+      "tag": "0013_omniscient_stick",
+      "breakpoints": true
     }
   ]
 }

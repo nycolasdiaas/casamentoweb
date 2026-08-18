@@ -562,6 +562,49 @@ export const giftsRelations = relations(gifts, ({ one, many }) => ({
   site: one(sites, { fields: [gifts.siteId], references: [sites.id] }),
 }));
 
+/**
+ * Convites que o casal desenha — a peça que ele manda no grupo da família.
+ *
+ * ── Por que os elementos vivem em JSON, e não em tabela ────────────────────
+ *
+ * Um convite é uma lista curta de blocos posicionados livremente (texto, foto,
+ * linha). Nada aqui é consultado por si: ninguém pergunta "quais convites têm
+ * um bloco de texto em negrito". O convite é sempre lido e gravado INTEIRO,
+ * pelo editor, de uma vez.
+ *
+ * Uma tabela `invite_elements` daria uma consulta por convite, ordenação a
+ * manter à mão e uma transação a cada arrastar de bloco — custo real, sem
+ * nenhuma consulta que o justifique. O formato dos blocos ainda vai mudar
+ * enquanto o editor cresce, e mudar JSON não é migração.
+ *
+ * ── Por que copia do site em vez de referenciar ────────────────────────────
+ *
+ * Ao criar, o convite nasce preenchido com nomes, data e local do site. Dali
+ * em diante o texto é DELE. Corrigir a data no site não reescreve um convite
+ * que o casal já ajustou — a alternativa (espelhar sempre) apagaria a edição
+ * dele sem aviso, que é a pior coisa que um editor pode fazer.
+ */
+export const siteInvites = pgTable(
+  "site_invites",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    siteId: uuid("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    // Blocos posicionados. A forma vive em lib/site/inviteDoc.ts, que valida
+    // na leitura — a coluna é jsonb e o banco não garante formato.
+    doc: jsonb("doc").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index("site_invites_site_id_idx").on(table.siteId)]
+);
+
 export const giftContributionsRelations = relations(
   giftContributions,
   ({ one }) => ({
