@@ -18,6 +18,7 @@
     "db:migrate": "drizzle-kit migrate",
     "backup:guests": "node scripts/backup-guests.mjs",
     "backup:full": "node scripts/backup-full.mjs",
+    "fix:slug": "node scripts/corrigir-slug.mjs",
     "backfill:legacy": "node scripts/backfill-legacy-site.mjs",
     "backfill:pix": "node -r dotenv/config scripts/backfill-legacy-pix.mjs dotenv_config_path=.env.local",
     "seed:gifts": "node scripts/seed-gifts.mjs",

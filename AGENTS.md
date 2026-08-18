@@ -183,6 +183,7 @@ em config.
 | `npm run setup:storage` | Cria o bucket privado das fotos. Uma vez por ambiente. |
 | `npm run verify:template <ids>` | Renderiza cada molde com dado real (site descartável) e confere que o desenho vem de token. Precisa do servidor de pé. |
 | `npm run test:setup` | Sincroniza o schema `test`, que é mantido à mão e **não** recebe as migrações |
+| `npm run fix:slug` | Lista slugs tortos e troca o de um site **em prévia e sem convidados**. Slug publicado é imutável — a trava está no `WHERE`. |
 | `npm run backfill:legacy` | Vincula o casamento legado ao seu `site` (idempotente) |
 | `npm run seed:demo` | Site de demonstração `ana-e-pedro` no motor novo |
 

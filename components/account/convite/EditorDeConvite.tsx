@@ -15,6 +15,8 @@ import { clipPathDe, NOME_DA_FORMA } from "@/lib/site/inviteShapes";
 import { salvarConviteAction } from "@/app/actions/invite-actions";
 import { useHistorico } from "@/components/account/manage/useHistorico";
 import BlocoVisual, { estiloDoBloco } from "./BlocoVisual";
+import BarraDoBloco from "./BarraDoBloco";
+import { FONTES, Numero } from "./controles";
 
 /**
  * O editor de convites — blocos livres.
@@ -56,68 +58,6 @@ type Props = {
   fotos: { id: string; alt: string | null }[];
 };
 
-const FONTES = [
-  { id: "serif", rotulo: "Serifada" },
-  { id: "sans", rotulo: "Sem serifa" },
-  { id: "script", rotulo: "Manuscrita" },
-] as const;
-
-/**
- * Campo numérico no lugar de barra deslizante.
- *
- * A barra não diz em que valor está nem deixa repetir o mesmo número em dois
- * blocos — e "espessura 2" é exatamente o tipo de coisa que o casal quer
- * igual nas duas linhas do convite. Com número dá para ler, digitar e copiar.
- *
- * As setas continuam existindo (é `type="number"`), então ajustar de um em um
- * segue fácil para quem prefere clicar.
- */
-function Numero({
-  rotulo,
-  valor,
-  min,
-  max,
-  passo = 1,
-  sufixo,
-  aoMudar,
-  aoComecar,
-  aoTerminar,
-}: {
-  rotulo: string;
-  valor: number;
-  min: number;
-  max: number;
-  passo?: number;
-  sufixo?: string;
-  aoMudar: (v: number) => void;
-  aoComecar: () => void;
-  aoTerminar: () => void;
-}) {
-  return (
-    <label className="flex items-center justify-between gap-3 text-[13px]">
-      {rotulo}
-      <span className="flex items-center gap-1">
-        <input
-          type="number"
-          value={Number.isFinite(valor) ? Math.round(valor * 1000) / 1000 : min}
-          min={min}
-          max={max}
-          step={passo}
-          onFocus={aoComecar}
-          onBlur={aoTerminar}
-          onChange={(e) => {
-            const v = Number(e.target.value);
-            if (!Number.isFinite(v)) return;
-            aoMudar(Math.min(Math.max(v, min), max));
-          }}
-          className="min-h-11 w-[5.5rem] border border-(--c-rule) bg-white px-2 text-right text-[13px]"
-        />
-        {sufixo && <span className="text-(--c-ink-2)">{sufixo}</span>}
-      </span>
-    </label>
-  );
-}
-
 export default function EditorDeConvite({
   siteId,
   orderId,
@@ -149,6 +89,12 @@ export default function EditorDeConvite({
   // documento. Por isso não entra no histórico nem marca "não salvo" — dar
   // desfazer depois de aproximar seria desfazer a coisa errada.
   const [zoom, setZoom] = useState(1);
+
+  // Onde está o bloco escolhido NA JANELA. A barra flutuante é `fixed`, então
+  // precisa de coordenada de viewport — e ela muda com o arrasto, o zoom, a
+  // rolagem da moldura e a da própria página.
+  const [alvo, setAlvo] = useState<DOMRect | null>(null);
+  const blocosRef = useRef(new Map<string, HTMLElement>());
 
   const bloco = doc.blocos.find((b) => b.id === selecionado) ?? null;
 
@@ -294,6 +240,26 @@ export default function EditorDeConvite({
     return () => el.removeEventListener("wheel", aoRolar);
   }, []);
 
+  // Remede o retângulo do bloco escolhido sempre que algo possa tê-lo movido.
+  // `doc` entra nas dependências de propósito: arrastar muda o documento, e é
+  // o que faz a barra acompanhar o bloco durante o gesto.
+  useEffect(() => {
+    function medir() {
+      const el = selecionado ? blocosRef.current.get(selecionado) : null;
+      setAlvo(el ? el.getBoundingClientRect() : null);
+    }
+    medir();
+    const moldura = molduraRef.current;
+    window.addEventListener("resize", medir);
+    window.addEventListener("scroll", medir, true);
+    moldura?.addEventListener("scroll", medir);
+    return () => {
+      window.removeEventListener("resize", medir);
+      window.removeEventListener("scroll", medir, true);
+      moldura?.removeEventListener("scroll", medir);
+    };
+  }, [selecionado, doc, zoom]);
+
   function salvar() {
     iniciarSalvamento(async () => {
       const r = await salvarConviteAction(siteId, inviteId, orderId, doc, nome);
@@ -346,6 +312,10 @@ export default function EditorDeConvite({
             return (
               <div
                 key={b.id}
+                ref={(el) => {
+                  if (el) blocosRef.current.set(b.id, el);
+                  else blocosRef.current.delete(b.id);
+                }}
                 onPointerDown={(e) => aoPegar(e, b, "mover")}
                 style={{
                   ...estiloDoBloco(b),
@@ -370,6 +340,22 @@ export default function EditorDeConvite({
           })}
           </div>
         </div>
+
+        {bloco && (
+          <BarraDoBloco
+            bloco={bloco}
+            alvo={alvo}
+            aoTrocar={(campos) => trocarBloco(bloco.id, campos)}
+            aoApagar={apagarSelecionado}
+            marcarGesto={marcarGesto}
+            fecharGesto={fecharGesto}
+            trocarEregistrar={(campos) => {
+              const antes = doc;
+              trocarBloco(bloco.id, campos);
+              registrar(antes);
+            }}
+          />
+        )}
 
         <div className="mt-3 flex flex-wrap items-center justify-center gap-3 text-[12px] text-(--c-ink-2)">
           <span>Arraste os blocos. A roda do mouse aproxima e afasta.</span>
@@ -666,23 +652,6 @@ export default function EditorDeConvite({
                   className="w-full resize-y border border-(--c-rule) bg-white p-2 text-[14px]"
                 />
 
-                {/* O tamanho é guardado em FRAÇÃO da largura (0.04), que não
-                    quer dizer nada para quem edita. O campo mostra px do
-                    convite de 1080 — o número que a pessoa reconhece de
-                    qualquer editor — e converte na entrada e na saída. */}
-                <Numero
-                  rotulo="Tamanho"
-                  sufixo="px"
-                  valor={bloco.tamanho * CONVITE_LARGURA}
-                  min={8}
-                  max={220}
-                  aoMudar={(v) =>
-                    trocarBloco(bloco.id, { tamanho: v / CONVITE_LARGURA })
-                  }
-                  aoComecar={marcarGesto}
-                  aoTerminar={fecharGesto}
-                />
-
                 <Numero
                   rotulo="Espaçamento"
                   valor={bloco.espacamento * 100}
@@ -690,17 +659,6 @@ export default function EditorDeConvite({
                   max={100}
                   passo={5}
                   aoMudar={(v) => trocarBloco(bloco.id, { espacamento: v / 100 })}
-                  aoComecar={marcarGesto}
-                  aoTerminar={fecharGesto}
-                />
-
-                <Numero
-                  rotulo="Rotação"
-                  sufixo="°"
-                  valor={bloco.rotacao}
-                  min={-180}
-                  max={180}
-                  aoMudar={(v) => trocarBloco(bloco.id, { rotacao: v })}
                   aoComecar={marcarGesto}
                   aoTerminar={fecharGesto}
                 />
@@ -733,7 +691,7 @@ export default function EditorDeConvite({
                       <button
                         key={a}
                         type="button"
-                        aria-label={`Alinhar à ${a === "left" ? "esquerda" : a === "center" ? "ao centro" : "direita"}`}
+                        aria-label={a === "center" ? "Centralizar" : `Alinhar à ${a === "left" ? "esquerda" : "direita"}`}
                         onClick={() => {
                           const antes = doc;
                           trocarBloco(bloco.id, { alinhamento: a });
@@ -805,16 +763,6 @@ export default function EditorDeConvite({
                   aoComecar={marcarGesto}
                   aoTerminar={fecharGesto}
                 />
-                <Numero
-                  rotulo="Rotação"
-                  sufixo="°"
-                  valor={bloco.rotacao}
-                  min={-180}
-                  max={180}
-                  aoMudar={(v) => trocarBloco(bloco.id, { rotacao: v })}
-                  aoComecar={marcarGesto}
-                  aoTerminar={fecharGesto}
-                />
               </>
             )}
 
@@ -827,16 +775,6 @@ export default function EditorDeConvite({
                   min={1}
                   max={60}
                   aoMudar={(v) => trocarBloco(bloco.id, { espessura: v })}
-                  aoComecar={marcarGesto}
-                  aoTerminar={fecharGesto}
-                />
-                <Numero
-                  rotulo="Rotação"
-                  sufixo="°"
-                  valor={bloco.rotacao}
-                  min={-180}
-                  max={180}
-                  aoMudar={(v) => trocarBloco(bloco.id, { rotacao: v })}
                   aoComecar={marcarGesto}
                   aoTerminar={fecharGesto}
                 />
@@ -923,17 +861,6 @@ export default function EditorDeConvite({
                   max={100}
                   passo={5}
                   aoMudar={(v) => trocarBloco(bloco.id, { opacidade: v / 100 })}
-                  aoComecar={marcarGesto}
-                  aoTerminar={fecharGesto}
-                />
-
-                <Numero
-                  rotulo="Rotação"
-                  sufixo="°"
-                  valor={bloco.rotacao}
-                  min={-180}
-                  max={180}
-                  aoMudar={(v) => trocarBloco(bloco.id, { rotacao: v })}
                   aoComecar={marcarGesto}
                   aoTerminar={fecharGesto}
                 />
