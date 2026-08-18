@@ -13,6 +13,9 @@ import OrderStatusTracker, {
 import LivePreview from "@/components/account/LivePreview";
 import ReguaDeNumeros from "@/components/account/manage/ReguaDeNumeros";
 import OQueFalta from "@/components/account/manage/OQueFalta";
+import AreasEditaveis from "@/components/account/manage/AreasEditaveis";
+import { getSiteContent } from "@/lib/repositories/siteContent";
+import { toEditorValues } from "@/lib/site/contentFields";
 import { metricasDoSite } from "@/lib/repositories/siteMetrics";
 import { oQueFalta } from "@/lib/site/oQueFalta";
 import { carregarGerenciamento } from "@/lib/site/manageData";
@@ -92,12 +95,19 @@ export default async function GerenciarInicioPage({
 
   // Só busca quando HÁ site — e em paralelo, porque cada ida ao banco custa
   // ~171ms medidos e as duas abrem a tela.
-  const [metricas, falta] = site
+  const [metricas, falta, conteudo] = site
     ? await Promise.all([
         metricasDoSite(site.id),
         oQueFalta(site.id, order.id, order.packageTier as PackageTier),
+        getSiteContent(site.id),
       ])
-    : [null, null];
+    : [null, null, null];
+
+  // `toEditorValues` e nao uma conversao propria: ele traduz o timestamp para
+  // dia+hora NO FUSO DO SITE e devolve hora vazia quando e meia-noite (o
+  // combinado de "nao informado"). Refazer isso aqui criaria um segundo
+  // caminho para a data — e e assim que a cerimonia das 16h vira 19h.
+  const valoresEditaveis = site ? toEditorValues(conteudo) : null;
 
   return (
     <div className="flex flex-col gap-12">
@@ -130,11 +140,22 @@ export default async function GerenciarInicioPage({
           ele realmente quer ver. É o site dele; é o que abre a tela.
           Não depende de status: existindo site, a prévia aparece. */}
       {site !== null && site.status !== "archived" && (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[300px_minmax(0,1fr)] lg:items-start">
+          {/* As ÁREAS EDITÁVEIS ao lado da prévia, não noutra tela.
+              Editar e ver o resultado são o mesmo gesto — separá-los em
+              telas diferentes é o que faz um formulário parecer burocracia.
+              A tela /conteudo continua para quem quer o formulário completo,
+              com Pix e mensagem de presente. */}
+          {valoresEditaveis && (
+            <AreasEditaveis siteId={site.id} valores={valoresEditaveis} />
+          )}
+
         <LivePreview
           src={`/preview/${site.previewToken}`}
           descricao="É o site de verdade, com o conteúdo de vocês. Depois de salvar alguma mudança, clique em atualizar."
           fullBleed={false}
         />
+        </div>
       )}
 
       {falta && <OQueFalta {...falta} />}
