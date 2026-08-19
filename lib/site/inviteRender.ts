@@ -97,8 +97,8 @@ function desenharBloco(
   return `<g transform="rotate(${b.rotacao} ${cx} ${cy})">${desenho}</g>`;
 }
 
-/** Altura da caixa, para achar o centro de rotação. */
-function alturaAproximada(b: Bloco, L: number): number {
+/** Altura da caixa, para achar o centro de rotação — e o retângulo do link. */
+export function alturaAproximada(b: Bloco, L: number): number {
   const w = b.w * L;
   if (b.tipo === "foto" || b.tipo === "forma") return w / (b.proporcao || 1);
   if (b.tipo === "linha") return b.espessura;
@@ -171,6 +171,36 @@ function desenharConteudo(
     .join("");
 
   return `<text font-family="${FAMILIAS[b.fonte]}" font-size="${tamanho}" font-weight="${b.peso}" fill="${b.cor}" text-anchor="${ancora}" letter-spacing="${b.espacamento * tamanho}">${tspans}</text>`;
+}
+
+/**
+ * Onde cada bloco COM LINK está, em px do convite.
+ *
+ * O PDF precisa disso: um link em PDF não é marcação dentro da imagem, é uma
+ * anotação com um retângulo próprio, em coordenadas da página. Sem esta lista
+ * o convite exportado tem o texto "Lista de presentes" e nada acontece ao
+ * clicar — que é exatamente o defeito que apareceu.
+ *
+ * Só texto tem link hoje. Blocos girados são ignorados de propósito: a
+ * anotação do PDF é um retângulo alinhado aos eixos, e um retângulo reto sobre
+ * um texto inclinado cobre área que não é do texto — melhor não ter link do
+ * que ter uma região clicável no lugar errado.
+ */
+export function areasComLink(
+  doc: InviteDoc
+): { link: string; x: number; y: number; w: number; h: number }[] {
+  const L = doc.largura || CONVITE_LARGURA;
+  const A = doc.altura || CONVITE_ALTURA;
+
+  return doc.blocos
+    .filter((b) => b.tipo === "texto" && b.link.trim() !== "" && !b.rotacao)
+    .map((b) => ({
+      link: (b as { link: string }).link.trim(),
+      x: b.x * L,
+      y: b.y * A,
+      w: b.w * L,
+      h: alturaAproximada(b, L),
+    }));
 }
 
 /**

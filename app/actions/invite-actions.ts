@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSessionUserId } from "@/lib/auth/userSession";
 import { getSiteOwnedByUser } from "@/lib/repositories/sites";
@@ -10,9 +10,14 @@ import { getBaseUrl } from "@/lib/baseUrl";
 import { themePresetFor } from "@/lib/theme/presets";
 import type { ThemeSpec } from "@/lib/theme/spec";
 import {
+  CONVITES_PUBLICADOS,
+  conviteTag,
   createInvite,
   deleteInvite,
+  despublicarConvite,
+  getInvite,
   listInvites,
+  publicarConvite,
   saveInvite,
 } from "@/lib/repositories/siteInvites";
 import { conviteInicial } from "@/lib/site/inviteSeed";
@@ -119,4 +124,57 @@ export async function apagarConviteAction(formData: FormData) {
   await deleteInvite(siteId, inviteId);
   revalidatePath(`/conta/pedidos/${orderId}/convites`);
   redirect(`/conta/pedidos/${orderId}/convites`);
+}
+
+/**
+ * Põe o convite no ar e devolve o endereço.
+ *
+ * Publicar é o gesto que o casal realmente quer: o produto é o LINK que ele
+ * manda no WhatsApp, não o arquivo. Salvar já grava o desenho; publicar é o
+ * que faz o convidado poder abrir.
+ *
+ * Republicar mantém o mesmo slug (ver `publicarConvite`), então o link que já
+ * circulou continua valendo com o desenho novo.
+ */
+export async function publicarConviteAction(
+  siteId: string,
+  inviteId: string
+): Promise<{ url: string } | { error: string }> {
+  const site = await siteDoDono(siteId);
+  if (!site) return { error: "Não foi possível publicar." };
+
+  const [slug, baseUrl] = await Promise.all([
+    publicarConvite(siteId, inviteId),
+    getBaseUrl(),
+  ]);
+  if (!slug) return { error: "Convite não encontrado." };
+
+  // As duas tags: a do convite (o convidado vê a versão nova) e a da lista
+  // (o `generateStaticParams` passa a conhecer o endereço). Sem elas o link
+  // recém-publicado responderia 404 por dias — `cacheLife("days")`.
+  // `updateTag`, não `revalidateTag`: read-your-own-writes. O casal clica em
+  // publicar e abre o link na hora — com stale-while-revalidate ele veria o
+  // 404 anterior. Mesma razão do §7.2 do SDD na publicação do site.
+  updateTag(conviteTag(slug));
+  updateTag(CONVITES_PUBLICADOS);
+  revalidatePath(`/conta/convites/${inviteId}`);
+  return { url: `${baseUrl.replace(/\/+$/, "")}/c/${slug}` };
+}
+
+/** Tira do ar. O endereço fica guardado, para voltar no mesmo link. */
+export async function despublicarConviteAction(
+  siteId: string,
+  inviteId: string
+): Promise<{ ok: true } | { error: string }> {
+  const site = await siteDoDono(siteId);
+  if (!site) return { error: "Não foi possível tirar do ar." };
+
+  const atual = await getInvite(siteId, inviteId);
+  const ok = await despublicarConvite(siteId, inviteId);
+  if (!ok) return { error: "Convite não encontrado." };
+
+  if (atual?.slug) updateTag(conviteTag(atual.slug));
+  updateTag(CONVITES_PUBLICADOS);
+  revalidatePath(`/conta/convites/${inviteId}`);
+  return { ok: true };
 }

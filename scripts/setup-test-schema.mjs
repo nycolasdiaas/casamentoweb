@@ -149,6 +149,8 @@ const DDL = [
   // casos de sitePhotos quebram com "column category does not exist" — foi o
   // que aconteceu na 0010 e na 0011, e aconteceu de novo aqui.
   `alter table test.site_photos add column if not exists category text`,
+  `alter table test.site_invites add column if not exists slug text`,
+  `alter table test.site_invites add column if not exists published_at timestamptz`,
   `alter table test.site_content add column if not exists pix_key text`,
   `alter table test.site_content add column if not exists pix_key_type text`,
   `alter table test.site_content add column if not exists pix_recipient text`,

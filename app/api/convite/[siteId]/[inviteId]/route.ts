@@ -4,7 +4,7 @@ import { getSiteOwnedByUser } from "@/lib/repositories/sites";
 import { getInvite } from "@/lib/repositories/siteInvites";
 import { getSitePhotoById } from "@/lib/repositories/sitePhotos";
 import { fetchObject, isStorageEnabled } from "@/lib/storage/supabase";
-import { renderInviteSvg } from "@/lib/site/inviteRender";
+import { areasComLink, renderInviteSvg } from "@/lib/site/inviteRender";
 import { CONVITE_ALTURA, CONVITE_LARGURA } from "@/lib/site/inviteDoc";
 
 /**
@@ -27,12 +27,47 @@ function normalizarFormato(v: string | null): Formato {
   return "png";
 }
 
-/** Monta um PDF de uma página com o JPEG ocupando a folha inteira. */
-function pdfComJpeg(jpeg: Buffer, largura: number, altura: number): Buffer {
+type AreaDeLink = { link: string; x: number; y: number; w: number; h: number };
+
+/** Escapa um endereço para caber dentro de uma string literal do PDF. */
+function escaparPdf(texto: string): string {
+  return texto.replace(/([\\()])/g, "\\$1");
+}
+
+/**
+ * Monta um PDF de uma página com o JPEG ocupando a folha inteira, e uma
+ * ANOTAÇÃO por link.
+ *
+ * ── Por que anotação, e não algo dentro da imagem ──────────────────────────
+ *
+ * Num PDF o link não mora no desenho: é um objeto `/Annot /Link` com um
+ * retângulo em coordenadas da página. A primeira versão exportava só o JPEG —
+ * o texto "Lista de presentes" aparecia e clicar nele não fazia nada, porque
+ * não havia nada para clicar.
+ *
+ * ── O eixo Y é invertido ───────────────────────────────────────────────────
+ *
+ * No convite o Y cresce para BAIXO (como na tela); no PDF, para CIMA, a partir
+ * do pé da página. Daí o `altura - y - h`: sem isso o link fica espelhado na
+ * vertical e responde no lugar errado da folha.
+ */
+function pdfComJpeg(
+  jpeg: Buffer,
+  largura: number,
+  altura: number,
+  links: AreaDeLink[] = []
+): Buffer {
+  // Os objetos 1..5 são fixos (catálogo, páginas, página, imagem, conteúdo);
+  // cada link vira o objeto 6, 7, … e entra no /Annots da página.
+  const primeiroLink = 6;
+  const refsAnnots = links.map((_, i) => `${primeiroLink + i} 0 R`).join(" ");
+
   const objetos: string[] = [
     "<< /Type /Catalog /Pages 2 0 R >>",
     "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-    `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${largura} ${altura}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`,
+    `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${largura} ${altura}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R${
+      links.length ? ` /Annots [${refsAnnots}]` : ""
+    } >>`,
   ];
   const conteudo = `q ${largura} 0 0 ${altura} 0 0 cm /Im0 Do Q`;
 
@@ -44,36 +79,56 @@ function pdfComJpeg(jpeg: Buffer, largura: number, altura: number): Buffer {
     deslocamento += b.length;
   };
 
-  push(Buffer.from("%PDF-1.4\n"));
+  const NL = "\n";
+
+  push(Buffer.from(`%PDF-1.4${NL}`));
 
   objetos.forEach((corpo, i) => {
     posicoes.push(deslocamento);
-    push(Buffer.from(`${i + 1} 0 obj\n${corpo}\nendobj\n`));
+    push(Buffer.from(`${i + 1} 0 obj${NL}${corpo}${NL}endobj${NL}`));
   });
 
   // 4: a imagem
   posicoes.push(deslocamento);
   push(
     Buffer.from(
-      `4 0 obj\n<< /Type /XObject /Subtype /Image /Width ${largura} /Height ${altura} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpeg.length} >>\nstream\n`
+      `4 0 obj${NL}<< /Type /XObject /Subtype /Image /Width ${largura} /Height ${altura} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpeg.length} >>${NL}stream${NL}`
     )
   );
   push(jpeg);
-  push(Buffer.from("\nendstream\nendobj\n"));
+  push(Buffer.from(`${NL}endstream${NL}endobj${NL}`));
 
   // 5: o content stream que desenha a imagem
   posicoes.push(deslocamento);
   push(
     Buffer.from(
-      `5 0 obj\n<< /Length ${conteudo.length} >>\nstream\n${conteudo}\nendstream\nendobj\n`
+      `5 0 obj${NL}<< /Length ${conteudo.length} >>${NL}stream${NL}${conteudo}${NL}endstream${NL}endobj${NL}`
     )
   );
 
+  // 6..N: um link por área. `/Border [0 0 0]` tira a moldura que alguns
+  // leitores desenham — um retângulo azul em volta do texto estragaria o
+  // convite.
+  links.forEach((l, i) => {
+    const y1 = (altura - l.y - l.h).toFixed(2);
+    const y2 = (altura - l.y).toFixed(2);
+    const x1 = l.x.toFixed(2);
+    const x2 = (l.x + l.w).toFixed(2);
+    posicoes.push(deslocamento);
+    push(
+      Buffer.from(
+        `${primeiroLink + i} 0 obj${NL}<< /Type /Annot /Subtype /Link /Rect [${x1} ${y1} ${x2} ${y2}] /Border [0 0 0] /A << /Type /Action /S /URI /URI (${escaparPdf(l.link)}) >> >>${NL}endobj${NL}`
+      )
+    );
+  });
+
   const inicioXref = deslocamento;
   const total = posicoes.length + 1;
-  let xref = `xref\n0 ${total}\n0000000000 65535 f \n`;
-  for (const p of posicoes) xref += `${String(p).padStart(10, "0")} 00000 n \n`;
-  xref += `trailer\n<< /Size ${total} /Root 1 0 R >>\nstartxref\n${inicioXref}\n%%EOF\n`;
+  let xref = `xref${NL}0 ${total}${NL}0000000000 65535 f ${NL}`;
+  for (const p of posicoes) {
+    xref += `${String(p).padStart(10, "0")} 00000 n ${NL}`;
+  }
+  xref += `trailer${NL}<< /Size ${total} /Root 1 0 R >>${NL}startxref${NL}${inicioXref}${NL}%%EOF${NL}`;
   push(Buffer.from(xref));
 
   return Buffer.concat(partes);
@@ -162,7 +217,9 @@ export async function GET(
     });
   }
 
-  const pdf = pdfComJpeg(jpeg, L, A);
+  // As áreas clicáveis saem do MESMO documento que gerou a imagem, então o
+  // retângulo do link bate com onde o texto foi desenhado.
+  const pdf = pdfComJpeg(jpeg, L, A, areasComLink(convite.doc));
   return new Response(new Uint8Array(pdf), {
     headers: cabecalhos("application/pdf", "pdf"),
   });

@@ -20,6 +20,7 @@ import { useHistorico } from "@/components/account/manage/useHistorico";
 import BlocoNaTela from "./BlocoNaTela";
 import BarraDoBloco from "./BarraDoBloco";
 import Camadas from "./Camadas";
+import PublicarConvite from "./PublicarConvite";
 import FormatoDoConvite from "./FormatoDoConvite";
 import { LINKS_DO_CONVITE, linkDaSecao } from "@/lib/site/ancoras";
 import { FONTES, Numero } from "./controles";
@@ -65,6 +66,9 @@ type Props = {
   /** Para montar os links das seções do site do casal. */
   baseUrl: string;
   slug: string;
+  /** Endereço público do convite, se já publicado alguma vez. */
+  urlDoConvite: string | null;
+  noAr: boolean;
 };
 
 export default function EditorDeConvite({
@@ -76,6 +80,8 @@ export default function EditorDeConvite({
   fotos,
   baseUrl,
   slug,
+  urlDoConvite,
+  noAr,
 }: Props) {
   const {
     presente: doc,
@@ -552,6 +558,15 @@ export default function EditorDeConvite({
     registrar(antesDoGesto.current);
   }, [registrar]);
 
+  /** Traduz o endereço de volta para o nome que o casal reconhece. */
+  const destinoDoLink = (link: string) => {
+    const secao = LINKS_DO_CONVITE.find(
+      (l) => link === linkDaSecao(baseUrl, slug, l.chave)
+    );
+    if (secao) return `“${secao.rotulo}” no site de vocês`;
+    return link.replace(/^https?:\/\//, "") || "outro endereço";
+  };
+
   const baixar = `/api/convite/${siteId}/${inviteId}`;
   const marcarGesto = () => {
     antesDoGesto.current = doc;
@@ -995,15 +1010,24 @@ export default function EditorDeConvite({
                   />
                 </label>
 
-                {/* LINK: escolhe-se uma seção DO PRÓPRIO SITE, não se digita
-                    URL. O casal não sabe (nem tem por que saber) que a lista
-                    de presentes mora em `/s/<slug>#presentes` — e digitado à
-                    mão, um endereço errado só aparece quando o convidado
-                    clica. A opção "outro endereço" fica para o que é de fora
-                    (um mapa, um formulário). */}
-                <div className="flex flex-col gap-1.5 text-[13px]">
-                  Link (opcional)
+                {/* TORNAR CLICÁVEL.
+                    Antes isto era "Link (opcional)" com uma lista suspensa, e
+                    ninguém entendia o que ganhava: nem que o texto ficaria
+                    clicável, nem para onde levaria. Três mudanças:
+
+                    1. O RÓTULO diz o efeito ("Tornar este texto clicável"),
+                       não o nome do campo. Quem nunca fez isso não sabe o que
+                       é "um link" no contexto de um convite — sabe o que é
+                       "clicar e ir para a lista de presentes".
+                    2. A frase abaixo CONFIRMA o destino em português, com o
+                       endereço real. É a diferença entre escolher no escuro e
+                       ver o que vai acontecer.
+                    3. A pergunta aparece só depois de haver texto, porque
+                       bloco vazio não tem o que tornar clicável. */}
+                <div className="flex flex-col gap-1.5 border-t border-(--c-rule) pt-3 text-[13px]">
+                  <span>Tornar este texto clicável</span>
                   <select
+                    aria-label="Para onde o convidado vai ao clicar"
                     value={
                       bloco.link === ""
                         ? ""
@@ -1023,16 +1047,16 @@ export default function EditorDeConvite({
                     }}
                     className="min-h-11 border border-(--c-rule) bg-white px-2 text-[13px]"
                   >
-                    <option value="">Sem link</option>
+                    <option value="">Não — é só texto</option>
                     {LINKS_DO_CONVITE.map((l) => (
                       <option
                         key={l.chave}
                         value={linkDaSecao(baseUrl, slug, l.chave)}
                       >
-                        {l.rotulo}
+                        Sim — abre {l.rotulo.toLowerCase()}
                       </option>
                     ))}
-                    <option value="outro">Outro endereço…</option>
+                    <option value="outro">Sim — abre outro endereço…</option>
                   </select>
 
                   {bloco.link !== "" &&
@@ -1052,6 +1076,31 @@ export default function EditorDeConvite({
                         className="min-h-11 border border-(--c-rule) bg-white px-2 text-[13px]"
                       />
                     )}
+
+                  {bloco.link !== "" && (
+                    <p className="flex items-start gap-1.5 text-[11.5px] leading-snug text-(--c-ink-2)">
+                      <svg
+                        aria-hidden
+                        width="12"
+                        height="12"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        className="mt-0.5 shrink-0"
+                      >
+                        <path d="M6.5 9.5a3 3 0 0 0 4.2 0l2-2a3 3 0 0 0-4.2-4.2l-.6.6" />
+                        <path d="M9.5 6.5a3 3 0 0 0-4.2 0l-2 2a3 3 0 0 0 4.2 4.2l.6-.6" />
+                      </svg>
+                      <span>
+                        Quem clicar vai para{" "}
+                        <strong className="font-medium text-(--c-ink)">
+                          {destinoDoLink(bloco.link)}
+                        </strong>
+                        . Vale no PDF e no convite aberto pelo celular.
+                      </span>
+                    </p>
+                  )}
                 </div>
               </>
             )}
@@ -1246,6 +1295,14 @@ export default function EditorDeConvite({
             className="size-11 border border-(--c-rule)"
           />
         </div>
+
+        <PublicarConvite
+          siteId={siteId}
+          inviteId={inviteId}
+          urlInicial={urlDoConvite}
+          noAr={noAr}
+          temMudancaNaoSalva={!salvo}
+        />
 
         {/* BAIXAR: um botão, e o menu abre com os formatos.
             Três botões lado a lado ocupavam a largura toda para uma escolha

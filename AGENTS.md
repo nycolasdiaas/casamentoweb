@@ -88,6 +88,11 @@ snapshot rodou) com `created_at` (quando o grupo foi criado).
   acusa quando há `generateStaticParams`, porque é ele que faz o build
   prerenderizar — três páginas do painel leem `searchParams` no corpo e
   passam justamente por não serem prerenderizadas hoje.
+- **A regra do `searchParams` vale para QUALQUER leitura não cacheada.** A
+  mesma mensagem apareceu numa rota sem `searchParams` nenhum (`/c/[slug]`):
+  era uma consulta ao banco sem `"use cache"`. O lint não pega esse caso — ele
+  só enxerga `searchParams` —, então a regra de bolso é: rota com
+  `generateStaticParams` lê dados por função cacheada, ponto.
 - **`cacheTag`/`cacheLife` só existem no runtime do Next** — são mockados em
   `vitest.setup.ts`. Testes com `vi.mock("next/cache")` local precisam
   incluir os dois, senão sobrescrevem o mock global.

@@ -91,6 +91,12 @@ export default async function EditarConvitePage({
           fotos={fotos.map((f) => ({ id: f.id, alt: f.alt }))}
           baseUrl={baseUrl}
           slug={slug}
+          urlDoConvite={
+            convite.slug
+              ? `${baseUrl.replace(/\/+$/, "")}/c/${convite.slug}`
+              : null
+          }
+          noAr={convite.publishedAt !== null}
         />
       </main>
     </div>

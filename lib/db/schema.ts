@@ -592,6 +592,23 @@ export const siteInvites = pgTable(
       .notNull()
       .references(() => sites.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
+    /**
+     * Endereço público do convite: `/c/<slug>`.
+     *
+     * O convite virou PÁGINA, e não só arquivo. É o link que o casal manda no
+     * WhatsApp — e como é HTML, os botões ("Lista de presentes", "Confirmar
+     * presença") funcionam de verdade, coisa que numa imagem nunca funcionou.
+     *
+     * ANULÁVEL nesta migração: os convites já criados não têm slug, e a
+     * coluna vira obrigatória só depois de verificado em produção (a regra
+     * aditiva do AGENTS.md). O backfill acontece na primeira publicação.
+     *
+     * Aleatório, não derivado dos nomes: dois convites do mesmo casal
+     * colidiriam, e o endereço não deve ser adivinhável a partir do casal.
+     */
+    slug: text("slug").unique(),
+    /** Só aparece em `/c/<slug>` depois que o casal publica. */
+    publishedAt: timestamp("published_at", { withTimezone: true }),
     // Blocos posicionados. A forma vive em lib/site/inviteDoc.ts, que valida
     // na leitura — a coluna é jsonb e o banco não garante formato.
     doc: jsonb("doc").notNull(),
