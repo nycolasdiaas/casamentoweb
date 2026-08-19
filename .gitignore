@@ -45,3 +45,8 @@ yarn-error.log*
 next-env.d.ts
 
 .vercel
+
+# Protótipos publicados: 2 MB de editor gerado a cada seed. As FONTES são
+# os .dc.html e o canvas.json ao lado; este arquivo se refaz com o seed.
+design/*.html
+!design/painel-do-casal.html
