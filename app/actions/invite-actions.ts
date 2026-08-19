@@ -123,8 +123,16 @@ export async function apagarConviteAction(formData: FormData) {
   if (!site) redirect("/conta/pedidos");
 
   await deleteInvite(siteId, inviteId);
-  revalidatePath(`/conta/pedidos/${orderId}/convites`);
-  redirect(`/conta/pedidos/${orderId}/convites`);
+
+  // Sem pedido (site órfão — ver `deleteOrder` no AGENTS.md) não existe
+  // `/conta/pedidos//convites`: seria uma URL com barra dupla, que o Next
+  // normaliza com um 308 e leva a lugar nenhum. A lista de pedidos é o
+  // destino honesto nesse caso.
+  const destino = orderId
+    ? `/conta/pedidos/${orderId}/convites`
+    : "/conta/pedidos";
+  revalidatePath(destino);
+  redirect(destino);
 }
 
 /**
