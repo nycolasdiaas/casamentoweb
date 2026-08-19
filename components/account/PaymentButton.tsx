@@ -2,7 +2,6 @@
 
 import { useActionState } from "react";
 import { startPaymentAction } from "@/app/actions/payment-actions";
-import { CONTACT } from "@/lib/site";
 
 export default function PaymentButton({
   orderId,
@@ -42,15 +41,7 @@ export default function PaymentButton({
       </p>
       {state?.error && (
         <p className="text-xs text-(--c-mark) text-center max-w-xs">
-          {state.error}{" "}
-          <a
-            href={`https://wa.me/${CONTACT.whatsappNumber}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline underline-offset-2"
-          >
-            Falar no WhatsApp
-          </a>
+          {state.error}
         </p>
       )}
     </form>

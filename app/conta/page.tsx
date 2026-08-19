@@ -7,7 +7,7 @@ import { listOrdersByUserId } from "@/lib/repositories/orders";
 import AccountShell from "@/components/account/AccountShell";
 import { STATUS_META } from "@/lib/orderStatus";
 import { getPackage } from "@/lib/packages";
-import { CONTACT, SITE_NAME } from "@/lib/site";
+import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: `Minha conta | ${SITE_NAME}`,
@@ -170,12 +170,6 @@ export default async function AccountHubPage() {
                 href="/#estilos"
                 title="Ver modelos"
                 desc="Inspiração de estilos"
-              />
-              <Atalho
-                href={`https://wa.me/${CONTACT.whatsappNumber}`}
-                title="Falar no WhatsApp"
-                desc="Tirar dúvidas com a gente"
-                external
               />
             </nav>
           </aside>

@@ -54,8 +54,11 @@ export default async function EditarConvitePage({
   const voltar = orderId ? `/conta/pedidos/${orderId}/convites` : "/conta/pedidos";
 
   return (
+    // `h-screen` + `overflow-hidden`: o editor é uma tela só, não uma página
+    // que rola. É o que permite a moldura do convite e o painel ocuparem toda
+    // a altura sem que nada fique abaixo da dobra.
     <div
-      className={`${uiPrensa} flex min-h-screen flex-col bg-(--c-base) text-(--c-ink)`}
+      className={`${uiPrensa} flex h-screen flex-col overflow-hidden bg-(--c-base) text-(--c-ink)`}
     >
       <header className="flex flex-wrap items-center justify-between gap-3 px-5 py-3">
         <div className="flex items-baseline gap-4">
@@ -78,7 +81,7 @@ export default async function EditarConvitePage({
         />
       </header>
 
-      <main className="min-h-0 flex-1 px-4 pb-4">
+      <main className="min-h-0 flex-1 px-4 pb-3">
         <EditorDeConvite
           siteId={siteId}
           orderId={orderId ?? ""}

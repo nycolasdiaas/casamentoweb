@@ -20,7 +20,9 @@ import BlocoVisual, { estiloDoBloco } from "./BlocoVisual";
  * - CANTO (o quadradinho): largura e altura juntas — achatar e esticar.
  *   Só onde há altura própria a mexer (foto e forma); num texto a altura vem
  *   do número de linhas, e num divisor, da espessura.
- * - LARGURA (o círculo à direita): só a largura. É a única que o texto tem.
+ * - BORDA (os círculos): esquerda e direita esticam só a LARGURA — as únicas
+ *   que um texto tem, porque a altura dele vem do número de linhas. Cima e
+ *   baixo esticam só a ALTURA, e existem onde ela é campo próprio.
  * - ROTAÇÃO: a área invisível LOGO FORA de cada canto, como no Figma e no
  *   Canva. Não tem desenho próprio de propósito — quatro bolinhas a mais
  *   entulhariam um bloco pequeno; o que anuncia a alça é o cursor mudar ao
@@ -31,12 +33,17 @@ import BlocoVisual, { estiloDoBloco } from "./BlocoVisual";
 type Props = {
   bloco: Bloco;
   ativo: boolean;
+  /** Este bloco está sendo digitado agora? */
+  editando: boolean;
   aoAvisarElemento: (id: string, el: HTMLDivElement | null) => void;
   aoPegar: (
     e: React.PointerEvent,
     bloco: Bloco,
-    tipo: "mover" | "largura" | "canto" | "girar"
+    tipo: "mover" | "largura" | "canto" | "girar" | "altura"
   ) => void;
+  aoEditarTexto: (id: string, texto: string) => void;
+  aoComecarEdicao: (id: string) => void;
+  aoTerminarEdicao: () => void;
 };
 
 const CANTOS = [
@@ -59,15 +66,26 @@ const CURSOR_GIRAR =
 export default function BlocoNaTela({
   bloco: b,
   ativo,
+  editando,
   aoAvisarElemento,
   aoPegar,
+  aoEditarTexto,
+  aoComecarEdicao,
+  aoTerminarEdicao,
 }: Props) {
   const temAltura = b.tipo === "foto" || b.tipo === "forma";
 
   return (
     <div
       ref={(el) => aoAvisarElemento(b.id, el)}
-      onPointerDown={(e) => aoPegar(e, b, "mover")}
+      onPointerDown={(e) => {
+        // Digitando: o ponteiro pertence ao campo, não ao arrasto.
+        if (editando) return;
+        aoPegar(e, b, "mover");
+      }}
+      onDoubleClick={() => {
+        if (b.tipo === "texto") aoComecarEdicao(b.id);
+      }}
       style={{
         ...estiloDoBloco(b),
         outline: ativo ? "1.5px solid var(--c-mark)" : undefined,
@@ -75,7 +93,51 @@ export default function BlocoNaTela({
         cursor: "grab",
       }}
     >
-      <BlocoVisual bloco={b} />
+      {/* Digitar NO PRÓPRIO BLOCO, com dois cliques.
+          Antes o texto só se editava por um campo no painel lateral — longe
+          do olho, e fora de alcance quando o painel rolava. Aqui a pessoa vê
+          a fonte, o tamanho e a cor reais enquanto escreve.
+
+          O `textarea` é transparente e herda a tipografia do bloco: é o
+          próprio desenho que se edita, não uma caixa por cima dele. */}
+      {editando && b.tipo === "texto" ? (
+        <textarea
+          autoFocus
+          value={b.texto}
+          onChange={(e) => aoEditarTexto(b.id, e.target.value)}
+          onBlur={aoTerminarEdicao}
+          onKeyDown={(e) => {
+            // Escape sai; Enter quebra linha, como em qualquer texto.
+            if (e.key === "Escape") aoTerminarEdicao();
+            e.stopPropagation();
+          }}
+          onPointerDown={(e) => e.stopPropagation()}
+          className="w-full resize-none bg-transparent outline-none"
+          style={{
+            fontSize: `${b.tamanho * 100}cqw`,
+            color: b.cor,
+            fontWeight: b.peso,
+            textAlign: b.alinhamento,
+            letterSpacing: `${b.espacamento}em`,
+            lineHeight: 1.25,
+            fontFamily:
+              b.fonte === "sans"
+                ? "var(--font-sans, sans-serif)"
+                : b.fonte === "script"
+                  ? "cursive"
+                  : "var(--font-serif, serif)",
+            // Cresce com o conteúdo: uma caixa de altura fixa cortaria o
+            // texto que a pessoa está escrevendo.
+            height: "auto",
+            minHeight: "1.25em",
+            overflow: "hidden",
+            cursor: "text",
+          }}
+          rows={Math.max(1, b.texto.split("\n").length)}
+        />
+      ) : (
+        <BlocoVisual bloco={b} />
+      )}
 
       {ativo && (
         <>
@@ -91,11 +153,35 @@ export default function BlocoNaTela({
             />
           ))}
 
+          {/* BORDAS: esticar num eixo só. A da direita e a da esquerda mexem
+              na largura (todo bloco tem); as de cima e de baixo, na altura —
+              e essas só existem onde há altura própria, pelo mesmo motivo dos
+              cantos. */}
           <span
             onPointerDown={(e) => aoPegar(e, b, "largura")}
             className="absolute -right-1.5 top-1/2 size-3 -translate-y-1/2 rounded-full border border-white bg-(--c-mark)"
             style={{ cursor: "ew-resize" }}
           />
+          <span
+            onPointerDown={(e) => aoPegar(e, b, "largura")}
+            className="absolute -left-1.5 top-1/2 size-3 -translate-y-1/2 rounded-full border border-white bg-(--c-mark)"
+            style={{ cursor: "ew-resize" }}
+          />
+
+          {temAltura && (
+            <>
+              <span
+                onPointerDown={(e) => aoPegar(e, b, "altura")}
+                className="absolute -top-1.5 left-1/2 size-3 -translate-x-1/2 rounded-full border border-white bg-(--c-mark)"
+                style={{ cursor: "ns-resize" }}
+              />
+              <span
+                onPointerDown={(e) => aoPegar(e, b, "altura")}
+                className="absolute -bottom-1.5 left-1/2 size-3 -translate-x-1/2 rounded-full border border-white bg-(--c-mark)"
+                style={{ cursor: "ns-resize" }}
+              />
+            </>
+          )}
 
           {temAltura &&
             CANTOS.map((c) => (

@@ -153,27 +153,49 @@ export default function BarraDoBloco({
 
           <span className="mx-0.5 h-6 w-px bg-(--c-rule)" aria-hidden />
 
-          {(["left", "center", "right"] as const).map((a) => (
+          {(
+            [
+              ["left", "Alinhar à esquerda", ["M2 3h12", "M2 6.5h8", "M2 10h11", "M2 13.5h6"]],
+              ["center", "Centralizar", ["M2 3h12", "M4 6.5h8", "M2.5 10h11", "M5 13.5h6"]],
+              ["right", "Alinhar à direita", ["M2 3h12", "M6 6.5h8", "M3 10h11", "M8 13.5h6"]],
+            ] as const
+          ).map(([a, nome, linhas]) => (
             <button
               key={a}
               type="button"
-              title={a === "center" ? "Centralizar" : `Alinhar à ${a === "left" ? "esquerda" : "direita"}`}
+              title={nome}
+              aria-label={nome}
               aria-pressed={bloco.alinhamento === a}
               onClick={() => trocarEregistrar({ alinhamento: a })}
               className={bloco.alinhamento === a ? botaoAtivo : botao}
             >
-              <span aria-hidden>
-                {a === "left" ? "◧" : a === "center" ? "▣" : "◨"}
-              </span>
+              {/* Ícone DESENHADO, não glifo Unicode: ◧ ▣ ◨ são três quadrados
+                  quase idênticos num botão de 36px — ninguém distingue qual é
+                  qual. Linhas de texto de comprimentos diferentes mostram o
+                  alinhamento pelo próprio desenho. */}
+              <svg aria-hidden width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+                {linhas.map((d) => (
+                  <path key={d} d={d} />
+                ))}
+              </svg>
             </button>
           ))}
 
           <span className="mx-0.5 h-6 w-px bg-(--c-rule)" aria-hidden />
 
-          <label className={botao} title="Cor do texto">
-            <span aria-hidden style={{ color: bloco.cor }}>
+          {/* A cor aparece como FAIXA embaixo do A, como em todo editor de
+              texto. Antes o próprio "A" era pintado — e um A dourado claro
+              sobre branco simplesmente não se via, que é justamente quando a
+              pessoa mais precisa saber qual é a cor. */}
+          <label className={`${botao} flex-col gap-0.5`} title="Cor do texto">
+            <span aria-hidden className="text-[12px] leading-none">
               A
             </span>
+            <span
+              aria-hidden
+              className="h-1 w-4 rounded-[1px] border border-(--c-rule)"
+              style={{ background: bloco.cor }}
+            />
             <input
               type="color"
               value={bloco.cor}

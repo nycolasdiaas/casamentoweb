@@ -93,6 +93,10 @@ export default function EditorDeConvite({
   const [salvando, iniciarSalvamento] = useTransition();
   const [salvo, setSalvo] = useState(true);
   const [menuBaixar, setMenuBaixar] = useState(false);
+  // Qual bloco está sendo DIGITADO. Separado de `selecionado` porque escolher
+  // um bloco (para mover, girar, trocar a cor) não é o mesmo que abrir o
+  // cursor de texto dentro dele.
+  const [editandoTexto, setEditandoTexto] = useState<string | null>(null);
 
   // As fotos vivem em estado porque o editor agora SOBE foto: a lista que veio
   // do servidor deixa de ser a verdade no instante em que a primeira sobe.
@@ -150,6 +154,7 @@ export default function EditorDeConvite({
     | { tipo: "largura"; id: string; x0: number; w0: number }
     | { tipo: "canto"; id: string; x0: number; y0: number; w0: number; p0: number }
     | { tipo: "girar"; id: string; cx: number; cy: number; a0: number; r0: number }
+    | { tipo: "altura"; id: string; y0: number; h0: number }
     | { tipo: "pan"; x0: number; y0: number; px: number; py: number }
     | null
   >(null);
@@ -176,7 +181,7 @@ export default function EditorDeConvite({
   function aoPegar(
     e: React.PointerEvent,
     alvo: Bloco,
-    tipo: "mover" | "largura" | "canto" | "girar"
+    tipo: "mover" | "largura" | "canto" | "girar" | "altura"
   ) {
     e.preventDefault();
     e.stopPropagation();
@@ -199,6 +204,14 @@ export default function EditorDeConvite({
     }
     if (tipo === "largura") {
       gesto.current = { tipo, id: alvo.id, x0: px, w0: alvo.w };
+      return;
+    }
+    if (tipo === "altura") {
+      // A altura não é campo: sai de `w / proporcao`. Guarda a altura ATUAL
+      // em unidades de largura, e no arrasto recalcula a proporção.
+      const p0 =
+        alvo.tipo === "foto" || alvo.tipo === "forma" ? alvo.proporcao : 1;
+      gesto.current = { tipo, id: alvo.id, y0: py, h0: alvo.w / (p0 || 1) };
       return;
     }
     if (tipo === "girar") {
@@ -272,6 +285,13 @@ export default function EditorDeConvite({
         }
         if (g.tipo === "largura") {
           return prenderNaTela({ ...b, w: g.w0 + (px - g.x0) });
+        }
+
+        if (g.tipo === "altura") {
+          if (b.tipo !== "foto" && b.tipo !== "forma") return b;
+          const alturaTela = r.height / r.width;
+          const h = Math.max(g.h0 + (py - g.y0) / alturaTela, 0.03);
+          return { ...b, proporcao: b.w / h };
         }
 
         // CANTO: largura e altura ao mesmo tempo — é o que permite achatar e
@@ -348,7 +368,7 @@ export default function EditorDeConvite({
         alvo?.tagName === "INPUT" ||
         alvo?.tagName === "TEXTAREA" ||
         alvo?.isContentEditable === true;
-      if (digitando) return;
+      if (digitando || editandoTexto) return;
       if ((e.key === "Delete" || e.key === "Backspace") && selecionado) {
         e.preventDefault();
         apagarSelecionado();
@@ -360,7 +380,7 @@ export default function EditorDeConvite({
     }
     window.addEventListener("keydown", aoTeclar);
     return () => window.removeEventListener("keydown", aoTeclar);
-  }, [apagarSelecionado, selecionado]);
+  }, [apagarSelecionado, editandoTexto, selecionado]);
 
   /**
    * Zoom com a roda do mouse.
@@ -510,6 +530,28 @@ export default function EditorDeConvite({
     []
   );
 
+  /** Digitar dentro do bloco. O passo do histórico fecha quando a edição sai. */
+  const editarTexto = useCallback(
+    (id: string, texto: string) => {
+      trocarBloco(id, { texto });
+    },
+    [trocarBloco]
+  );
+
+  const comecarEdicao = useCallback(
+    (id: string) => {
+      antesDoGesto.current = doc;
+      setSelecionado(id);
+      setEditandoTexto(id);
+    },
+    [doc]
+  );
+
+  const terminarEdicao = useCallback(() => {
+    setEditandoTexto(null);
+    registrar(antesDoGesto.current);
+  }, [registrar]);
+
   const baixar = `/api/convite/${siteId}/${inviteId}`;
   const marcarGesto = () => {
     antesDoGesto.current = doc;
@@ -517,9 +559,13 @@ export default function EditorDeConvite({
   const fecharGesto = () => registrar(antesDoGesto.current);
 
   return (
-    <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
+    // A tela INTEIRA cabe na janela: a página não rola. Quem rola, quando
+    // precisa, é só o painel da direita — e por dentro, com a barra colada
+    // nele. Antes a página inteira rolava, e as Formas ficavam abaixo da
+    // dobra: o casal não achava metade das ferramentas.
+    <div className="flex h-full min-h-0 flex-col gap-4 lg:flex-row lg:items-stretch">
       {/* ── a tela ──────────────────────────────────────────────────────── */}
-      <div className="min-w-0 flex-1">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         {/* A MOLDURA não rola: quem navega é o arrasto do fundo. Barra de
             rolagem obrigava a mirar num trilho de 10px para chegar ao canto
             do convite, e ainda comia altura da área de desenho. Com
@@ -535,9 +581,8 @@ export default function EditorDeConvite({
           onPointerMove={aoMover}
           onPointerUp={aoSoltar}
           onPointerCancel={aoSoltar}
-          className="relative flex touch-none items-center justify-center overflow-hidden rounded-[3px] border border-(--c-rule) bg-(--c-sunken)/50"
+          className="relative flex min-h-0 flex-1 touch-none items-center justify-center overflow-hidden rounded-[3px] border border-(--c-rule) bg-(--c-sunken)/50"
           style={{
-            height: "calc(100svh - 11rem)",
             // Declara o container para o `100cqh` da tela medir ESTA moldura.
             containerType: "size",
             cursor: "grab",
@@ -568,8 +613,12 @@ export default function EditorDeConvite({
               key={b.id}
               bloco={b}
               ativo={b.id === selecionado}
+              editando={b.id === editandoTexto}
               aoAvisarElemento={avisarElemento}
               aoPegar={aoPegar}
+              aoEditarTexto={editarTexto}
+              aoComecarEdicao={comecarEdicao}
+              aoTerminarEdicao={terminarEdicao}
             />
           ))}
           </div>
@@ -592,7 +641,7 @@ export default function EditorDeConvite({
         )}
 
         {/* A régua de baixo: formato à esquerda, zoom à direita. */}
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-[12px] text-(--c-ink-2)">
+        <div className="mt-2 flex shrink-0 flex-wrap items-center justify-between gap-3 text-[12px] text-(--c-ink-2)">
           <FormatoDoConvite
             largura={doc.largura}
             altura={doc.altura}
@@ -634,7 +683,7 @@ export default function EditorDeConvite({
       </div>
 
       {/* ── o painel ────────────────────────────────────────────────────── */}
-      <aside className="flex w-full flex-col gap-4 lg:w-[320px]">
+      <aside className="flex w-full min-h-0 flex-col gap-3 overflow-y-auto pb-2 lg:w-[264px]">
         <div className="surface-raised flex flex-col gap-3 rounded-[3px] p-4">
           <input
             value={nome}

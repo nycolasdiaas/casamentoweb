@@ -5,7 +5,6 @@ import {
   type OrderStatus,
 } from "@/lib/orderStatus";
 import { getPackage, type PackageTier } from "@/lib/packages";
-import { CONTACT } from "@/lib/site";
 import PaymentButton from "./PaymentButton";
 
 export type TrackerOrder = {
@@ -173,19 +172,6 @@ export default function OrderStatusTracker({
         })}
       </ol>
 
-      {/* Ajuda */}
-      <p className="text-[13px] text-(--c-ink-2) border-t border-(--c-rule) pt-4">
-        Qualquer dúvida, é só chamar a gente no{" "}
-        <a
-          href={`https://wa.me/${CONTACT.whatsappNumber}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-medium text-(--c-ink) underline underline-offset-2"
-        >
-          WhatsApp
-        </a>
-        .
-      </p>
     </div>
   );
 }
