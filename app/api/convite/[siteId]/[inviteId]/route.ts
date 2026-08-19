@@ -124,11 +124,16 @@ export async function GET(
     );
   }
 
+  // A medida sai do DOCUMENTO: o casal pode ter escolhido quadrado, story ou
+  // uma resolução própria.
+  const L = convite.doc.largura || CONVITE_LARGURA;
+  const A = convite.doc.altura || CONVITE_ALTURA;
+
   const svg = renderInviteSvg(convite.doc, fotos);
   // `resize` para a medida exata: o sharp rasteriza SVG pela densidade, e sem
   // isto a saída vinha em 2160×2700 (o dobro) — medido. O convite tem tamanho
   // definido, e quem baixa espera 1080×1350.
-  const base = sharp(Buffer.from(svg)).resize(CONVITE_LARGURA, CONVITE_ALTURA);
+  const base = sharp(Buffer.from(svg)).resize(L, A);
 
   const nome = `convite-${site.slug}`;
   const cabecalhos = (tipo: string, ext: string) => ({
@@ -157,7 +162,7 @@ export async function GET(
     });
   }
 
-  const pdf = pdfComJpeg(jpeg, CONVITE_LARGURA, CONVITE_ALTURA);
+  const pdf = pdfComJpeg(jpeg, L, A);
   return new Response(new Uint8Array(pdf), {
     headers: cabecalhos("application/pdf", "pdf"),
   });

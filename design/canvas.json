@@ -1,23 +1,74 @@
 {
   "artboards": [
-    { "file": "Main.dc.html", "title": "Gerenciar — proposta", "x": 0, "y": 0, "w": 1200, "h": 900 },
-    { "file": "Convite.dc.html", "title": "Convite baixável — novo", "x": 1280, "y": 0, "w": 1000, "h": 760 }
+    {
+      "file": "Main.dc.html",
+      "title": "Editor de convites — proposta",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 940
+    }
   ],
   "annotations": [
     {
-      "id": "o-que-mudou",
-      "x": 0,
-      "y": -190,
-      "w": 520,
-      "text": "O QUE PEGUEI DO iCASEI\n\n• Régua de números no topo (confirmados, presentes, recados, visitas)\n• Lista de \"áreas editáveis\" ao lado da prévia — cada pedaço nomeado, com o tipo\n• Desfazer / Refazer\n• Progresso do que falta, com ação em cada linha\n\nO QUE NÃO PEGUEI\n\n• Os quatro cartões azuis: viraram uma régua em mono, na linguagem de ficha de gráfica\n• Onboarding de 5 passos genérico: virou \"O que falta\", com tarefas do SEU site"
+      "id": "a-tela",
+      "x": -430,
+      "y": 0,
+      "w": 400,
+      "text": "A TELA, GRANDE E NO CENTRO\n\nAs colunas laterais encolheram: 168px à esquerda, 208px à direita (eram 320px). O que sobra é tudo da tela — cerca de 1030px numa janela de 1440, contra ~700px de antes.\n\nA moldura NÃO tem barra de rolagem. Arrastar o fundo move o convite; a roda continua dando zoom. É o gesto de qualquer editor de imagem, e a barra ainda comia altura da área de desenho."
     },
     {
-      "id": "decisao-convite",
-      "x": 1280,
-      "y": -190,
-      "w": 460,
-      "text": "O BURACO DE PRODUTO\n\nO iCasei entrega um ARQUIVO. A gente entrega um link — e é o arquivo que circula no grupo da família.\n\nPrecisa da sua decisão antes de eu construir: a imagem é gerada no servidor (fiel, custa infra) ou no navegador (barato, depende do aparelho)?"
+      "id": "alcas-de-canto",
+      "x": -430,
+      "y": 250,
+      "w": 400,
+      "text": "ALÇAS NOS QUATRO CANTOS\n\nPuxar um canto muda largura E altura ao mesmo tempo — é o que permite achatar e esticar, como no Canva.\n\nA alça do meio da direita continua existindo para quem quer mexer só na largura."
+    },
+    {
+      "id": "formato",
+      "x": -430,
+      "y": 470,
+      "w": 400,
+      "text": "O FORMATO DO CONVITE\n\nQuatro proporções na régua de baixo: retrato 4:5 (WhatsApp e Instagram não cortam), quadrado, story 9:16 e paisagem.\n\nExperimente pelos controles acima do quadro — o convite muda de forma na hora.\n\nUMA PERGUNTA: trocar o formato depois de o convite estar desenhado mexe na posição de tudo. Prefere que a gente reposicione sozinho, ou que o formato só possa ser escolhido ao criar?"
+    },
+    {
+      "id": "fotos",
+      "x": 1490,
+      "y": 0,
+      "w": 380,
+      "text": "IMPORTAR FOTO PELO EDITOR\n\n\"Subir foto\" na coluna da esquerda, com as fotos já enviadas logo abaixo. Hoje o casal precisa sair para a tela de Fotos e voltar.\n\nA foto vai para o mesmo lugar de sempre (o álbum do site), então ela serve ao convite E ao site — não vira uma segunda pilha de arquivos."
+    },
+    {
+      "id": "barra",
+      "x": 1490,
+      "y": 250,
+      "w": 380,
+      "text": "A BARRA FLUTUANTE\n\nJá está no ar. Aparece sobre o bloco escolhido com fonte, tamanho, negrito, alinhamento, cor, rotação, desentortar e apagar.\n\nO painel da direita ficou só com o que se ajusta uma vez: espaçamento, largura, rotação fina e o fundo."
+    },
+    {
+      "id": "camadas",
+      "x": 1490,
+      "y": 470,
+      "w": 380,
+      "text": "CAMADAS\n\nA lista lê de CIMA para baixo: o primeiro item é o que está na frente no convite. As setas trocam com o vizinho, e o punho à esquerda arrasta para reordenar de uma vez.\n\nBoa notícia técnica: a ordem da lista JÁ é a ordem de empilhamento, no editor e no arquivo exportado — quem vem depois desenha por cima. Então camadas não pedem campo novo no banco, só a lista virar reordenável.\n\nA primeira linha não sobe e a última não desce; as setas apagam nesses casos em vez de sumir, para a linha não mudar de tamanho."
+    },
+    {
+      "id": "baixar",
+      "x": 1490,
+      "y": 740,
+      "w": 380,
+      "text": "BAIXAR VIROU MENU\n\nUm botão só, e o menu abre com os três formatos — cada um dizendo PARA QUE serve, que é a dúvida real de quem escolhe: PNG para o WhatsApp, JPEG para mandar em lote, PDF para a gráfica.\n\nOs três botões lado a lado ocupavam a largura toda para uma escolha que se faz uma vez."
+    },
+    {
+      "id": "personalizado",
+      "x": -430,
+      "y": 700,
+      "w": 400,
+      "text": "FORMATO PERSONALIZADO\n\nAo lado dos quatro prontos, um \"Personalizado\" com os dois campos de resolução em px — o número que a pessoa reconhece, e não uma razão como 4:5.\n\nExperimente pelos controles acima do quadro: escolha \"personalizado\" e mexa na largura e na altura.\n\nUM LIMITE que vale dizer: acima de ~4000px de lado o arquivo fica pesado e demora a gerar. Deixei o teto aí; se você quiser maior para impressão grande, é só falar."
     }
   ],
-  "launch": { "view": "canvas" }
+  "launch": {
+    "view": "focused",
+    "file": "Main.dc.html"
+  }
 }

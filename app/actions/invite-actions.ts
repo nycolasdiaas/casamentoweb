@@ -79,7 +79,7 @@ export async function criarConviteAction(formData: FormData) {
   if (!r.ok) redirect(`/conta/pedidos/${orderId}/convites?erro=limite`);
 
   revalidatePath(`/conta/pedidos/${orderId}/convites`);
-  redirect(`/conta/pedidos/${orderId}/convites/${r.id}`);
+  redirect(`/conta/convites/${r.id}`);
 }
 
 /**
@@ -103,7 +103,7 @@ export async function salvarConviteAction(
   const ok = await saveInvite(siteId, inviteId, { doc, name: nome });
   if (!ok) return { error: "Convite não encontrado." };
 
-  revalidatePath(`/conta/pedidos/${orderId}/convites/${inviteId}`);
+  revalidatePath(`/conta/convites/${inviteId}`);
   revalidatePath(`/conta/pedidos/${orderId}/convites`);
   return { saved: true };
 }

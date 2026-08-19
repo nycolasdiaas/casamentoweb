@@ -2,230 +2,288 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
   <script src="./support.js"></script>
 </head>
 <body>
 <x-dc>
 <helmet>
   <style>
-    body { margin: 0; }
-    a { color: #b8412c; }
-    a:hover { color: #8f3222; }
+    body { margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; }
+    a { color: #b8412c; } a:hover { color: #8f321f; }
+    .meta {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 11px; line-height: 1.4; letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .card { background: #ffffff; border: 1px solid #c9c9c2; box-shadow: 0 1px 0 0 rgba(26,29,33,0.06); }
   </style>
 </helmet>
 
-<div style="width: 1200px; min-height: 900px; background: #efefec; color: #1a1d21; font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif; padding: 32px 40px 64px;">
+<div style="width: 1440px; height: 940px; background: #efefec; color: #1a1d21; display: flex; flex-direction: column;">
 
-  <!-- Cabecalho: marca e navegacao, no mesmo trilho do conteudo -->
-  <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 16px; border-bottom: 1px solid #c9c9c2;">
-    <div style="font-family: ui-serif, 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif; font-size: 22px; letter-spacing: -0.01em;">Enlace</div>
-    <div style="display: flex; align-items: center; gap: 20px; font-size: 13px; color: #5a5f66;">
-      <span>Início</span>
-      <span style="color: #1a1d21; font-weight: 500; border-bottom: 1px solid #1a1d21; padding-bottom: 2px;">Meus pedidos</span>
-      <span>Sair</span>
+  <!-- cabeçalho da tela -->
+  <div style="display: flex; align-items: flex-end; justify-content: space-between; padding: 20px 28px 14px 28px;">
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+      <span style="font-size: 12px; color: #5a5f66;">← Todos os convites</span>
+      <span style="font-family: 'Instrument Serif', Georgia, serif; font-size: 27px; line-height: 1.1;">Convite 1</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <button style="height: 34px; padding: 0 14px; border: 1px solid #c9c9c2; background: #ffffff; font-size: 13px; color: #5a5f66; cursor: pointer;">Desfazer</button>
+      <button style="height: 34px; padding: 0 14px; border: 1px solid #c9c9c2; background: #ffffff; font-size: 13px; color: #c9c9c2; cursor: pointer;">Refazer</button>
+      <button style="height: 34px; padding: 0 18px; border: 1px solid #1a1d21; background: #1a1d21; color: #ffffff; font-size: 13px; cursor: pointer;">Salvar convite</button>
     </div>
   </div>
 
-  <!-- Titulo + carimbo -->
-  <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; padding: 32px 0 24px;">
-    <div style="display: flex; flex-direction: column; gap: 10px;">
-      <div style="font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 12.5px; line-height: 1.4; letter-spacing: 0.06em; text-transform: uppercase; color: #5a5f66;">Nosso pedido</div>
-      <div style="font-family: ui-serif, 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif; font-size: 30px; line-height: 1.15;">{{ nomes }}</div>
-      <div style="font-size: 16px; line-height: 1.55; color: #5a5f66;">{{ contagem }}</div>
-    </div>
-    <div style="border: 2px solid #b8412c; border-radius: 2px; padding: 8px 14px; transform: rotate(-3.5deg); text-align: center; color: #b8412c; font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;">
-      <div style="font-size: 13px; letter-spacing: 0.14em; font-weight: 500;">PROVA PRONTA</div>
-      <div style="font-size: 11px; letter-spacing: 0.1em;">15.08.2026</div>
-    </div>
-  </div>
+  <!-- corpo: três colunas, a do meio dominante -->
+  <div style="flex-grow: 1; display: grid; grid-template-columns: 168px minmax(0, 1fr) 208px; gap: 14px; padding: 0 20px 18px 20px; min-height: 0;">
 
-  <!-- OS NUMEROS. Vem do iCasei, mas sem os quatro cartoes azuis: aqui e
-       uma REGUA de dados, em mono, na linguagem de ficha de grafica. -->
-  <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; background: #ffffff; border: 1px solid #c9c9c2; box-shadow: 0 1px 0 0 rgba(26,29,33,0.06); border-radius: 3px; margin-bottom: 32px;">
-    <sc-for list="{{ metricas }}" as="m" hint-placeholder-count="4">
-      <div style="display: flex; flex-direction: column; gap: 6px; padding: 20px 24px; border-right: 1px solid #c9c9c2;">
-        <div style="font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 12.5px; letter-spacing: 0.06em; text-transform: uppercase; color: #5a5f66;">{{ m.rotulo }}</div>
-        <div style="font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 28px; font-variant-numeric: tabular-nums; line-height: 1;">{{ m.valor }}</div>
-        <div style="font-size: 13px; color: #5a5f66;">{{ m.nota }}</div>
-      </div>
-    </sc-for>
-  </div>
+    <!-- ── ESQUERDA: acrescentar (estreita) ─────────────────────────────── -->
+    <div class="card" style="display: flex; flex-direction: column; min-height: 0; overflow: hidden;">
+      <span class="meta" style="color: #5a5f66; padding: 12px 12px 8px 12px;">Acrescentar</span>
 
-  <div style="display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 32px; align-items: start;">
-
-    <!-- MENU: mantem titulo + descricao, que o iCasei faz e nos ja fazemos -->
-    <div style="display: flex; flex-direction: column;">
-      <div style="background: #ffffff; border: 1px solid #c9c9c2; border-radius: 3px; box-shadow: 0 1px 0 0 rgba(26,29,33,0.06); padding: 20px; margin-bottom: 24px; display: flex; flex-direction: column; gap: 12px;">
-        <div style="font-family: ui-serif, 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif; font-size: 20px;">{{ nomes }}</div>
-        <div style="border: 1px solid #c9c9c2; border-radius: 2px; padding: 10px 16px; text-align: center; font-size: 14px; font-weight: 500;">Ver nosso site</div>
+      <div style="display: flex; flex-direction: column; gap: 6px; padding: 0 12px 12px 12px;">
+        <button style="display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 10px; border: 1px solid #c9c9c2; background: #ffffff; font-size: 13px; cursor: pointer; text-align: left;">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#5a5f66" stroke-width="1.4"><path d="M3 4V2.8h10V4M8 2.8v10.4M6 13.2h4"/></svg>
+          Texto
+        </button>
+        <button style="display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 10px; border: 1px solid #c9c9c2; background: #ffffff; font-size: 13px; cursor: pointer; text-align: left;">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#5a5f66" stroke-width="1.4"><path d="M2 8h12"/></svg>
+          Linha
+        </button>
+        <!-- IMPORTAR FOTO: entra pelo próprio editor -->
+        <button style="display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 10px; border: 1px solid #1a1d21; background: #ffffff; font-size: 13px; cursor: pointer; text-align: left;">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#1a1d21" stroke-width="1.4"><path d="M8 11V3.5M5 6l3-3 3 3M2.5 11.5v1.5h11v-1.5"/></svg>
+          Subir foto
+        </button>
       </div>
 
-      <div style="border: 1px solid #c9c9c2; border-radius: 3px; overflow: hidden;">
-        <sc-for list="{{ menu }}" as="item" hint-placeholder-count="6">
-          <div style="display: flex; flex-direction: column; gap: 2px; padding: 14px 16px; border-bottom: 1px solid #c9c9c2; background: {{ item.fundo }}; border-left: 3px solid {{ item.marca }};">
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-              <span style="font-size: 15px; font-weight: 500;">{{ item.label }}</span>
-              <span style="font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 11px; letter-spacing: 0.06em; color: {{ item.corSelo }};">{{ item.selo }}</span>
-            </div>
-            <span style="font-size: 13px; color: #5a5f66;">{{ item.descricao }}</span>
+      <span class="meta" style="color: #5a5f66; padding: 4px 12px 8px 12px; border-top: 1px solid #c9c9c2;">Formas</span>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; padding: 0 12px 12px 12px;">
+        <sc-for list="{{formas}}" as="f" hint-placeholder-count="8">
+          <div style="aspect-ratio: 1; border: 1px solid #c9c9c2; display: flex; align-items: center; justify-content: center; background: #ffffff; cursor: pointer;">
+            <div style="width: 15px; height: 15px; background: #5a5f66; clip-path: {{f.clip}}; border-radius: {{f.raio}};"></div>
           </div>
         </sc-for>
       </div>
+
+      <span class="meta" style="color: #5a5f66; padding: 4px 12px 8px 12px; border-top: 1px solid #c9c9c2;">Minhas fotos</span>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; padding: 0 12px 12px 12px;">
+        <div style="aspect-ratio: 1; border: 1px solid #c9c9c2; background: linear-gradient(135deg, #d8d2c4, #b8a888);"></div>
+        <div style="aspect-ratio: 1; border: 1px solid #c9c9c2; background: linear-gradient(135deg, #cfd6cb, #97a894);"></div>
+        <div style="aspect-ratio: 1; border: 1px dashed #c9c9c2; display: flex; align-items: center; justify-content: center; color: #5a5f66; font-size: 16px;">+</div>
+      </div>
     </div>
 
-    <!-- PREVIA em cima, como ja combinamos, e AREAS EDITAVEIS ao lado dela -->
-    <div style="display: flex; flex-direction: column; gap: 24px;">
+    <!-- ── CENTRO: a tela, grande ───────────────────────────────────────── -->
+    <div style="display: flex; flex-direction: column; gap: 10px; min-height: 0; min-width: 0;">
 
-      <div style="background: #ffffff; border: 1px solid #c9c9c2; border-radius: 3px; box-shadow: 0 1px 0 0 rgba(26,29,33,0.06); padding: 24px;">
-        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px;">
-          <div style="display: flex; flex-direction: column; gap: 4px;">
-            <div style="font-size: 16px; font-weight: 600;">Como está ficando</div>
-            <div style="font-size: 13px; color: #5a5f66;">É o site de verdade. Clique num item da lista para editar direto.</div>
-          </div>
-          <div style="display: flex; gap: 8px;">
-            <div style="border: 1px solid #c9c9c2; border-radius: 2px; padding: 6px 12px; font-size: 12px; background: #1a1d21; color: #ffffff;">Computador</div>
-            <div style="border: 1px solid #c9c9c2; border-radius: 2px; padding: 6px 12px; font-size: 12px;">Celular</div>
-          </div>
+      <!-- moldura: sem barras de rolagem; arrasta-se para navegar -->
+      <div style="position: relative; flex-grow: 1; background: #e5e5e0; border: 1px solid #c9c9c2; overflow: hidden; display: flex; align-items: center; justify-content: center; cursor: grab; min-height: 0;">
+
+        <!-- BARRA FLUTUANTE, sobre o bloco -->
+        <div class="card" style="position: absolute; top: 42px; left: 50%; transform: translateX(-50%); z-index: 5; display: flex; align-items: center; gap: 5px; padding: 5px 7px; box-shadow: 0 6px 20px rgba(26,29,33,0.14);">
+          <select style="height: 30px; border: 1px solid #c9c9c2; background: #ffffff; font-size: 12px; padding: 0 4px;">
+            <option>Serifada</option>
+          </select>
+          <input value="86" style="height: 30px; width: 46px; border: 1px solid #c9c9c2; text-align: right; font-size: 12px; padding: 0 5px;">
+          <button style="width: 30px; height: 30px; border: 1px solid #c9c9c2; background: #ffffff; font-weight: 700; font-size: 12px; cursor: pointer;">B</button>
+          <span style="width: 1px; height: 18px; background: #c9c9c2;"></span>
+          <button style="width: 30px; height: 30px; border: 1px solid #c9c9c2; background: #ffffff; cursor: pointer;">◧</button>
+          <button style="width: 30px; height: 30px; border: 1px solid #1a1d21; background: #1a1d21; color: #ffffff; cursor: pointer;">▣</button>
+          <button style="width: 30px; height: 30px; border: 1px solid #c9c9c2; background: #ffffff; cursor: pointer;">◨</button>
+          <span style="width: 1px; height: 18px; background: #c9c9c2;"></span>
+          <button style="width: 30px; height: 30px; border: 1px solid #c9c9c2; background: #ffffff; cursor: pointer;"><span style="color: #7a5c3e;">A</span></button>
+          <input value="0" style="height: 30px; width: 40px; border: 1px solid #c9c9c2; text-align: right; font-size: 12px; padding: 0 5px;">
+          <button style="width: 30px; height: 30px; border: 1px solid #c9c9c2; background: #ffffff; cursor: pointer;">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#1a1d21" stroke-width="1.4"><path d="M13 8a5 5 0 1 1-1.7-3.7M13 2v3h-3"/></svg>
+          </button>
+          <button style="width: 30px; height: 30px; border: 1px solid #c9c9c2; background: #ffffff; cursor: pointer;">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#b8412c" stroke-width="1.4"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5"/></svg>
+          </button>
         </div>
 
-        <div style="display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 20px; align-items: start;">
+        <!-- o convite -->
+        <div style="position: relative; width: {{larguraCartao}}; aspect-ratio: {{proporcao}}; background: #f2efe7; box-shadow: 0 3px 16px rgba(26,29,33,0.16);">
 
-          <!-- A LISTA QUE O ANDERSON ELOGIOU: cada pedaco nomeado, com o TIPO -->
-          <div style="border: 1px solid #c9c9c2; border-radius: 3px; overflow: hidden;">
-            <div style="font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 12.5px; letter-spacing: 0.06em; text-transform: uppercase; color: #5a5f66; padding: 10px 14px; background: #e5e5e0; border-bottom: 1px solid #c9c9c2;">Áreas editáveis</div>
-            <sc-for list="{{ areas }}" as="a" hint-placeholder-count="7">
-              <div style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-bottom: 1px solid #e5e5e0;">
-                <span style="flex-shrink: 0; display: flex; color: #5a5f66;">
-                  <sc-if value="{{ a.ehTexto }}" hint-placeholder-val="{{ true }}">
-                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3.5 4.5h9"></path><path d="M8 4.5v7"></path></svg>
-                  </sc-if>
-                  <sc-if value="{{ a.ehLink }}" hint-placeholder-val="{{ false }}">
-                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6.6 9.4a3 3 0 0 0 4.2 0l1.7-1.7a3 3 0 1 0-4.2-4.2l-.9.9"></path><path d="M9.4 6.6a3 3 0 0 0-4.2 0L3.5 8.3a3 3 0 1 0 4.2 4.2l.9-.9"></path></svg>
-                  </sc-if>
-                  <sc-if value="{{ a.ehImagem }}" hint-placeholder-val="{{ false }}">
-                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="3.5" width="11" height="9"></rect><path d="M2.5 10.5l3-3 3 3 2-2 3 3"></path></svg>
-                  </sc-if>
-                </span>
-                <span style="font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ a.nome }}</span>
-              </div>
-            </sc-for>
+          <div style="position: absolute; left: 10%; top: 15%; width: 80%; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.5em; color: #a68a5b;">SAVE THE DATE</div>
+
+          <!-- bloco escolhido: alças nos QUATRO CANTOS -->
+          <div style="position: absolute; left: 8%; top: 27%; width: 84%; outline: 1.5px solid #b8412c; outline-offset: 3px;">
+            <div style="text-align: center; font-family: 'Instrument Serif', Georgia, serif; font-size: 54px; line-height: 1.1; color: #3d4a36;">Nycolas &amp; Isa</div>
+            <span style="position: absolute; left: -5px; top: -5px; width: 10px; height: 10px; background: #ffffff; border: 1.5px solid #b8412c; cursor: nwse-resize;"></span>
+            <span style="position: absolute; right: -5px; top: -5px; width: 10px; height: 10px; background: #ffffff; border: 1.5px solid #b8412c; cursor: nesw-resize;"></span>
+            <span style="position: absolute; left: -5px; bottom: -5px; width: 10px; height: 10px; background: #ffffff; border: 1.5px solid #b8412c; cursor: nesw-resize;"></span>
+            <span style="position: absolute; right: -5px; bottom: -5px; width: 10px; height: 10px; background: #ffffff; border: 1.5px solid #b8412c; cursor: nwse-resize;"></span>
           </div>
 
-          <!-- A previa -->
-          <div style="border: 1px solid #c9c9c2; border-radius: 3px; background: #f2efe7; padding: 32px 24px; text-align: center; min-height: 300px;">
-            <div style="font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 10px; letter-spacing: 0.22em; color: #8a8578; text-transform: uppercase;">Save the Date</div>
-            <div style="font-family: ui-serif, 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif; font-size: 40px; color: #3d4a36; margin-top: 12px; line-height: 1.1;">{{ nomes }}</div>
-            <div style="width: 56px; height: 1px; background: #b8985f; margin: 16px auto;"></div>
-            <div style="font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 11px; letter-spacing: 0.14em; color: #3d4a36;">11 DE NOVEMBRO DE 2026</div>
-            <div style="display: flex; justify-content: center; gap: 8px; margin-top: 24px;">
-              <div style="border: 1px solid #b8985f; padding: 10px 14px; min-width: 52px;">
-                <div style="font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 17px; color: #3d4a36; font-variant-numeric: tabular-nums;">88</div>
-                <div style="font-size: 9px; letter-spacing: 0.14em; color: #8a8578;">DIAS</div>
-              </div>
-              <div style="border: 1px solid #b8985f; padding: 10px 14px; min-width: 52px;">
-                <div style="font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 17px; color: #3d4a36; font-variant-numeric: tabular-nums;">06</div>
-                <div style="font-size: 9px; letter-spacing: 0.14em; color: #8a8578;">HORAS</div>
-              </div>
-              <div style="border: 1px solid #b8985f; padding: 10px 14px; min-width: 52px;">
-                <div style="font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 17px; color: #3d4a36; font-variant-numeric: tabular-nums;">42</div>
-                <div style="font-size: 9px; letter-spacing: 0.14em; color: #8a8578;">MIN</div>
-              </div>
-            </div>
-            <div style="display: flex; justify-content: center; gap: 8px; margin-top: 24px;">
-              <div style="background: #3d4a36; color: #f2efe7; font-size: 11px; padding: 9px 16px;">Confirmar presença</div>
-              <div style="border: 1px solid #b8985f; color: #3d4a36; font-size: 11px; padding: 9px 16px;">Lista de presentes</div>
-            </div>
-          </div>
+          <div style="position: absolute; left: 44%; top: 47%; width: 12%; height: 2px; background: #a68a5b;"></div>
+          <div style="position: absolute; left: 10%; top: 54%; width: 80%; text-align: center; font-family: 'Instrument Serif', Georgia, serif; font-size: 25px; color: #3d4a36;">16 de outubro de 2026</div>
+          <div style="position: absolute; left: 10%; top: 86%; width: 80%; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.14em; color: #a68a5b;">enlace.com.br/s/nycolas-e-isa</div>
         </div>
 
-        <!-- Desfazer/refazer: o iCasei tem, nos nao -->
-        <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e5e5e0;">
-          <div style="display: flex; gap: 16px; font-size: 13px; color: #5a5f66;">
-            <span>Desfazer</span>
-            <span>Refazer</span>
-          </div>
-          <div style="display: flex; gap: 10px;">
-            <div style="border: 1px solid #c9c9c2; border-radius: 2px; padding: 9px 18px; font-size: 13.5px; font-weight: 500;">Baixar convite</div>
-            <div style="background: #1a1d21; color: #ffffff; border-radius: 2px; padding: 9px 18px; font-size: 13.5px; font-weight: 500;">Salvar</div>
-          </div>
-        </div>
+        <span class="meta" style="position: absolute; left: 12px; bottom: 10px; color: #5a5f66;">Arraste o fundo para mover</span>
       </div>
 
-      <!-- O QUE FALTA: substitui o stepper de 5 passos por tarefas acionaveis -->
-      <div style="background: #ffffff; border: 1px solid #c9c9c2; border-radius: 3px; box-shadow: 0 1px 0 0 rgba(26,29,33,0.06); padding: 24px;">
-        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 4px;">
-          <div style="font-size: 16px; font-weight: 600;">O que falta</div>
-          <div style="font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 12.5px; letter-spacing: 0.06em; color: #5a5f66;">{{ progressoTexto }}</div>
+      <!-- régua inferior: zoom e PROPORÇÃO do convite -->
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 7px;">
+          <span class="meta" style="color: #5a5f66;">Formato</span>
+          <sc-for list="{{formatos}}" as="fm" hint-placeholder-count="4">
+            <button style="height: 30px; padding: 0 10px; border: 1px solid {{fm.borda}}; background: {{fm.fundo}}; color: {{fm.cor}}; font-size: 12px; cursor: pointer;">{{fm.rotulo}}</button>
+          </sc-for>
+          <button style="height: 30px; padding: 0 10px; border: 1px solid {{bordaPerso}}; background: {{fundoPerso}}; color: {{corPerso}}; font-size: 12px; cursor: pointer;">Personalizado</button>
+          <span style="display: flex; align-items: center; gap: 4px; padding-left: 3px;">
+            <input value="1080" style="height: 30px; width: 58px; border: 1px solid #c9c9c2; text-align: right; font-size: 12px; font-family: 'IBM Plex Mono', monospace; padding: 0 6px;">
+            <span style="color: #5a5f66; font-size: 12px;">×</span>
+            <input value="1350" style="height: 30px; width: 58px; border: 1px solid #c9c9c2; text-align: right; font-size: 12px; font-family: 'IBM Plex Mono', monospace; padding: 0 6px;">
+            <span class="meta" style="color: #5a5f66; font-size: 9.5px;">px</span>
+          </span>
         </div>
-        <div style="height: 3px; background: #e5e5e0; border-radius: 2px; overflow: hidden; margin: 12px 0 20px;">
-          <div style="height: 100%; width: {{ progressoPct }}; background: #1a1d21;"></div>
+        <div style="display: flex; align-items: center; gap: 5px;">
+          <button style="width: 30px; height: 30px; border: 1px solid #c9c9c2; background: #ffffff; font-size: 15px; cursor: pointer;">−</button>
+          <button style="height: 30px; min-width: 56px; padding: 0 8px; border: 1px solid #c9c9c2; background: #ffffff; font-size: 12px; font-family: 'IBM Plex Mono', monospace; cursor: pointer;">100%</button>
+          <button style="width: 30px; height: 30px; border: 1px solid #c9c9c2; background: #ffffff; font-size: 15px; cursor: pointer;">+</button>
         </div>
+      </div>
+    </div>
 
-        <div style="display: flex; flex-direction: column; gap: 0;">
-          <sc-for list="{{ tarefas }}" as="t" hint-placeholder-count="4">
-            <div style="display: flex; align-items: center; gap: 12px; padding: 13px 0; border-bottom: 1px solid #e5e5e0;">
-              <span style="flex-shrink: 0; display: flex;">
-                <sc-if value="{{ t.feito }}" hint-placeholder-val="{{ true }}">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#1a1d21" stroke-width="1.6"><path d="M3 8.5L6.5 12L13 4"></path></svg>
-                </sc-if>
-                <sc-if value="{{ t.pendente }}" hint-placeholder-val="{{ false }}">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#c9c9c2" stroke-width="1.6"><circle cx="8" cy="8" r="5.5"></circle></svg>
-                </sc-if>
+    <!-- ── DIREITA: áreas editáveis + ajustes (estreita) ─────────────────── -->
+    <div style="display: flex; flex-direction: column; gap: 10px; min-height: 0;">
+      <div class="card" style="display: flex; flex-direction: column; min-height: 0;">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid #c9c9c2;">
+          <span class="meta" style="color: #5a5f66;">Camadas</span>
+          <span class="meta" style="color: #5a5f66; font-size: 9.5px;">frente ↑</span>
+        </div>
+        <div style="display: flex; flex-direction: column; overflow-y: auto;">
+          <sc-for list="{{areas}}" as="a" hint-placeholder-count="5">
+            <div style="display: flex; align-items: center; gap: 6px; padding: 7px 8px 7px 12px; border-bottom: 1px solid #c9c9c2; font-size: 12.5px; background: {{a.fundo}}; color: {{a.cor}}; cursor: grab;">
+              <svg width="9" height="13" viewBox="0 0 9 13" fill="none" stroke="#c9c9c2" stroke-width="1.3"><path d="M2 3h.01M7 3h.01M2 6.5h.01M7 6.5h.01M2 10h.01M7 10h.01"/></svg>
+              <span class="meta" style="width: 15px; color: #5a5f66;">{{a.icone}}</span>
+              <span style="flex-grow: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{a.rotulo}}</span>
+              <span style="display: flex; gap: 2px;">
+                <span style="width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; border: 1px solid #c9c9c2; background: #ffffff; cursor: pointer;">
+                  <svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="{{a.corSubir}}" stroke-width="1.5"><path d="M5 8.5V2M2 5l3-3 3 3"/></svg>
+                </span>
+                <span style="width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; border: 1px solid #c9c9c2; background: #ffffff; cursor: pointer;">
+                  <svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="{{a.corDescer}}" stroke-width="1.5"><path d="M5 1.5V8M2 5l3 3 3-3"/></svg>
+                </span>
               </span>
-              <span style="flex-grow: 1; font-size: 14.5px; color: {{ t.cor }}; text-decoration: {{ t.risco }};">{{ t.texto }}</span>
-              <span style="font-size: 13px; color: #b8412c; text-decoration: underline; text-underline-offset: 3px;">{{ t.acao }}</span>
             </div>
           </sc-for>
         </div>
       </div>
 
+      <div class="card" style="display: flex; flex-direction: column; gap: 9px; padding: 12px;">
+        <span class="meta" style="color: #5a5f66;">Ajustes finos</span>
+        <sc-for list="{{ajustes}}" as="aj" hint-placeholder-count="3">
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12.5px;">
+            <span>{{aj.rotulo}}</span>
+            <input value="{{aj.valor}}" style="height: 30px; width: 62px; border: 1px solid #c9c9c2; text-align: right; font-size: 12px; padding: 0 6px;">
+          </div>
+        </sc-for>
+        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; padding-top: 3px; border-top: 1px solid #c9c9c2;">
+          <span>Fundo do convite</span>
+          <span style="width: 30px; height: 30px; border: 1px solid #c9c9c2; background: #f2efe7;"></span>
+        </div>
+      </div>
+
+      <div style="position: relative; margin-bottom: 128px;">
+        <button style="width: 100%; height: 38px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #1a1d21; background: #1a1d21; color: #ffffff; font-size: 13px; cursor: pointer;">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#ffffff" stroke-width="1.5"><path d="M8 2v8M4.5 7L8 10.5L11.5 7M2.5 13.5h11"/></svg>
+          Baixar
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#ffffff" stroke-width="1.5"><path d="M2 3.5l3 3 3-3"/></svg>
+        </button>
+
+        <!-- o menu, aberto -->
+        <div class="card" style="position: absolute; top: 42px; left: 0; right: 0; z-index: 8; box-shadow: 0 8px 24px rgba(26,29,33,0.16);">
+          <sc-for list="{{formatosArquivo}}" as="fa" hint-placeholder-count="3">
+            <div style="display: flex; align-items: center; gap: 9px; padding: 9px 11px; border-bottom: 1px solid #c9c9c2; cursor: pointer;">
+              <span class="meta" style="width: 30px; color: #1a1d21;">{{fa.ext}}</span>
+              <span style="font-size: 11.5px; color: #5a5f66; line-height: 1.35;">{{fa.para}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 </x-dc>
 
-<script data-dc-script data-props='{"nomes":{"editor":"text","default":"Anderson &amp; Isabelle"},"contagem":{"editor":"text","default":"Faltam 88 dias para o casamento."}}'>
+<script data-dc-script data-props='{"proporcao":{"editor":"enum","options":["1080 / 1350","1 / 1","1080 / 1920","1414 / 1000","personalizado"],"default":"1080 / 1350","section":"Convite"},"larguraPerso":{"editor":"int","default":1080,"min":200,"max":4000,"section":"Convite"},"alturaPerso":{"editor":"int","default":1350,"min":200,"max":4000,"section":"Convite"},"larguraCartao":{"editor":"enum","options":["520px","600px","440px"],"default":"520px","section":"Convite"}}'>
 class Component extends DCLogic {
   renderVals() {
+    const escolha = this.props.proporcao ?? '1080 / 1350';
+    const lp = this.props.larguraPerso ?? 1080;
+    const ap = this.props.alturaPerso ?? 1350;
+    const perso = escolha === 'personalizado';
+    // O convite desenha na proporção escolhida; no personalizado ela sai dos
+    // dois campos de resolução, que é o número que a pessoa conhece.
+    const prop = perso ? `${lp} / ${ap}` : escolha;
+    const formatos = [
+      { rotulo: 'Retrato 4:5', v: '1080 / 1350' },
+      { rotulo: 'Quadrado', v: '1 / 1' },
+      { rotulo: 'Story 9:16', v: '1080 / 1920' },
+      { rotulo: 'Paisagem', v: '1414 / 1000' },
+    ].map((f) => {
+      const ativo = !perso && f.v === escolha;
+      return {
+        rotulo: f.rotulo,
+        borda: ativo ? '#1a1d21' : '#c9c9c2',
+        fundo: ativo ? '#1a1d21' : '#ffffff',
+        cor: ativo ? '#ffffff' : '#1a1d21',
+      };
+    });
+
+    const formas = [
+      { clip: 'none', raio: '0' },
+      { clip: 'none', raio: '4px' },
+      { clip: 'none', raio: '50%' },
+      { clip: 'polygon(50% 0%, 100% 100%, 0% 100%)', raio: '0' },
+      { clip: 'polygon(0% 0%, 100% 0%, 50% 100%)', raio: '0' },
+      { clip: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)', raio: '0' },
+      { clip: 'polygon(50% 0%, 100% 38%, 81% 100%, 19% 100%, 0% 38%)', raio: '0' },
+      { clip: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)', raio: '0' },
+    ];
+
+    // CAMADAS: a lista mostra de CIMA para baixo — o primeiro item é o que
+    // está na frente no convite. A ordem do documento é o contrário (quem
+    // vem depois desenha por cima), então a lista é o documento invertido.
+    // As setas trocam vizinhos; a primeira não sobe e a última não desce.
+    const pilha = [
+      { icone: 'Aa', rotulo: 'enlace.com.br/s/nycolas…' },
+      { icone: 'Aa', rotulo: '16 de outubro de 2026' },
+      { icone: '—', rotulo: 'Divisor' },
+      { icone: 'Aa', rotulo: 'Nycolas & Isa', escolhido: true },
+      { icone: 'Aa', rotulo: 'SAVE THE DATE' },
+    ];
+    const areas = pilha.map((a, i) => ({
+      ...a,
+      fundo: a.escolhido ? '#e5e5e0' : '#ffffff',
+      cor: a.escolhido ? '#1a1d21' : '#5a5f66',
+      corSubir: i === 0 ? '#d8d8d2' : '#5a5f66',
+      corDescer: i === pilha.length - 1 ? '#d8d8d2' : '#5a5f66',
+    }));
+
+    const formatosArquivo = [
+      { ext: 'PNG', para: 'melhor qualidade — WhatsApp e Instagram' },
+      { ext: 'JPEG', para: 'arquivo menor, para mandar em lote' },
+      { ext: 'PDF', para: 'para imprimir numa gráfica' },
+    ];
+
+    const ajustes = [
+      { rotulo: 'Espaçamento', valor: '0' },
+      { rotulo: 'Largura', valor: '84%' },
+      { rotulo: 'Rotação', valor: '0°' },
+    ];
+
     return {
-      nomes: this.props.nomes ?? 'Anderson & Isabelle',
-      contagem: this.props.contagem ?? 'Faltam 88 dias para o casamento.',
-
-      metricas: [
-        { rotulo: 'Confirmados', valor: '23', nota: 'de 31 convidados' },
-        { rotulo: 'Presentes', valor: 'R$ 0', nota: 'nenhum ainda' },
-        { rotulo: 'Recados', valor: '4', nota: '2 novos' },
-        { rotulo: 'Visitas', valor: '108', nota: 'nos últimos 30 dias' },
-      ],
-
-      menu: [
-        { label: 'Início',    descricao: 'Onde o pedido está',        fundo: '#e5e5e0', marca: '#1a1d21', selo: '',        corSelo: '#5a5f66' },
-        { label: 'Páginas',   descricao: 'Ligue, desligue e ordene',  fundo: '#ffffff', marca: 'transparent', selo: '',    corSelo: '#5a5f66' },
-        { label: 'Conteúdo',  descricao: 'Nomes, data, locais',       fundo: '#ffffff', marca: 'transparent', selo: 'OK',  corSelo: '#5a5f66' },
-        { label: 'Visual',    descricao: 'Cores e tipografia',        fundo: '#ffffff', marca: 'transparent', selo: 'OK',  corSelo: '#5a5f66' },
-        { label: 'Fotos',     descricao: 'Suba e organize',           fundo: '#ffffff', marca: 'transparent', selo: '3',   corSelo: '#5a5f66' },
-        { label: 'Presentes', descricao: 'Pix e lista',               fundo: '#ffffff', marca: 'transparent', selo: 'FALTA', corSelo: '#b8412c' },
-      ],
-
-      areas: [
-        { nome: 'Anderson & Isabelle',      ehTexto: true,  ehLink: false, ehImagem: false },
-        { nome: '11/11/2026 às 16:00',      ehTexto: true,  ehLink: false, ehImagem: false },
-        { nome: 'Igreja N. S. das Graças',  ehTexto: true,  ehLink: false, ehImagem: false },
-        { nome: 'Nossa história',           ehTexto: true,  ehLink: false, ehImagem: false },
-        { nome: 'Foto da capa',             ehTexto: false, ehLink: false, ehImagem: true  },
-        { nome: 'Confirmar presença',       ehTexto: false, ehLink: true,  ehImagem: false },
-        { nome: 'Lista de presentes',       ehTexto: false, ehLink: true,  ehImagem: false },
-      ],
-
-      progressoTexto: '3 de 5',
-      progressoPct: '60%',
-      tarefas: [
-        { texto: 'Conteúdo do site preenchido', feito: true,  pendente: false, cor: '#5a5f66', risco: 'line-through', acao: '' },
-        { texto: 'Estilo e cores escolhidos',   feito: true,  pendente: false, cor: '#5a5f66', risco: 'line-through', acao: '' },
-        { texto: 'Foto de capa enviada',        feito: true,  pendente: false, cor: '#5a5f66', risco: 'line-through', acao: '' },
-        { texto: 'Cadastrar a chave Pix',       feito: false, pendente: true,  cor: '#1a1d21', risco: 'none', acao: 'Cadastrar' },
-        { texto: 'Aprovar e publicar o site',   feito: false, pendente: true,  cor: '#1a1d21', risco: 'none', acao: 'Ver prévia' },
-      ],
+      proporcao: prop,
+      larguraCartao: this.props.larguraCartao ?? '520px',
+      bordaPerso: perso ? '#1a1d21' : '#c9c9c2',
+      fundoPerso: perso ? '#1a1d21' : '#ffffff',
+      corPerso: perso ? '#ffffff' : '#1a1d21',
+      formatos, formas, areas, ajustes, formatosArquivo,
     };
   }
 }

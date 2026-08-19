@@ -25,8 +25,29 @@
  * recusar o documento é o casal perder o trabalho todo.
  */
 
+/**
+ * Medida PADRÃO do convite: o retrato 4:5, que WhatsApp e Instagram não cortam.
+ *
+ * Continua sendo a régua das conversões px↔fração (tamanho de fonte, espessura,
+ * raio) mesmo quando o casal escolhe outro formato — se ela mudasse junto, um
+ * convite de 2000px de largura teria o texto "40px" com o dobro do tamanho
+ * aparente, e o número na barra deixaria de querer dizer alguma coisa.
+ *
+ * Quem manda no ARQUIVO é `doc.largura`/`doc.altura`; isto é a unidade.
+ */
 export const CONVITE_LARGURA = 1080;
 export const CONVITE_ALTURA = 1350;
+
+/**
+ * Teto de cada lado do convite, em px.
+ *
+ * Acima disso o `sharp` rasteriza um SVG grande demais: 4000×4000 já são 16
+ * megapixels, e o casal fica esperando o download de um arquivo que o WhatsApp
+ * vai recomprimir de todo jeito. Se um dia precisar de impressão grande, o
+ * caminho é PDF vetorial, não um PNG maior.
+ */
+export const CONVITE_LADO_MAX = 4000;
+export const CONVITE_LADO_MIN = 200;
 
 /** Teto de convites por site. O casal pede variações; não pede acervo. */
 export const MAX_CONVITES = 5;
@@ -117,6 +138,14 @@ export type Bloco = BlocoTexto | BlocoFoto | BlocoLinha | BlocoForma;
 export type InviteDoc = {
   versao: 1;
   fundo: string;
+  /**
+   * Medida do arquivo exportado, em px. Os blocos NÃO se mexem quando ela
+   * muda: as coordenadas são fração, então o desenho reflui sozinho para o
+   * novo formato. É o que permite experimentar retrato, quadrado e story sem
+   * refazer o convite.
+   */
+  largura: number;
+  altura: number;
   blocos: Bloco[];
 };
 
@@ -210,12 +239,31 @@ function parseBloco(bruto: unknown): Bloco | null {
   return null;
 }
 
+/** Prende o lado entre o mínimo e o máximo, arredondando para px inteiro. */
+export function ladoValido(v: unknown, padrao: number): number {
+  const n = num(v, padrao);
+  return Math.round(
+    Math.min(Math.max(n, CONVITE_LADO_MIN), CONVITE_LADO_MAX)
+  );
+}
+
 export function parseInviteDoc(bruto: unknown): InviteDoc {
   const d = (bruto ?? {}) as Record<string, unknown>;
+  // A ORDEM da lista é a ordem de empilhamento: quem vem depois desenha por
+  // cima. Vale no editor e no SVG do export, e é o que faz "camadas"
+  // funcionar sem coluna nova — reordenar a lista É mudar a camada.
   const blocos = Array.isArray(d.blocos)
     ? d.blocos.map(parseBloco).filter((b): b is Bloco => b !== null)
     : [];
-  return { versao: 1, fundo: cor(d.fundo, "#f2efe7"), blocos };
+  return {
+    versao: 1,
+    fundo: cor(d.fundo, "#f2efe7"),
+    // Convite gravado antes do formato variável não tem os campos: cai no
+    // 4:5 de sempre, e o casal não vê diferença nenhuma.
+    largura: ladoValido(d.largura, CONVITE_LARGURA),
+    altura: ladoValido(d.altura, CONVITE_ALTURA),
+    blocos,
+  };
 }
 
 /**

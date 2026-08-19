@@ -181,6 +181,10 @@ export function renderInviteSvg(
   doc: InviteDoc,
   fotos: Map<string, string>
 ): string {
-  const corpo = doc.blocos.map((b) => desenharBloco(b, fotos)).join("");
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${CONVITE_LARGURA}" height="${CONVITE_ALTURA}" viewBox="0 0 ${CONVITE_LARGURA} ${CONVITE_ALTURA}"><rect width="100%" height="100%" fill="${doc.fundo}"/>${corpo}</svg>`;
+  const L = doc.largura || CONVITE_LARGURA;
+  const A = doc.altura || CONVITE_ALTURA;
+  // As coordenadas são fração, então mudar de formato só muda o multiplicador:
+  // o desenho reflui sem que nenhum bloco precise ser reposicionado.
+  const corpo = doc.blocos.map((b) => desenharBloco(b, fotos, L, A)).join("");
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${L}" height="${A}" viewBox="0 0 ${L} ${A}"><rect width="100%" height="100%" fill="${doc.fundo}"/>${corpo}</svg>`;
 }

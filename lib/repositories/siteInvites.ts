@@ -1,6 +1,6 @@
 import { and, asc, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { siteInvites } from "@/lib/db/schema";
+import { siteInvites, sites } from "@/lib/db/schema";
 import {
   MAX_CONVITES,
   parseInviteDoc,
@@ -106,4 +106,52 @@ export async function deleteInvite(
     .returning({ id: siteInvites.id });
 
   return linhas.length > 0;
+}
+
+/**
+ * Acha o convite pelo id, com o site e o pedido a que pertence.
+ *
+ * Existe porque o editor mora em `/conta/convites/<id>` — fora da árvore do
+ * pedido, para ocupar a tela inteira sem o menu do gerenciamento ao lado. Sem
+ * o `orderId` na URL, é daqui que sai o caminho de volta.
+ *
+ * O `userId` vai no WHERE, não numa checagem depois: é o que garante que um id
+ * de convite alheio simplesmente não seja encontrado, em vez de ser carregado
+ * e recusado adiante.
+ */
+export async function getInviteDoDono(
+  inviteId: string,
+  userId: string
+): Promise<{
+  convite: Convite;
+  siteId: string;
+  slug: string;
+  orderId: string | null;
+} | null> {
+  const [l] = await db
+    .select({
+      id: siteInvites.id,
+      name: siteInvites.name,
+      doc: siteInvites.doc,
+      updatedAt: siteInvites.updatedAt,
+      siteId: sites.id,
+      slug: sites.slug,
+      orderId: sites.orderId,
+    })
+    .from(siteInvites)
+    .innerJoin(sites, eq(sites.id, siteInvites.siteId))
+    .where(and(eq(siteInvites.id, inviteId), eq(sites.userId, userId)));
+
+  if (!l) return null;
+  return {
+    convite: {
+      id: l.id,
+      name: l.name,
+      doc: parseInviteDoc(l.doc),
+      updatedAt: l.updatedAt,
+    },
+    siteId: l.siteId,
+    slug: l.slug,
+    orderId: l.orderId,
+  };
 }

@@ -7,6 +7,7 @@ import type { PackageTier } from "@/lib/packages";
 import TrackView from "@/components/TrackView";
 import RevealOnScroll from "@/components/ui/RevealOnScroll";
 import PhotoLightbox from "@/components/site/PhotoLightbox";
+import { ANCORA_DA_SECAO } from "@/lib/site/ancoras";
 
 /**
  * Renderiza o site de um casal: molde + tokens + conteúdo.
@@ -95,9 +96,21 @@ export default function SiteRenderer({
             moldes sem que nenhum precise virar client component. */}
         <PhotoLightbox />
 
+        {/* Cada seção ganha uma ÂNCORA (`#presentes`, `#confirmacao`…) para
+            o convite poder apontar para um pedaço do site — "ver a lista de
+            presentes" leva direto lá, não à capa.
+
+            O invólucro mora aqui, e não em cada molde, pelo mesmo motivo do
+            ScrollChoreography: alcança os 6 de uma vez e um molde novo herda
+            sem saber que existe. `scroll-mt` compensa a rolagem suave para o
+            título não colar no topo da janela. */}
         {chaves.map((key) => {
           const Section = template.sections[key]!;
-          return <Section key={key} {...props} />;
+          return (
+            <div key={key} id={ANCORA_DA_SECAO[key] ?? key} className="scroll-mt-4">
+              <Section {...props} />
+            </div>
+          );
         })}
       </div>
     </div>

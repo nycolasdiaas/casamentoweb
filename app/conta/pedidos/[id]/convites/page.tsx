@@ -51,7 +51,7 @@ export default async function ConvitesPage({
             {convites.map((c) => (
               <Link
                 key={c.id}
-                href={`/conta/pedidos/${id}/convites/${c.id}`}
+                href={`/conta/convites/${c.id}`}
                 className="group flex flex-col gap-2"
               >
                 <div className="overflow-hidden rounded-[3px] border border-(--c-rule) transition-colors group-hover:border-(--c-ink)">

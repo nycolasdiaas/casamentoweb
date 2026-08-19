@@ -1,4 +1,9 @@
-import { novoId, type InviteDoc } from "@/lib/site/inviteDoc";
+import {
+  CONVITE_ALTURA,
+  CONVITE_LARGURA,
+  novoId,
+  type InviteDoc,
+} from "@/lib/site/inviteDoc";
 
 export type ThemeCoresLocal = { paper: string; ink: string; accent: string };
 
@@ -122,5 +127,11 @@ export function conviteInicial(
     link: `https://${dados.endereco}`,
   });
 
-  return { versao: 1, fundo: cores.paper, blocos };
+  return {
+    versao: 1,
+    fundo: cores.paper,
+    largura: CONVITE_LARGURA,
+    altura: CONVITE_ALTURA,
+    blocos,
+  };
 }

@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { parseInviteDoc, prenderNaTela } from "./inviteDoc";
+import {
+  CONVITE_ALTURA,
+  CONVITE_LARGURA,
+  ladoValido,
+  parseInviteDoc,
+  prenderNaTela,
+} from "./inviteDoc";
 import { quebrarLinhas } from "./inviteRender";
 import { clipPathDe, pontos } from "./inviteShapes";
 
@@ -103,6 +109,44 @@ describe("rotação", () => {
     });
     expect(doc.blocos[0].rotacao).toBe(45);
     expect(doc.blocos[1].rotacao).toBe(0);
+  });
+});
+
+describe("formato do convite", () => {
+  it("convite antigo, sem medida gravada, continua 4:5", () => {
+    // Os convites criados antes do formato variável não têm os campos. Cair
+    // no padrão é o que impede um convite existente virar 0×0.
+    const doc = parseInviteDoc({ blocos: [] });
+    expect(doc.largura).toBe(CONVITE_LARGURA);
+    expect(doc.altura).toBe(CONVITE_ALTURA);
+  });
+
+  it("prende a medida entre o mínimo e o máximo", () => {
+    // Acima do teto o sharp rasteriza um SVG grande demais e o casal fica
+    // esperando; abaixo do piso não dá para ler nada.
+    expect(ladoValido(99999, 1080)).toBe(4000);
+    expect(ladoValido(10, 1080)).toBe(200);
+    expect(ladoValido("nada", 1080)).toBe(1080);
+    expect(ladoValido(1080.7, 1080)).toBe(1081);
+  });
+
+  it("aceita uma resolução própria", () => {
+    const doc = parseInviteDoc({ largura: 1600, altura: 900, blocos: [] });
+    expect([doc.largura, doc.altura]).toEqual([1600, 900]);
+  });
+});
+
+describe("camadas", () => {
+  it("a ordem da lista é a ordem de empilhamento", () => {
+    // É o que faz camadas funcionarem sem coluna nova: reordenar o array É
+    // mudar quem fica na frente, no editor e no arquivo exportado.
+    const doc = parseInviteDoc({
+      blocos: [
+        { tipo: "texto", id: "fundo", texto: "atrás" },
+        { tipo: "texto", id: "frente", texto: "na frente" },
+      ],
+    });
+    expect(doc.blocos.map((b) => b.id)).toEqual(["fundo", "frente"]);
   });
 });
 

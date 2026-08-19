@@ -2,8 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import {
-  CONVITE_ALTURA,
-  CONVITE_LARGURA,
   FORMAS,
   novoId,
   prenderNaTela,
@@ -13,9 +11,17 @@ import {
 } from "@/lib/site/inviteDoc";
 import { clipPathDe, NOME_DA_FORMA } from "@/lib/site/inviteShapes";
 import { salvarConviteAction } from "@/app/actions/invite-actions";
+import {
+  confirmPhotoUploadAction,
+  requestPhotoUploadAction,
+} from "@/app/actions/photo-actions";
+import { prepararFoto } from "@/lib/site/prepararFoto";
 import { useHistorico } from "@/components/account/manage/useHistorico";
-import BlocoVisual, { estiloDoBloco } from "./BlocoVisual";
+import BlocoNaTela from "./BlocoNaTela";
 import BarraDoBloco from "./BarraDoBloco";
+import Camadas from "./Camadas";
+import FormatoDoConvite from "./FormatoDoConvite";
+import { LINKS_DO_CONVITE, linkDaSecao } from "@/lib/site/ancoras";
 import { FONTES, Numero } from "./controles";
 
 /**
@@ -56,6 +62,9 @@ type Props = {
   nomeInicial: string;
   docInicial: InviteDoc;
   fotos: { id: string; alt: string | null }[];
+  /** Para montar os links das seções do site do casal. */
+  baseUrl: string;
+  slug: string;
 };
 
 export default function EditorDeConvite({
@@ -65,6 +74,8 @@ export default function EditorDeConvite({
   nomeInicial,
   docInicial,
   fotos,
+  baseUrl,
+  slug,
 }: Props) {
   const {
     presente: doc,
@@ -81,6 +92,13 @@ export default function EditorDeConvite({
   const [selecionado, setSelecionado] = useState<string | null>(null);
   const [salvando, iniciarSalvamento] = useTransition();
   const [salvo, setSalvo] = useState(true);
+  const [menuBaixar, setMenuBaixar] = useState(false);
+
+  // As fotos vivem em estado porque o editor agora SOBE foto: a lista que veio
+  // do servidor deixa de ser a verdade no instante em que a primeira sobe.
+  const [minhasFotos, setMinhasFotos] = useState(fotos);
+  const [enviandoFoto, setEnviandoFoto] = useState(false);
+  const [erroFoto, setErroFoto] = useState<string | null>(null);
   const telaRef = useRef<HTMLDivElement>(null);
   const molduraRef = useRef<HTMLDivElement>(null);
   const antesDoGesto = useRef<InviteDoc>(docInicial);
@@ -89,6 +107,13 @@ export default function EditorDeConvite({
   // documento. Por isso não entra no histórico nem marca "não salvo" — dar
   // desfazer depois de aproximar seria desfazer a coisa errada.
   const [zoom, setZoom] = useState(1);
+
+  // Deslocamento da tela dentro da moldura, em px. Existe porque com zoom o
+  // convite passa do tamanho da janela e é preciso ALCANÇAR o canto de baixo.
+  // Barra de rolagem resolveria — e foi o que estava lá —, mas arrastar com o
+  // dedo é o gesto de todo editor de imagem, e a barra ainda comia altura da
+  // área de desenho.
+  const [pan, setPan] = useState({ x: 0, y: 0 });
 
   // Onde está o bloco escolhido NA JANELA. A barra flutuante é `fixed`, então
   // precisa de coordenada de viewport — e ela muda com o arrasto, o zoom, a
@@ -123,8 +148,26 @@ export default function EditorDeConvite({
   const gesto = useRef<
     | { tipo: "mover"; id: string; dx: number; dy: number }
     | { tipo: "largura"; id: string; x0: number; w0: number }
+    | { tipo: "canto"; id: string; x0: number; y0: number; w0: number; p0: number }
+    | { tipo: "girar"; id: string; cx: number; cy: number; a0: number; r0: number }
+    | { tipo: "pan"; x0: number; y0: number; px: number; py: number }
     | null
   >(null);
+
+  /** Arrastar o FUNDO move a tela — não desenha nada, só navega. */
+  function aoPegarFundo(e: React.PointerEvent) {
+    // Só o fundo: um `pointerdown` que veio de um bloco já foi tratado lá.
+    if (e.target !== e.currentTarget) return;
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    setSelecionado(null);
+    gesto.current = {
+      tipo: "pan",
+      x0: e.clientX,
+      y0: e.clientY,
+      px: pan.x,
+      py: pan.y,
+    };
+  }
 
   function medidas(): DOMRect {
     return telaRef.current?.getBoundingClientRect() ?? new DOMRect(0, 0, 1, 1);
@@ -133,7 +176,7 @@ export default function EditorDeConvite({
   function aoPegar(
     e: React.PointerEvent,
     alvo: Bloco,
-    tipo: "mover" | "largura"
+    tipo: "mover" | "largura" | "canto" | "girar"
   ) {
     e.preventDefault();
     e.stopPropagation();
@@ -141,20 +184,81 @@ export default function EditorDeConvite({
     const r = medidas();
     antesDoGesto.current = doc;
     setSelecionado(alvo.id);
-    gesto.current =
-      tipo === "mover"
-        ? {
-            tipo,
-            id: alvo.id,
-            dx: (e.clientX - r.left) / r.width - alvo.x,
-            dy: (e.clientY - r.top) / r.height - alvo.y,
-          }
-        : { tipo, id: alvo.id, x0: (e.clientX - r.left) / r.width, w0: alvo.w };
+
+    const px = (e.clientX - r.left) / r.width;
+    const py = (e.clientY - r.top) / r.height;
+
+    if (tipo === "mover") {
+      gesto.current = {
+        tipo,
+        id: alvo.id,
+        dx: px - alvo.x,
+        dy: py - alvo.y,
+      };
+      return;
+    }
+    if (tipo === "largura") {
+      gesto.current = { tipo, id: alvo.id, x0: px, w0: alvo.w };
+      return;
+    }
+    if (tipo === "girar") {
+      // O ângulo se mede do CENTRO do bloco até o ponteiro, em pixels da
+      // janela — em fração da tela a conta sairia torta, porque o convite
+      // não é quadrado e um grau na horizontal não vale um grau na vertical.
+      const caixa = blocosRef.current.get(alvo.id)?.getBoundingClientRect();
+      const cx = caixa ? caixa.left + caixa.width / 2 : e.clientX;
+      const cy = caixa ? caixa.top + caixa.height / 2 : e.clientY;
+      gesto.current = {
+        tipo,
+        id: alvo.id,
+        cx,
+        cy,
+        // Guarda o ângulo do PONTEIRO e o do bloco no início, e aplica só a
+        // diferença: sem isso o bloco pularia para o ângulo do cursor no
+        // primeiro movimento, em vez de girar a partir de onde estava.
+        a0: (Math.atan2(e.clientY - cy, e.clientX - cx) * 180) / Math.PI,
+        r0: alvo.rotacao,
+      };
+      return;
+    }
+    gesto.current = {
+      tipo,
+      id: alvo.id,
+      x0: px,
+      y0: py,
+      w0: alvo.w,
+      p0: alvo.tipo === "foto" || alvo.tipo === "forma" ? alvo.proporcao : 1,
+    };
   }
 
   function aoMover(e: React.PointerEvent) {
     const g = gesto.current;
     if (!g) return;
+
+    // Mover a tela é o único gesto que não mexe no documento.
+    if (g.tipo === "pan") {
+      setPan({ x: g.px + (e.clientX - g.x0), y: g.py + (e.clientY - g.y0) });
+      return;
+    }
+
+    if (g.tipo === "girar") {
+      const agora = (Math.atan2(e.clientY - g.cy, e.clientX - g.cx) * 180) / Math.PI;
+      let graus = g.r0 + (agora - g.a0);
+      // Com Shift, trava de 15 em 15 — é o que Figma e Canva fazem, e o que
+      // permite deixar duas formas com a MESMA inclinação sem digitar nada.
+      if (e.shiftKey) graus = Math.round(graus / 15) * 15;
+      // Normaliza para -180..180: sem isso, dar três voltas guardaria 1080°,
+      // que é o mesmo desenho com um número que ninguém entende.
+      graus = ((((graus + 180) % 360) + 360) % 360) - 180;
+      mudar((d) => ({
+        ...d,
+        blocos: d.blocos.map((b) =>
+          b.id === g.id ? { ...b, rotacao: Math.round(graus) } : b
+        ),
+      }));
+      return;
+    }
+
     const r = medidas();
     const px = (e.clientX - r.left) / r.width;
     const py = (e.clientY - r.top) / r.height;
@@ -166,15 +270,30 @@ export default function EditorDeConvite({
         if (g.tipo === "mover") {
           return prenderNaTela({ ...b, x: px - g.dx, y: py - g.dy });
         }
-        return prenderNaTela({ ...b, w: g.w0 + (px - g.x0) });
+        if (g.tipo === "largura") {
+          return prenderNaTela({ ...b, w: g.w0 + (px - g.x0) });
+        }
+
+        // CANTO: largura e altura ao mesmo tempo — é o que permite achatar e
+        // esticar. A altura não é um campo: ela sai de `proporcao`
+        // (largura/altura), então mexer no canto significa recalcular a
+        // proporção a partir das duas medidas novas.
+        if (b.tipo !== "foto" && b.tipo !== "forma") return b;
+        const alturaTela = r.height / r.width; // altura da tela em unidades de largura
+        const w = Math.max(g.w0 + (px - g.x0), 0.03);
+        const h0 = g.w0 / (g.p0 || 1);
+        const h = Math.max(h0 + (py - g.y0) / alturaTela, 0.03);
+        return prenderNaTela({ ...b, w, proporcao: w / h });
       }),
     }));
   }
 
   function aoSoltar() {
-    if (!gesto.current) return;
+    const g = gesto.current;
+    if (!g) return;
     gesto.current = null;
-    registrar(antesDoGesto.current);
+    // Mover a tela não é edição: não vira passo de desfazer.
+    if (g.tipo !== "pan") registrar(antesDoGesto.current);
   }
 
   // ── acrescentar e remover ────────────────────────────────────────────────
@@ -186,8 +305,34 @@ export default function EditorDeConvite({
     setSelecionado(novo.id);
   }
 
+  /**
+   * Reordena a pilha. `de` e `para` são índices do DOCUMENTO, onde o último
+   * desenha por cima — a inversão para "frente/trás" mora em `Camadas`.
+   */
+  const moverCamada = useCallback(
+    (de: number, para: number) => {
+      if (de === para) return;
+      const antes = doc;
+      mudar((d) => {
+        const blocos = [...d.blocos];
+        const [movido] = blocos.splice(de, 1);
+        blocos.splice(Math.min(Math.max(para, 0), blocos.length), 0, movido);
+        return { ...d, blocos };
+      });
+      registrar(antes);
+    },
+    [doc, mudar, registrar]
+  );
+
   const apagarSelecionado = useCallback(() => {
     if (!selecionado) return;
+    // Confirmação porque apagar é o único gesto do editor que TIRA trabalho:
+    // mexer numa cor errada se vê e se desfaz olhando; um bloco apagado sem
+    // querer some da tela e nem sempre se percebe na hora.
+    //
+    // O Desfazer cobre o arrependimento tardio, mas ele só ajuda quem sabe
+    // que perdeu algo. Uma pergunta antes custa um clique e evita o susto.
+    if (!confirm("Remover este bloco do convite?")) return;
     const antes = doc;
     mudar((d) => ({ ...d, blocos: d.blocos.filter((b) => b.id !== selecionado) }));
     registrar(antes);
@@ -208,7 +353,10 @@ export default function EditorDeConvite({
         e.preventDefault();
         apagarSelecionado();
       }
-      if (e.key === "Escape") setSelecionado(null);
+      if (e.key === "Escape") {
+        setSelecionado(null);
+        setMenuBaixar(false);
+      }
     }
     window.addEventListener("keydown", aoTeclar);
     return () => window.removeEventListener("keydown", aoTeclar);
@@ -245,6 +393,12 @@ export default function EditorDeConvite({
   // o que faz a barra acompanhar o bloco durante o gesto.
   useEffect(() => {
     function medir() {
+      // Bloco apagado deixa entrada morta no mapa; sem isto a barra mediria
+      // um elemento que saiu do documento.
+      const vivos = new Set(doc.blocos.map((b) => b.id));
+      for (const id of blocosRef.current.keys()) {
+        if (!vivos.has(id)) blocosRef.current.delete(id);
+      }
       const el = selecionado ? blocosRef.current.get(selecionado) : null;
       setAlvo(el ? el.getBoundingClientRect() : null);
     }
@@ -260,6 +414,76 @@ export default function EditorDeConvite({
     };
   }, [selecionado, doc, zoom]);
 
+  /**
+   * Sobe foto pelo próprio editor.
+   *
+   * Reusa o caminho de sempre: prepara no navegador (`prepararFoto` — o mesmo
+   * do PhotoManager, inclusive o EXIF), pede a URL assinada, envia direto ao
+   * Storage e confirma. Nada aqui é um segundo caminho de foto; a imagem entra
+   * no álbum do site como qualquer outra.
+   *
+   * Vai para o slot `gallery` porque é o de uso geral — foto de convite não
+   * é capa nem álbum da festa.
+   */
+  async function subirFotos(lista: FileList) {
+    setErroFoto(null);
+    setEnviandoFoto(true);
+    try {
+      for (const file of Array.from(lista)) {
+        const pronta = await prepararFoto(file);
+
+        const pedido = await requestPhotoUploadAction({
+          siteId,
+          slot: "gallery",
+          contentType: "image/jpeg",
+          sizeBytes: pronta.blob.size,
+        });
+        if ("error" in pedido) {
+          setErroFoto(pedido.error);
+          break;
+        }
+
+        const envio = await fetch(pedido.uploadUrl, {
+          method: "PUT",
+          headers: { "content-type": "image/jpeg" },
+          body: pronta.blob,
+        });
+        if (!envio.ok) {
+          setErroFoto("O envio falhou no meio do caminho. Tente de novo.");
+          break;
+        }
+
+        const confirmada = await confirmPhotoUploadAction({
+          siteId,
+          slot: "gallery",
+          storagePath: pedido.storagePath,
+          width: pronta.width,
+          height: pronta.height,
+          blurDataUrl: pronta.blurDataUrl,
+          originalName: file.name,
+        });
+        if ("error" in confirmada) {
+          setErroFoto(confirmada.error);
+          break;
+        }
+
+        setMinhasFotos((atuais) => [
+          ...atuais,
+          { id: confirmada.photoId, alt: file.name },
+        ]);
+      }
+    } catch (e) {
+      console.error("[convite/foto]", e);
+      setErroFoto(
+        e instanceof Error && e.message
+          ? e.message
+          : "Não consegui enviar essa foto. Tente outra."
+      );
+    } finally {
+      setEnviandoFoto(false);
+    }
+  }
+
   function salvar() {
     iniciarSalvamento(async () => {
       const r = await salvarConviteAction(siteId, inviteId, orderId, doc, nome);
@@ -270,6 +494,22 @@ export default function EditorDeConvite({
     });
   }
 
+  // Guarda o elemento de cada bloco para a barra flutuante saber ONDE ele
+  // está na janela. Fora do JSX de propósito: o lint do React reprova
+  // qualquer leitura de ref durante o render, e um callback definido aqui
+  // (que só roda na montagem) não é leitura durante o render.
+  // UM callback só, estável entre renders: o id vem do `data-bloco` do próprio
+  // elemento. Uma closure por bloco (`registrarBloco(id)`) seria recriada a
+  // cada render — o React a chamaria duas vezes por atualização, e o lint não
+  // tem como provar que a escrita no ref é segura.
+  const avisarElemento = useCallback(
+    (id: string, el: HTMLDivElement | null) => {
+      if (el) blocosRef.current.set(id, el);
+      else blocosRef.current.delete(id);
+    },
+    []
+  );
+
   const baixar = `/api/convite/${siteId}/${inviteId}`;
   const marcarGesto = () => {
     antesDoGesto.current = doc;
@@ -279,65 +519,59 @@ export default function EditorDeConvite({
   return (
     <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
       {/* ── a tela ──────────────────────────────────────────────────────── */}
-      {/* A tela cresce até 900px e usa a ALTURA da janela como limite: o
-          convite é 4:5, então limitar só a largura numa tela larga faria o
-          cartão passar do rodapé. `min()` resolve os dois de uma vez. */}
-      <div className="flex-1">
-        {/* A moldura rola quando o zoom passa do tamanho dela; a tela dentro
-            é que cresce. `getBoundingClientRect` já devolve a medida COM o
-            zoom aplicado, então a conta do arrasto (posição em fração da
-            largura) continua valendo sem correção — foi por isso que o
-            arrasto não precisou mudar. */}
+      <div className="min-w-0 flex-1">
+        {/* A MOLDURA não rola: quem navega é o arrasto do fundo. Barra de
+            rolagem obrigava a mirar num trilho de 10px para chegar ao canto
+            do convite, e ainda comia altura da área de desenho. Com
+            `overflow: hidden` + deslocamento, o gesto é o de qualquer editor
+            de imagem.
+
+            `getBoundingClientRect` já devolve a medida COM zoom e
+            deslocamento aplicados, então a conta do arrasto de bloco
+            (posição em fração da largura) continua valendo sem correção. */}
         <div
           ref={molduraRef}
-          className="mx-auto overflow-auto overscroll-contain rounded-[3px] bg-(--c-sunken)/40 p-3"
-          style={{ maxHeight: "calc(100svh - 13rem)" }}
+          onPointerDown={aoPegarFundo}
+          onPointerMove={aoMover}
+          onPointerUp={aoSoltar}
+          onPointerCancel={aoSoltar}
+          className="relative flex touch-none items-center justify-center overflow-hidden rounded-[3px] border border-(--c-rule) bg-(--c-sunken)/50"
+          style={{
+            height: "calc(100svh - 11rem)",
+            // Declara o container para o `100cqh` da tela medir ESTA moldura.
+            containerType: "size",
+            cursor: "grab",
+          }}
         >
           <div
             ref={telaRef}
-            onPointerMove={aoMover}
-            onPointerUp={aoSoltar}
-            onPointerCancel={aoSoltar}
-            onPointerDown={() => setSelecionado(null)}
-            className="relative mx-auto touch-none select-none overflow-hidden border border-(--c-rule)"
+            className="relative touch-none select-none overflow-hidden border border-(--c-rule) shadow-[0_3px_16px_rgba(26,29,33,0.16)]"
             style={{
-              width: `calc(min(100%, 820px, calc((100svh - 16rem) * 0.8)) * ${zoom})`,
-              aspectRatio: `${CONVITE_LARGURA} / ${CONVITE_ALTURA}`,
+              // A tela cabe na moldura pelos DOIS lados: `min()` compara a
+              // largura disponível com a que a ALTURA DA MOLDURA permite,
+              // dada a proporção do convite — sem isso um story 9:16
+              // estouraria a altura e um paisagem desperdiçaria a largura.
+              //
+              // A conta usa `100cqh` (a altura da própria moldura), não a da
+              // janela: medido, a diferença era 692px reais contra os ~660
+              // que a fórmula com `svh` supunha, e a tela nascia com 528px
+              // numa moldura de 1068 — metade da área desperdiçada.
+              width: `calc(min(100%, calc(100cqh * ${doc.largura / doc.altura})) * ${zoom})`,
+              aspectRatio: `${doc.largura} / ${doc.altura}`,
+              translate: `${pan.x}px ${pan.y}px`,
               background: doc.fundo,
               containerType: "size",
             }}
           >
-          {doc.blocos.map((b) => {
-            const ativo = b.id === selecionado;
-            return (
-              <div
-                key={b.id}
-                ref={(el) => {
-                  if (el) blocosRef.current.set(b.id, el);
-                  else blocosRef.current.delete(b.id);
-                }}
-                onPointerDown={(e) => aoPegar(e, b, "mover")}
-                style={{
-                  ...estiloDoBloco(b),
-                  outline: ativo ? "1.5px solid var(--c-mark)" : undefined,
-                  outlineOffset: 2,
-                  cursor: "grab",
-                }}
-              >
-                <BlocoVisual bloco={b} />
-
-                {/* Alça de largura: só no bloco escolhido, para a tela não
-                    virar um campo de bolinhas. */}
-                {ativo && (
-                  <span
-                    onPointerDown={(e) => aoPegar(e, b, "largura")}
-                    className="absolute -right-1.5 top-1/2 size-3 -translate-y-1/2 rounded-full border border-white bg-(--c-mark)"
-                    style={{ cursor: "ew-resize" }}
-                  />
-                )}
-              </div>
-            );
-          })}
+          {doc.blocos.map((b) => (
+            <BlocoNaTela
+              key={b.id}
+              bloco={b}
+              ativo={b.id === selecionado}
+              aoAvisarElemento={avisarElemento}
+              aoPegar={aoPegar}
+            />
+          ))}
           </div>
         </div>
 
@@ -357,8 +591,19 @@ export default function EditorDeConvite({
           />
         )}
 
-        <div className="mt-3 flex flex-wrap items-center justify-center gap-3 text-[12px] text-(--c-ink-2)">
-          <span>Arraste os blocos. A roda do mouse aproxima e afasta.</span>
+        {/* A régua de baixo: formato à esquerda, zoom à direita. */}
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-[12px] text-(--c-ink-2)">
+          <FormatoDoConvite
+            largura={doc.largura}
+            altura={doc.altura}
+            aoTrocar={(largura, altura) => {
+              const antes = doc;
+              mudar((d) => ({ ...d, largura, altura }));
+              registrar(antes);
+            }}
+            marcarGesto={marcarGesto}
+            fecharGesto={fecharGesto}
+          />
           <span className="flex items-center gap-1">
             <button
               type="button"
@@ -430,55 +675,17 @@ export default function EditorDeConvite({
           </button>
         </div>
 
-        {/* ÁREAS EDITÁVEIS — a lista de tudo que existe no convite.
-            Vem da tela de gerenciamento do iCasei, e resolve um problema real:
-            bloco pequeno, atrás de outro ou arrastado para o canto é difícil
-            de acertar com o dedo. Pela lista, sempre dá para escolher.
-            Também é o que mostra que aquele texto invisível AINDA EXISTE. */}
-        {doc.blocos.length > 0 && (
-          <div className="surface-raised flex flex-col rounded-[3px]">
-            <span className="meta border-b border-(--c-rule) px-4 py-3 text-(--c-ink-2)">
-              Áreas editáveis
-            </span>
-            <ul className="max-h-64 overflow-y-auto">
-              {doc.blocos.map((b) => (
-                <li key={b.id}>
-                  <button
-                    type="button"
-                    onClick={() => setSelecionado(b.id)}
-                    className={`flex min-h-11 w-full items-center gap-2 border-b border-(--c-rule) px-4 py-2 text-left text-[13px] transition-colors last:border-b-0 ${
-                      b.id === selecionado
-                        ? "bg-(--c-sunken) text-(--c-ink)"
-                        : "text-(--c-ink-2) hover:bg-white"
-                    }`}
-                  >
-                    <span
-                      aria-hidden
-                      className="w-5 shrink-0 text-center text-[11px] uppercase"
-                    >
-                      {b.tipo === "texto"
-                        ? "Aa"
-                        : b.tipo === "foto"
-                          ? "▣"
-                          : b.tipo === "linha"
-                            ? "―"
-                            : "◆"}
-                    </span>
-                    <span className="truncate">
-                      {b.tipo === "texto"
-                        ? b.texto.trim() || "Texto vazio"
-                        : b.tipo === "foto"
-                          ? "Foto"
-                          : b.tipo === "linha"
-                            ? "Divisor"
-                            : NOME_DA_FORMA[b.forma]}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        {/* CAMADAS — a lista de tudo que existe no convite, e a ordem em que
+            se empilham. Resolve dois problemas: bloco pequeno ou escondido
+            atrás de outro é difícil de acertar com o dedo (pela lista sempre
+            dá para escolher), e colocar uma coisa na frente da outra não
+            tinha caminho nenhum antes. */}
+        <Camadas
+          blocos={doc.blocos}
+          selecionado={selecionado}
+          aoEscolher={setSelecionado}
+          aoMover={moverCamada}
+        />
 
         <div className="surface-raised flex flex-col gap-2 rounded-[3px] p-4">
           <span className="meta text-(--c-ink-2)">Acrescentar</span>
@@ -571,50 +778,66 @@ export default function EditorDeConvite({
             ))}
           </div>
 
-          {fotos.length > 0 ? (
-            <>
-              <span className="meta mt-1 text-(--c-ink-2)">Suas fotos</span>
-              <div className="grid grid-cols-4 gap-2">
-                {fotos.map((f) => (
-                  <button
-                    key={f.id}
-                    type="button"
-                    title={f.alt ?? "Foto"}
-                    onClick={() =>
-                      acrescentar({
-                        tipo: "foto",
-                        id: novoId(),
-      rotacao: 0,
-                        x: 0.25,
-                        y: 0.2,
-                        w: 0.5,
-                        proporcao: 1,
-                        fotoId: f.id,
-                        raio: 0,
-                      })
-                    }
-                    className="aspect-square overflow-hidden rounded-[2px] border border-(--c-rule) transition-colors hover:border-(--c-ink)"
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={`/f/${f.id}`}
-                      alt=""
-                      className="size-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            </>
+          <span className="meta mt-1 text-(--c-ink-2)">Fotos</span>
+
+          {/* SUBIR AQUI: antes era preciso sair para a tela de Fotos e voltar.
+              A foto vai para o mesmo álbum do site — serve ao convite E ao
+              site, em vez de virar uma segunda pilha de arquivos. */}
+          <label className="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-[3px] border border-(--c-ink) px-3 text-[13px] transition-colors hover:bg-(--c-ink) hover:text-white">
+            <svg aria-hidden width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M8 11V3.5M5 6l3-3 3 3M2.5 11.5v1.5h11v-1.5" />
+            </svg>
+            {enviandoFoto ? "Enviando…" : "Subir foto"}
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              disabled={enviandoFoto}
+              onChange={(e) => {
+                if (e.target.files?.length) subirFotos(e.target.files);
+                e.target.value = "";
+              }}
+              className="sr-only"
+            />
+          </label>
+
+          {erroFoto && (
+            <p className="text-[12px] leading-relaxed text-(--c-mark)">
+              {erroFoto}
+            </p>
+          )}
+
+          {minhasFotos.length > 0 ? (
+            <div className="grid grid-cols-4 gap-2">
+              {minhasFotos.map((f) => (
+                <button
+                  key={f.id}
+                  type="button"
+                  title={f.alt ?? "Usar esta foto"}
+                  onClick={() =>
+                    acrescentar({
+                      tipo: "foto",
+                      id: novoId(),
+                      rotacao: 0,
+                      x: 0.25,
+                      y: 0.2,
+                      w: 0.5,
+                      proporcao: 1,
+                      fotoId: f.id,
+                      raio: 0,
+                    })
+                  }
+                  className="aspect-square overflow-hidden rounded-[2px] border border-(--c-rule) transition-colors hover:border-(--c-ink)"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={`/f/${f.id}`} alt="" className="size-full object-cover" />
+                </button>
+              ))}
+            </div>
           ) : (
             <p className="text-[12px] leading-relaxed text-(--c-ink-2)">
-              Para usar fotos no convite, subam elas em{" "}
-              <a
-                href={`/conta/pedidos/${orderId}/fotos`}
-                className="underline underline-offset-2"
-              >
-                Fotos
-              </a>
-              .
+              Suba uma foto para usar no convite. Ela fica guardada e serve
+              também para o site.
             </p>
           )}
         </div>
@@ -723,20 +946,64 @@ export default function EditorDeConvite({
                   />
                 </label>
 
-                <label className="flex flex-col gap-1 text-[13px]">
+                {/* LINK: escolhe-se uma seção DO PRÓPRIO SITE, não se digita
+                    URL. O casal não sabe (nem tem por que saber) que a lista
+                    de presentes mora em `/s/<slug>#presentes` — e digitado à
+                    mão, um endereço errado só aparece quando o convidado
+                    clica. A opção "outro endereço" fica para o que é de fora
+                    (um mapa, um formulário). */}
+                <div className="flex flex-col gap-1.5 text-[13px]">
                   Link (opcional)
-                  <input
-                    type="url"
-                    value={bloco.link}
-                    placeholder="https://…"
-                    onChange={(e) =>
-                      trocarBloco(bloco.id, { link: e.target.value })
+                  <select
+                    value={
+                      bloco.link === ""
+                        ? ""
+                        : LINKS_DO_CONVITE.some(
+                              (l) => bloco.link === linkDaSecao(baseUrl, slug, l.chave)
+                            )
+                          ? bloco.link
+                          : "outro"
                     }
-                    onFocus={marcarGesto}
-                    onBlur={fecharGesto}
+                    onChange={(e) => {
+                      const antes = doc;
+                      const v = e.target.value;
+                      trocarBloco(bloco.id, {
+                        link: v === "outro" ? "https://" : v,
+                      });
+                      registrar(antes);
+                    }}
                     className="min-h-11 border border-(--c-rule) bg-white px-2 text-[13px]"
-                  />
-                </label>
+                  >
+                    <option value="">Sem link</option>
+                    {LINKS_DO_CONVITE.map((l) => (
+                      <option
+                        key={l.chave}
+                        value={linkDaSecao(baseUrl, slug, l.chave)}
+                      >
+                        {l.rotulo}
+                      </option>
+                    ))}
+                    <option value="outro">Outro endereço…</option>
+                  </select>
+
+                  {bloco.link !== "" &&
+                    !LINKS_DO_CONVITE.some(
+                      (l) => bloco.link === linkDaSecao(baseUrl, slug, l.chave)
+                    ) && (
+                      <input
+                        type="url"
+                        value={bloco.link}
+                        placeholder="https://…"
+                        aria-label="Endereço do link"
+                        onChange={(e) =>
+                          trocarBloco(bloco.id, { link: e.target.value })
+                        }
+                        onFocus={marcarGesto}
+                        onBlur={fecharGesto}
+                        className="min-h-11 border border-(--c-rule) bg-white px-2 text-[13px]"
+                      />
+                    )}
+                </div>
               </>
             )}
 
@@ -931,34 +1198,55 @@ export default function EditorDeConvite({
           />
         </div>
 
-        <div className="surface-raised flex flex-col gap-2 rounded-[3px] p-4">
-          <span className="meta text-(--c-ink-2)">Baixar</span>
-          {/* O arquivo sai do que está NO BANCO, não da tela: dizer isso evita
-              o casal baixar uma versão sem a última mudança e achar que o
-              export está quebrado. */}
+        {/* BAIXAR: um botão, e o menu abre com os formatos.
+            Três botões lado a lado ocupavam a largura toda para uma escolha
+            que se faz uma vez — e nenhum deles dizia PARA QUE serve, que é a
+            dúvida real de quem nunca exportou nada. */}
+        <div className="relative">
           {!salvo && (
-            <p className="text-[12px] leading-relaxed text-(--c-mark)">
+            <p className="mb-2 text-[12px] leading-relaxed text-(--c-mark)">
               Salvem antes de baixar — o arquivo sai da última versão salva.
             </p>
           )}
-          <div className="flex gap-2">
-            {(
-              [
-                ["png", "PNG"],
-                ["jpeg", "JPEG"],
-                ["pdf", "PDF"],
-              ] as const
-            ).map(([f, rotulo]) => (
-              <a
-                key={f}
-                href={`${baixar}?formato=${f}`}
-                download
-                className="min-h-11 flex-1 border border-(--c-ink) text-center text-[13px] leading-[2.6] text-(--c-ink) transition-colors hover:bg-(--c-ink) hover:text-white"
-              >
-                {rotulo}
-              </a>
-            ))}
-          </div>
+          <button
+            type="button"
+            onClick={() => setMenuBaixar((v) => !v)}
+            aria-expanded={menuBaixar}
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-[3px] border border-(--c-ink) bg-(--c-ink) text-[13px] text-white transition-opacity hover:opacity-90"
+          >
+            <svg aria-hidden width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M8 2v8M4.5 7L8 10.5L11.5 7M2.5 13.5h11" />
+            </svg>
+            Baixar
+            <svg aria-hidden width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M2 3.5l3 3 3-3" />
+            </svg>
+          </button>
+
+          {menuBaixar && (
+            <div className="surface-raised absolute left-0 right-0 top-[calc(100%+4px)] z-20 flex flex-col rounded-[3px] shadow-lg">
+              {(
+                [
+                  ["png", "PNG", "melhor qualidade — WhatsApp e Instagram"],
+                  ["jpeg", "JPEG", "arquivo menor, para mandar em lote"],
+                  ["pdf", "PDF", "para imprimir numa gráfica"],
+                ] as const
+              ).map(([f, ext, para]) => (
+                <a
+                  key={f}
+                  href={`${baixar}?formato=${f}`}
+                  download
+                  onClick={() => setMenuBaixar(false)}
+                  className="flex min-h-11 items-center gap-2.5 border-b border-(--c-rule) px-3 py-2 transition-colors last:border-b-0 hover:bg-(--c-sunken)"
+                >
+                  <span className="meta w-9 shrink-0 text-(--c-ink)">{ext}</span>
+                  <span className="text-[11.5px] leading-snug text-(--c-ink-2)">
+                    {para}
+                  </span>
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       </aside>
     </div>
