@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import {
   FORMAS,
+  ladoValido,
   novoId,
   prenderNaTela,
   type Bloco,
@@ -69,6 +70,8 @@ type Props = {
   /** Endereço público do convite, se já publicado alguma vez. */
   urlDoConvite: string | null;
   noAr: boolean;
+  /** O SITE do casal já está publicado? Os links do convite dependem disso. */
+  siteNoAr: boolean;
 };
 
 export default function EditorDeConvite({
@@ -82,6 +85,7 @@ export default function EditorDeConvite({
   slug,
   urlDoConvite,
   noAr,
+  siteNoAr,
 }: Props) {
   const {
     presente: doc,
@@ -451,7 +455,7 @@ export default function EditorDeConvite({
    * Vai para o slot `gallery` porque é o de uso geral — foto de convite não
    * é capa nem álbum da festa.
    */
-  async function subirFotos(lista: FileList) {
+  async function subirFotos(lista: FileList, comoConviteInteiro = false) {
     setErroFoto(null);
     setEnviandoFoto(true);
     try {
@@ -497,6 +501,37 @@ export default function EditorDeConvite({
           ...atuais,
           { id: confirmada.photoId, alt: file.name },
         ]);
+
+        // CONVITE PRONTO: quem já tem a arte feita não quer montar nada — quer
+        // a imagem ocupando o convite inteiro, e no MESMO formato dela, para
+        // não sobrar tarja nem cortar o desenho. Por isso o formato do convite
+        // passa a ser o da imagem, e o bloco cobre tudo.
+        if (comoConviteInteiro) {
+          const antes = doc;
+          const proporcao = pronta.width / pronta.height;
+          mudar((d) => ({
+            ...d,
+            largura: ladoValido(pronta.width, d.largura),
+            altura: ladoValido(pronta.height, d.altura),
+            blocos: [
+              {
+                tipo: "foto" as const,
+                id: novoId(),
+                rotacao: 0,
+                x: 0,
+                y: 0,
+                w: 1,
+                proporcao,
+                fotoId: confirmada.photoId,
+                raio: 0,
+              },
+              // O que já existia vai POR CIMA da imagem, não some: o casal
+              // pode ter escrito algo antes de importar a arte.
+              ...d.blocos,
+            ],
+          }));
+          registrar(antes);
+        }
       }
     } catch (e) {
       console.error("[convite/foto]", e);
@@ -847,7 +882,28 @@ export default function EditorDeConvite({
           {/* SUBIR AQUI: antes era preciso sair para a tela de Fotos e voltar.
               A foto vai para o mesmo álbum do site — serve ao convite E ao
               site, em vez de virar uma segunda pilha de arquivos. */}
-          <label className="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-[3px] border border-(--c-ink) px-3 text-[13px] transition-colors hover:bg-(--c-ink) hover:text-white">
+          {/* JÁ TENHO O CONVITE PRONTO. Quem manda a arte feita não quer
+              montar nada — quer subir e mandar o link. A imagem vira o convite
+              inteiro, no formato dela, e os blocos que existiam ficam por
+              cima (dá para acrescentar um botão de presentes sobre a arte). */}
+          <label className="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-[3px] border border-(--c-ink) bg-(--c-ink) px-3 text-[13px] text-white transition-opacity hover:opacity-90">
+            <svg aria-hidden width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M2.5 3.5h11v9h-11zM2.5 10l3-3 3 3M9 8.5l1.5-1.5 3 3" />
+            </svg>
+            {enviandoFoto ? "Enviando…" : "Já tenho o convite pronto"}
+            <input
+              type="file"
+              accept="image/*"
+              disabled={enviandoFoto}
+              onChange={(e) => {
+                if (e.target.files?.length) subirFotos(e.target.files, true);
+                e.target.value = "";
+              }}
+              className="sr-only"
+            />
+          </label>
+
+          <label className="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-[3px] border border-(--c-rule) px-3 text-[13px] transition-colors hover:bg-white">
             <svg aria-hidden width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M8 11V3.5M5 6l3-3 3 3M2.5 11.5v1.5h11v-1.5" />
             </svg>
@@ -1302,6 +1358,7 @@ export default function EditorDeConvite({
           urlInicial={urlDoConvite}
           noAr={noAr}
           temMudancaNaoSalva={!salvo}
+          siteNoAr={siteNoAr}
         />
 
         {/* BAIXAR: um botão, e o menu abre com os formatos.

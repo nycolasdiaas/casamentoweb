@@ -159,6 +159,31 @@ const txt = (v: unknown, padrao: string): string =>
 const cor = (v: unknown, padrao: string): string =>
   typeof v === "string" && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v) ? v : padrao;
 
+/**
+ * Aceita só o que é seguro clicar.
+ *
+ * O campo é digitado à mão ("outro endereço"), e um convite publicado é
+ * página aberta: `javascript:` num `<a>` seria script executando no navegador
+ * do convidado. Então a lista é fechada — http, https, mailto, tel — e
+ * caminho relativo do próprio site.
+ *
+ * Endereço sem esquema ("enlace.com.br/s/x") vira `https://`: é o que a
+ * pessoa quis dizer, e sem isso o navegador trata como caminho relativo e cai
+ * numa página que não existe.
+ */
+const ESQUEMAS_OK = /^(https?:|mailto:|tel:)/i;
+
+const linkSeguro = (v: unknown): string => {
+  if (typeof v !== "string") return "";
+  const t = v.trim();
+  if (!t) return "";
+  if (t.startsWith("/")) return t;
+  if (ESQUEMAS_OK.test(t)) return t;
+  // Tem esquema, mas não é um dos aceitos (javascript:, data:, file:…).
+  if (/^[a-z][a-z0-9+.-]*:/i.test(t)) return "";
+  return `https://${t}`;
+};
+
 const umDe = <T extends string>(v: unknown, opcoes: readonly T[], padrao: T): T =>
   typeof v === "string" && (opcoes as readonly string[]).includes(v)
     ? (v as T)
@@ -193,7 +218,7 @@ function parseBloco(bruto: unknown): Bloco | null {
         "center"
       ),
       espacamento: num(b.espacamento, 0),
-      link: txt(b.link, ""),
+      link: linkSeguro(b.link),
     };
   }
 

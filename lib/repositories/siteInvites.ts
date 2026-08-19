@@ -141,6 +141,8 @@ export async function getInviteDoDono(
   convite: Convite;
   siteId: string;
   slug: string;
+  /** `preview` = o site ainda não está no ar, e os links do convite dão 404. */
+  statusDoSite: string;
   orderId: string | null;
 } | null> {
   const [l] = await db
@@ -154,6 +156,7 @@ export async function getInviteDoDono(
       siteId: sites.id,
       // O slug do SITE, não o do convite — os dois existem e são diferentes.
       slugDoSite: sites.slug,
+      statusDoSite: sites.status,
       orderId: sites.orderId,
     })
     .from(siteInvites)
@@ -172,6 +175,7 @@ export async function getInviteDoDono(
     },
     siteId: l.siteId,
     slug: l.slugDoSite,
+    statusDoSite: l.statusDoSite,
     orderId: l.orderId,
   };
 }

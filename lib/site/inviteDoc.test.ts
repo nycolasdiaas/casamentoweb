@@ -112,6 +112,45 @@ describe("rotação", () => {
   });
 });
 
+describe("links", () => {
+  it("recusa esquema perigoso — o convite publicado é página aberta", () => {
+    // Um `javascript:` num <a> seria script rodando no navegador do
+    // convidado, e o campo é digitado à mão.
+    const doc = parseInviteDoc({
+      blocos: [
+        { tipo: "texto", id: "a", texto: "x", link: "javascript:alert(1)" },
+        { tipo: "texto", id: "b", texto: "x", link: "data:text/html,<script>" },
+      ],
+    });
+    expect((doc.blocos[0] as { link: string }).link).toBe("");
+    expect((doc.blocos[1] as { link: string }).link).toBe("");
+  });
+
+  it("completa o esquema de quem digitou só o domínio", () => {
+    const doc = parseInviteDoc({
+      blocos: [{ tipo: "texto", id: "a", texto: "x", link: "enlace.com.br/s/ana" }],
+    });
+    expect((doc.blocos[0] as { link: string }).link).toBe(
+      "https://enlace.com.br/s/ana"
+    );
+  });
+
+  it("mantém http — em desenvolvimento o servidor não fala https", () => {
+    // Bug real: o convite semeado montava `https://${endereco}` e o link para
+    // o site local dava ERR_SSL_PROTOCOL_ERROR.
+    const doc = parseInviteDoc({
+      blocos: [
+        { tipo: "texto", id: "a", texto: "x", link: "http://localhost:3000/s/ana" },
+        { tipo: "texto", id: "b", texto: "x", link: "/s/ana#presentes" },
+        { tipo: "texto", id: "c", texto: "x", link: "mailto:ana@exemplo.com" },
+      ],
+    });
+    expect((doc.blocos[0] as { link: string }).link).toBe("http://localhost:3000/s/ana");
+    expect((doc.blocos[1] as { link: string }).link).toBe("/s/ana#presentes");
+    expect((doc.blocos[2] as { link: string }).link).toBe("mailto:ana@exemplo.com");
+  });
+});
+
 describe("formato do convite", () => {
   it("convite antigo, sem medida gravada, continua 4:5", () => {
     // Os convites criados antes do formato variável não têm os campos. Cair

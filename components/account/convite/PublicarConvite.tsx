@@ -29,12 +29,14 @@ export default function PublicarConvite({
   urlInicial,
   noAr,
   temMudancaNaoSalva,
+  siteNoAr,
 }: {
   siteId: string;
   inviteId: string;
   urlInicial: string | null;
   noAr: boolean;
   temMudancaNaoSalva: boolean;
+  siteNoAr: boolean;
 }) {
   const [url, setUrl] = useState(urlInicial);
   const [publicado, setPublicado] = useState(noAr);
@@ -83,6 +85,18 @@ export default function PublicarConvite({
   return (
     <div className="surface-raised flex flex-col gap-2.5 rounded-[3px] p-4">
       <span className="meta text-(--c-ink-2)">O link do convite</span>
+
+      {/* Os botões do convite apontam para seções do SITE, e o site só
+          responde depois de publicado. Sem este aviso o casal manda o convite,
+          o convidado clica em "Lista de presentes" e cai num 404 — e ninguém
+          descobre por quê. */}
+      {!siteNoAr && (
+        <p className="text-[11.5px] leading-snug text-(--c-mark)">
+          O site de vocês ainda está em prévia. Os botões do convite
+          (presentes, confirmação) só vão funcionar depois que ele estiver no
+          ar.
+        </p>
+      )}
 
       {publicado && url ? (
         <>

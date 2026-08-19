@@ -75,6 +75,7 @@ export async function criarConviteAction(formData: FormData) {
       hora: v.weddingTime || null,
       local: v.ceremonyVenue.trim() || null,
       endereco: `${baseUrl.replace(/^https?:\/\//, "")}/s/${site.slug}`,
+      url: `${baseUrl.replace(/\/+$/, "")}/s/${site.slug}`,
     },
     tema.palette
   );

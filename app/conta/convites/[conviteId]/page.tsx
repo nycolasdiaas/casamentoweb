@@ -45,7 +45,7 @@ export default async function EditarConvitePage({
   const achado = await getInviteDoDono(conviteId, userId);
   if (!achado) notFound();
 
-  const { convite, siteId, slug, orderId } = achado;
+  const { convite, siteId, slug, statusDoSite, orderId } = achado;
   const [fotos, baseUrl] = await Promise.all([
     listSitePhotosFresh(siteId),
     getBaseUrl(),
@@ -97,6 +97,7 @@ export default async function EditarConvitePage({
               : null
           }
           noAr={convite.publishedAt !== null}
+          siteNoAr={statusDoSite === "published"}
         />
       </main>
     </div>

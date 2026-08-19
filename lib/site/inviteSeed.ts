@@ -23,7 +23,10 @@ export function conviteInicial(
     data: string | null;
     hora: string | null;
     local: string | null;
+    /** Como o endereço APARECE no convite, sem `https://`. */
     endereco: string;
+    /** O endereço de verdade, com esquema — é ele que vira link. */
+    url: string;
   },
   cores: ThemeCoresLocal
 ): InviteDoc {
@@ -124,7 +127,11 @@ export function conviteInicial(
     peso: "normal",
     alinhamento: "center",
     espacamento: 0.15,
-    link: `https://${dados.endereco}`,
+    // O `url` vem pronto de quem chamou, com o esquema certo. Montar
+    // `https://${endereco}` aqui — como estava — quebrava em desenvolvimento:
+    // o endereço chega sem esquema, e `https://localhost:3000` responde
+    // ERR_SSL_PROTOCOL_ERROR porque o servidor local fala http.
+    link: dados.url,
   });
 
   return {
