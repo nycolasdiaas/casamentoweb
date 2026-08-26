@@ -1,6 +1,6 @@
 # Spec 005 — B4–B9: a galeria de estilos (área: site-publico)
 
-**Status:** Pronta para implementação
+**Status:** Implementada (26/08/2026)
 
 ## Contexto
 
@@ -170,3 +170,70 @@ tabela.
 ## Perguntas em aberto
 
 Nenhuma.
+
+## Notas de implementação
+
+### Correções da spec
+
+- **FR-012 partiu de uma premissa errada: o link "Ver todos os estilos →" não
+  existe na home, e nunca existiu.** O Contexto diz "a home tem uma faixa com
+  três estilos e um link que não tem para onde ir". A home mostra **os seis**,
+  em `sm:grid-cols-3`, e cada cartão já leva à prévia daquele estilo. Não há
+  link solto para consertar. Com os seis já na tela, "Ver todos os estilos"
+  ali não diria nada — então a porta que a home ganhou foi rotulada pelo que a
+  galeria de fato acrescenta: **"Comparar fontes e paletas dos seis →"**. O
+  destino é o que FR-012 queria; o texto é o que a tela permite não mentir.
+
+- **FR-013 estava certo no destino e errado no rótulo, e os dois foram
+  trocados.** O link do `TemplateChrome` dizia "← Pacotes" e apontava para
+  `/`. Corrigir só o `href` deixaria escrito "Pacotes" num botão que leva a
+  estilos. Agora é **"← Estilos"** para `/pacotes/estilos`.
+
+- **SC-009 pede `display: "block"` no painel a 1440px; o valor é `"flex"`.** O
+  painel é uma coluna de itens empilhados, então `hidden lg:flex`. O que o
+  critério afere — visível no desktop, `none` a 390px, depois da grade no DOM
+  — está cumprido e medido.
+
+- **A borda de 1,5px do Editorial (FR-007) não podia ser classe.** Mesmo achado
+  de `site-publico/003`: o Tailwind não gera `border-[1.5px]`, conferido no CSS
+  do build. Vai como estilo inline, exatamente como o requisito a escreve.
+
+- **Dois critérios são `grep` que acusam a própria explicação.** SC-008 proíbe
+  "Usar este estilo" — e o comentário do arquivo cita a expressão para dizer
+  por que ela não é usada. SC-011 proíbe "← Pacotes" — e tanto o comentário
+  novo quanto a documentação antiga do `TemplateChrome` a citam para contar o
+  defeito corrigido. O teste tira os comentários antes de conferir. Terceira
+  vez que este padrão aparece nas specs; é o mesmo que travou
+  `design-system/006`.
+
+### O que a galeria acrescenta, e por que não é duplicata da home
+
+A faixa da home pinta cada cartão com `style.swatches` (uma lista de hex em
+`lib/templates.ts`) e com um mapa de classes de fonte escrito à mão
+(`STYLE_FONT_CLASS`). A galeria pinta com `getTemplate(id).defaultTheme` — o
+preset do molde de verdade. Trocar a paleta do Toscana muda o cartão da galeria
+sozinho; na home, não muda. **A faixa da home continua sendo a segunda verdade
+que §4.4.1 evita**, e isso agora está escrito: não entrou nesta spec porque
+mexer na home é fora de escopo, mas é candidato a spec própria.
+
+## Como cada critério foi conferido
+
+Medido no `next build` servido em `localhost:3000`:
+
+| Critério | Medida |
+|---|---|
+| SC-001 | `/pacotes/estilos` devolve **200**; `<title>Estilos | Enlace</title>` |
+| SC-002 | o HTML traz `SEIS ESTILOS` e `O mesmo amor, seis vestidos.` |
+| SC-003 | 6 cartões: Clássico, Moderno, Romântico, Toscana, Film, Editorial — a ordem de `TEMPLATE_STYLES` |
+| SC-004 | hero do Toscana em `rgb(243, 237, 221)`, que é o `#f3eddd` do `defaultTheme.palette.paper` dele; altura exata de 200px |
+| SC-005 | uma só etiqueta `A CASA`, no Editorial, com `border:1.5px solid var(--c-ink)` |
+| SC-006 | `?estilo=film`: painel com `Film`, `Títulos = Prata`, `Texto = Spectral` e os três quadrados em `#2a231b`, `#3c3227`, `#a5603a` — o preset do Film. O hero dele renderiza em `Prata` |
+| SC-007 | `?estilo=inexistente` devolve **200** e o painel mostra `Editorial` |
+| SC-008 | botão do painel: `/pacotes/estilos/film`, escrito `Ver este estilo` |
+| SC-009 | 390px: `display: none`. 1440px: `flex` (ver a correção). O painel vem depois da grade no DOM (`compareDocumentPosition`) e no texto lido |
+| SC-010 | a home aponta para `/pacotes/estilos` |
+| SC-011 | `TemplateChrome` aponta para `/pacotes/estilos`, escrito `← Estilos` |
+| SC-012 | sem diretiva de cliente e sem `useState`: a seleção viaja em `?estilo=` |
+| SC-013 | `build`, `lint` e `test` (36 arquivos, 425 testes) |
+| SC-014 | 1440px: `302.9px ×3`. 768px: `318.4px ×2`. 390px: uma coluna. `gap: 20px` nos três, sem rolagem horizontal |
+| SC-015 | os seis `carater` preenchidos; o do Film é `grão · mudo · cinematográfico` |

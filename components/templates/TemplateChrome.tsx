@@ -175,8 +175,12 @@ export default function TemplateChrome({
           }}
         >
           <div className="flex items-center justify-between gap-2">
-            <Link href="/" className="underline underline-offset-2">
-              ← Pacotes
+            {/* Para a GALERIA, não para a home. O rótulo diz "Pacotes" e
+                levava para "/" — quem clicava caía na landing inteira e
+                tinha que procurar de onde veio. O caminho de volta de uma
+                prévia é a tela onde se escolhe qual prévia abrir. */}
+            <Link href="/pacotes/estilos" className="underline underline-offset-2">
+              ← Estilos
             </Link>
             <Link href="/conta" className="underline underline-offset-2">
               Minha conta

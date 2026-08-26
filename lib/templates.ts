@@ -13,6 +13,16 @@ export type TemplateStyle = {
   name: string;
   description: string;
   swatches: string[];
+  /**
+   * Três palavras de caráter, para a galeria (`/pacotes/estilos`).
+   *
+   * Não é a `description` encurtada: a descrição argumenta ("Papelaria de
+   * casamento de luxo: serifas elegantes…") e serve a quem já parou num
+   * estilo. O caráter serve a quem está varrendo seis cartões de uma vez e
+   * precisa eliminar quatro em dois segundos — por isso são substantivos
+   * soltos, não frase.
+   */
+  carater: string;
 };
 
 export const TEMPLATE_STYLES: TemplateStyle[] = [
@@ -22,6 +32,7 @@ export const TEMPLATE_STYLES: TemplateStyle[] = [
     description:
       "Papelaria de casamento de luxo: serifas elegantes, molduras douradas, verde-oliva profundo.",
     swatches: ["#f2efe7", "#3d4a36", "#b8985f"],
+    carater: "serifa · dourado · simétrico",
   },
   {
     id: "moderno",
@@ -29,6 +40,7 @@ export const TEMPLATE_STYLES: TemplateStyle[] = [
     description:
       "Minimalismo editorial: tipografia enorme, grid preciso, um único acento de cor.",
     swatches: ["#fafafa", "#1c1c1c", "#bd5b32"],
+    carater: "sans · preto e branco · limpo",
   },
   {
     id: "romantico",
@@ -36,6 +48,7 @@ export const TEMPLATE_STYLES: TemplateStyle[] = [
     description:
       "Aquarela e flores: molduras ovais, tons pastel, caligrafia generosa.",
     swatches: ["#fdf2f4", "#7c4a55", "#d9a3ae"],
+    carater: "blush · script · suave",
   },
   {
     id: "toscana",
@@ -43,6 +56,7 @@ export const TEMPLATE_STYLES: TemplateStyle[] = [
     description:
       "Rústico chique italiano: oliva e dourado, capa full-bleed, caligrafia Italianno.",
     swatches: ["#f3eddd", "#33351f", "#9c8654"],
+    carater: "terracota · sol · rústico",
   },
   {
     id: "film",
@@ -50,6 +64,7 @@ export const TEMPLATE_STYLES: TemplateStyle[] = [
     description:
       "Clima de filme: terracota e âmbar, fotos em colagem, caligrafia Great Vibes.",
     swatches: ["#f3ebda", "#3c3227", "#a5603a"],
+    carater: "grão · mudo · cinematográfico",
   },
   {
     id: "editorial",
@@ -57,6 +72,7 @@ export const TEMPLATE_STYLES: TemplateStyle[] = [
     description:
       "Preto e branco de revista: data gigante, grid preciso, Archivo + Cormorant.",
     swatches: ["#f5f3ef", "#141414", "#7c7c78"],
+    carater: "grotesk · alto contraste",
   },
 ];
 

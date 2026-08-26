@@ -432,6 +432,17 @@ export default function PackagesPage() {
               </li>
             ))}
           </ul>
+
+          {/* A porta da galeria (`/pacotes/estilos`). Aqui os seis já estão
+              todos na tela, então "ver todos" não diria nada — o que a
+              galeria acrescenta é o painel de detalhe, com as fontes e a
+              paleta de cada estilo lado a lado. O rótulo promete isso. */}
+          <Link
+            href="/pacotes/estilos"
+            className="text-[13px] font-medium text-(--c-ink) underline underline-offset-4 mx-auto"
+          >
+            Comparar fontes e paletas dos seis →
+          </Link>
         </div>
       </section>
 
