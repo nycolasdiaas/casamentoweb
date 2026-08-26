@@ -17,8 +17,30 @@ export const ANCORA_DA_SECAO: Record<string, string> = {
   gallery: "fotos",
   rsvp: "confirmacao",
   gifts: "presentes",
+  guestbook: "recados",
   album: "album",
   footer: "final",
+};
+
+/**
+ * O rótulo curto — o que cabe na barra do site (F1).
+ *
+ * `SECTION_LABELS` não serve aqui: ele é o rótulo do PAINEL, escrito para o
+ * casal decidindo o que ligar ("Cerimônia e festa", "Lista de presentes",
+ * "Mural de recados"). Cinco rótulos desse tamanho numa barra, ao lado dos
+ * nomes do casal e do botão de confirmar, não caberiam nem num monitor.
+ *
+ * `cover`, `countdown`, `rsvp` e `footer` não estão aqui de propósito: as duas
+ * primeiras são onde o convidado já está quando a página abre, o rodapé não é
+ * destino, e a confirmação vira o botão do fim da barra.
+ */
+export const ROTULO_CURTO: Record<string, string> = {
+  story: "História",
+  details: "O dia",
+  gallery: "Galeria",
+  gifts: "Presentes",
+  guestbook: "Recados",
+  album: "Álbum",
 };
 
 /** Seções que fazem sentido virar botão num convite. */

@@ -53,7 +53,7 @@ que escreve texto novo tem como saber se errou.
 
 | # | Spec | Status | Depende de | Nota |
 |---|---|---|---|---|
-| 8 | [`site-publico/001-barra-do-site`](site-publico/001-barra-do-site/spec.md) — a barra fixa de F1 | **Pronta** | `design-system/006` | Corrige de passagem a âncora `#guestbook`, que hoje vaza nome interno |
+| 8 | [`site-publico/001-barra-do-site`](site-publico/001-barra-do-site/spec.md) — a barra fixa de F1 | **Implementada** | `design-system/006` | Corrige de passagem a âncora `#guestbook`, que hoje vaza nome interno |
 | 9 | [`site-publico/003-pagina-de-pacotes`](site-publico/003-pagina-de-pacotes/spec.md) — B2, hoje um `redirect("/")` | **Pronta ¹** | `design-system/001`, `006` | A pergunta em aberto (pré-selecionar pacote) é de produto e fica adiada |
 | 10 | [`site-publico/005-galeria-de-estilos`](site-publico/005-galeria-de-estilos/spec.md) — B4–B9, a porta de entrada das prévias | **Pronta** | `design-system/006` | As seis prévias existentes **não** são tocadas (SDD §4.4.1) |
 | 11 | [`site-publico/004-exemplo-por-pacote`](site-publico/004-exemplo-por-pacote/spec.md) — B3 | **Bloqueada** | `site-publico/001`, `003` | Decisão: redirecionar com o pacote, ou assumir a divergência |
@@ -106,6 +106,7 @@ que escreve texto novo tem como saber se errou.
 | 25/08/2026 | **Pré-trabalho concluído.** Os 6 moldes fotografados e medidos a 1440 (`shot:template` + medição por CDP). `site-publico/002` **continua Bloqueada** — a medição respondeu a pergunta que existia e levantou uma maior. Duas descobertas novas registradas: o eixo real da largura (cartão × largura cheia) e **três violações de voz** (`RSVP` visível ao convidado em `editorial` ×2 e `toscana` ×1), que reforçaram `design-system/006` com FR-003b e FR-004b. |
 | 26/08/2026 | **`design-system/005` implementada** (`selo-pop`, `.previa-saindo`, o sinal `?publicado=1`). Duas correções registradas na spec: o sinal sai só de `/api/pagamento/confirmar` (a ação do admin roda no navegador da equipe, não no do casal), e quem lê o parâmetro é `CascaDoPainel.tsx` e não a `page.tsx` — o selo mora num *layout*, e layout não recebe `searchParams`. 9 testes novos. |
 | 26/08/2026 | **`design-system/007` implementada** — a casca de e-mail vira tabela de 600px, com preheader, cabeçalho, rodapé e um botão de tinta por mensagem. Correção registrada: FR-005 (link repetido em texto) e SC-008 (texto intacto) colidiam no e-mail da prévia; FR-005 venceu e SC-008 passou a ser conferido frase a frase. Os três preheaders repetem frase já aprovada do corpo — vale revisão do dono, não bloqueia. 12 testes novos. **Onda 1 fechada.** |
+| 26/08/2026 | **`site-publico/001` implementada** — a barra fixa do site, server component, montada pelo `SiteRenderer` para alcançar os 6 moldes de uma vez. Corrige de passagem o `#guestbook`, que vazava nome interno no endereço do convidado. Correções registradas: o botão conta como item em FR-009; "classes de botão do molde" não existem (os 6 estilizam inline); o corte é container query, não media query. A medição a 390px pegou um defeito que o código não mostrava: os nomes comiam a faixa e sobravam 49px de âncoras — agora 96px. 14 testes novos. |
 
 ---
 

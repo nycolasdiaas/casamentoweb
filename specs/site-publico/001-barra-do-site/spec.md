@@ -1,6 +1,6 @@
 # Spec 001 — F1: a barra fixa do site publicado (área: site-publico)
 
-**Status:** Pronta para implementação
+**Status:** Implementada (26/08/2026)
 
 ## Contexto
 
@@ -166,3 +166,69 @@ habilitadas, `tier`) já chegam ao `SiteRenderer`.
 ## Perguntas em aberto
 
 Nenhuma.
+
+## Notas de implementação
+
+**A dependência de `design-system/006` não travou.** Aquela spec está
+Bloqueada, mas o que ela carregava para cá era uma regra de voz — o rótulo
+"Confirmar presença", nunca "RSVP". A regra foi cumprida direto e virou teste
+próprio (`BarraDoSite.test.tsx`), sem esperar o varredor.
+
+**Correções da spec, encontradas ao implementar:**
+
+- **FR-009 / SC-005 — o botão conta como item.** A spec escreve "menos de duas
+  âncoras" e o parêntese dá o exemplo de "um site só com capa e rodapé". Ao
+  pé da letra, um site com uma seção e confirmação de presença ficaria sem
+  barra — e sem o botão, que é o motivo de a barra existir. A regra
+  implementada é: some quando há menos de duas âncoras **e** não há botão.
+  SC-005 continua valendo como escrito, porque o exemplo dele é um pacote
+  Convite, que não tem confirmação.
+
+- **SC-003, "as classes de botão do molde": não existe uma.** Os seis moldes
+  estilizam os próprios CTAs inline (`background: var(--ink); color:
+  var(--paper)` em `classico` e `editorial`, e assim por diante) — `.btn` de
+  `app/globals.css` é da Prensa, do lado de dentro do painel, e não pode
+  atravessar para o site do casal. A barra repete o denominador comum dos
+  seis, que é a inversão `--ink` sobre `--paper`. O resto de SC-003 (último
+  elemento, `href="#confirmacao"`, texto exato) está conferido.
+
+- **SC-009 conta comentário.** `grep -c "use client"` não distingue diretiva
+  de prosa, e o comentário do arquivo explicava justamente por que a barra não
+  é client component. O comentário foi reescrito sem a palavra; o critério
+  passa pelo motivo certo (`grep -c` devolve `0`).
+
+- **Container query, não media query.** FR-003 e FR-008 falam em "abaixo de
+  1024px", mas o corte implementado é `@[700px]` sobre a largura do CARTÃO. É
+  a mesma escolha que o `SiteRenderer` já documenta: o site renderiza dentro
+  de um `<iframe>` de 390px na prévia do painel, e uma media query leria a
+  janela de 1440px e mostraria o desenho de desktop dentro do "modo celular".
+  O resultado medido bate com o pedido: 60px/22px no desktop, 52px/17px no
+  celular.
+
+**Ajuste que só a medição revelou.** Na primeira versão, a 390px, os nomes do
+casal (`shrink-0 truncate` — combinação em que o `truncate` nunca dispara)
+tomavam a faixa e sobravam **49px** de âncoras: uma faixa de rolagem onde não
+cabe um rótulo inteiro. Com teto de 30% nos nomes, botão compacto no celular
+e `gap-3 px-4`, a faixa passou a **96px**, com "História" e "O dia" inteiros
+na tela e o resto rolando.
+
+## Como cada critério foi conferido
+
+Medido no navegador com o `next build` servido em `localhost:3000` (dev serve
+CSS velho — Skill `cache-e-build`), no site de demonstração `ana-e-pedro`:
+
+| Critério | Medida |
+|---|---|
+| SC-001 | `.site-canvas` tem `NAV` como primeiro filho; `position: sticky`, `top: 0px`, `z-index: 20` |
+| SC-002 | `#historia História`, `#detalhes O dia`, `#fotos Galeria`, `#presentes Presentes`, `#recados Recados`, `#album Álbum` — nessa ordem, sem `#inicio`, `#contagem`, `#confirmacao` nem `#final` |
+| SC-002b | `ANCORA_DA_SECAO.guestbook` devolve `recados`; os `id` da página são `inicio, contagem, historia, detalhes, fotos, confirmacao, presentes, recados, album, final` |
+| SC-003 | último filho: `A` · `#confirmacao` · `Confirmar presença` |
+| SC-004 | teste de unidade com as seções do pacote Convite: nenhum `a[href="#confirmacao"]` |
+| SC-005 | teste de unidade: uma âncora e sem botão, e a barra não renderiza |
+| SC-006 | clicar em "Presentes" deixa a seção em `top: 68px` e o título em `221px` (`scroll-margin-top: 68px`) |
+| SC-007 | a 390px reais (emulação de aparelho): `scrollWidth` e `clientWidth` iguais a 390; faixa com `overflow-x: auto`, 332px de conteúdo em 96px visíveis, barra de rolagem com 0px de altura; botão inteiro na tela |
+| SC-008 | `verify:template` nos 6 moldes: 54 verificações `ok`, nenhuma falha. Mais um teste que reprova qualquer hex literal no arquivo |
+| SC-009 | `grep -c "use client" components/site/BarraDoSite.tsx` devolve `0` |
+| SC-010 | `/preview/<token>`: a barra existe, começa em `39px` (abaixo da faixa de prévia) e gruda em `0px` ao rolar |
+| SC-011 | `build`, `lint` e `test` (34 arquivos, 397 testes) |
+| SC-012 | 1440px: 22px em `Cormorant Garamond` (o `--font-display` do tema). 390px: 17px |

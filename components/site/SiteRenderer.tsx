@@ -8,6 +8,7 @@ import TrackView from "@/components/TrackView";
 import RevealOnScroll from "@/components/ui/RevealOnScroll";
 import PhotoLightbox from "@/components/site/PhotoLightbox";
 import { ANCORA_DA_SECAO } from "@/lib/site/ancoras";
+import BarraDoSite from "@/components/site/BarraDoSite";
 
 /**
  * Renderiza o site de um casal: molde + tokens + conteúdo.
@@ -81,6 +82,14 @@ export default function SiteRenderer({
         className="site-canvas @container w-full max-w-[480px] lg:max-w-[1120px] flex flex-col shadow-2xl font-[family-name:var(--font-body)]"
         style={{ background: "var(--paper)", color: "var(--ink)" }}
       >
+        {/* F1 · a barra fixa. Primeiro filho do cartão porque é `sticky`:
+            um irmão acima dela dentro do mesmo contexto de rolagem a
+            empurraria para fora antes de ela grudar.
+
+            Recebe as chaves JÁ filtradas por pacote e pela escolha do casal —
+            a barra nunca inventa um destino que a página não tem. */}
+        <BarraDoSite nomes={content.coupleNames} chaves={chaves} />
+
         <TrackView siteSlug={slug} />
 
         {/* A coreografia de rolagem mora aqui, num componente só, e alcança
@@ -107,7 +116,14 @@ export default function SiteRenderer({
         {chaves.map((key) => {
           const Section = template.sections[key]!;
           return (
-            <div key={key} id={ANCORA_DA_SECAO[key] ?? key} className="scroll-mt-4">
+            <div
+              key={key}
+              id={ANCORA_DA_SECAO[key] ?? key}
+              /* A barra cobre 52px no celular e 60px no desktop; o respiro de
+                 8px separa o título do fio de baixo. Sem isto, clicar numa
+                 âncora esconde justamente o título da seção que se pediu. */
+              className="scroll-mt-[60px] @[700px]:scroll-mt-[68px]"
+            >
               <Section {...props} />
             </div>
           );
