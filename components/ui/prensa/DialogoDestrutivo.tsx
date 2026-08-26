@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
  * A4 · Diálogo destrutivo.
@@ -43,17 +43,42 @@ export default function DialogoDestrutivo({
   form?: { action: (formData: FormData) => void; campos: React.ReactNode };
 }) {
   const [aberto, setAberto] = useState(false);
+  /* `saindo` existe para o diálogo continuar montado durante o fade reverso.
+     Sem ele, fechar é desmontar — e desmontar não anima: a caixa some no
+     quadro do clique, que é o corte de cena que a transição #3 evita na
+     entrada e evitaria à toa se não evitasse também na saída. */
+  const [saindo, setSaindo] = useState(false);
   const manterRef = useRef<HTMLButtonElement>(null);
+
+  /* Fechar é uma sequência, não um `setState`. Os 140ms são `--t-rapido`, o
+     mesmo tempo da confirmação de toque: a saída é reconhecimento de que o
+     gesto foi recebido, não uma cena.
+
+     Sob movimento reduzido o tempo vai a zero — ali a transição é confirmação,
+     e confirmação atrasada é confirmação pior. */
+  const fechar = useCallback(() => {
+    const menos = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const ligado = document.documentElement.dataset.movimento === "ligado";
+    if (menos && !ligado) {
+      setAberto(false);
+      return;
+    }
+    setSaindo(true);
+    window.setTimeout(() => {
+      setSaindo(false);
+      setAberto(false);
+    }, 140);
+  }, []);
 
   useEffect(() => {
     if (!aberto) return;
     const esc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setAberto(false);
+      if (e.key === "Escape") fechar();
     };
     document.addEventListener("keydown", esc);
     manterRef.current?.focus();
     return () => document.removeEventListener("keydown", esc);
-  }, [aberto]);
+  }, [aberto, fechar]);
 
   return (
     <>
@@ -75,11 +100,15 @@ export default function DialogoDestrutivo({
           <button
             type="button"
             aria-label="Fechar"
-            onClick={() => setAberto(false)}
-            className="absolute inset-0 bg-[rgb(26_29_33/0.35)] cursor-default"
+            onClick={fechar}
+            className={`dialogo-scrim absolute inset-0 bg-[rgb(26_29_33/0.35)] cursor-default${
+              saindo ? " dialogo-saindo" : ""
+            }`}
           />
 
-          <div className="motion-rise-in relative surface-raised rounded-[3px] p-6 w-full max-w-[420px] flex flex-col gap-3 shadow-[0_12px_40px_rgb(26_29_33/0.20)]">
+          <div className={`dialogo-caixa relative surface-raised rounded-[3px] p-6 w-full max-w-[420px] flex flex-col gap-3 shadow-[0_12px_40px_rgb(26_29_33/0.20)]${
+              saindo ? " dialogo-saindo" : ""
+            }`}>
             <p className="t-display text-[22px] leading-tight text-(--c-ink)">
               {titulo}
             </p>
@@ -89,7 +118,7 @@ export default function DialogoDestrutivo({
               <button
                 ref={manterRef}
                 type="button"
-                onClick={() => setAberto(false)}
+                onClick={fechar}
                 className="btn btn-texto btn-sm"
               >
                 {manter}
@@ -106,6 +135,9 @@ export default function DialogoDestrutivo({
                 <button
                   type="button"
                   onClick={() => {
+                    /* Aqui NÃO se espera o fade: a ação destrutiva já foi
+                       confirmada, e 140ms de espera entre o clique e o efeito
+                       é latência que o gesto não pediu. */
                     setAberto(false);
                     onConfirmar?.();
                   }}

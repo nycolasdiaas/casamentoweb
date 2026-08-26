@@ -819,6 +819,57 @@ body:has(.ui-prensa) {
 }
 
 /* --------------------------------------------------------------------------
+   Transição #3 do HANDOFF-motion — o diálogo.
+
+   O handoff §3 item 3 pede scrim em `fade` e caixa em
+   `scale(.96)→1 + translateY(8px)→0`, com `--base`. A caixa usava
+   `.motion-rise-in`, que é a entrada genérica de card: `translateY(20px)`, sem
+   escala.
+
+   A diferença não é cosmética. Um percurso de 20px sem escala é o mesmo
+   vocabulário de um card entrando numa lista — e uma caixa modal que sobe como
+   card não lê como "algo se abriu SOBRE a tela". A escala é o que dá essa
+   leitura: 4% é pouco o bastante para não parecer zoom e o suficiente para o
+   olho registrar que a peça veio de outro plano.
+
+   O scrim entrava sem transição nenhuma, de uma vez. Um fundo que escurece
+   instantaneamente lê como corte de cena, não como camada.
+   -------------------------------------------------------------------------- */
+@keyframes dialogo-caixa {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.ui-prensa .dialogo-caixa {
+  animation: dialogo-caixa var(--t-base) var(--e-saida) both;
+}
+
+.ui-prensa .dialogo-scrim {
+  animation: motion-fade var(--t-base) var(--e-saida) both;
+}
+
+/* O fade REVERSO do fechamento (§6 item 5). Vale para o scrim e para a caixa:
+   a caixa some por opacidade, sem desfazer a escala de trás para frente — sair
+   encolhendo chamaria atenção para a saída, que é o oposto do que se quer. */
+.ui-prensa .dialogo-saindo {
+  animation: motion-fade var(--t-rapido) var(--e-suave) reverse both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Escala e deslocamento saem; a opacidade fica. O diálogo continua chegando
+     em tempo que o olho pega, só sem vir de outro plano. */
+  html:not([data-movimento="ligado"]) .ui-prensa .dialogo-caixa {
+    animation: motion-fade var(--t-reduzido) var(--e-suave) both;
+  }
+}
+
+/* --------------------------------------------------------------------------
    Seção que o pacote acabou de liberar, na vitrine.
 
    Trocar de plano rearranjava as seções e pronto — a crítica foi exata: "não
