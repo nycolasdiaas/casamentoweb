@@ -819,6 +819,64 @@ body:has(.ui-prensa) {
 }
 
 /* --------------------------------------------------------------------------
+   Transição #6 do HANDOFF-motion — publicar → no ar.
+
+   É a única sequência do produto que pode passar de 620ms: o §5 do handoff é
+   explícito ("> 700ms só na sequência de publicar"). E é o único momento em
+   que o casal tem algo a comemorar dentro do painel — o site saiu da prévia.
+
+   O selo estoura para 1.08 antes de assentar em 1. Sem esse exagero no meio a
+   escala vira um zoom, não uma chegada — é a mesma razão do `stamp-bater` do
+   carimbo, e o mesmo motivo de ele existir num lugar só.
+
+   O atraso de 700ms não é folga: ele deixa a marca d'água sair primeiro. Os
+   dois ao mesmo tempo seriam duas coisas disputando o olho no momento em que
+   se quer que ele vá para uma.
+   -------------------------------------------------------------------------- */
+@keyframes selo-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.ui-prensa .selo-noar {
+  animation: selo-pop var(--t-base) var(--e-saida) 700ms both;
+}
+
+/* A marca d'água da prévia saindo, em `--lento`. Entregue aqui e consumida
+   por `specs/painel-casal/008-e10-publicar`, que é quem cria a marca sobre a
+   miniatura do painel. Enquanto aquela spec não existir, esta classe fica
+   declarada e sem uso — é a metade que esta spec fecha sozinha sem inventar a
+   tela da outra. */
+.ui-prensa .previa-saindo {
+  animation: motion-fade var(--t-lento) var(--e-saida) reverse both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* A escala sai; a chegada fica. O selo continua aparecendo — ele é a
+     informação ("está no ar"), e informação não é o que `reduce` pede para
+     cortar. */
+  html:not([data-movimento="ligado"]) .ui-prensa .selo-noar {
+    animation: motion-fade var(--t-reduzido) var(--e-suave) both;
+  }
+  /* A marca d'água já nasce ausente: o resultado final é idêntico, sem o
+     percurso. */
+  html:not([data-movimento="ligado"]) .ui-prensa .previa-saindo {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/* --------------------------------------------------------------------------
    Transição #4 do HANDOFF-motion — o brinde.
 
    Entra subindo 24px em `--base`, fica 4s, e sai pelo mesmo caminho em

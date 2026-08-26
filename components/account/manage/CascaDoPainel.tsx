@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { useEffect } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Abas, EtiquetaDoPedido, type Aba } from "@/components/ui/prensa";
 import Avisos from "@/components/account/manage/Avisos";
 import type { Aviso } from "@/lib/site/avisos";
@@ -48,6 +49,45 @@ export default function CascaDoPainel({
 }) {
   const caminho = usePathname();
 
+  /* Transição #6 — a batida do selo "No ar".
+
+     O sinal vem de `?publicado=1`, posto por `/api/pagamento/confirmar` só
+     quando AQUELA chamada foi a que publicou. Lido aqui e não na página
+     porque o selo mora na casca, que é um layout — e layout não recebe
+     `searchParams` no App Router.
+
+     A dupla guarda importa: `status === "published"` junto com o parâmetro.
+     Digitar `?publicado=1` na barra de endereços com o pedido ainda em prévia
+     não pode animar nada — o selo diria "no ar" sobre um site que não está.
+
+     `useSearchParams` e não `window.location` num efeito: ler no render evita
+     o `setState` em efeito que o lint reprova com razão (é um render a mais
+     para uma informação que já existia). O limite de Suspense que ele exige
+     já está em `app/conta/layout.tsx`, envolvendo esta árvore inteira. */
+  const busca = useSearchParams();
+  const bateuOSelo =
+    status === "published" && busca.get("publicado") === "1";
+
+  /* O parâmetro sai do endereço depois de a animação começar. Sem isso,
+     recarregar repetiria a comemoração, e um link do painel copiado com
+     `?publicado=1` comemoraria de novo na próxima pessoa que abrisse.
+     Comemoração que se repete vira tique nervoso.
+
+     `replaceState` e não `router.replace`: trocar a URL pelo roteador
+     remontaria a árvore e mataria a animação no meio. Aqui só o endereço
+     muda; o React não fica sabendo, que é exatamente o que se quer. */
+  useEffect(() => {
+    if (!bateuOSelo) return;
+    const params = new URLSearchParams(window.location.search);
+    params.delete("publicado");
+    const resto = params.toString();
+    window.history.replaceState(
+      null,
+      "",
+      window.location.pathname + (resto ? `?${resto}` : "")
+    );
+  }, [bateuOSelo]);
+
   /* A aba ativa é a mais ESPECÍFICA que casa com o caminho.
      Comparar por prefixo direto acenderia "Início" em todas as telas — o
      href dele é o prefixo de todos os outros. Pegando o mais longo que casa,
@@ -71,7 +111,10 @@ export default function CascaDoPainel({
           <span className="t-display text-[20px] leading-none text-(--c-ink) truncate">
             {titulo}
           </span>
-          <EtiquetaDoPedido status={status} />
+          <EtiquetaDoPedido
+            status={status}
+            className={bateuOSelo ? "selo-noar" : undefined}
+          />
         </div>
         <div className="flex items-center gap-1 shrink-0">
           {linkDoSite && (

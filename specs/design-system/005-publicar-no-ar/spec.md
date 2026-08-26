@@ -58,9 +58,22 @@ ação do admin (SDD §7.2). Os três terminam com o casal chegando em
   DEVEM redirecionar para `/conta/pedidos/<id>?publicado=1` **apenas quando
   `publishSiteForOrder` de fato mudou o status para `published` nesta
   chamada** — nunca quando ele foi idempotente (site já publicado).
+  > **Corrigido na implementação:** a ação do admin **não emite** o sinal, e
+  > não tem como — `admin-order-actions.ts` roda no navegador da equipe, não
+  > no do casal. Quem publica pelo admin faz o casal encontrar o site já no ar
+  > da próxima vez que abrir o painel, sem a batida. É o certo: o momento não
+  > é dele. FR-004 vale só para `/api/pagamento/confirmar`.
+
 - **FR-005:** `app/conta/pedidos/[id]/page.tsx` DEVE ler `?publicado=1` e,
   quando presente, aplicar `.selo-noar` na `EtiquetaDoPedido` da casca do
   painel (`CascaDoPainel.tsx`).
+
+  > **Corrigido na implementação:** quem lê o parâmetro é a própria
+  > `CascaDoPainel.tsx`, não a `page.tsx`. O selo mora na casca, que é um
+  > *layout* — e layout não recebe `searchParams` no App Router. A leitura é
+  > `useSearchParams()` no render (ler num efeito para guardar em `useState`
+  > é o que `react-hooks/set-state-in-effect` reprova, com razão).
+
 - **FR-005b:** A classe `.previa-saindo` é **entregue aqui e consumida em
   `specs/painel-casal/008-e10-publicar`**, que é quem cria a marca d'água
   sobre a miniatura do painel. Enquanto 007 não existir, `.previa-saindo`
@@ -141,3 +154,27 @@ uma navegação resolve o mesmo problema sem custo.
 ## Perguntas em aberto
 
 Nenhuma.
+
+## Notas de implementação
+
+Como cada critério foi conferido, quando o meio foi diferente do escrito:
+
+- **SC-001, SC-006, SC-009, SC-010** — `components/account/manage/CascaDoPainel.test.tsx`
+  (6 testes). O caso do parâmetro digitado à mão num pedido em prévia é o
+  primeiro deles.
+- **SC-002, SC-003** — `app/api/pagamento/confirmar/route.test.ts` (3 testes,
+  toda a conversa externa em dublê). O terceiro cobre o galho de falha, que a
+  spec não pedia mas divide a mesma linha.
+- **SC-004, SC-005, SC-007** — a spec pedia `getComputedStyle` num navegador.
+  Conferido no chunk de CSS do `next build`, que é a fonte de verdade do
+  projeto (`app/globals.css` em dev serve o chunk anterior — ver Skill
+  `cache-e-build`). O compilado traz, literalmente:
+  `@keyframes selo-pop{0%{opacity:0;transform:scale(.8)}55%{opacity:1;transform:scale(1.08)}to{opacity:1;transform:scale(1)}}`,
+  `.ui-prensa .selo-noar{animation:selo-pop var(--t-base) var(--e-saida) .7s both}`,
+  `.ui-prensa .previa-saindo{animation:motion-fade var(--t-lento) var(--e-saida) reverse both}`
+  e as duas quedas de movimento reduzido
+  (`.selo-noar{animation:motion-fade var(--t-reduzido) var(--e-suave) both}`,
+  `.previa-saindo{opacity:0;animation:none}`).
+- **SC-008** — `npm run build`, `npm run lint` e `npm run test` na íntegra;
+  `lib/site/publish.test.ts` intacto (a idempotência de §7.2 continua sendo o
+  que este sinal lê).

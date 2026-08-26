@@ -97,6 +97,7 @@ que escreve texto novo tem como saber se errou.
 | Quando | O quê |
 |---|---|
 | 25/08/2026 | **Pré-trabalho concluído.** Os 6 moldes fotografados e medidos a 1440 (`shot:template` + medição por CDP). `site-publico/002` **continua Bloqueada** — a medição respondeu a pergunta que existia e levantou uma maior. Duas descobertas novas registradas: o eixo real da largura (cartão × largura cheia) e **três violações de voz** (`RSVP` visível ao convidado em `editorial` ×2 e `toscana` ×1), que reforçaram `design-system/006` com FR-003b e FR-004b. |
+| 26/08/2026 | **`design-system/005` implementada** (`selo-pop`, `.previa-saindo`, o sinal `?publicado=1`). Duas correções registradas na spec: o sinal sai só de `/api/pagamento/confirmar` (a ação do admin roda no navegador da equipe, não no do casal), e quem lê o parâmetro é `CascaDoPainel.tsx` e não a `page.tsx` — o selo mora num *layout*, e layout não recebe `searchParams`. 9 testes novos. |
 
 ---
 
