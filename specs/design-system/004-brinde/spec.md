@@ -1,6 +1,6 @@
 # Spec 004 — Transição #4: o brinde (toast) (área: design-system)
 
-**Status:** Pronta para implementação
+**Status:** Implementada (26/08/2026)
 
 ## Contexto
 

@@ -1,6 +1,6 @@
 # Spec 007 — A casca dos e-mails transacionais (área: design-system)
 
-**Status:** Pronta para implementação
+**Status:** Implementada (26/08/2026)
 
 ## Contexto
 

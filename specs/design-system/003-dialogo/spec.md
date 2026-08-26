@@ -1,6 +1,6 @@
 # Spec 003 — Transição #3: diálogo (área: design-system)
 
-**Status:** Pronta para implementação
+**Status:** Implementada (26/08/2026)
 
 ## Contexto
 

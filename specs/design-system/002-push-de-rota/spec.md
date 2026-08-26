@@ -1,6 +1,6 @@
 # Spec 002 — Transição #1: push de rota com direção (área: design-system)
 
-**Status:** Pronta para implementação — a pergunta em aberto trata de escopo **futuro** (a saída), já declarado fora de escopo, e não trava nenhum requisito abaixo.
+**Status:** Implementada (26/08/2026)
 
 ## Contexto
 
