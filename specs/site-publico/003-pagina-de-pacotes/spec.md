@@ -1,6 +1,6 @@
 # Spec 003 — B2: a página `/pacotes` (área: site-publico)
 
-**Status:** Pronta para implementação
+**Status:** Implementada (26/08/2026)
 
 ## Contexto
 
@@ -166,3 +166,105 @@ Nenhum.
    As respostas do acordeão (FR-011) **não** são pergunta em aberto: são
    texto a redigir, e `regras-de-negocio.md` §4 e §2.4 já contêm o conteúdo
    das três.
+
+## Notas de implementação
+
+### O texto passou pelo `regras-de-negocio`, como FR-011 manda
+
+As três respostas do acordeão são as que o agente redigiu, com os vereditos:
+
+| Dúvida | Veredito | O que mudou por causa dele |
+|---|---|---|
+| Pagamento único | PODE, COM AJUSTE | "sem mensalidade" sai **sem asterisco**. O que NÃO entrou: "o site fica no ar para sempre" — o documento não diz por quanto tempo, e `lib/packages.ts` só promete "para sempre" no pacote de R$ 99,90. Prometer nos três seria inventar cobertura |
+| Trocar de estilo | PODE | Com uma ressalva que eu não previa e que virou o segundo parágrafo: **as cores sobrevivem à troca, as fontes não**. `theme-actions.ts:109` reescreve `fonts` com o padrão do molde novo, de propósito (§2.3). Sem esse parágrafo a vitrine prometeria "não perde nada", e a promessa seria falsa |
+| Lista de presentes | PODE, COM AJUSTE | O ajuste é uma palavra: **confirmação** não aparece em lugar nenhum da resposta. O convidado auto-declara que pagou; a Enlace não observa o Pix. O texto diz "ele avisa que fez o Pix" e manda o casal ao extrato — que é onde a verdade mora |
+
+**Duas perguntas para o dono saíram daí** (não bloqueiam esta spec — o texto
+acima é seguro e fica calado sobre as duas):
+
+1. **O domínio próprio do "Para Sempre" renova todo ano. Quem paga?** O pacote
+   vende `anaepedro.com.br` por R$ 99,90 uma vez, e registro `.com.br` é
+   anual. Ou a Enlace absorve para sempre, ou existe cobrança futura — e aí
+   "sem mensalidade" ganha asterisco.
+2. **Por quanto tempo o site de Convite e Site do Casamento fica no ar?** Sem
+   resposta, a vitrine não pode dizer nada sobre isso.
+
+### Correções da spec
+
+- **FR-007, "os rótulos DEVEM vir de `SECTION_LABELS`": não vieram, e o
+  próprio SC-004 concorda.** `SECTION_LABELS` é o mapa do PAINEL — fala com
+  quem já comprou. Ele diz "Nossa história", e na vitrine "nossa" vira a
+  Enlace falando da própria história. Diz "Lista de presentes", perdendo o Pix
+  — que é o único diferencial que sustenta o salto de R$ 29,90 para R$ 99,90,
+  e SC-004 já escreve a linha como "Lista de presentes com Pix". E diz "Álbum
+  da festa", que soa como algo que vem junto na compra, quando as fotos só
+  existem depois do casamento. Nasceu `lib/site/vitrine.ts` com
+  `LINHAS_DA_VITRINE`, mesmo movimento do `ROTULO_CURTO` de `ancoras.ts`: um
+  rótulo serve a um leitor, e o Enlace tem três. **O que FR-007 de fato
+  protege continua intacto** — o ✓/✕ sai de `tierAllowsSection`, nunca de uma
+  lista à mão, e SC-005 foi provado com o gating de verdade.
+
+- **Duas linhas do produto ficaram de fora da grade, e é decisão consciente.**
+  "Endereço personalizado" não é `SectionKey`, então `tierAllowsSection` nunca
+  a produziria — e ela é justamente a que carrega a pergunta 1 do dono.
+  "Capa / Save the Date" ficou de fora porque tem contradição ativa: as regras
+  §4 marcam a linha nos três pacotes e `lib/packages.ts:46` vende "Save the
+  Date personalizado" como exclusivo do Site do Casamento. Incluí-la seria
+  escolher um lado de algo que ninguém resolveu.
+
+- **FR-001, `title: "Pacotes | Enlace"` ao pé da letra sai errado.** O layout
+  raiz tem `template: "%s | Enlace"`, então a página declara só `"Pacotes"` e
+  a aba mostra `Pacotes | Enlace` — que é o que o requisito quer.
+
+- **FR-008 não podia depender de classe: o Tailwind não gera
+  `border-[1.5px]`.** Conferido no CSS do build — a regra simplesmente não
+  existe, e a borda do "Para Sempre" saía idêntica à dos vizinhos. A borda
+  virou estilo inline, exatamente como o requisito a escreve.
+
+- **SC-008 pede a aresta do cartão em `x = 48`; ela fica em `96`.** `.trilho`
+  é `max-width: 1504px` **com** `padding-inline: 48px` e `box-sizing:
+  border-box`. A 1600px de largura útil, a caixa do trilho começa em 48 e o
+  conteúdo dentro dela em 96. Não há como um filho do trilho começar em 48 sem
+  furar o próprio trilho — o número do critério foi calculado como se o trilho
+  não tivesse recuo. FR-003 (o conteúdo vive dentro do `.trilho`) está
+  cumprido e medido.
+
+- **SC-010 e SC-001 são `grep` cru, e contam a cura como doença.** A página
+  diz "não tem orçamento" — negando o funil — e o comentário do arquivo
+  explica que ela "era um `redirect`" e que §7 descartou o "funil por
+  WhatsApp". Um `grep -c` acusa as três. É o mesmo defeito que travou
+  `design-system/006`: **um literal não é uma promessa**. O teste tira os
+  comentários primeiro e confere a negação como negação.
+
+- **SC-014 não é mensurável por `getComputedStyle` nesta máquina.** Com o
+  monitor a 125%, o Chrome devolve a largura de borda já ajustada ao pixel do
+  aparelho: um `1px` real e um `1.5px` real **os dois** aparecem como
+  `0.8px` (calibrado no navegador com dois elementos de teste). Conferido pelo
+  que está declarado no DOM — `border:1.5px solid var(--c-ink)` no
+  "Para Sempre" contra `border:1px solid var(--c-rule)` nos outros dois — e
+  pelas cores resolvidas, que diferem corretamente. **Fica o registro:** num
+  monitor com escala, a distinção de meio pixel do desenho não se vê. Ela está
+  certa e é o que o protótipo pede, mas não é ela que separa o cartão — quem
+  faz esse trabalho é a etiqueta MAIS ESCOLHIDO.
+
+## Como cada critério foi conferido
+
+Medido no `next build` servido em `localhost:3000`:
+
+| Critério | Medida |
+|---|---|
+| SC-001 | `curl -sI /pacotes` devolve **200**. Sem `redirect(` e sem `next/navigation` no código |
+| SC-002 | o HTML traz `Escolha uma vez.` e `PAGAMENTO ÚNICO · SEM MENSALIDADE` |
+| SC-003 | `R$ 9,90 / R$ 29,90 / R$ 99,90`, todos em `.t-data` de 38px; a página não escreve preço nenhum, só chama `formatPriceCents(pacote.priceCents)` |
+| SC-004 | 8 linhas nos três cartões; "Lista de presentes com Pix" ✓ só no "Para Sempre" |
+| SC-005 | **provado com o gating de verdade**: acrescentei `guestbook` a `TIER_SECTIONS.site`, reconstruí, e "Mural de recados" virou ✓ no cartão do meio — Convite seguiu ✕ e Álbum seguiu ✕ — sem tocar em `/pacotes`. Revertido e reconferido depois |
+| SC-006 | 1 `.btn-ink` e 2 `.btn-quiet` na grade |
+| SC-007 | com sessão, os três apontam para `/conta/pedido/novo`, com os rótulos `Escolher Convite`, `Escolher Site do Casamento`, `Escolher Para Sempre` |
+| SC-008 | caixa do `.trilho` em `x = 48`, cartão em `x = 96` — ver a correção acima |
+| SC-009 | `<details>`/`<summary>` nativos; clicar no `summary` abre a resposta e a página não tem JS de acordeão nenhum |
+| SC-010 | nenhum `wa.me`, `whatsapp`, `especialista` ou `consulte valores`; "orçamento" só na frase que o nega |
+| SC-011 | `build`, `lint` e `test` (35 arquivos, 411 testes) |
+| SC-012 | `AccountNav` em `<Suspense>` no topo e o rodapé oliva, os mesmos da home |
+| SC-013 | 1600px: `456px 456px 456px`, `gap: 20px`. 390px: uma coluna de `342.4px`, sem rolagem horizontal |
+| SC-014 | etiqueta `MAIS ESCOLHIDO` em `rgb(184, 65, 44)` (`--c-mark`), sobre a borda de cima; larguras de borda conferidas pelo declarado — ver a correção acima |
+| SC-015 | exatamente 3 `<summary>`, com os textos literais do artboard; as respostas passaram pelo `regras-de-negocio` e nenhuma promete confirmação de Pix nem tempo no ar |
