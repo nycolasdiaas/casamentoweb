@@ -568,6 +568,12 @@ body:has(.ui-prensa) {
   --c-sunken: #e5e5e0; /* campos, trilhos, deboss */
   --c-ink: #1a1d21; /* texto principal — 14.8:1 sobre a base */
   --c-ink-2: #5a5f66; /* secundário — 6.4:1 */
+  /* Terciário: placeholder, campo desabilitado, item que o pacote não inclui.
+     É o oitavo neutro da prancha A1, e era o único que faltava — o valor
+     circulava como hex literal em três regras deste arquivo. A prancha diz
+     "use só os tokens. nenhuma cor solta", e um valor de sistema repetido à
+     mão é a mesma classe de defeito que a `.trilho` corrigiu para a largura. */
+  --c-ink-3: #8b9099; /* terciário / placeholder */
   --c-rule: #c9c9c2; /* fios de 1px */
   --c-mark: #b8412c; /* marca de registro — UMA vez por tela */
 
@@ -1028,7 +1034,7 @@ body:has(.ui-prensa) {
 .ui-prensa .btn-ink[aria-disabled="true"] {
   background-color: var(--c-sunken);
   border-color: var(--c-sunken);
-  color: #8b9099;
+  color: var(--c-ink-3);
   box-shadow: none;
   opacity: 1;
 }
@@ -1090,7 +1096,7 @@ body:has(.ui-prensa) {
 }
 
 .ui-prensa .campo::placeholder {
-  color: #8b9099;
+  color: var(--c-ink-3);
 }
 
 /* No foco o campo SOBE para o branco e ganha o anel de registro. É a única
@@ -1111,7 +1117,7 @@ body:has(.ui-prensa) {
 .ui-prensa .campo:disabled {
   background-color: var(--c-base);
   border-color: var(--c-sunken);
-  color: #8b9099;
+  color: var(--c-ink-3);
   box-shadow: none;
   cursor: not-allowed;
 }
@@ -1317,6 +1323,10 @@ body:has(.ui-prensa.admin) {
   --c-sunken: #16181b;
   --c-ink: #f2f2ef;
   --c-ink-2: #9aa0a8;
+  /* O terciário do escuro é o cinza que a prancha G usa no rótulo "admin" da
+     barra e no "SESSÃO PROTEGIDA" do login — não o mesmo do claro, que sobre
+     #16181b ficaria mais claro que o secundário e inverteria a hierarquia. */
+  --c-ink-3: #6b7178;
   --c-rule: #32363c;
   /* A marca de registro clareia no escuro: #b8412c sobre #16181b dá 3.5:1 e
      some. Este dá 5.1:1. */
