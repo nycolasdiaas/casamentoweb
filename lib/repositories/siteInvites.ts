@@ -1,6 +1,6 @@
 import { and, asc, eq, isNotNull, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { siteInvites, sites } from "@/lib/db/schema";
+import { siteContent, siteInvites, sites } from "@/lib/db/schema";
 import { generateUniqueSlug } from "@/lib/slug";
 import { cacheLife, cacheTag } from "next/cache";
 
@@ -280,6 +280,56 @@ export async function getConvitePublicado(slug: string): Promise<{
     },
     siteSlug: l.slugDoSite,
     siteId: l.siteId,
+  };
+}
+
+/**
+ * O convite EXISTIU e saiu do ar? — a diferença entre H1 e H2.
+ *
+ * `getConvitePublicado` devolve `null` nos dois casos: slug que nunca existiu
+ * e convite despublicado. Para o convidado eles são situações opostas.
+ *
+ * - Slug inventado → 404, "não achamos".
+ * - Convite despublicado → **410**, e o casamento provavelmente continua de
+ *   pé. A prancha H2 manda oferecer o site do casamento como alternativa, e
+ *   para isso é preciso saber QUAL casamento é.
+ *
+ * Sem esta consulta, o `not-found.tsx` não tem como montar o cartão do
+ * casamento — ele não recebe os parâmetros da rota que o disparou.
+ */
+export async function getConviteDespublicado(slug: string): Promise<{
+  siteSlug: string;
+  siteNoAr: boolean;
+  nomesDoCasal: string | null;
+  weddingDate: Date | null;
+  cidade: string | null;
+} | null> {
+  "use cache";
+  cacheTag(conviteTag(slug));
+  cacheLife("days");
+
+  const [l] = await db
+    .select({
+      slugDoSite: sites.slug,
+      statusDoSite: sites.status,
+      coupleNames: siteContent.coupleNames,
+      weddingDate: siteContent.weddingDate,
+      cidade: siteContent.ceremonyVenue,
+    })
+    .from(siteInvites)
+    .innerJoin(sites, eq(sites.id, siteInvites.siteId))
+    .leftJoin(siteContent, eq(siteContent.siteId, sites.id))
+    .where(eq(siteInvites.slug, slug))
+    .limit(1);
+
+  if (!l) return null;
+
+  return {
+    siteSlug: l.slugDoSite,
+    siteNoAr: l.statusDoSite === "published",
+    nomesDoCasal: l.coupleNames,
+    weddingDate: l.weddingDate,
+    cidade: l.cidade,
   };
 }
 

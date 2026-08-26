@@ -8,6 +8,7 @@ import SplitReveal from "@/components/site/SplitReveal";
 import { loadGiftSection } from "@/lib/site/giftSection";
 import { listSitePhotos, photoAt, SLOT_CAPACITY } from "@/lib/repositories/sitePhotos";
 import type { SectionProps } from "@/lib/templates/contract";
+import Mural from "@/components/site/Mural";
 
 // Seções do molde Toscana — villa italiana ao entardecer.
 //
@@ -402,6 +403,25 @@ export async function Gifts({ siteId, content }: SectionProps) {
           "Ter você conosco já é presente. Mas, se o coração pedir, cada mimo abaixo vira uma lembrança da nossa lua de mel."}
       </p>
       <GiftGrid gifts={gifts} pix={pix} siteId={siteId}
+      />
+    </section>
+  );
+}
+
+/**
+ * Mural de recados (pacote Para Sempre).
+ *
+ * A lista e o formulário são os mesmos dos seis moldes — ver
+ * `components/site/Mural.tsx`. Aqui entra só o enquadramento deste molde.
+ */
+export async function Guestbook({ siteId, slug }: SectionProps) {
+  return (
+    <section className="px-8 py-16 lg:py-28">
+      <SectionTitle kicker="Com carinho" title="Mural de recados" />
+      <Mural
+        siteId={siteId}
+        slug={slug}
+        convite="Escreva um recado para os noivos guardarem."
       />
     </section>
   );

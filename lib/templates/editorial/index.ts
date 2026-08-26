@@ -10,6 +10,7 @@ import {
   Gallery,
   Rsvp,
   Gifts,
+  Guestbook,
   Album,
   Footer,
 } from "./sections";
@@ -50,6 +51,7 @@ const editorial: TemplateModule = {
     "rsvp",
     "gifts",
     "gallery",
+    "guestbook",
     "album",
     "footer",
   ],
@@ -61,6 +63,7 @@ const editorial: TemplateModule = {
     gallery: Gallery,
     rsvp: Rsvp,
     gifts: Gifts,
+    guestbook: Guestbook,
     album: Album,
     footer: Footer,
   },

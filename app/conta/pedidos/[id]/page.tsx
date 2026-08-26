@@ -12,6 +12,9 @@ import OrderStatusTracker, {
 } from "@/components/account/OrderStatusTracker";
 import LivePreview from "@/components/account/LivePreview";
 import ReguaDeNumeros from "@/components/account/manage/ReguaDeNumeros";
+import PrimeiraVez from "@/components/account/manage/PrimeiraVez";
+import FaixaDoCasamento from "@/components/account/manage/FaixaDoCasamento";
+import { countSitePhotos } from "@/lib/repositories/sitePhotos";
 import OQueFalta from "@/components/account/manage/OQueFalta";
 import AreasEditaveis from "@/components/account/manage/AreasEditaveis";
 import BaixarConvite from "@/components/account/manage/BaixarConvite";
@@ -24,6 +27,7 @@ import { carregarGerenciamento } from "@/lib/site/manageData";
 import { canCancelOrder, type OrderStatus } from "@/lib/orderStatus";
 import type { PackageTier } from "@/lib/packages";
 import { SITE_NAME } from "@/lib/site";
+import { dataPorExtenso } from "@/lib/site/dataLegivel";
 
 export const metadata: Metadata = {
   title: `Nosso site | ${SITE_NAME}`,
@@ -97,21 +101,42 @@ export default async function GerenciarInicioPage({
 
   // Só busca quando HÁ site — e em paralelo, porque cada ida ao banco custa
   // ~171ms medidos e as duas abrem a tela.
-  const [metricas, falta, conteudo, convitesDoSite] = site
+  const [metricas, falta, conteudo, convitesDoSite, fotos] = site
     ? await Promise.all([
         metricasDoSite(site.id),
         oQueFalta(site.id, order.id, order.packageTier as PackageTier),
         getSiteContent(site.id),
         listInvites(site.id),
+        countSitePhotos(site.id),
       ])
-    : [null, null, null, []];
+    : [null, null, null, [], 0];
   const convites = convitesDoSite.length;
+
+  /* FAIXA I — o painel no minuto zero.
+     "Minuto zero" é ausência de MOVIMENTO, não ausência de conteúdo: sem foto,
+     sem convite e sem ninguém confirmado. Enquanto for esse o caso, a régua de
+     números mostraria três zeros — e três zeros logo depois do questionário
+     leem como cobrança, não como painel. A troca acontece uma vez e não
+     volta. */
+  const semMovimento =
+    site !== null &&
+    fotos === 0 &&
+    convites === 0 &&
+    (metricas?.confirmados ?? 0) === 0;
 
   // `toEditorValues` e nao uma conversao propria: ele traduz o timestamp para
   // dia+hora NO FUSO DO SITE e devolve hora vazia quando e meia-noite (o
   // combinado de "nao informado"). Refazer isso aqui criaria um segundo
   // caminho para a data — e e assim que a cerimonia das 16h vira 19h.
   const valoresEditaveis = site ? toEditorValues(conteudo) : null;
+
+  /* A data por extenso é formatada AQUI, no servidor.
+     `order.weddingDate` é "yyyy-mm-dd" (formato de `<input type=date>`), e
+     mostrar isso ao casal seria mostrar o formato do banco. Formatar no
+     cliente arriscaria divergência de ICU entre servidor e navegador — e
+     divergência em data é erro de hidratação. O `T12:00:00` evita que o fuso
+     empurre o dia para trás. */
+  const dataLegivel = dataPorExtenso(order.weddingDate);
 
   return (
     <div className="flex flex-col gap-12">
@@ -133,10 +158,55 @@ export default async function GerenciarInicioPage({
         </div>
       </div>
 
-      {/* Os números do site. Vêm do painel do iCasei, mas em régua de mono em
-          vez dos quatro cartões coloridos — o cartão chamaria mais atenção que
-          a prévia, e a prévia é o que o casal veio ver. */}
-      {metricas && <ReguaDeNumeros metricas={metricas} />}
+      {/* E1 é DUAS COLUNAS.
+          À esquerda o que o casal ACOMPANHA — os números, ou o roteiro do que
+          falta no minuto zero. À direita o que ele CONSULTA: quanto falta para
+          o dia, o endereço, e a saída. Empilhado, a contagem regressiva virava
+          uma faixa atravessando a tela e roubava o primeiro olhar dos números,
+          que são o assunto. */}
+      <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8 items-start">
+        <div className="flex flex-col gap-8">
+          {semMovimento ? (
+            <PrimeiraVez
+              base={`/conta/pedidos/${order.id}`}
+              temFoto={fotos > 0}
+              temConvite={convites > 0}
+              publicado={status === "published"}
+            />
+          ) : (
+            metricas && <ReguaDeNumeros metricas={metricas} />
+          )}
+
+          {falta && <OQueFalta {...falta} />}
+        </div>
+
+        <div className="flex flex-col gap-6">
+          {site !== null && site.status !== "archived" && (
+            <FaixaDoCasamento
+              coluna
+              weddingDate={order.weddingDate ?? null}
+              dataLegivel={dataLegivel}
+              endereco={status === "published" ? order.siteUrl ?? null : null}
+            />
+          )}
+
+          {/* ZONA DE RISCO — o nome é da prancha, e o desenho segue a regra:
+              perigo é contorno, nunca preenchido. Fica no fim da coluna, longe
+              de tudo que se clica com frequência. */}
+          {canCancelOrder(status) && (
+            <div className="surface-flat rounded-[3px] p-5 flex flex-col gap-3">
+              <span className="meta text-(--c-ink-2)">Zona de risco</span>
+              <CancelOrderButton
+                orderId={order.id}
+                label="Cancelar este pedido"
+              />
+              <p className="t-corpo-p text-(--c-ink-2)">
+                Dá para cancelar enquanto o pedido ainda não entrou em produção.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* A PRÉVIA VEM PRIMEIRO, antes do acompanhamento.
           Ela estava no fim da página, depois do stepper e do bloco de
@@ -164,8 +234,6 @@ export default async function GerenciarInicioPage({
         />
         </div>
       )}
-
-      {falta && <OQueFalta {...falta} />}
 
       {/* Sem site, o casal ficaria olhando um acompanhamento que nunca anda.
           O provisionamento roda no mesmo request do envio; se ele falhou, o
@@ -219,14 +287,6 @@ export default async function GerenciarInicioPage({
         </p>
       )}
 
-      {canCancelOrder(status) && (
-        <div className="flex flex-col gap-1 border-t border-(--c-rule) pt-5">
-          <CancelOrderButton orderId={order.id} label="Cancelar este pedido" />
-          <p className="text-[13px] text-(--c-ink-2)">
-            Dá para cancelar enquanto o pedido ainda não entrou em produção.
-          </p>
-        </div>
-      )}
     </div>
   );
 }

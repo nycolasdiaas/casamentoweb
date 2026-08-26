@@ -35,3 +35,27 @@ export async function getBaseUrl(): Promise<string> {
     (host.startsWith("localhost") ? "http" : "https");
   return `${proto}://${host}`;
 }
+
+/**
+ * A URL base SEM ler a requisição — para metadata e para gerar imagem.
+ *
+ * ── Por que existe uma segunda função ──────────────────────────────────────
+ *
+ * `getBaseUrl` lê `headers()`, e isso é dado de requisição. Dentro de
+ * `generateMetadata` isso torna a rota inteira dinâmica e o `next build`
+ * reprova: *"has a `generateMetadata` that depends on Request data … when the
+ * rest of the route does not"*. O cartão de link precisa ser prerenderável —
+ * ele é o mesmo para todo mundo.
+ *
+ * Aqui só a variável de ambiente entra. Em produção ela É definida (a própria
+ * `getBaseUrl` documenta isso); o fallback de localhost serve ao
+ * desenvolvimento e ao build, onde não há host de verdade para consultar.
+ *
+ * Isto não reintroduz o risco de host forjado que `ALLOWED_HOSTS` fecha: nada
+ * aqui vem de header.
+ */
+export function baseUrlEstatica(): string {
+  const daEnv = process.env.NEXT_PUBLIC_SITE_URL;
+  if (daEnv) return daEnv.replace(/\/+$/, "");
+  return "http://localhost:3000";
+}

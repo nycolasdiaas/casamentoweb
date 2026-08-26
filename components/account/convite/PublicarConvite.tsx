@@ -116,7 +116,7 @@ export default function PublicarConvite({
             <button
               type="button"
               onClick={copiar}
-              className="min-h-11 shrink-0 border border-(--c-ink) bg-(--c-ink) px-3 text-[12px] text-white transition-opacity hover:opacity-90"
+              className="btn btn-ink btn-sm min-h-11 shrink-0"
             >
               {copiado ? "Copiado!" : "Copiar"}
             </button>
@@ -161,7 +161,7 @@ export default function PublicarConvite({
             type="button"
             onClick={publicar}
             disabled={ocupado}
-            className="min-h-11 w-full border border-(--c-ink) bg-(--c-ink) text-[13px] text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+            className="btn btn-ink btn-sm min-h-11 w-full"
           >
             {ocupado ? "Publicando…" : "Publicar convite"}
           </button>

@@ -10,6 +10,15 @@ export type GiftInput = {
   category: string;
   name: string;
   priceCents: number | null;
+  /**
+   * null ou ausente = sem teto de cotas. Ver `gifts.quantity` no schema.
+   *
+   * OPCIONAL de propósito: as ações do admin (`gift-actions.ts`) e os testes
+   * anteriores à 0017 criam cota sem falar em quantidade, e o significado
+   * deles é exatamente "sem teto". Tornar o campo obrigatório forçaria a
+   * escrever `quantity: null` em cada um só para dizer o que o padrão já diz.
+   */
+  quantity?: number | null;
 };
 
 export async function createGift(siteId: string, input: GiftInput) {
@@ -122,4 +131,38 @@ export function groupGiftsByCategory<
     }
   }
   return grouped;
+}
+
+/**
+ * Quantas contribuições cada cota já recebeu — para a barra de progresso da
+ * prancha E6.
+ *
+ * Uma consulta agregada em vez de contar em memória: `listContributions`
+ * devolve a linha inteira de cada contribuição, e a tela só precisa do número.
+ * Num casamento com 300 presentes isso é a diferença entre trazer 300 linhas e
+ * trazer 20.
+ *
+ * A contagem é por `gift_id`. Contribuição de cota apagada tem `gift_id` nulo
+ * (a FK é `set null`, para o registro sobreviver à exclusão) e simplesmente
+ * não entra em nenhum grupo — que é o certo: ela não pertence mais a cota
+ * nenhuma.
+ */
+export async function contribuicoesPorCota(
+  siteId: string
+): Promise<Map<string, number>> {
+  const linhas = await db
+    .select({
+      giftId: giftContributions.giftId,
+      total: sql<number>`count(*)::int`,
+    })
+    .from(giftContributions)
+    .innerJoin(gifts, eq(giftContributions.giftId, gifts.id))
+    .where(eq(gifts.siteId, siteId))
+    .groupBy(giftContributions.giftId);
+
+  return new Map(
+    linhas
+      .filter((l): l is { giftId: string; total: number } => l.giftId !== null)
+      .map((l) => [l.giftId, l.total])
+  );
 }

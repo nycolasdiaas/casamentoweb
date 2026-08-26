@@ -2,8 +2,21 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
+import { Botao, Campo } from "@/components/ui/prensa";
 import { resetPasswordAction } from "@/app/actions/password-reset-actions";
 
+/**
+ * C4 · o formulário de /conta/redefinir → POST resetPasswordAction.
+ *
+ * O token continua vindo em campo escondido e o `minLength={8}` continua
+ * casando com o que o servidor exige. O que mudou:
+ *
+ * - O link quebrado deixou de ser uma linha vermelha solta e virou beco COM
+ *   SAÍDA — a regra da faixa H, que vale aqui do mesmo jeito: quem chegou por
+ *   um link velho não fez nada de errado e precisa do próximo passo na tela.
+ * - "Link inválido" saiu. A Voz proíbe "inválido"; o texto agora diz o que
+ *   houve (o link expirou ou veio cortado) e o que fazer.
+ */
 export default function ResetPasswordForm({ token }: { token: string }) {
   const [state, action, pending] = useActionState(
     resetPasswordAction,
@@ -12,51 +25,43 @@ export default function ResetPasswordForm({ token }: { token: string }) {
 
   if (!token) {
     return (
-      <div className="flex flex-col gap-3 text-center">
-        <p className="text-sm text-red-700">
-          Link inválido ou incompleto. Peça um novo.
+      <div className="surface-raised rounded-[3px] p-6 flex flex-col gap-3 items-start">
+        <span className="meta text-(--c-warn)">Link vencido</span>
+        <p className="t-corpo text-(--c-ink)">
+          Este link já foi usado ou veio cortado no e-mail. Pedir um novo leva
+          um minuto.
         </p>
-        <Link
-          href="/conta/esqueci"
-          className="text-xs text-(--color-olive) underline underline-offset-4"
-        >
-          Pedir novo link
+        <Link href="/conta/esqueci" className="btn btn-ink btn-sm mt-1">
+          Pedir link novo
         </Link>
       </div>
     );
   }
 
   return (
-    <form action={action} className="flex flex-col gap-3">
+    <form action={action} className="flex flex-col gap-5">
       <input type="hidden" name="token" value={token} />
-      <input
+      <Campo
+        rotulo="Nova senha"
         type="password"
         name="password"
-        placeholder="Nova senha (mín. 8 caracteres)"
         autoComplete="new-password"
         required
         minLength={8}
-        className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm focus:border-(--color-gold) focus:outline-none"
+        ajuda="Mínimo de 8 caracteres."
       />
-      <input
+      <Campo
+        rotulo="Repita a senha"
         type="password"
         name="confirm"
-        placeholder="Confirmar nova senha"
         autoComplete="new-password"
         required
         minLength={8}
-        className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm focus:border-(--color-gold) focus:outline-none"
+        erro={state?.error}
       />
-
-      {state?.error && <p className="text-sm text-red-700">{state.error}</p>}
-
-      <button
-        type="submit"
-        disabled={pending}
-        className="mt-1 rounded-full bg-(--color-olive) text-white py-3.5 text-sm font-medium transition-colors hover:bg-(--color-olive)/90 disabled:opacity-50"
-      >
-        {pending ? "Salvando..." : "Salvar nova senha"}
-      </button>
+      <Botao type="submit" carregando={pending} className="self-start">
+        Salvar e entrar
+      </Botao>
     </form>
   );
 }

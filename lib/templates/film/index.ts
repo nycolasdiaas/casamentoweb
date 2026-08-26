@@ -10,6 +10,7 @@ import {
   Gallery,
   Rsvp,
   Gifts,
+  Guestbook,
   Album,
   Footer,
 } from "./sections";
@@ -44,6 +45,7 @@ const film: TemplateModule = {
     "rsvp",
     "gifts",
     "gallery",
+    "guestbook",
     "album",
     "footer",
   ],
@@ -55,6 +57,7 @@ const film: TemplateModule = {
     gallery: Gallery,
     rsvp: Rsvp,
     gifts: Gifts,
+    guestbook: Guestbook,
     album: Album,
     footer: Footer,
   },

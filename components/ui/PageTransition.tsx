@@ -72,5 +72,17 @@ export default function PageTransition({
     return () => anim.cancel();
   }, [pathname]);
 
-  return <div ref={ref}>{children}</div>;
+  /* `flex flex-1 flex-col` não é enfeite: este div entra ENTRE o <body> (que é
+     `min-h-full flex flex-col`) e o <main> de cada tela (que pede `flex-1`).
+     Sem classe nenhuma ele era um bloco de altura automática, e o `flex-1` do
+     <main> ficava sem contra quem crescer — a tela parava na altura do
+     conteúdo e o resto do viewport virava fundo pelado do body. Aparecia em
+     toda tela do painel e nas quatro telas de porta (entrar, criar, esqueci,
+     redefinir), que é onde a falta mais se via.
+
+     Repassar o crescimento exige as duas metades: `flex-1` para ele mesmo
+     esticar dentro do body, e `flex flex-col` para que o filho possa esticar
+     dentro dele. Sem `min-h-0` de propósito — o padrão `min-height: auto`
+     é o que impede uma tela de conteúdo longo de ser espremida. */
+  return <div ref={ref} className="flex flex-1 flex-col">{children}</div>;
 }

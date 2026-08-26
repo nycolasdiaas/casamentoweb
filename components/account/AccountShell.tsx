@@ -1,7 +1,10 @@
 import Link from "next/link";
-import { signoutAction } from "@/app/actions/account-actions";
+import Image from "next/image";
 import { uiPrensa } from "@/lib/fonts/ui";
 import { SITE_NAME } from "@/lib/site";
+import { iniciaisDe } from "@/lib/iniciais";
+import { getSessionUserId } from "@/lib/auth/userSession";
+import { getUserById } from "@/lib/repositories/users";
 
 type Tab = "inicio" | "pedidos";
 
@@ -22,13 +25,17 @@ type Tab = "inicio" | "pedidos";
  * a marca e o h1 nascem na mesma vertical. Medir é a prova: as duas arestas
  * têm de dar o mesmo x.
  */
-export default function AccountShell({
+export default async function AccountShell({
   active,
   children,
 }: {
   active: Tab;
   children: React.ReactNode;
 }) {
+  const userId = await getSessionUserId();
+  const user = userId ? await getUserById(userId) : null;
+  const iniciais = iniciaisDe(user?.name, "EU");
+
   const linkClass = (tab: Tab) =>
     active === tab
       ? "inline-flex min-h-11 items-center text-[13px] font-medium text-(--c-ink) border-b border-(--c-ink) pb-0.5"
@@ -39,28 +46,32 @@ export default function AccountShell({
       <header className="bg-(--c-surface) border-b border-(--c-rule)">
         {/* MESMO trilho e MESMO padding do main abaixo. Se estes dois valores
             divergirem outra vez, o desalinhamento volta inteiro. */}
-        <div className="max-w-[1200px] mx-auto w-full px-6 lg:px-8 py-4 flex items-center justify-between gap-4">
-          <Link
-            href="/"
-            className="t-display text-[22px] leading-none tracking-tight text-(--c-ink)"
-          >
-            {SITE_NAME}
+        <div className="trilho py-4 flex items-center justify-between gap-4">
+          <Link href="/conta" className="flex items-center gap-2.5">
+            <Image
+              src="/logo-enlace.png"
+              alt=""
+              width={27}
+              height={27}
+              className="h-[27px] w-auto object-contain"
+            />
+            <span className="t-display text-[22px] leading-none text-(--c-ink)">
+              {SITE_NAME}
+            </span>
           </Link>
           <nav className="flex items-center gap-5">
-            <Link href="/conta" className={linkClass("inicio")}>
-              Início
-            </Link>
             <Link href="/conta/pedidos" className={linkClass("pedidos")}>
               Meus pedidos
             </Link>
-            <form action={signoutAction}>
-              <button
-                type="submit"
-                className="inline-flex min-h-11 items-center text-[13px] text-(--c-ink-2) transition-colors hover:text-(--c-ink) cursor-pointer"
-              >
-                Sair
-              </button>
-            </form>
+            {/* O círculo é o que diz de quem é esta conta — e, com o painel
+                do casal e o admin abertos lado a lado, qual das duas telas
+                está na frente. */}
+            <span
+              className="flex size-8 items-center justify-center rounded-full bg-(--c-olive) t-data text-[12px] text-(--c-paper-warm)"
+              aria-hidden="true"
+            >
+              {iniciais}
+            </span>
           </nav>
         </div>
       </header>
@@ -70,7 +81,7 @@ export default function AccountShell({
           filho só e controlam o próprio ritmo — 8/16 dentro de um componente,
           24/32 entre irmãos, 64/96 entre seções —, então o gap não age sobre
           elas. Ele sai quando a última tela da passada for convertida. */}
-      <main className="flex-1 max-w-[1200px] mx-auto w-full px-6 lg:px-8 py-12 lg:py-16 flex flex-col gap-8">
+      <main className="flex-1 trilho py-12 lg:py-16 flex flex-col gap-8">
         {children}
       </main>
     </div>

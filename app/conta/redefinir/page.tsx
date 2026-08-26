@@ -1,15 +1,20 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import ResetPasswordForm from "@/components/account/ResetPasswordForm";
+import CascaDeConta from "@/components/account/CascaDeConta";
 import { SITE_NAME } from "@/lib/site";
 
-const inter = Inter({ subsets: ["latin"] });
-
 export const metadata: Metadata = {
-  title: `Redefinir senha | ${SITE_NAME}`,
+  title: `Criar senha nova | ${SITE_NAME}`,
 };
 
+/**
+ * C4 · GET /conta/redefinir?token=…
+ *
+ * Continua servidor: o token vem de `searchParams` e só o formulário é
+ * cliente. Sem foto, pela mesma razão do /conta/esqueci — é tela de
+ * meio-de-caminho, aberta a partir do e-mail.
+ */
 export default async function ResetPasswordPage({
   searchParams,
 }: {
@@ -18,31 +23,22 @@ export default async function ResetPasswordPage({
   const { token } = await searchParams;
 
   return (
-    <main
-      className={`${inter.className} flex-1 flex items-center justify-center bg-(--color-paper) px-6 py-16 text-(--color-olive)`}
-    >
-      <div className="w-full max-w-sm flex flex-col gap-6">
-        <div className="text-center flex flex-col gap-2">
-          <p className="text-xs font-medium tracking-[0.25em] uppercase text-(--color-gold)">
-            {SITE_NAME}
-          </p>
-          <h1 className="text-2xl font-bold tracking-tight">Nova senha</h1>
-          <p className="text-sm text-(--color-olive)/70">
-            Escolha uma nova senha para a conta de vocês.
-          </p>
-        </div>
-
-        <ResetPasswordForm token={token ?? ""} />
-
-        <p className="text-center">
+    <CascaDeConta
+      semFoto
+      titulo="Criar senha nova"
+      chamada="Escolha uma senha que vocês lembrem."
+      rodape={
+        <p className="t-corpo-p text-(--c-ink-2)">
           <Link
             href="/conta/entrar"
-            className="text-xs text-(--color-muted) underline underline-offset-4"
+            className="text-(--c-ink) underline underline-offset-4"
           >
             ← Voltar para entrar
           </Link>
         </p>
-      </div>
-    </main>
+      }
+    >
+      <ResetPasswordForm token={token ?? ""} />
+    </CascaDeConta>
   );
 }

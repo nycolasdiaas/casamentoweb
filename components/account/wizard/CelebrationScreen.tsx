@@ -102,7 +102,7 @@ export default function CelebrationScreen({
       aria-live="polite"
       className="motion-fade-in fixed inset-0 z-[60] flex flex-col items-center justify-center overflow-hidden px-6 text-center"
       style={{
-        background: `linear-gradient(160deg, var(--color-paper), color-mix(in srgb, ${tinta} 12%, var(--color-paper)))`,
+        background: `linear-gradient(160deg, var(--c-paper-warm), color-mix(in srgb, ${tinta} 12%, var(--c-paper-warm)))`,
       }}
     >
       {/* Pétalas. `aria-hidden` porque é enfeite: anunciar 14 divs vazias a
@@ -148,16 +148,16 @@ export default function CelebrationScreen({
           />
 
           <div className="flex flex-col items-center gap-2 lg:items-start">
-            <h2 className="text-2xl font-semibold text-(--color-olive) sm:text-3xl">
+            <h2 className="text-2xl font-semibold text-(--c-ink) sm:text-3xl">
               {nome ? `Vamos criar o site de vocês, ${nome}!` : "Vamos criar o site de vocês!"}
             </h2>
-            <p className="max-w-sm text-sm leading-relaxed text-(--color-olive)/70">
+            <p className="max-w-sm text-sm leading-relaxed text-(--c-ink-2)">
               Falta pouco para deixarmos tudo pronto para o grande dia.
             </p>
           </div>
 
           <div className="flex w-full max-w-xs flex-col gap-2.5">
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-(--color-olive)/10">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-(--c-sunken)">
               <div
                 className="h-full rounded-full"
                 style={{
@@ -169,7 +169,7 @@ export default function CelebrationScreen({
             </div>
             <p
               key={etapa}
-              className="motion-fade-in text-xs text-(--color-olive)/70"
+              className="motion-fade-in text-xs text-(--c-ink-2)"
             >
               {ETAPAS[etapa]}…
             </p>

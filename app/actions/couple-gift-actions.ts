@@ -49,7 +49,14 @@ const LIMITE_CATEGORIA = 60;
 
 function parseCota(formData: FormData):
   | { error: string }
-  | { value: { category: string; name: string; priceCents: number | null } } {
+  | {
+      value: {
+        category: string;
+        name: string;
+        priceCents: number | null;
+        quantity: number | null;
+      };
+    } {
   const name = formData.get("name")?.toString().trim() ?? "";
   const category = formData.get("category")?.toString().trim() ?? "";
   const priceRaw = formData.get("price")?.toString().trim() ?? "";
@@ -73,7 +80,26 @@ function parseCota(formData: FormData):
     return { error: "O preço precisa ser maior que zero — ou deixem em branco." };
   }
 
-  return { value: { category, name, priceCents } };
+  /* QUANTIDADE VAZIA É "SEM TETO", e é o padrão.
+     A prancha desenha "12 de 20 compradas" com barra, mas obrigar o casal a
+     escolher um número para toda cota acrescentaria uma decisão onde ele só
+     queria escrever "lua de mel" — e a regra §2.3 do produto é o contrário
+     disso. Quem quiser limitar, limita; quem não quiser, a cota aceita quantas
+     vierem e a barra nem aparece. */
+  const quantityRaw = formData.get("quantity")?.toString().trim() ?? "";
+  let quantity: number | null = null;
+  if (quantityRaw) {
+    const n = Number(quantityRaw);
+    if (!Number.isInteger(n) || n < 1) {
+      return { error: "A quantidade de cotas precisa ser um número inteiro maior que zero — ou deixem em branco." };
+    }
+    if (n > 999) {
+      return { error: "São no máximo 999 cotas por presente." };
+    }
+    quantity = n;
+  }
+
+  return { value: { category, name, priceCents, quantity } };
 }
 
 /**

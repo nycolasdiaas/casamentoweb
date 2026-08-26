@@ -172,6 +172,26 @@ export const orders = pgTable(
 // casamento de um casal pendura aqui. Ver docs/sdd-geracao-automatica.md.
 // ─────────────────────────────────────────────────────────────────────────
 
+/**
+ * Como o site responde a quem abre o endereço.
+ *
+ * NÃO é o mesmo eixo de `siteStatusEnum`. Status diz se o site EXISTE no ar
+ * (`published` / `archived`); modo de acesso diz quem consegue entrar quando
+ * ele está no ar. As três opções da prancha E2 são a combinação dos dois:
+ *
+ *   Público      → status published + access_mode public
+ *   Só com senha → status published + access_mode password
+ *   Oculto       → status archived  (o modo de acesso não importa)
+ *
+ * Modelar "oculto" como um terceiro modo criaria dois lugares dizendo a mesma
+ * coisa, e um deles ficaria errado na primeira vez que alguém arquivasse um
+ * site por outro caminho.
+ */
+export const siteAccessModeEnum = pgEnum("site_access_mode", [
+  "public",
+  "password",
+]);
+
 export const siteStatusEnum = pgEnum("site_status", [
   "provisioning", // criado, ainda montando
   "preview", // prévia liberada pro casal
@@ -196,6 +216,14 @@ export const sites = pgTable("sites", {
   tier: packageTierEnum("tier").notNull(),
   status: siteStatusEnum("status").notNull().default("provisioning"),
   previewToken: text("preview_token").notNull().unique(),
+  // Prancha E2 · visibilidade. `public` é o padrão e é o que todo site
+  // existente passa a ter — a migração não muda o comportamento de nenhum
+  // casamento que já está no ar.
+  accessMode: siteAccessModeEnum("access_mode").notNull().default("public"),
+  // scrypt, formato "salt:hash" — o MESMO de lib/auth/password.ts. Guardar a
+  // senha em claro num campo que o casal digita seria repetir, com o convidado
+  // no meio, o erro da chave Pix chumbada: dado sensível com destino errado.
+  accessPasswordHash: text("access_password_hash"),
   publishedAt: timestamp("published_at", { withTimezone: true }),
   // última visita registrada pelo beacon (§6.1 do SDD)
   lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
@@ -387,6 +415,36 @@ export const groups = pgTable(
     siteId: uuid("site_id").references(() => sites.id, {
       onDelete: "restrict",
     }),
+
+    /* ------------------------------------------------------------------
+       Prancha F4 · a resposta do grupo.
+
+       O modelo anterior — e ele CONTINUA existindo, na tabela `guests` — é
+       um convidado por linha, cada um com o próprio `rsvp_status`. Ele não
+       some: as 23 confirmações reais moram lá, o painel do casal lê de lá, e
+       `/rsvp/<slug>` nunca pode perder o que já foi respondido.
+
+       O que entra aqui é a resposta NO NÍVEL DO GRUPO, que é o que a prancha
+       desenha: "quantos dos 2 lugares vão" + os nomes de quem vai, escritos
+       pelo próprio convidado. É outra pergunta, não a mesma em outro formato:
+       o casal reservou lugares para uma família e quem sabe quem vem é ela.
+
+       As colunas são nullable de propósito. `null` em `seatsConfirmed`
+       significa "ainda não respondeu" — diferente de `0`, que é "respondeu
+       que não vai ninguém". Um default numérico apagaria essa diferença, e é
+       ela que o casal usa para saber a quem cobrar.
+       ------------------------------------------------------------------ */
+
+    /** Lugares reservados para o grupo. Backfill = quantos convidados havia. */
+    seats: smallint("seats").notNull().default(0),
+    /** Quantos vão. null = sem resposta; 0 = respondeu que não vai. */
+    seatsConfirmed: smallint("seats_confirmed"),
+    /** Nomes de quem vai, como o convidado escreveu. Texto livre de propósito. */
+    attendingNames: text("attending_names"),
+    /** "Deixe um carinho…" — opcional, e o casal lê no painel. */
+    message: text("message"),
+    respondedAt: timestamp("responded_at", { withTimezone: true }),
+
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -420,6 +478,19 @@ export const gifts = pgTable(
     name: text("name").notNull(),
     // null = convidado escolhe o valor ("presente livre")
     priceCents: integer("price_cents"),
+    /**
+     * Quantas cotas existem desta peça. `null` = sem teto.
+     *
+     * É o que a prancha E6 desenha como "12 de 20 compradas" com a barra de
+     * progresso: "lua de mel" não é um presente, são vinte cotas de R$ 250 que
+     * vários convidados dividem.
+     *
+     * Nullable de propósito, e sem backfill: toda cota que já existe continua
+     * sem teto, que é exatamente como ela se comportava antes desta coluna. O
+     * casal define o número quando quiser — e "quantas faltam" só aparece na
+     * tela para quem definiu.
+     */
+    quantity: smallint("quantity"),
     position: smallint("position").notNull().default(0),
     // nullable nesta fase — mesma razão de groups.siteId acima.
     siteId: uuid("site_id").references(() => sites.id, {
@@ -620,6 +691,45 @@ export const siteInvites = pgTable(
       .defaultNow(),
   },
   (table) => [index("site_invites_site_id_idx").on(table.siteId)]
+);
+
+/**
+ * Mural de recados — a última seção do contrato que não tinha implementação
+ * (regras de negócio §9). Liberada só no pacote Para Sempre, como manda
+ * `TIER_SECTIONS`.
+ *
+ * Três decisões que moram no formato da tabela:
+ *
+ * 1. **Nada identifica o convidado além do que ele escreve.** Sem IP, sem
+ *    hash, sem cookie. O convidado é terceiro (§2.5) e não tem conta; o nome
+ *    é o que ele digitou e é só isso que o casal precisa para agradecer.
+ * 2. **O casal ESCONDE, não apaga.** `hidden` em vez de `DELETE`: apagar
+ *    recado de convidado é decisão que não volta, e um clique errado no
+ *    celular custaria a mensagem da avó. Esconder tira do site na hora e
+ *    continua reversível.
+ * 3. **Não existe fila de aprovação.** O recado aparece assim que é enviado.
+ *    Moderar antes seria trabalho por convidado, e a promessa é que o casal
+ *    não trabalha (§2.3) — o controle é retroativo, não prévio.
+ *
+ * `NOT NULL` nas colunas é seguro aqui, apesar da regra aditiva do AGENTS.md:
+ * ela existe para tabela que JÁ TEM linhas, onde a coluna nova não teria o
+ * que preencher. Esta nasce vazia.
+ */
+export const guestbookMessages = pgTable(
+  "guestbook_messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    siteId: uuid("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    guestName: text("guest_name").notNull(),
+    message: text("message").notNull(),
+    hidden: boolean("hidden").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index("idx_guestbook_messages_site_id").on(table.siteId)]
 );
 
 export const giftContributionsRelations = relations(

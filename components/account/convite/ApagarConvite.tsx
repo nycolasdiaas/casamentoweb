@@ -1,5 +1,6 @@
 "use client";
 
+import { DialogoDestrutivo } from "@/components/ui/prensa";
 import { apagarConviteAction } from "@/app/actions/invite-actions";
 
 /**
@@ -10,8 +11,11 @@ import { apagarConviteAction } from "@/app/actions/invite-actions";
  * Convite 2?" é uma pergunta que dá para responder; "tem certeza?" é uma que
  * se responde no automático.
  *
- * Client component só por causa do `confirm`. A ação continua sendo a mesma
- * server action, com a mesma verificação de dono.
+ * O `confirm` nativo saiu: a copy já estava certa, mas a moldura era a do
+ * sistema operacional no meio de uma interface que cuidou de fio e raio o
+ * produto inteiro. `DialogoDestrutivo` traz o desenho da prancha A4 e o botão
+ * que repete o verbo perigoso. A action continua a mesma, com a mesma
+ * verificação de dono.
  */
 export default function ApagarConvite({
   siteId,
@@ -25,27 +29,23 @@ export default function ApagarConvite({
   nome: string;
 }) {
   return (
-    <form
-      action={apagarConviteAction}
-      onSubmit={(e) => {
-        if (
-          !confirm(
-            `Apagar "${nome}"? O desenho não volta — os outros convites de vocês continuam.`
-          )
-        ) {
-          e.preventDefault();
-        }
+    <DialogoDestrutivo
+      gatilho="Apagar convite"
+      titulo={`Apagar "${nome}"?`}
+      confirmar="Apagar convite"
+      manter="Manter"
+      form={{
+        action: apagarConviteAction,
+        campos: (
+          <>
+            <input type="hidden" name="siteId" value={siteId} />
+            <input type="hidden" name="inviteId" value={inviteId} />
+            <input type="hidden" name="orderId" value={orderId} />
+          </>
+        ),
       }}
     >
-      <input type="hidden" name="siteId" value={siteId} />
-      <input type="hidden" name="inviteId" value={inviteId} />
-      <input type="hidden" name="orderId" value={orderId} />
-      <button
-        type="submit"
-        className="min-h-11 px-1 text-[13px] text-(--c-ink-2) underline underline-offset-4 transition-colors hover:text-(--c-mark)"
-      >
-        Apagar convite
-      </button>
-    </form>
+      O desenho não volta. Os outros convites de vocês continuam como estão.
+    </DialogoDestrutivo>
   );
 }

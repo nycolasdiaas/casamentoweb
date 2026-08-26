@@ -14,7 +14,7 @@ type PaymentResult = { error?: string } | undefined;
 /**
  * Inicia o pagamento do pedido do casal via AbacatePay e redireciona para o
  * checkout hospedado. Em caso de erro, volta uma mensagem para a tela.
- * Recebe o CPF do pagador pelo formulário (exigido pelo PIX; não é gravado).
+ * Recebe o CPF do pagador pelo formulário (exigido pelo Pix; não é gravado).
  */
 export async function startPaymentAction(
   _prevState: PaymentResult,
@@ -37,7 +37,7 @@ export async function startPaymentAction(
 
   const taxId = onlyDigits(formData.get("payerTaxId")?.toString() ?? "");
   if (!isValidCPF(taxId)) {
-    return { error: "Digite um CPF válido para gerar o pagamento por PIX." };
+    return { error: "Digite um CPF válido para gerar o pagamento por Pix." };
   }
 
   const user = await getUserById(userId);

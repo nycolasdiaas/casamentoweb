@@ -7,6 +7,7 @@ import GiftGrid from "@/components/site/GiftGrid";
 import { loadGiftSection } from "@/lib/site/giftSection";
 import { listSitePhotos, photoAt, SLOT_CAPACITY } from "@/lib/repositories/sitePhotos";
 import type { SectionProps } from "@/lib/templates/contract";
+import Mural from "@/components/site/Mural";
 
 // Seções do molde Moderno — editorial brutalista.
 //
@@ -351,6 +352,25 @@ export async function Gifts({ siteId, content }: SectionProps) {
   );
 }
 
+/**
+ * Mural de recados (pacote Para Sempre).
+ *
+ * A lista e o formulário são os mesmos dos seis moldes — ver
+ * `components/site/Mural.tsx`. Aqui entra só o enquadramento deste molde.
+ */
+export async function Guestbook({ siteId, slug }: SectionProps) {
+  return (
+    <section className="px-5 py-14 lg:px-14">
+      <NumberedHead n="08" label="Recados" />
+      <Mural
+        siteId={siteId}
+        slug={slug}
+        convite="Escreva um recado para os noivos."
+      />
+    </section>
+  );
+}
+
 export async function Album({ content, siteId }: SectionProps) {
   // O placeholder que este molde já desenhava vira o estado VAZIO: sem foto
   // da festa, nada muda para quem visita hoje. Com foto, o álbum aparece
@@ -362,7 +382,7 @@ export async function Album({ content, siteId }: SectionProps) {
 function Vazio({ content }: { content: SectionProps["content"] }) {
   return (
     <section className="px-5 pt-2 pb-14 lg:px-14">
-      <NumberedHead n="08" label="Álbum" />
+      <NumberedHead n="09" label="Álbum" />
 
       <div className="pl-4" style={{ borderLeft: `3px solid var(--accent)` }}>
         <div className="font-[family-name:var(--font-display)] font-black text-[30px] leading-[0.98] tracking-[-0.03em] uppercase lg:text-[48px]">

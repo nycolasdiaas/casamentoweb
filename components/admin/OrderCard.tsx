@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { STATUS_META, type OrderStatus } from "@/lib/orderStatus";
+import { type OrderStatus } from "@/lib/orderStatus";
+import { EtiquetaDoPedido } from "@/components/ui/prensa";
 import AdminOrderControls from "./AdminOrderControls";
 
 export type AuditEntry = {
@@ -52,46 +53,43 @@ function CopyButton({ label, text }: { label: string; text: string }) {
     <button
       type="button"
       onClick={handleCopy}
-      className="font-serif text-xs tracking-[0.05em] border border-(--c-rule) text-(--c-ink) px-3 py-2 transition-colors hover:bg-(--c-sunken)"
+      className="btn btn-quiet btn-sm"
     >
       {copied ? "Copiado ✓" : label}
     </button>
   );
 }
 
-function StatusBadge({ status }: { status: OrderStatus }) {
-  const meta = STATUS_META[status];
-  const tone =
-    status === "draft"
-      ? "bg-(--c-sunken) text-(--c-ink-2)"
-      : status === "published"
-        ? "bg-(--c-mark) text-white"
-        : "bg-(--c-ink) text-white";
-  return (
-    <span
-      className={`text-[10px] tracking-[0.1em] uppercase px-2 py-0.5 ${tone}`}
-    >
-      {meta.adminLabel}
-    </span>
-  );
-}
-
+/**
+ * A etiqueta saiu daqui e passou a ser a do sistema.
+ *
+ * O que havia era `bg-(--c-ink) text-white` — e no tema ESCURO do admin
+ * `--c-ink` é `#f2f2ef`, quase branco. O resultado era texto branco sobre
+ * fundo branco: a etiqueta de status ficava invisível em todos os pedidos que
+ * não fossem rascunho ou publicado.
+ *
+ * É a armadilha de reaproveitar o nome do token entre os dois temas: `--c-ink`
+ * significa "cor do texto", e usá-lo como FUNDO só funciona onde o texto é
+ * escuro. `EtiquetaDoPedido` usa contorno e os semânticos, que viram nos dois
+ * temas — e é a mesma que o casal vê, então os dois lados chamam o estado pelo
+ * mesmo nome.
+ */
 export default function OrderCard({ order }: { order: AdminOrder }) {
   const [openJson, setOpenJson] = useState(false);
   const [openManage, setOpenManage] = useState(false);
   const [openHistory, setOpenHistory] = useState(false);
 
   return (
-    <li className="border border-(--c-rule) bg-white">
+    <li className="border border-(--c-rule) bg-(--c-surface)">
       <div className="flex flex-wrap items-center justify-between gap-3 p-4">
         <div className="flex flex-col gap-0.5">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-serif text-base text-(--c-ink)">
+            <span className="t-display text-[19px] leading-none text-(--c-ink)">
               {order.coupleName}
             </span>
-            <StatusBadge status={order.status} />
+            <EtiquetaDoPedido status={order.status as OrderStatus} />
           </div>
-          <span className="font-serif text-xs text-(--c-ink-2)">
+          <span className="t-corpo-p text-(--c-ink-2)">
             {order.packageName}
             {order.whatsapp ? ` · ${order.whatsapp}` : ""} · {order.updatedAt}
           </span>
@@ -100,7 +98,7 @@ export default function OrderCard({ order }: { order: AdminOrder }) {
           <button
             type="button"
             onClick={() => setOpenManage((v) => !v)}
-            className="font-serif text-xs tracking-[0.05em] border border-(--c-ink) bg-(--c-ink) text-white px-3 py-2 transition-colors hover:bg-(--c-ink)/90"
+            className="btn btn-ink btn-sm"
           >
             {openManage ? "Fechar" : "Gerenciar"}
           </button>
@@ -109,14 +107,14 @@ export default function OrderCard({ order }: { order: AdminOrder }) {
           <button
             type="button"
             onClick={() => setOpenJson((v) => !v)}
-            className="font-serif text-xs tracking-[0.05em] text-(--c-ink) underline"
+            className="text-[12.5px] text-(--c-ink-2) underline underline-offset-4 hover:text-(--c-ink)"
           >
             {openJson ? "ocultar" : "ver JSON"}
           </button>
           <button
             type="button"
             onClick={() => setOpenHistory((v) => !v)}
-            className="font-serif text-xs tracking-[0.05em] text-(--c-ink) underline"
+            className="text-[12.5px] text-(--c-ink-2) underline underline-offset-4 hover:text-(--c-ink)"
           >
             {openHistory
               ? "ocultar histórico"
@@ -128,7 +126,7 @@ export default function OrderCard({ order }: { order: AdminOrder }) {
       {openHistory && (
         <div className="border-t border-(--c-rule) bg-(--c-base) p-4">
           {order.auditLog.length === 0 ? (
-            <p className="font-serif text-xs text-(--c-ink-2)">
+            <p className="t-corpo-p text-(--c-ink-2)">
               Nenhuma alteração registrada ainda.
             </p>
           ) : (
@@ -136,7 +134,7 @@ export default function OrderCard({ order }: { order: AdminOrder }) {
               {order.auditLog.map((entry, i) => (
                 <li
                   key={i}
-                  className="font-serif text-xs text-(--c-ink)/85 leading-relaxed"
+                  className="t-corpo-p text-(--c-ink-2)"
                 >
                   <span className="font-semibold">{entry.adminName}</span>{" "}
                   mudou <span className="italic">{entry.field}</span>

@@ -7,6 +7,7 @@ import GiftGrid from "@/components/site/GiftGrid";
 import { loadGiftSection } from "@/lib/site/giftSection";
 import { listSitePhotos, photoAt, SLOT_CAPACITY } from "@/lib/repositories/sitePhotos";
 import type { SectionProps, SiteContentView } from "@/lib/templates/contract";
+import Mural from "@/components/site/Mural";
 
 // Seções do molde Editorial — revista de moda.
 //
@@ -469,6 +470,25 @@ export async function Gifts({ siteId, content }: SectionProps) {
           "Sem faqueiro, sem lista de loja. Cada cota é um pedaço da nossa lua de mel — via Pix."}
       </p>
       <GiftGrid gifts={gifts} pix={pix} siteId={siteId}
+      />
+    </section>
+  );
+}
+
+/**
+ * Mural de recados (pacote Para Sempre).
+ *
+ * A lista e o formulário são os mesmos dos seis moldes — ver
+ * `components/site/Mural.tsx`. Aqui entra só o enquadramento deste molde.
+ */
+export async function Guestbook({ siteId, slug }: SectionProps) {
+  return (
+    <section className="px-6 py-16 lg:px-20 lg:py-28">
+      <Head kicker="Escreva para nós" title="Mural" />
+      <Mural
+        siteId={siteId}
+        slug={slug}
+        convite="Duas linhas bastam. A gente guarda todas."
       />
     </section>
   );

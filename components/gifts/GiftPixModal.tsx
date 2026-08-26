@@ -177,7 +177,7 @@ export default function GiftPixModal({
                 disabled={submitting}
                 className="bg-(--color-olive) text-white py-2 font-serif text-xs tracking-[0.1em] transition-opacity hover:opacity-85 disabled:opacity-60"
               >
-                {submitting ? "Enviando..." : "Já fiz o Pix 💚"}
+                {submitting ? "Enviando…" : "Já fiz o Pix"}
               </button>
             </div>
           </>

@@ -33,7 +33,10 @@
   /* Desaceleração forte: começa depressa e assenta devagar, como algo com
      peso. É o que separa "caro" de "script rodando". */
   --e-saida: cubic-bezier(0.16, 1, 0.3, 1);
-  --e-suave: cubic-bezier(0.4, 0, 0.2, 1);
+  /* Curva simétrica da Fundação A3 (`--ease-inout`). Era
+     `cubic-bezier(0.4, 0, 0.2, 1)` — a `standard` do Material Design, que
+     entrou por hábito e não por decisão. */
+  --e-suave: cubic-bezier(0.65, 0, 0.35, 1);
 
   /* Escalonamento: cada elemento sobrescreve no style inline. Aqui só o
      padrão, para quem não escalona não precisar declarar nada. */
@@ -57,6 +60,23 @@ body {
 html,
 body {
   overflow-x: clip;
+}
+
+/* Um `.sr-only` é `position: absolute` SEM deslocamento e, quase sempre, sem
+   pai posicionado — então o bloco de contenção dele vira o documento inteiro.
+   Consequência: ele deixa de ser recortado pelo `overflow` do painel em que
+   mora e passa a esticar a PÁGINA até a altura onde caiu no fluxo.
+
+   No editor de convite isso rendia 152px de rolagem vazia: o input de arquivo
+   de "Subir foto" fica lá embaixo num painel que rola por conta própria, e a
+   tela inteira — que é `h-screen overflow-hidden` — ganhava uma faixa de fundo
+   pelado abaixo dela. `overflow` só recorta descendente cuja cadeia de
+   contenção passa pelo elemento; um absoluto ancorado no documento escapa.
+
+   Posicionar o rótulo devolve o input para dentro do recorte. Sem
+   deslocamento, `relative` não move nada. */
+label:has(> .sr-only) {
+  position: relative;
 }
 
 /* Barra de rolagem horizontal escondida em trilhos que rolam de propósito
@@ -161,6 +181,61 @@ body {
   animation-delay: var(--motion-delay);
 }
 
+/* --------------------------------------------------------------------------
+   Transição #7 do HANDOFF-motion — a confirmação de presença.
+
+   É o único momento de recompensa que o CONVIDADO tem no produto inteiro: ele
+   clicou num link do WhatsApp, respondeu três coisas, e é só. Um "pronto" seco
+   desperdiça o gesto; o check sendo DESENHADO diz que alguém do outro lado
+   registrou.
+
+   O desenho do traço é `stroke-dashoffset`, não opacidade: o traço tem 26 de
+   comprimento (medido no path de 24×24 da prancha de ícones) e sai de 26 —
+   invisível — até 0 — inteiro. Sem biblioteca, como o handoff §4 registra.
+   -------------------------------------------------------------------------- */
+@keyframes rsvp-anel {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes rsvp-check {
+  from {
+    stroke-dashoffset: 26;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.rsvp-anel {
+  animation: rsvp-anel var(--t-base) var(--e-saida) both;
+}
+
+.rsvp-check {
+  stroke-dasharray: 26;
+  stroke-dashoffset: 26;
+  /* Começa depois do anel assentar (240ms) e leva 550ms, como o handoff. */
+  animation: rsvp-check 550ms var(--e-saida) 240ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* O check é INFORMAÇÃO — é ele que diz "deu certo". Ele fica; o que sai é o
+     desenho, que vira presença imediata. Mesma regra da rodinha do botão. */
+  html:not([data-movimento="ligado"]) .rsvp-check {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  html:not([data-movimento="ligado"]) .rsvp-anel {
+    animation: motion-fade var(--t-reduzido) var(--e-suave) both;
+  }
+}
+
 /* Pétala caindo na tela de celebração. Cai, gira e desaparece antes de tocar
    o fim — some no ar em vez de empilhar no rodapé. */
 @keyframes motion-petal {
@@ -224,7 +299,16 @@ body {
    uma classe por posição. */
 .motion-stagger > * {
   animation: motion-rise var(--t-base) var(--e-saida) both;
-  animation-delay: calc(var(--motion-delay, 0ms) + var(--i, 0) * 55ms);
+  animation-delay: calc(var(--motion-delay, 0ms) + var(--i, 0) * 60ms);
+}
+
+/* O TETO DE OITO IRMÃOS.
+   `HANDOFF-motion.md` §1: "stagger 60ms entre irmãos; no máx. ~8 itens, depois
+   entra tudo junto". Sem o teto, uma grade de 24 fotos escalona as 24 e a
+   última entra 1,4s depois da primeira — o que deixa de ser ordem de leitura e
+   vira espera. */
+.motion-stagger > *:nth-child(n + 9) {
+  animation-delay: calc(var(--motion-delay, 0ms) + 8 * 60ms);
 }
 
 /* Bloco de esqueleto. A cor vem de currentColor para o esqueleto herdar a
@@ -323,7 +407,11 @@ body {
   html:not([data-movimento="ligado"]) .motion-stagger > * {
     animation: motion-fade var(--t-reduzido) var(--e-suave) both;
     /* o escalonamento é preservado — é ele que dá ordem de leitura */
-    animation-delay: calc(var(--motion-delay, 0ms) + var(--i, 0) * 55ms);
+    animation-delay: calc(var(--motion-delay, 0ms) + var(--i, 0) * 60ms);
+  }
+
+  html:not([data-movimento="ligado"]) .motion-stagger > *:nth-child(n + 9) {
+    animation-delay: calc(var(--motion-delay, 0ms) + 8 * 60ms);
   }
 
   html:not([data-movimento="ligado"]) .motion-rise-in,
@@ -510,7 +598,42 @@ body:has(.ui-prensa) {
 
 /* ELEVADO: a ação principal da tela. Superfície branca sobre a base, com o
    fio e um deboss curtíssimo — sombra de papel apoiado, não de card flutuando. */
+/* O RAIO MORA NA SUPERFÍCIE.
+   A Fundação A1 fixa 2–3px, e o número estava espalhado por ~40 arquivos como
+   `rounded-[3px]` ao lado da classe. Um valor de sistema em quarenta lugares é
+   quarenta chances de divergir — e já havia divergido (`rounded-xl`, 12px, no
+   LivePreview). */
+/* --------------------------------------------------------------------------
+   A3 · O TRILHO — largura cheia obrigatória.
+
+   A Fundação nomeia o defeito com todas as letras: "Antes · coluna ~1120 no
+   centro, fundo sobrando" em `--danger`, contra "Agora · colunas de verdade —
+   lista + detalhe, tela inteira" em `--ok`. E o produto inteiro estava do lado
+   errado: 1152px na vitrine, 1200 na conta, 1400 na barra do admin e 768 nas
+   páginas dele.
+
+   Três trilhos diferentes não são três decisões — são a mesma decisão tomada
+   três vezes sem olhar. Aqui vira uma classe: 1504 de conteúdo com margem de
+   48, que é a medida da prancha para um viewport de 1600.
+
+   A margem cai para 24 abaixo de 768: 48px de cada lado num celular de 390
+   deixariam 294 de conteúdo.
+   -------------------------------------------------------------------------- */
+.trilho {
+  width: 100%;
+  max-width: 1504px;
+  margin-inline: auto;
+  padding-inline: 24px;
+}
+
+@media (min-width: 768px) {
+  .trilho {
+    padding-inline: 48px;
+  }
+}
+
 .ui-prensa .surface-raised {
+  border-radius: 3px;
   background-color: var(--c-surface);
   border: 1px solid var(--c-rule);
   box-shadow: 0 1px 0 0 color-mix(in srgb, var(--c-ink) 6%, transparent);
@@ -519,12 +642,14 @@ body:has(.ui-prensa) {
 /* PLANO: conteúdo comum. Só o fio. Sem fundo próprio, porque dar superfície a
    tudo é o mesmo que não dar a nada. */
 .ui-prensa .surface-flat {
+  border-radius: 3px;
   background-color: transparent;
   border: 1px solid var(--c-rule);
 }
 
 /* SULCADO: campo e trilho. Afunda em vez de subir. */
 .ui-prensa .surface-sunken {
+  border-radius: 3px;
   background-color: var(--c-sunken);
   border: 1px solid color-mix(in srgb, var(--c-rule) 70%, transparent);
 }
@@ -729,4 +854,511 @@ body:has(.ui-prensa) {
     animation: none;
     opacity: 0.85;
   }
+}
+
+/* ==========================================================================
+   FUNDAÇÃO — o resto da prancha A1/A2/A4
+
+   O que existia acima cobria A1 pela metade (os oito neutros e a marca de
+   registro) e nada de A2/A4. Faltavam os semânticos, os dois acentos, a
+   escala tipográfica inteira e a biblioteca de componentes — que é por que
+   cada tela reinventava o próprio botão e o próprio campo.
+
+   Continua ADITIVO e continua sob `.ui-prensa`, pelas duas razões já
+   documentadas na seção anterior: `--color-paper/olive/gold/blush` são de
+   60 arquivos vivos (entre eles /rsvp), e nenhum token daqui pode alcançar
+   `lib/templates/*`, onde `verify:template` reprova cor fora do ThemeSpec.
+   ========================================================================== */
+
+.ui-prensa {
+  /* Acentos — com avareza. Ver A1. */
+  --c-olive: #3d4a36; /* superfície escura da vitrine */
+  --c-gold: #b8985f; /* papelaria e prévia — NUNCA botão */
+  --c-paper-warm: #f2efe7; /* fundo da vitrine, mais quente que a base */
+
+  /* Semânticos — só onde há ESTADO. Não são cor de decoração: se aparece um
+     verde que não significa "confirmado/pago/no ar", está errado. */
+  --c-ok: #2f6b4f;
+  --c-warn: #8a6a1f;
+  --c-danger: #a3302a;
+
+  /* Cor de foco/seleção derivada da marca, para não repetir o rgba na mão em
+     cada estado de campo. */
+  --c-anel: rgb(184 65 44 / 0.3);
+}
+
+/* --------------------------------------------------------------------------
+   A2 · Escala tipográfica — oito degraus, quatro papéis.
+
+   Existem como classe (e não como utilitário Tailwind solto em cada tela)
+   porque a escala é a hierarquia: quando cada tela escolhe `text-[27px]` no
+   olho, o produto perde o degrau e vira colagem. `t-display`, `t-data` e
+   `meta` já estavam acima e continuam sendo os PAPÉIS; o que entra aqui são
+   os TAMANHOS.
+
+   Mobile encolhe os três maiores por clamp: 72px num 390 é uma palavra por
+   linha.
+   -------------------------------------------------------------------------- */
+.ui-prensa .t-hero {
+  font-family: var(--f-ui-display), ui-serif, Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(42px, 7vw, 72px);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+}
+
+.ui-prensa .t-d1 {
+  font-family: var(--f-ui-display), ui-serif, Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(32px, 4.4vw, 48px);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+}
+
+.ui-prensa .t-d2 {
+  font-family: var(--f-ui-display), ui-serif, Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(26px, 3vw, 34px);
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+}
+
+.ui-prensa .t-d3 {
+  font-family: var(--f-ui-display), ui-serif, Georgia, serif;
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 30px;
+}
+
+.ui-prensa .t-corpo-g {
+  font-size: 18px;
+  line-height: 28px;
+}
+
+/* O PADRÃO. Se a tela não disser nada, o texto é este. */
+.ui-prensa .t-corpo {
+  font-size: 15px;
+  line-height: 24px;
+}
+
+.ui-prensa .t-corpo-p {
+  font-size: 13.5px;
+  line-height: 20px;
+}
+
+/* Regra A2: parágrafo corrido não passa de 65 caracteres nem de 6 colunas.
+   Como classe para a tela não ter de lembrar o número. */
+.ui-prensa .medida {
+  max-width: 65ch;
+}
+
+/* --------------------------------------------------------------------------
+   A4 · BOTÕES — um botão, um jeito.
+
+   O `.btn` base (lá em cima) é do site do convidado: pílula, padding largo,
+   verde. Aqui dentro ele vira retangular e nas três medidas de A4 — mas o
+   ajuste desce nas VARIANTES da Prensa, não em `.ui-prensa .btn`. A diferença
+   importa: `/conta/pedidos/<id>/*` ainda tem `.btn-primary` verde nas telas
+   que faltam converter, e mexer na base transformaria esses botões em
+   retângulos verdes no meio do caminho — pior que o antes e pior que o
+   depois.
+   -------------------------------------------------------------------------- */
+.ui-prensa .btn-ink,
+.ui-prensa .btn-quiet,
+.ui-prensa .btn-texto,
+.ui-prensa .btn-perigo {
+  border-radius: 2px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  padding: 11px 20px;
+}
+
+/* G — a decisão da tela ("Criar meu site", "Pagar e publicar"). */
+.ui-prensa .btn-g.btn-ink,
+.ui-prensa .btn-g.btn-quiet,
+.ui-prensa .btn-g.btn-texto,
+.ui-prensa .btn-g.btn-perigo {
+  font-size: 15px;
+  padding: 14px 26px;
+}
+
+/* P — dentro de lista e de tabela. */
+.ui-prensa .btn-sm.btn-ink,
+.ui-prensa .btn-sm.btn-quiet,
+.ui-prensa .btn-sm.btn-texto,
+.ui-prensa .btn-sm.btn-perigo {
+  font-size: 13px;
+  padding: 8px 14px;
+}
+
+/* Terciário: some no texto. Para "Pular", "Manter", "Agora não" — a saída
+   segura de um diálogo, que precisa ser alcançável sem competir. */
+.ui-prensa .btn-texto {
+  background-color: transparent;
+  border-color: transparent;
+  color: #1a1d21;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.ui-prensa .btn-texto:hover:not(:disabled) {
+  background-color: #e5e5e0;
+}
+
+/* Perigo é CONTORNO, nunca preenchido: um botão vermelho sólido chama o
+   clique, e este é o que não se quer clicado por engano. */
+.ui-prensa .btn-perigo {
+  background-color: transparent;
+  border-color: var(--c-danger);
+  color: var(--c-danger);
+}
+.ui-prensa .btn-perigo:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--c-danger) 8%, transparent);
+}
+
+/* Pressionado: afunda de verdade (sombra interna), em vez de só encolher.
+   O `.btn:active` global já dá o scale; aqui entra o deboss. */
+.ui-prensa .btn-ink:active:not(:disabled) {
+  box-shadow: inset 0 2px 3px rgb(0 0 0 / 0.45);
+}
+
+/* Desabilitado sai do sistema de superfície: vira o sulcado, sem fio próprio.
+   Não é o botão com opacidade — botão translúcido sobre foto fica ilegível. */
+.ui-prensa .btn-ink:disabled,
+.ui-prensa .btn-ink[aria-disabled="true"] {
+  background-color: var(--c-sunken);
+  border-color: var(--c-sunken);
+  color: #8b9099;
+  box-shadow: none;
+  opacity: 1;
+}
+
+/* Rodinha do estado "enviando". Fica dentro do botão, à direita do rótulo —
+   o rótulo continua legível, que é o que evita o segundo clique. */
+.ui-prensa .btn-rodinha {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 2px solid rgb(255 255 255 / 0.35);
+  border-top-color: #ffffff;
+  animation: prensa-girar 0.7s linear infinite;
+  flex: 0 0 auto;
+}
+
+.ui-prensa .btn-quiet .btn-rodinha,
+.ui-prensa .btn-perigo .btn-rodinha,
+.ui-prensa .btn-texto .btn-rodinha {
+  border-color: color-mix(in srgb, currentColor 30%, transparent);
+  border-top-color: currentColor;
+}
+
+@keyframes prensa-girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* A rodinha é ESTADO, não decoração: sem ela o botão desabilitado parece
+     quebrado. Fica, mais devagar. */
+  html:not([data-movimento="ligado"]) .ui-prensa .btn-rodinha {
+    animation-duration: 1.4s;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   A4 · CAMPOS
+
+   O campo AFUNDA (sulcado), o botão SOBE (elevado). É essa oposição que faz
+   um formulário parecer desenhado em vez de uma pilha de retângulos.
+   -------------------------------------------------------------------------- */
+.ui-prensa .campo {
+  width: 100%;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--c-ink);
+  background-color: var(--c-sunken);
+  border: 1px solid var(--c-rule);
+  border-radius: 2px;
+  padding: 11px 12px;
+  box-shadow: inset 0 1px 2px rgb(26 29 33 / 0.06);
+  transition:
+    background-color var(--t-rapido) var(--e-suave),
+    border-color var(--t-rapido) var(--e-suave),
+    box-shadow var(--t-rapido) var(--e-suave);
+}
+
+.ui-prensa .campo::placeholder {
+  color: #8b9099;
+}
+
+/* No foco o campo SOBE para o branco e ganha o anel de registro. É a única
+   vez que a marca aparece num formulário — e é a razão de ela ser reservada. */
+.ui-prensa .campo:focus {
+  outline: none;
+  background-color: var(--c-surface);
+  border-color: var(--c-ink);
+  box-shadow: 0 0 0 3px var(--c-anel);
+}
+
+.ui-prensa .campo[aria-invalid="true"] {
+  background-color: var(--c-surface);
+  border-color: var(--c-danger);
+  box-shadow: none;
+}
+
+.ui-prensa .campo:disabled {
+  background-color: var(--c-base);
+  border-color: var(--c-sunken);
+  color: #8b9099;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* Área de texto: mesma pele, altura mínima e sem o redimensionamento
+   horizontal, que quebra a coluna. */
+.ui-prensa textarea.campo {
+  min-height: 96px;
+  resize: vertical;
+}
+
+/* Rótulo do campo é Meta — mono, caixa alta, tracking aberto. Sem cor
+   declarada, pelo mesmo motivo do `.meta`: quem usa escolhe. */
+.ui-prensa .rotulo {
+  display: block;
+  font-family: var(--f-ui-mono), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+
+/* O erro mora ABAIXO do campo, nunca num alerta no topo: quem errou está
+   olhando para o campo, não para o topo da página. Ver Voz e Microcopy V4. */
+.ui-prensa .erro-do-campo {
+  font-size: 12.5px;
+  line-height: 17px;
+  color: var(--c-danger);
+}
+
+/* --------------------------------------------------------------------------
+   A4 · ETIQUETA DE STATUS
+
+   Contorno para os estados em curso, PREENCHIDA só para "no ar" — que é o
+   único estado que é uma conquista. Se todas fossem sólidas, a linha de
+   pedidos viraria um varal de pílulas coloridas e nenhuma teria peso.
+   -------------------------------------------------------------------------- */
+.ui-prensa .etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 2px;
+  border: 1px solid var(--c-rule);
+  font-family: var(--f-ui-mono), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1.3;
+  color: var(--c-ink-2);
+  white-space: nowrap;
+}
+
+.ui-prensa .etiqueta-ponto {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: currentColor;
+  flex: 0 0 auto;
+}
+
+.ui-prensa .etiqueta-ok {
+  border-color: color-mix(in srgb, var(--c-ok) 40%, transparent);
+  color: var(--c-ok);
+}
+.ui-prensa .etiqueta-warn {
+  border-color: color-mix(in srgb, var(--c-warn) 45%, transparent);
+  color: var(--c-warn);
+}
+.ui-prensa .etiqueta-danger {
+  border-color: color-mix(in srgb, var(--c-danger) 40%, transparent);
+  color: var(--c-danger);
+}
+.ui-prensa .etiqueta-gold {
+  border-color: color-mix(in srgb, var(--c-gold) 55%, transparent);
+  color: #7a6330;
+}
+
+/* A única sólida. */
+.ui-prensa .etiqueta-noar {
+  background-color: var(--c-ok);
+  border-color: var(--c-ok);
+  color: #ffffff;
+}
+
+/* --------------------------------------------------------------------------
+   A4 · AVISO (a faixa de "falta alguma coisa")
+
+   Fio de 1px em volta e um traço de 3px na esquerda. O traço é o que faz o
+   olho parar sem precisar de fundo colorido gritante — a faixa continua
+   sendo papel, só que marcado na margem.
+   -------------------------------------------------------------------------- */
+.ui-prensa .aviso {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  border: 1px solid color-mix(in srgb, currentColor 45%, transparent);
+  border-left: 3px solid currentColor;
+  background-color: color-mix(in srgb, currentColor 6%, transparent);
+  border-radius: 2px;
+}
+
+/* O texto do aviso volta para a tinta: o corpo em cor semântica lê como erro
+   de contraste, e a cor já está no fio e no ponto. */
+.ui-prensa .aviso-texto {
+  color: var(--c-ink);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+/* --------------------------------------------------------------------------
+   A4 · TRILHA do questionário
+
+   Segmentos, não uma barra contínua: a barra diz "quanto falta", os
+   segmentos dizem "quantas perguntas" — e saber quantas perguntas são é o
+   que tira a ansiedade de responder a primeira.
+   -------------------------------------------------------------------------- */
+.ui-prensa .trilha {
+  display: flex;
+  gap: 5px;
+  flex: 1;
+}
+
+.ui-prensa .trilha-seg {
+  flex: 1;
+  height: 4px;
+  background-color: var(--c-rule);
+  border-radius: 1px;
+  transition: background-color var(--t-base) var(--e-saida);
+}
+
+.ui-prensa .trilha-seg[data-estado="feito"] {
+  background-color: var(--c-ink-2);
+}
+
+.ui-prensa .trilha-seg[data-estado="agora"] {
+  background-color: var(--c-ink);
+}
+
+/* --------------------------------------------------------------------------
+   A4 · ABAS
+
+   Sublinhado de 2px na ativa. Sem pílula, sem fundo: aba com fundo próprio
+   compete com o card que vem logo abaixo dela.
+   -------------------------------------------------------------------------- */
+.ui-prensa .aba {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 15px 16px;
+  border-bottom: 2px solid transparent;
+  font-size: 14px;
+  color: var(--c-ink-2);
+  white-space: nowrap;
+  transition:
+    color var(--t-rapido) var(--e-suave),
+    border-color var(--t-rapido) var(--e-suave);
+}
+
+.ui-prensa .aba:hover {
+  color: var(--c-ink);
+}
+
+.ui-prensa .aba[aria-current="page"] {
+  border-bottom-color: var(--c-ink);
+  color: var(--c-ink);
+  font-weight: 500;
+}
+
+/* --------------------------------------------------------------------------
+   TEMA ESCURO DO ADMIN
+
+   Mesma família, outra temperatura. Vive em `.ui-prensa.admin` para o painel
+   do casal e a operação nunca dividirem tokens por acidente: o casal está no
+   dia mais importante da vida dele, a equipe está trabalhando.
+   -------------------------------------------------------------------------- */
+/* Mesmo motivo do `body:has(.ui-prensa)` lá em cima, e agora para o escuro:
+   a casca é `flex-1` dentro do body e não alcança os últimos pixels. Sem
+   isto sobra uma faixa cinza-clara no rodapé de uma tela quase preta — o
+   resquício que denuncia migração pela metade. */
+body:has(.ui-prensa.admin) {
+  background-color: #16181b;
+}
+
+/* `.tema-escuro` é o mesmo conjunto de tokens sem o nome do papel — o editor
+   de convite (E9) é a outra tela que a prancha desenha em escuro, e ele não é
+   a operação, então marcá-lo com `.admin` seria mentir na marcação para
+   reaproveitar cor.
+
+   O que destravou o uso: a moldura do editor parou de fixar branco. Ela fixava
+   em 48 pontos, e trocar aquilo por hex escuro teria repintado também o
+   CONVITE — a peça que o casal está desenhando, que é papel por definição.
+   Mapeando controle por controle para token (`--c-surface`, `--c-sunken`,
+   `.btn-ink`), os mesmos controles servem os dois temas e o convite continua
+   intocado: ele é desenhado por `BlocoVisual`, com o tema do casal. */
+.ui-prensa.admin,
+.ui-prensa .admin,
+.ui-prensa.tema-escuro,
+.ui-prensa .tema-escuro {
+  --c-base: #16181b;
+  --c-surface: #1f2226;
+  --c-sunken: #16181b;
+  --c-ink: #f2f2ef;
+  --c-ink-2: #9aa0a8;
+  --c-rule: #32363c;
+  /* A marca de registro clareia no escuro: #b8412c sobre #16181b dá 3.5:1 e
+     some. Este dá 5.1:1. */
+  --c-mark: #cf6a55;
+  --c-ok: #5fae86;
+  --c-warn: #c9a24a;
+  --c-danger: #cf6a55;
+
+  background-color: var(--c-base);
+  color: var(--c-ink);
+}
+
+/* No escuro o botão de tinta inverte: papel sobre tinta vira tinta sobre
+   papel, e o primário passa a ser a marca — é o único jeito de um botão
+   escuro aparecer sobre um fundo escuro. */
+.ui-prensa.admin .btn-ink,
+.ui-prensa .admin .btn-ink,
+.ui-prensa.tema-escuro .btn-ink,
+.ui-prensa .tema-escuro .btn-ink {
+  background-color: #b8412c;
+  border-color: #b8412c;
+  color: #ffffff;
+}
+.ui-prensa.admin .btn-ink:hover:not(:disabled),
+.ui-prensa .admin .btn-ink:hover:not(:disabled),
+.ui-prensa.tema-escuro .btn-ink:hover:not(:disabled),
+.ui-prensa .tema-escuro .btn-ink:hover:not(:disabled) {
+  background-color: #cf4a32;
+  border-color: #cf4a32;
+}
+
+.ui-prensa.admin .btn-quiet,
+.ui-prensa .admin .btn-quiet,
+.ui-prensa.tema-escuro .btn-quiet,
+.ui-prensa .tema-escuro .btn-quiet {
+  border-color: #454b52;
+  color: var(--c-ink);
+}
+.ui-prensa.admin .btn-quiet:hover:not(:disabled),
+.ui-prensa .admin .btn-quiet:hover:not(:disabled),
+.ui-prensa.tema-escuro .btn-quiet:hover:not(:disabled),
+.ui-prensa .tema-escuro .btn-quiet:hover:not(:disabled) {
+  background-color: #32363c;
+  border-color: #6b7178;
 }

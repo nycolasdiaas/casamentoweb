@@ -29,10 +29,10 @@ export default function TemplatePicker({
   );
 
   return (
-    <section className="flex flex-col gap-5 rounded-2xl border border-(--color-gold)/40 bg-white p-6">
+    <section className="surface-raised rounded-[3px] p-6 flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
-        <h2 className="text-lg font-semibold">O modelo do site</h2>
-        <p className="text-sm leading-relaxed text-(--color-olive)/70">
+        <span className="meta text-(--c-ink-2)">Estilo</span>
+        <p className="t-corpo-p text-(--c-ink-2)">
           {atual
             ? "Trocar o modelo mantém as cores de vocês e troca o desenho. A mudança vale na hora."
             : "O site de vocês ainda não tem um modelo. Escolham um aqui — dá para trocar quantas vezes quiserem."}
@@ -42,7 +42,7 @@ export default function TemplatePicker({
       <form action={action}>
         <input type="hidden" name="siteId" value={siteId} />
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-2.5 grid-cols-2">
           {TEMPLATE_STYLES.map((estilo) => {
             const ativo = atual === estilo.id;
             return (
@@ -52,19 +52,15 @@ export default function TemplatePicker({
                 name="templateId"
                 value={estilo.id}
                 disabled={pending || ativo}
-                className={`flex flex-col gap-2.5 rounded-2xl border-2 p-4 text-left transition-all duration-200 disabled:cursor-default ${
+                title={estilo.description}
+                className={`relative flex flex-col items-start justify-between gap-3 rounded-[2px] p-3 text-left transition-colors disabled:cursor-default ${
                   ativo
-                    ? "border-(--color-olive) bg-(--color-blush) shadow-sm"
-                    : "border-(--color-gold)/40 bg-white hover:-translate-y-0.5 hover:border-(--color-gold) hover:shadow-md disabled:hover:translate-y-0"
+                    ? "border-[1.5px] border-(--c-ink) bg-(--c-sunken)"
+                    : "border border-(--c-rule) bg-(--c-surface) hover:border-(--c-ink)"
                 }`}
               >
-                <span className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-semibold">{estilo.name}</span>
-                  {ativo && (
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-(--color-olive)/60">
-                      em uso
-                    </span>
-                  )}
+                <span className="t-display text-[17px] leading-none text-(--c-ink)">
+                  {estilo.name}
                 </span>
 
                 <span className="flex gap-1.5">
@@ -72,14 +68,16 @@ export default function TemplatePicker({
                     <span
                       key={hex}
                       style={{ backgroundColor: hex }}
-                      className="size-5 rounded-full border border-black/10"
+                      className="size-4 rounded-full border border-black/10"
                     />
                   ))}
                 </span>
 
-                <span className="text-xs leading-relaxed text-(--color-olive)/60">
-                  {estilo.description}
-                </span>
+                {ativo && (
+                  <span className="absolute top-2 right-2 meta text-[9.5px] text-(--c-ink-2)">
+                    em uso
+                  </span>
+                )}
               </button>
             );
           })}
@@ -87,15 +85,15 @@ export default function TemplatePicker({
 
         <div aria-live="polite" className="min-h-5 pt-4">
           {pending && (
-            <p className="text-sm text-(--color-olive)/70">Trocando o modelo…</p>
+            <p className="text-sm text-(--c-ink-2)">Trocando o modelo…</p>
           )}
           {!pending && state && "saved" in state && (
-            <p className="motion-rise-in text-sm text-(--color-olive)">
+            <p className="motion-rise-in text-sm text-(--c-ink)">
               {state.message}
             </p>
           )}
           {!pending && state && "error" in state && (
-            <p className="motion-rise-in text-sm text-red-700">{state.error}</p>
+            <p className="motion-rise-in text-sm text-(--c-danger)">{state.error}</p>
           )}
         </div>
       </form>

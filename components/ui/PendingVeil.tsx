@@ -28,7 +28,7 @@ export default function PendingVeil({
     <div
       role="status"
       aria-live="polite"
-      className="motion-fade-in fixed inset-0 z-50 flex flex-col items-center justify-center gap-5 bg-(--color-paper)/95 px-6 text-center backdrop-blur-sm"
+      className="motion-fade-in fixed inset-0 z-50 flex flex-col items-center justify-center gap-5 bg-(--c-base)/95 px-6 text-center backdrop-blur-sm"
     >
       <Image
         src="/logo-enlace.png"
@@ -39,14 +39,14 @@ export default function PendingVeil({
         className="motion-breathe size-14 object-contain"
       />
       <div className="flex flex-col items-center gap-2">
-        <p className="text-sm font-medium text-(--color-olive)">{label}</p>
+        <p className="text-sm font-medium text-(--c-ink)">{label}</p>
         {sublabel && (
-          <p className="max-w-xs text-xs leading-relaxed text-(--color-muted)">
+          <p className="max-w-xs text-xs leading-relaxed text-(--c-ink-2)">
             {sublabel}
           </p>
         )}
       </div>
-      <div className="h-px w-32 overflow-hidden bg-(--color-gold)/20 text-(--color-gold)">
+      <div className="h-px w-32 overflow-hidden bg-(--c-rule) text-(--c-mark)">
         <div className="motion-skeleton h-full w-full" />
       </div>
     </div>

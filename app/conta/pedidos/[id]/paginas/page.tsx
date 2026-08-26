@@ -54,13 +54,14 @@ export default async function PaginasPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1.5">
-        <h1 className="text-2xl font-bold tracking-tight">Páginas do site</h1>
-        <p className="text-sm leading-relaxed text-(--color-olive)/70">
+      <header className="flex flex-col gap-3">
+        <span className="meta text-(--c-mark)">Páginas</span>
+        <h1 className="t-d2 text-(--c-ink)">Páginas do site</h1>
+        <p className="t-corpo text-(--c-ink-2) medida">
           Liguem, desliguem e mudem a ordem. A mudança vale na hora — vale a
           pena conferir na prévia depois.
         </p>
-      </div>
+      </header>
 
       {site !== null && secoes.length > 0 ? (
         <SiteControls
@@ -68,10 +69,11 @@ export default async function PaginasPage({
           status={site.status}
           slug={site.slug}
           secoes={secoes}
+          comSenha={site.accessMode === "password"}
           jaFoiPublicado={site.publishedAt !== null}
         />
       ) : (
-        <p className="rounded-2xl border border-(--color-gold)/40 bg-white p-6 text-sm text-(--color-olive)/70">
+        <p className="rounded-[3px] border border-(--c-rule) bg-white p-6 text-sm text-(--c-ink-2)">
           O site de vocês ainda está sendo montado. Assim que a prévia ficar
           pronta, as páginas aparecem aqui.
         </p>

@@ -69,10 +69,10 @@ function EscolhaDeFonte({
         return (
           <label
             key={fonte.id}
-            className={`flex cursor-pointer flex-col gap-1 rounded-xl border px-3 py-2.5 transition-colors ${
+            className={`flex cursor-pointer flex-col gap-1 rounded-[3px] border px-3 py-2.5 transition-colors ${
               ativa
-                ? "border-[#2f3a29] bg-(--color-blush) ring-1 ring-[#2f3a29]"
-                : "border-(--color-gold)/40 bg-white hover:border-(--color-gold)"
+                ? "border-[#2f3a29] bg-(--c-sunken) ring-1 ring-[#2f3a29]"
+                : "border-(--c-rule) bg-white hover:border-(--c-mark)"
             }`}
           >
             <input
@@ -85,12 +85,12 @@ function EscolhaDeFonte({
             />
             {/* A amostra: o nome da fonte escrito nela mesma. */}
             <span
-              className="truncate text-xl leading-tight text-(--color-olive)"
+              className="truncate text-xl leading-tight text-(--c-ink)"
               style={{ fontFamily: `var(${fonte.cssVar})` }}
             >
               {fonte.nome}
             </span>
-            <span className="truncate text-[10px] text-(--color-muted)">
+            <span className="truncate text-[10px] text-(--c-ink-2)">
               {fonte.descricao}
             </span>
           </label>
@@ -145,11 +145,11 @@ export default function ThemeEditor({
 
   return (
     <section
-      className={`${fontClassNames} flex flex-col gap-6 rounded-2xl border border-(--color-gold)/40 bg-white p-6`}
+      className={`${fontClassNames} flex flex-col gap-6 rounded-[3px] border border-(--c-rule) bg-white p-6`}
     >
       <div className="flex flex-col gap-1.5">
         <h2 className="text-lg font-semibold">O estilo do site</h2>
-        <p className="text-sm text-(--color-olive)/70 leading-relaxed">
+        <p className="text-sm text-(--c-ink-2) leading-relaxed">
           Ajustem as cores e as fontes quando quiserem. A amostra abaixo muda
           na hora, e o site também depois de salvar.
         </p>
@@ -160,14 +160,14 @@ export default function ThemeEditor({
 
         {/* Cores */}
         <div className="flex flex-col gap-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.1em] text-(--color-gold)">
+          <p className="text-xs font-semibold uppercase tracking-[0.1em] text-(--c-mark)">
             Cores
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {CORES.map(({ campo, label, hint }) => (
               <label
                 key={campo}
-                className="flex items-center gap-3 rounded-xl border border-(--color-gold)/40 px-4 py-3"
+                className="flex items-center gap-3 rounded-[3px] border border-(--c-rule) px-4 py-3"
               >
                 <input
                   type="color"
@@ -176,14 +176,14 @@ export default function ThemeEditor({
                   onChange={(e) =>
                     setCores((c) => ({ ...c, [campo]: e.target.value }))
                   }
-                  className="size-9 shrink-0 cursor-pointer rounded-lg border border-black/10 bg-transparent p-0"
+                  className="size-9 shrink-0 cursor-pointer rounded-[3px] border border-black/10 bg-transparent p-0"
                   aria-label={label}
                 />
                 <span className="flex min-w-0 flex-col">
                   <span className="text-sm font-medium">{label}</span>
-                  <span className="text-xs text-(--color-muted)">{hint}</span>
+                  <span className="text-xs text-(--c-ink-2)">{hint}</span>
                 </span>
-                <span className="ml-auto shrink-0 font-mono text-[11px] text-(--color-muted)">
+                <span className="ml-auto shrink-0 font-mono text-[11px] text-(--c-ink-2)">
                   {cores[campo]}
                 </span>
               </label>
@@ -193,11 +193,11 @@ export default function ThemeEditor({
 
         {/* Amostra: cores E fontes juntas, como o convidado vai ver. */}
         <div
-          className="flex items-center justify-center rounded-xl p-6"
+          className="flex items-center justify-center rounded-[3px] p-6"
           style={{ background: cores.outer }}
         >
           <div
-            className="w-full max-w-72 rounded-lg px-5 py-7 text-center"
+            className="w-full max-w-72 rounded-[3px] px-5 py-7 text-center"
             style={{ background: cores.paper, color: cores.ink }}
           >
             <span
@@ -228,26 +228,26 @@ export default function ThemeEditor({
         {avisos.length > 0 && (
           <div
             role="status"
-            className="flex flex-col gap-1 rounded-xl border border-[#b8985f] bg-[#fdf8ec] px-4 py-3"
+            className="flex flex-col gap-1 rounded-[3px] border border-[#b8985f] bg-[#fdf8ec] px-4 py-3"
           >
             {avisos.map((aviso) => (
               <p key={aviso} className="text-xs leading-relaxed">
                 ⚠️ {aviso}
               </p>
             ))}
-            <p className="text-xs text-(--color-muted)">
+            <p className="text-xs text-(--c-ink-2)">
               Podem salvar assim mesmo — é só um alerta de leitura no celular.
             </p>
           </div>
         )}
 
         {/* Fontes */}
-        <div className="flex flex-col gap-5 border-t border-(--color-gold)/30 pt-5">
+        <div className="flex flex-col gap-5 border-t border-(--c-rule) pt-5">
           <div className="flex flex-col gap-0.5">
-            <p className="text-xs font-semibold uppercase tracking-[0.1em] text-(--color-gold)">
+            <p className="text-xs font-semibold uppercase tracking-[0.1em] text-(--c-mark)">
               Fontes
             </p>
-            <p className="text-xs text-(--color-muted) leading-relaxed">
+            <p className="text-xs text-(--c-ink-2) leading-relaxed">
               Estas são as que combinam com o modelo{" "}
               <strong>{nomeDoModelo}</strong>. A lista é curta de propósito —
               fonte fora do desenho estraga o conjunto.
@@ -258,7 +258,7 @@ export default function ThemeEditor({
             <fieldset key={campo} className="flex flex-col gap-2">
               <legend className="flex flex-col gap-0.5 pb-1.5">
                 <span className="text-sm font-medium">{label}</span>
-                <span className="text-xs text-(--color-muted)">{hint}</span>
+                <span className="text-xs text-(--c-ink-2)">{hint}</span>
               </legend>
               <EscolhaDeFonte
                 papel={campo}
@@ -270,32 +270,32 @@ export default function ThemeEditor({
           ))}
         </div>
 
-        <div className="flex flex-col gap-2 border-t border-(--color-gold)/30 pt-5">
+        <div className="flex flex-col gap-2 border-t border-(--c-rule) pt-5">
           <button
             type="submit"
             disabled={pending}
-            className="btn btn-primary self-start"
+            className="btn btn-ink self-start"
           >
-            {pending ? "Salvando..." : "Salvar o estilo"}
+            {pending ? "Salvando…" : "Salvar o estilo"}
           </button>
           <div aria-live="polite" className="min-h-5">
             {state && "saved" in state && (
-              <p className="text-sm text-(--color-olive)">{state.message}</p>
+              <p className="text-sm text-(--c-ink)">{state.message}</p>
             )}
             {state && "error" in state && (
-              <p className="text-sm text-red-700">{state.error}</p>
+              <p className="text-sm text-(--c-danger)">{state.error}</p>
             )}
           </div>
         </div>
       </form>
 
       {/* Ordem das fotos — form próprio, fora do de cores e fontes. */}
-      <div className="flex flex-col gap-3 border-t border-(--color-gold)/30 pt-5">
+      <div className="flex flex-col gap-3 border-t border-(--c-rule) pt-5">
         <div className="flex flex-col gap-0.5">
-          <p className="text-xs font-semibold uppercase tracking-[0.1em] text-(--color-gold)">
+          <p className="text-xs font-semibold uppercase tracking-[0.1em] text-(--c-mark)">
             Ordem das fotos
           </p>
-          <p className="text-xs text-(--color-muted) leading-relaxed">
+          <p className="text-xs text-(--c-ink-2) leading-relaxed">
             A primeira da galeria é a que abre o carrossel. Use as setas para
             trocar.
           </p>
@@ -304,9 +304,9 @@ export default function ThemeEditor({
       </div>
 
       {/* O escape: o editor cobre o comum, a gente cobre o resto. */}
-      <div className="flex flex-col gap-2 rounded-xl border border-(--color-olive)/25 bg-(--color-blush) px-5 py-4">
+      <div className="flex flex-col gap-2 rounded-[3px] border border-(--c-ink)/25 bg-(--c-sunken) px-5 py-4">
         <p className="text-sm font-medium">Querem algo que não está aqui?</p>
-        <p className="text-sm text-(--color-olive)/75 leading-relaxed">
+        <p className="text-sm text-(--c-ink)/75 leading-relaxed">
           Uma fonte específica, um ornamento, uma seção do jeito de vocês, uma
           ideia que viram por aí — é só falar. A gente faz à mão, sem custo
           extra.
@@ -315,7 +315,7 @@ export default function ThemeEditor({
           href={WHATSAPP_LINK}
           target="_blank"
           rel="noopener noreferrer"
-          className="btn btn-secondary btn-sm self-start"
+          className="btn btn-quiet btn-sm self-start"
         >
           Falar com a gente no WhatsApp
         </a>

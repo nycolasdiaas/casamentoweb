@@ -7,6 +7,7 @@ import GiftGrid from "@/components/site/GiftGrid";
 import { loadGiftSection } from "@/lib/site/giftSection";
 import { listSitePhotos, photoAt, SLOT_CAPACITY } from "@/lib/repositories/sitePhotos";
 import type { SectionProps } from "@/lib/templates/contract";
+import Mural from "@/components/site/Mural";
 
 // Seções do molde Romântico — jardim ao entardecer.
 //
@@ -486,6 +487,28 @@ export async function Gifts({ siteId, content }: SectionProps) {
           "Ter você conosco já é presente. Mas, se o coração pedir, cada mimo abaixo vira uma lembrança da nossa lua de mel."}
       </p>
       <GiftGrid gifts={gifts} pix={pix} siteId={siteId}
+      />
+    </section>
+  );
+}
+
+/**
+ * Mural de recados (pacote Para Sempre).
+ *
+ * A lista e o formulário são os mesmos dos seis moldes — ver
+ * `components/site/Mural.tsx`. Aqui entra só o enquadramento deste molde.
+ */
+export async function Guestbook({ siteId, slug }: SectionProps) {
+  return (
+    <section className="px-6.5 py-14">
+      <div className="text-center mb-6">
+        <ScriptTitle>Mural de recados</ScriptTitle>
+        <DotDivider />
+      </div>
+      <Mural
+        siteId={siteId}
+        slug={slug}
+        convite="Deixe um carinho para os noivos lerem depois."
       />
     </section>
   );

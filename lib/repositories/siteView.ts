@@ -15,10 +15,19 @@ export async function getSiteViewBySlug(slug: string) {
   cacheTag(`site-view:${slug}`);
   cacheLife("days");
 
-  const site = await db.query.sites.findFirst({
+  const encontrado = await db.query.sites.findFirst({
     where: eq(sites.slug, slug),
   });
-  if (!site) return null;
+  if (!encontrado) return null;
+
+  /* O HASH DA SENHA NÃO SAI DAQUI.
+     Esta view desce inteira para `SiteFromView`, que é renderizado na página
+     pública — e tudo que um server component passa a um filho vai junto no
+     payload do RSC. Um `accessPasswordHash` ali seria o hash da senha do
+     casal viajando no HTML da página que a senha existe para proteger.
+     Quem precisa dele é `getSiteAccess`, que roda no servidor e não devolve
+     nada para a árvore. */
+  const { accessPasswordHash: _naoVaza, ...site } = encontrado;
 
   const [content] = await db
     .select()
@@ -44,10 +53,13 @@ export async function getSiteViewByPreviewToken(token: string) {
   cacheTag(`site-preview:${token}`);
   cacheLife("minutes");
 
-  const site = await db.query.sites.findFirst({
+  const encontrado = await db.query.sites.findFirst({
     where: eq(sites.previewToken, token),
   });
-  if (!site) return null;
+  if (!encontrado) return null;
+
+  // Mesmo motivo de `getSiteViewBySlug`: a prévia também desce para a árvore.
+  const { accessPasswordHash: _naoVaza, ...site } = encontrado;
 
   const [content] = await db
     .select()

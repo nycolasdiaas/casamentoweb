@@ -708,14 +708,14 @@ export default function EditorDeConvite({
               type="button"
               onClick={() => setZoom((z) => Math.max(z / 1.2, 0.4))}
               aria-label="Afastar"
-              className="size-8 border border-(--c-rule) transition-colors hover:bg-white"
+              className="size-8 border border-(--c-rule) transition-colors hover:bg-(--c-sunken)"
             >
               −
             </button>
             <button
               type="button"
               onClick={() => setZoom(1)}
-              className="min-w-14 border border-(--c-rule) px-2 py-1 tabular-nums transition-colors hover:bg-white"
+              className="min-w-14 border border-(--c-rule) px-2 py-1 tabular-nums transition-colors hover:bg-(--c-sunken)"
               title="Voltar ao tamanho normal"
             >
               {Math.round(zoom * 100)}%
@@ -724,7 +724,7 @@ export default function EditorDeConvite({
               type="button"
               onClick={() => setZoom((z) => Math.min(z * 1.2, 4))}
               aria-label="Aproximar"
-              className="size-8 border border-(--c-rule) transition-colors hover:bg-white"
+              className="size-8 border border-(--c-rule) transition-colors hover:bg-(--c-sunken)"
             >
               +
             </button>
@@ -742,7 +742,7 @@ export default function EditorDeConvite({
               setSalvo(false);
             }}
             aria-label="Nome do convite"
-            className="min-h-11 w-full border border-(--c-rule) bg-white px-3 text-[14px]"
+            className="min-h-11 w-full border border-(--c-rule) bg-(--c-surface) px-3 text-[14px]"
           />
 
           <div className="flex items-center gap-3">
@@ -768,7 +768,7 @@ export default function EditorDeConvite({
             type="button"
             onClick={salvar}
             disabled={salvando || salvo}
-            className="min-h-11 w-full bg-(--c-ink) text-[13px] text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+            className="btn btn-ink btn-sm min-h-11 w-full"
           >
             {salvando ? "Salvando…" : salvo ? "Tudo salvo" : "Salvar convite"}
           </button>
@@ -809,7 +809,7 @@ export default function EditorDeConvite({
                   link: "",
                 })
               }
-              className="min-h-11 flex-1 border border-(--c-rule) px-3 text-[13px] transition-colors hover:bg-white"
+              className="min-h-11 flex-1 border border-(--c-rule) px-3 text-[13px] transition-colors hover:bg-(--c-sunken)"
             >
               Texto
             </button>
@@ -827,7 +827,7 @@ export default function EditorDeConvite({
                   espessura: 2,
                 })
               }
-              className="min-h-11 flex-1 border border-(--c-rule) px-3 text-[13px] transition-colors hover:bg-white"
+              className="min-h-11 flex-1 border border-(--c-rule) px-3 text-[13px] transition-colors hover:bg-(--c-sunken)"
             >
               Linha
             </button>
@@ -862,7 +862,7 @@ export default function EditorDeConvite({
                     raio: 24,
                   })
                 }
-                className="flex aspect-square items-center justify-center border border-(--c-rule) transition-colors hover:border-(--c-ink) hover:bg-white"
+                className="flex aspect-square items-center justify-center border border-(--c-rule) transition-colors hover:border-(--c-ink) hover:bg-(--c-sunken)"
               >
                 <span
                   aria-hidden
@@ -886,7 +886,7 @@ export default function EditorDeConvite({
               montar nada — quer subir e mandar o link. A imagem vira o convite
               inteiro, no formato dela, e os blocos que existiam ficam por
               cima (dá para acrescentar um botão de presentes sobre a arte). */}
-          <label className="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-[3px] border border-(--c-ink) bg-(--c-ink) px-3 text-[13px] text-white transition-opacity hover:opacity-90">
+          <label className="btn btn-ink btn-sm min-h-11 cursor-pointer">
             <svg aria-hidden width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M2.5 3.5h11v9h-11zM2.5 10l3-3 3 3M9 8.5l1.5-1.5 3 3" />
             </svg>
@@ -903,7 +903,7 @@ export default function EditorDeConvite({
             />
           </label>
 
-          <label className="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-[3px] border border-(--c-rule) px-3 text-[13px] transition-colors hover:bg-white">
+          <label className="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-[3px] border border-(--c-rule) px-3 text-[13px] transition-colors hover:bg-(--c-sunken)">
             <svg aria-hidden width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M8 11V3.5M5 6l3-3 3 3M2.5 11.5v1.5h11v-1.5" />
             </svg>
@@ -992,7 +992,7 @@ export default function EditorDeConvite({
                   onBlur={fecharGesto}
                   rows={3}
                   aria-label="Texto do bloco"
-                  className="w-full resize-y border border-(--c-rule) bg-white p-2 text-[14px]"
+                  className="w-full resize-y border border-(--c-rule) bg-(--c-surface) p-2 text-[14px]"
                 />
 
                 <Numero
@@ -1017,7 +1017,7 @@ export default function EditorDeConvite({
                       });
                       registrar(antes);
                     }}
-                    className="min-h-11 border border-(--c-rule) bg-white px-2 text-[13px]"
+                    className="min-h-11 border border-(--c-rule) bg-(--c-surface) px-2 text-[13px]"
                   >
                     {FONTES.map((f) => (
                       <option key={f.id} value={f.id}>
@@ -1042,7 +1042,7 @@ export default function EditorDeConvite({
                         }}
                         className={`size-11 border text-[11px] ${
                           bloco.alinhamento === a
-                            ? "border-(--c-ink) bg-(--c-ink) text-white"
+                            ? "border-(--c-ink) bg-(--c-ink) text-(--c-surface)"
                             : "border-(--c-rule)"
                         }`}
                       >
@@ -1101,7 +1101,7 @@ export default function EditorDeConvite({
                       });
                       registrar(antes);
                     }}
-                    className="min-h-11 border border-(--c-rule) bg-white px-2 text-[13px]"
+                    className="min-h-11 border border-(--c-rule) bg-(--c-surface) px-2 text-[13px]"
                   >
                     <option value="">Não — é só texto</option>
                     {LINKS_DO_CONVITE.map((l) => (
@@ -1129,7 +1129,7 @@ export default function EditorDeConvite({
                         }
                         onFocus={marcarGesto}
                         onBlur={fecharGesto}
-                        className="min-h-11 border border-(--c-rule) bg-white px-2 text-[13px]"
+                        className="min-h-11 border border-(--c-rule) bg-(--c-surface) px-2 text-[13px]"
                       />
                     )}
 
@@ -1228,7 +1228,7 @@ export default function EditorDeConvite({
                       });
                       registrar(antes);
                     }}
-                    className="min-h-11 border border-(--c-rule) bg-white px-2 text-[13px]"
+                    className="min-h-11 border border-(--c-rule) bg-(--c-surface) px-2 text-[13px]"
                   >
                     {FORMAS.map((f) => (
                       <option key={f} value={f}>
@@ -1375,7 +1375,7 @@ export default function EditorDeConvite({
             type="button"
             onClick={() => setMenuBaixar((v) => !v)}
             aria-expanded={menuBaixar}
-            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-[3px] border border-(--c-ink) bg-(--c-ink) text-[13px] text-white transition-opacity hover:opacity-90"
+            className="btn btn-ink btn-sm min-h-11 w-full"
           >
             <svg aria-hidden width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M8 2v8M4.5 7L8 10.5L11.5 7M2.5 13.5h11" />

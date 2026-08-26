@@ -2,21 +2,28 @@
 
 import Link from "next/link";
 import { Suspense, useActionState } from "react";
-import PendingVeil from "@/components/ui/PendingVeil";
 import { useSearchParams } from "next/navigation";
-import { Inter } from "next/font/google";
+import PendingVeil from "@/components/ui/PendingVeil";
+import CascaDeConta from "@/components/account/CascaDeConta";
+import { Botao, Campo } from "@/components/ui/prensa";
 import { signinAction } from "@/app/actions/account-actions";
-import { SITE_NAME } from "@/lib/site";
 
-const inter = Inter({ subsets: ["latin"] });
-
-function ResetSuccessBanner() {
+/**
+ * C1 · GET /conta/entrar → POST signinAction
+ *
+ * Só a camada visual mudou: a action, o `useActionState` e o `PendingVeil`
+ * são os mesmos.
+ */
+function AvisoDeSenhaRedefinida() {
   const params = useSearchParams();
   if (params.get("redefinida") !== "1") return null;
   return (
-    <p className="rounded-xl border border-(--color-olive)/30 bg-(--color-blush) px-4 py-3 text-sm text-(--color-olive) text-center">
-      Senha redefinida! Entre com a nova senha.
-    </p>
+    <div className="aviso text-(--c-ok)" role="status">
+      <span className="etiqueta-ponto" aria-hidden="true" />
+      <p className="aviso-texto flex-1">
+        Senha redefinida. Entre com a senha nova.
+      </p>
+    </div>
   );
 }
 
@@ -29,8 +36,25 @@ export default function SigninPage() {
   );
 
   return (
-    <main
-      className={`${inter.className} flex-1 flex items-center justify-center bg-(--color-paper) px-6 py-16 text-(--color-olive)`}
+    <CascaDeConta
+      titulo="Bom ver vocês de novo"
+      chamada="Entre para continuar o site de vocês."
+      foto={{
+        src: "/enlace/casal.png",
+        lado: "esquerda",
+        legenda: "O site continua exatamente onde vocês pararam.",
+      }}
+      rodape={
+        <p className="t-corpo-p text-(--c-ink-2) text-center">
+          Ainda não têm conta?{" "}
+          <Link
+            href="/conta/criar"
+            className="text-(--c-ink) underline underline-offset-4"
+          >
+            Criar conta
+          </Link>
+        </p>
+      }
     >
       <PendingVeil
         ativo={pending}
@@ -38,66 +62,39 @@ export default function SigninPage() {
         sublabel="Conferindo os dados e abrindo o painel."
       />
 
-      <div className="motion-rise-in w-full max-w-sm flex flex-col gap-6">
-        <div className="text-center flex flex-col gap-2">
-          <p className="text-xs font-medium tracking-[0.25em] uppercase text-(--color-gold)">
-            {SITE_NAME}
-          </p>
-          <h1 className="text-2xl font-bold tracking-tight">Entrar</h1>
-        </div>
+      <Suspense fallback={null}>
+        <AvisoDeSenhaRedefinida />
+      </Suspense>
 
-        <Suspense fallback={null}>
-          <ResetSuccessBanner />
-        </Suspense>
+      <form action={action} className="flex flex-col gap-5">
+        <Campo
+          rotulo="E-mail"
+          type="email"
+          name="email"
+          autoComplete="email"
+          required
+        />
+        <Campo
+          rotulo="Senha"
+          type="password"
+          name="password"
+          autoComplete="current-password"
+          required
+          erro={state?.error}
+          acessorio={
+            <Link
+              href="/conta/esqueci"
+              className="text-[12.5px] text-(--c-ink-2) underline underline-offset-4 hover:text-(--c-ink)"
+            >
+              Esqueci a senha
+            </Link>
+          }
+        />
 
-        <form action={action} className="flex flex-col gap-3">
-          <input
-            type="email"
-            name="email"
-            placeholder="E-mail"
-            required
-            className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm transition-colors focus:border-(--color-gold) focus:outline-none"
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="Senha"
-            required
-            className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm transition-colors focus:border-(--color-gold) focus:outline-none"
-          />
-
-          {state?.error && (
-            <p className="text-sm text-red-700">{state.error}</p>
-          )}
-
-          <button
-            type="submit"
-            disabled={pending}
-            className="btn btn-primary mt-1 w-full"
-          >
-            {pending ? "Entrando..." : "Entrar"}
-          </button>
-
-          <Link
-            href="/conta/esqueci"
-            className="text-center text-xs text-(--color-olive)/70 underline underline-offset-4 hover:text-(--color-olive)"
-          >
-            Esqueci minha senha
-          </Link>
-        </form>
-
-        <p className="text-center text-sm text-(--color-olive)/70">
-          Ainda não têm conta?{" "}
-          <Link href="/conta/criar" className="underline underline-offset-4">
-            Criar conta
-          </Link>
-        </p>
-        <p className="text-center">
-          <Link href="/" className="text-xs text-(--color-muted) underline underline-offset-4">
-            ← Voltar aos pacotes
-          </Link>
-        </p>
-      </div>
-    </main>
+        <Botao type="submit" carregando={pending} larguraCheia className="mt-1">
+          Entrar
+        </Botao>
+      </form>
+    </CascaDeConta>
   );
 }

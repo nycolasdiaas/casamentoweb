@@ -2,7 +2,6 @@ import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   groups,
-  guests,
   gifts,
   giftContributions,
   siteEvents,
@@ -37,19 +36,26 @@ export async function metricasDoSite(siteId: string): Promise<MetricasDoSite> {
   // medidos por ida, e esta régua abre a tela. Em paralelo, é uma espera só.
   const [convidados, confirmados, escolhidos, naLista, visitas] =
     await Promise.all([
-      // Convidado pertence a GRUPO, e grupo é que aponta para o site — por isso
-      // o join. Contar direto em `guests` traria os de todos os casais.
+      /* LUGARES RESERVADOS, não linhas em `guests`.
+         Desde a 0016 quem responde é o GRUPO ("dos 2 lugares, 2 vão"), e é
+         `groups.seats` que diz quantos lugares o casal reservou. Contar
+         `guests` daria o número de nomes que o casal digitou — que é o mesmo
+         valor hoje (o backfill igualou os dois), mas deixa de ser assim no
+         primeiro grupo criado com mais lugares do que nomes. */
       db
-        .select({ n: sql<number>`count(*)::int` })
-        .from(guests)
-        .innerJoin(groups, eq(guests.groupId, groups.id))
+        .select({ n: sql<number>`coalesce(sum(${groups.seats}), 0)::int` })
+        .from(groups)
         .where(eq(groups.siteId, siteId)),
 
+      /* `sum`, não `count`: um grupo confirmado vale quantas pessoas vão.
+         `seats_confirmed` é null enquanto ninguém respondeu, e `sum` ignora
+         null — grupo sem resposta não soma nem subtrai. */
       db
-        .select({ n: sql<number>`count(*)::int` })
-        .from(guests)
-        .innerJoin(groups, eq(guests.groupId, groups.id))
-        .where(and(eq(groups.siteId, siteId), eq(guests.rsvpStatus, "confirmed"))),
+        .select({
+          n: sql<number>`coalesce(sum(${groups.seatsConfirmed}), 0)::int`,
+        })
+        .from(groups)
+        .where(eq(groups.siteId, siteId)),
 
       db
         .select({ n: sql<number>`count(*)::int` })

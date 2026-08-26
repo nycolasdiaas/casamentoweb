@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db/client";
-import { groups, guests } from "@/lib/db/schema";
+import { groups, guests, siteContent, sites } from "@/lib/db/schema";
 import { generateUniqueSlug } from "@/lib/slug";
 
 async function slugExists(slug: string): Promise<boolean> {
@@ -25,7 +25,16 @@ export async function createGroup({
   return db.transaction(async (tx) => {
     const [group] = await tx
       .insert(groups)
-      .values({ slug, label, siteId })
+      .values({
+        slug,
+        label,
+        siteId,
+        // Os lugares reservados nascem da lista que o casal escreveu. Pedir o
+        // número separado seria pedir duas vezes a mesma informação — e
+        // deixá-los divergir é como um grupo passa a "ter 3 lugares" com dois
+        // nomes dentro.
+        seats: guestNames.length,
+      })
       .returning();
 
     const insertedGuests = await tx
@@ -85,6 +94,87 @@ export async function listGroupSlugs(): Promise<string[]> {
 
   const rows = await db.select({ slug: groups.slug }).from(groups);
   return rows.map((r) => r.slug);
+}
+
+/**
+ * Tudo que a tela de confirmação de presença (prancha F4) precisa, numa ida.
+ *
+ * O grupo sozinho não basta: a tela abre com os nomes do casal e com o prazo
+ * de resposta, e os dois moram em `site_content`. Buscar separado seria uma
+ * segunda ida ao banco para desenhar um cabeçalho.
+ *
+ * A busca continua GLOBAL por slug, pela mesma razão de `getGroupBySlug`: os
+ * links `/rsvp/<slug>` já estão no WhatsApp de gente real e não carregam o
+ * site. Ver §5.2 e §6.2 do SDD.
+ *
+ * `rsvpDeadline` é `date` (sem hora) — quem compara precisa tratar como o DIA
+ * inteiro, não como meia-noite. Ver `prazoVencido` em `lib/site/prazoRsvp.ts`.
+ */
+export async function getRsvpViewBySlug(slug: string) {
+  "use cache";
+  cacheTag(`group:${slug}`);
+  cacheLife("hours");
+
+  const [linha] = await db
+    .select({
+      groupId: groups.id,
+      slug: groups.slug,
+      label: groups.label,
+      seats: groups.seats,
+      seatsConfirmed: groups.seatsConfirmed,
+      attendingNames: groups.attendingNames,
+      message: groups.message,
+      respondedAt: groups.respondedAt,
+      siteId: groups.siteId,
+      siteSlug: sites.slug,
+      siteStatus: sites.status,
+      coupleNames: siteContent.coupleNames,
+      weddingDate: siteContent.weddingDate,
+      timezone: siteContent.timezone,
+      ceremonyVenue: siteContent.ceremonyVenue,
+      rsvpDeadline: siteContent.rsvpDeadline,
+    })
+    .from(groups)
+    .leftJoin(sites, eq(sites.id, groups.siteId))
+    .leftJoin(siteContent, eq(siteContent.siteId, groups.siteId))
+    .where(eq(groups.slug, slug))
+    .limit(1);
+
+  return linha ?? null;
+}
+
+/**
+ * Grava a resposta do grupo — o formulário da prancha F4.
+ *
+ * `lugares` é quantos vão: `0` significa "respondemos que não vamos", e é
+ * diferente de nunca ter respondido (que é `null` na coluna). Por isso o
+ * parâmetro é obrigatório e não tem default.
+ *
+ * NÃO toca em `guests`. As duas representações convivem: `guests` é a lista
+ * que o casal escreveu e continua sendo o que o painel e o `/admin` leem;
+ * isto é o que o convidado respondeu. Sobrescrever uma com a outra apagaria
+ * informação que ninguém pode reconstruir.
+ */
+export async function responderRsvpDoGrupo(
+  groupId: string,
+  dados: {
+    lugares: number;
+    nomes: string | null;
+    recado: string | null;
+  }
+) {
+  const [atualizado] = await db
+    .update(groups)
+    .set({
+      seatsConfirmed: dados.lugares,
+      attendingNames: dados.nomes,
+      message: dados.recado,
+      respondedAt: new Date(),
+    })
+    .where(eq(groups.id, groupId))
+    .returning();
+
+  return atualizado ?? null;
 }
 
 export async function listGroupsWithGuests(siteId: string) {

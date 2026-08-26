@@ -1,0 +1,25 @@
+-- Desfaz a 0017 (quantidade de cotas por presente).
+--
+-- ── O que a 0017 fez ───────────────────────────────────────────────────────
+--
+-- UMA coluna nullable, sem backfill e sem default. Nenhuma cota existente foi
+-- tocada: todas continuaram com `quantity IS NULL`, que significa "sem teto" —
+-- exatamente o comportamento que elas tinham antes da coluna existir.
+--
+-- ── O que este rollback APAGA ──────────────────────────────────────────────
+--
+-- O teto de cotas que algum casal tenha definido. Depois do rollback, toda
+-- cota volta a ser ilimitada: um presente que estava marcado como "20 cotas"
+-- passa a aceitar quantas contribuições vierem, e a barra de progresso some da
+-- tela do casal.
+--
+-- Nada de dinheiro se perde nisso — `gift_contributions` não depende desta
+-- coluna, e o Pix nunca passou pela Enlace de todo jeito.
+--
+-- Se houver teto a preservar, rode antes:
+--
+--   SELECT g.name, g.quantity, s.slug
+--   FROM gifts g JOIN sites s ON s.id = g.site_id
+--   WHERE g.quantity IS NOT NULL;
+
+ALTER TABLE "gifts" DROP COLUMN IF EXISTS "quantity";

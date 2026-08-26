@@ -2,13 +2,21 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { Inter } from "next/font/google";
-import { signupAction } from "@/app/actions/account-actions";
 import PendingVeil from "@/components/ui/PendingVeil";
-import { SITE_NAME } from "@/lib/site";
+import CascaDeConta from "@/components/account/CascaDeConta";
+import { Botao, Campo } from "@/components/ui/prensa";
+import { signupAction } from "@/app/actions/account-actions";
 
-const inter = Inter({ subsets: ["latin"] });
-
+/**
+ * C2 · GET /conta/criar → POST signupAction
+ *
+ * A foto troca de lado em relação a `/conta/entrar` de propósito: são as duas
+ * telas que a pessoa alterna quando erra a porta, e o espelhamento é o que
+ * deixa claro, antes de ler, que ela mudou de tela.
+ *
+ * Os quatro campos e o `minLength={8}` continuam exatamente como estavam — o
+ * 8 casa com o que `signupAction` exige no servidor.
+ */
 export default function SignupPage() {
   const [state, action, pending] = useActionState(
     async (_prev: { error?: string } | undefined, formData: FormData) => {
@@ -18,8 +26,27 @@ export default function SignupPage() {
   );
 
   return (
-    <main
-      className={`${inter.className} flex-1 flex items-center justify-center bg-(--color-paper) px-6 py-16 text-(--color-olive)`}
+    <CascaDeConta
+      titulo="Vamos começar"
+      chamada="Crie a conta e responda o questionário. O site nasce no fim dele."
+      foto={{
+        src: "/enlace/noiva.png",
+        lado: "direita",
+        legenda: "Um site pronto antes do café esfriar.",
+      }}
+      rodape={
+        <div className="flex flex-col gap-4">
+          <p className="t-corpo-p text-(--c-ink-2) text-center">
+            Já têm conta?{" "}
+            <Link
+              href="/conta/entrar"
+              className="text-(--c-ink) underline underline-offset-4"
+            >
+              Entrar
+            </Link>
+          </p>
+        </div>
+      }
     >
       <PendingVeil
         ativo={pending}
@@ -27,80 +54,47 @@ export default function SignupPage() {
         sublabel="Estamos guardando os dados com segurança e preparando o e-mail de confirmação."
       />
 
-      <div className="motion-rise-in w-full max-w-sm flex flex-col gap-6">
-        <div className="text-center flex flex-col gap-2">
-          <p className="text-xs font-medium tracking-[0.25em] uppercase text-(--color-gold)">
-            {SITE_NAME}
-          </p>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Criar a conta de vocês
-          </h1>
-          <p className="text-sm text-(--color-olive)/70">
-            Escolham o pacote e o estilo, mandem o material — e a gente monta
-            tudo.
-          </p>
-        </div>
+      <form action={action} className="flex flex-col gap-5">
+        <Campo
+          rotulo="Nomes de vocês"
+          name="name"
+          placeholder={"Ana & Pedro"}
+          autoComplete="name"
+          required
+        />
+        <Campo
+          rotulo="E-mail"
+          type="email"
+          name="email"
+          autoComplete="email"
+          required
+        />
+        <Campo
+          rotulo="WhatsApp"
+          type="tel"
+          name="whatsapp"
+          autoComplete="tel"
+          ajuda="Com DDD. Opcional — é por onde a gente avisa se algo travar."
+        />
+        <Campo
+          rotulo="Senha"
+          type="password"
+          name="password"
+          autoComplete="new-password"
+          required
+          minLength={8}
+          ajuda="Mínimo de 8 caracteres."
+          erro={state?.error}
+        />
 
-        <form action={action} className="flex flex-col gap-3">
-          <input
-            type="text"
-            name="name"
-            placeholder="Nomes de vocês (ex: Ana & Pedro)"
-            required
-            className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm transition-colors focus:border-(--color-gold) focus:outline-none"
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="E-mail"
-            required
-            className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm transition-colors focus:border-(--color-gold) focus:outline-none"
-          />
-          <input
-            type="tel"
-            name="whatsapp"
-            placeholder="WhatsApp (com DDD)"
-            className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm transition-colors focus:border-(--color-gold) focus:outline-none"
-          />
-          {/* mín. 8 aqui e no servidor (signupAction) — antes o campo pedia 6
-              e o servidor recusava, dando erro só depois de enviar. */}
-          <input
-            type="password"
-            name="password"
-            placeholder="Senha (mín. 8 caracteres)"
-            required
-            minLength={8}
-            className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm transition-colors focus:border-(--color-gold) focus:outline-none"
-          />
+        <Botao type="submit" carregando={pending} larguraCheia className="mt-1">
+          Criar conta
+        </Botao>
 
-          {state?.error && (
-            <p className="text-sm text-red-700">{state.error}</p>
-          )}
-
-          <button
-            type="submit"
-            disabled={pending}
-            className="btn btn-primary mt-1 w-full"
-          >
-            {pending ? "Criando..." : "Criar conta"}
-          </button>
-          <p className="text-center text-xs text-(--color-muted)">
-            Vamos mandar um link no e-mail de vocês para confirmar a conta.
-          </p>
-        </form>
-
-        <p className="text-center text-sm text-(--color-olive)/70">
-          Já têm conta?{" "}
-          <Link href="/conta/entrar" className="underline underline-offset-4">
-            Entrar
-          </Link>
+        <p className="t-corpo-p text-(--c-ink-2) text-center">
+          Vamos mandar um link no e-mail de vocês para confirmar a conta.
         </p>
-        <p className="text-center">
-          <Link href="/" className="text-xs text-(--color-muted) underline underline-offset-4">
-            ← Voltar aos pacotes
-          </Link>
-        </p>
-      </div>
-    </main>
+      </form>
+    </CascaDeConta>
   );
 }

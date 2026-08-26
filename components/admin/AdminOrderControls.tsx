@@ -10,15 +10,15 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="self-start rounded-full bg-(--c-ink) text-white text-xs font-medium px-5 py-2.5 transition-colors hover:bg-(--c-ink)/90 disabled:opacity-60"
+      className="btn btn-ink btn-sm self-start"
     >
-      {pending ? "Salvando..." : "Salvar alterações"}
+      {pending ? "Salvando…" : "Salvar alterações"}
     </button>
   );
 }
 
 const inputClass =
-  "rounded-lg border border-(--c-rule) bg-white px-3 py-2 text-sm text-(--c-ink) focus:border-(--c-rule) focus:outline-none";
+  "campo";
 const labelClass = "flex flex-col gap-1 text-xs text-(--c-ink-2)";
 
 export default function AdminOrderControls({
@@ -75,7 +75,7 @@ export default function AdminOrderControls({
             type="url"
             name="previewUrl"
             defaultValue={previewUrl ?? ""}
-            placeholder="https://..."
+            placeholder="https://…"
             className={inputClass}
           />
         </label>
@@ -85,7 +85,7 @@ export default function AdminOrderControls({
             type="url"
             name="siteUrl"
             defaultValue={siteUrl ?? ""}
-            placeholder="https://..."
+            placeholder="https://…"
             className={inputClass}
           />
         </label>

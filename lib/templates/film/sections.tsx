@@ -8,6 +8,7 @@ import SplitReveal from "@/components/site/SplitReveal";
 import { loadGiftSection } from "@/lib/site/giftSection";
 import { listSitePhotos, photoAt, SLOT_CAPACITY } from "@/lib/repositories/sitePhotos";
 import type { SectionProps } from "@/lib/templates/contract";
+import Mural from "@/components/site/Mural";
 
 // Seções do molde Film — fotografia analógica, luz de fim de tarde.
 //
@@ -355,6 +356,25 @@ export async function Gifts({ siteId, content }: SectionProps) {
           "Ter você conosco já é presente. Mas, se o coração pedir, cada mimo abaixo vira uma lembrança da nossa lua de mel."}
       </p>
       <GiftGrid gifts={gifts} pix={pix} siteId={siteId}
+      />
+    </section>
+  );
+}
+
+/**
+ * Mural de recados (pacote Para Sempre).
+ *
+ * A lista e o formulário são os mesmos dos seis moldes — ver
+ * `components/site/Mural.tsx`. Aqui entra só o enquadramento deste molde.
+ */
+export async function Guestbook({ siteId, slug }: SectionProps) {
+  return (
+    <section className="px-6 py-16 lg:px-20 lg:py-24">
+      <Head kicker="Deixe registrado" title="Mural de recados" />
+      <Mural
+        siteId={siteId}
+        slug={slug}
+        convite="Escreva o que quiser — fica guardado com o resto do dia."
       />
     </section>
   );

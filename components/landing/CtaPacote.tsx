@@ -16,8 +16,13 @@ import { getSessionUserId } from "@/lib/auth/userSession";
  */
 export default async function CtaPacote({
   className,
+  rotulo = "Começar agora",
 }: {
   className: string;
+  /** "Escolher Para Sempre" diz mais que "Começar agora" (Voz V4: o botão
+      descreve a ação, não o conceito). Fica opcional porque o mesmo CTA
+      aparece no topo da landing, onde ainda não há pacote escolhido. */
+  rotulo?: string;
 }) {
   const logado = Boolean(await getSessionUserId());
 
@@ -26,7 +31,7 @@ export default async function CtaPacote({
       href={logado ? "/conta/pedido/novo" : "/conta/criar"}
       className={className}
     >
-      Começar agora
+      {rotulo}
     </Link>
   );
 }
@@ -38,10 +43,16 @@ export default async function CtaPacote({
  * apontar para o cadastro é o que menos pisca para o visitante típico. E se o
  * streaming falhar, o pior caso é o comportamento de hoje, não um link morto.
  */
-export function CtaPacoteFallback({ className }: { className: string }) {
+export function CtaPacoteFallback({
+  className,
+  rotulo = "Começar agora",
+}: {
+  className: string;
+  rotulo?: string;
+}) {
   return (
     <Link href="/conta/criar" className={className}>
-      Começar agora
+      {rotulo}
     </Link>
   );
 }

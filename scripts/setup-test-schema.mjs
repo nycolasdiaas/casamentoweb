@@ -111,6 +111,21 @@ const DDL = [
   `create index if not exists idx_test_site_invites_site
      on test.site_invites (site_id)`,
 
+  // 0015 — mural de recados. O schema `test` é mantido à mão e NÃO recebe
+  // migração: sem esta entrada, todo teste que tocar em `guestbook_messages`
+  // morre com `relation does not exist`. Foi o que derrubou a 0010 e a 0011.
+  `create table if not exists test.guestbook_messages (
+     id uuid primary key default gen_random_uuid(),
+     site_id uuid not null references test.sites(id) on delete cascade,
+     guest_name text not null,
+     message text not null,
+     hidden boolean not null default false,
+     created_at timestamptz not null default now()
+   )`,
+
+  `create index if not exists idx_test_guestbook_messages_site
+     on test.guestbook_messages (site_id)`,
+
   `create table if not exists test.site_events (
      id bigserial primary key,
      site_id uuid not null references test.sites(id) on delete cascade,
@@ -156,6 +171,20 @@ const DDL = [
   `alter table test.site_content add column if not exists pix_recipient text`,
   `alter table test.site_content add column if not exists pix_city text`,
   `alter table test.site_content add column if not exists pix_institution text`,
+
+  // Resposta por GRUPO e site com senha (migração 0016). Mesmo motivo dos
+  // alters acima: as tabelas já existem no schema `test` e o
+  // `create table if not exists` não as alcança.
+  `alter table test.groups add column if not exists seats smallint not null default 0`,
+  `alter table test.groups add column if not exists seats_confirmed smallint`,
+  `alter table test.groups add column if not exists attending_names text`,
+  `alter table test.groups add column if not exists message text`,
+  `alter table test.groups add column if not exists responded_at timestamptz`,
+  `alter table test.sites add column if not exists access_mode public.site_access_mode not null default 'public'`,
+  `alter table test.sites add column if not exists access_password_hash text`,
+
+  // Teto de cotas por presente (migração 0017).
+  `alter table test.gifts add column if not exists quantity smallint`,
 
   `create index if not exists idx_test_groups_site_id on test.groups (site_id)`,
   `create index if not exists idx_test_gifts_site_id on test.gifts (site_id)`,

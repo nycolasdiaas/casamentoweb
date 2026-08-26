@@ -25,7 +25,7 @@ export default function ColorRow({
     <div className="flex flex-col gap-2.5">
       <p className="text-sm font-medium">
         {label}{" "}
-        <span className="text-xs font-normal text-(--color-muted)">{hint}</span>
+        <span className="text-xs font-normal text-(--c-ink-2)">{hint}</span>
       </p>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -42,7 +42,7 @@ export default function ColorRow({
               style={{ backgroundColor: preset.hex }}
               className={`size-9 rounded-full border-2 transition-transform duration-150 hover:scale-110 active:scale-95 ${
                 ativo
-                  ? "scale-110 border-(--color-olive) ring-2 ring-(--color-olive)/30"
+                  ? "scale-110 border-(--c-ink) ring-2 ring-(--c-rule)"
                   : "border-black/10"
               }`}
             />
@@ -54,7 +54,7 @@ export default function ColorRow({
         <label
           className={`relative size-9 cursor-pointer overflow-hidden rounded-full border-2 transition-transform duration-150 hover:scale-110 ${
             valor && !ehPreset
-              ? "scale-110 border-(--color-olive) ring-2 ring-(--color-olive)/30"
+              ? "scale-110 border-(--c-ink) ring-2 ring-(--c-rule)"
               : "border-black/10"
           }`}
           style={{
@@ -72,7 +72,7 @@ export default function ColorRow({
           />
         </label>
 
-        <span className="text-xs text-(--color-muted)">
+        <span className="text-xs text-(--c-ink-2)">
           {valor
             ? (COLOR_PRESETS.find((p) => p.hex === valor)?.name ?? valor)
             : "sem preferência — a gente sugere"}

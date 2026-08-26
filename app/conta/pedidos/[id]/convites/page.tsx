@@ -25,14 +25,15 @@ export default async function ConvitesPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1.5">
-        <h1 className="text-2xl font-bold tracking-tight">Convites</h1>
-        <p className="max-w-[62ch] text-sm leading-relaxed text-(--c-ink-2)">
+      <header className="flex flex-col gap-3">
+        <span className="meta text-(--c-mark)">Convites</span>
+        <h1 className="t-d2 text-(--c-ink)">O convite de vocês</h1>
+        <p className="t-corpo text-(--c-ink-2) medida">
           Desenhem o convite de vocês e baixem em PNG, JPEG ou PDF para mandar
           no grupo da família. Dá para ter até {MAX_CONVITES} — um para os
           padrinhos, outro para o pessoal do trabalho, o que quiserem.
         </p>
-      </div>
+      </header>
 
       {site === null ? (
         <p className="surface-raised rounded-[3px] p-6 text-sm text-(--c-ink-2)">

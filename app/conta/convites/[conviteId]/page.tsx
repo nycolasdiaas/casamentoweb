@@ -58,7 +58,7 @@ export default async function EditarConvitePage({
     // que rola. É o que permite a moldura do convite e o painel ocuparem toda
     // a altura sem que nada fique abaixo da dobra.
     <div
-      className={`${uiPrensa} flex h-screen flex-col overflow-hidden bg-(--c-base) text-(--c-ink)`}
+      className={`${uiPrensa} tema-escuro flex h-screen flex-col overflow-hidden bg-(--c-base) text-(--c-ink)`}
     >
       <header className="flex flex-wrap items-center justify-between gap-3 px-5 py-3">
         <div className="flex items-baseline gap-4">

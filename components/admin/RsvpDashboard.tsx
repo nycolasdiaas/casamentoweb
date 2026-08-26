@@ -27,9 +27,9 @@ const STATUS_LABEL: Record<RsvpStatus, string> = {
 };
 
 const STATUS_BADGE_CLASS: Record<RsvpStatus, string> = {
-  pending: "bg-(--c-ink-2) text-white",
-  confirmed: "bg-(--c-ink) text-white",
-  declined: "bg-red-700 text-white",
+  pending: "etiqueta",
+  confirmed: "etiqueta etiqueta-ok",
+  declined: "etiqueta etiqueta-danger",
 };
 
 const FILTERS: { value: FilterOption; label: string }[] = [
@@ -84,9 +84,9 @@ export default function RsvpDashboard({ groups }: { groups: Group[] }) {
             key={option.value}
             type="button"
             onClick={() => setFilter(option.value)}
-            className={`font-serif text-xs tracking-[0.05em] px-3 py-2 border transition-colors ${
+            className={`text-[12.5px] px-3 py-2 border rounded-[2px] transition-colors ${
               filter === option.value
-                ? "bg-(--c-ink) border-(--c-ink) text-white"
+                ? "bg-(--c-mark) border-(--c-mark) text-white"
                 : "border-(--c-rule) text-(--c-ink)"
             }`}
           >
@@ -96,7 +96,7 @@ export default function RsvpDashboard({ groups }: { groups: Group[] }) {
       </div>
 
       {filteredRows.length === 0 ? (
-        <p className="font-serif text-sm text-(--c-ink-2)">
+        <p className="t-corpo text-(--c-ink-2)">
           Nenhum convidado nesta categoria.
         </p>
       ) : (
@@ -115,23 +115,23 @@ export default function RsvpDashboard({ groups }: { groups: Group[] }) {
                   }
                   className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left"
                 >
-                  <span className="font-serif text-sm text-(--c-ink)">
+                  <span className="t-corpo text-(--c-ink)">
                     {guest.name}
                   </span>
                   <span className="flex items-center gap-3">
                     <span
-                      className={`font-serif text-xs px-2 py-1 ${STATUS_BADGE_CLASS[guest.rsvpStatus]}`}
+                      className={STATUS_BADGE_CLASS[guest.rsvpStatus]}
                     >
                       {STATUS_LABEL[guest.rsvpStatus]}
                     </span>
-                    <span className="font-serif text-xs text-(--c-ink-2)">
+                    <span className="t-corpo-p text-(--c-ink-2)">
                       {isExpanded ? "−" : "+"}
                     </span>
                   </span>
                 </button>
 
                 {isExpanded && (
-                  <dl className="px-4 pb-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 font-serif text-xs text-(--c-ink)">
+                  <dl className="px-4 pb-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-[12.5px] text-(--c-ink)">
                     <dt className="text-(--c-ink-2)">Grupo</dt>
                     <dd>
                       {group.label ||
@@ -157,8 +157,8 @@ export default function RsvpDashboard({ groups }: { groups: Group[] }) {
 function SummaryCard({ label, count }: { label: string; count: number }) {
   return (
     <div className="border border-(--c-rule) px-3 py-4 flex flex-col items-center gap-1">
-      <span className="font-serif text-2xl text-(--c-ink)">{count}</span>
-      <span className="font-serif text-xs text-(--c-ink-2) text-center">
+      <span className="t-display text-[34px] leading-none text-(--c-ink)">{count}</span>
+      <span className="meta text-(--c-ink-2) text-center">
         {label}
       </span>
     </div>

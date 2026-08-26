@@ -22,6 +22,7 @@ import {
 } from "@/lib/repositories/siteInvites";
 import { conviteInicial } from "@/lib/site/inviteSeed";
 import { MAX_CONVITES, parseInviteDoc } from "@/lib/site/inviteDoc";
+import { dataPorExtenso } from "@/lib/site/dataLegivel";
 
 /**
  * Ações do editor de convites.
@@ -57,13 +58,11 @@ export async function criarConviteAction(formData: FormData) {
   }
 
   const v = toEditorValues(conteudo ?? null);
-  const data = v.weddingDate
-    ? new Date(`${v.weddingDate}T12:00:00`).toLocaleDateString("pt-BR", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-      })
-    : null;
+  const data = dataPorExtenso(v.weddingDate, {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
 
   const tema =
     (site.theme as ThemeSpec | null) ?? themePresetFor(site.templateId);

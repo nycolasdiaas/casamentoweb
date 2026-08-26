@@ -1,17 +1,29 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { Trilha } from "@/components/ui/prensa";
 
 /**
- * A casca do questionário: barra de progresso, voltar, e a etapa em si.
+ * Faixa D · a casca do questionário.
  *
- * O formulário de pedido era uma página só com pacote, modelo, duas cores, 34
- * fontes, observações e material — tudo aberto ao mesmo tempo. Quem abria via
- * uma parede e fechava. Aqui é uma pergunta por tela, com o progresso à vista,
- * que é o padrão do iCasei e a razão de ele parecer leve com MAIS perguntas.
+ * Uma pergunta por tela, com o progresso à vista. Isso não mudou — o que mudou
+ * foi o desenho, e três coisas nele são decisão, não gosto:
  *
- * A etapa recebe `direcao` para animar do lado certo: avançar traz da direita,
- * voltar traz da esquerda. Sem isso a troca lê como recarregar a página.
+ * 1. **Barra → trilha de segmentos.** A barra respondia "quanto falta"; os
+ *    segmentos respondem "quantas perguntas são", que é a pergunta que decide
+ *    se a pessoa começa. Ver `Trilha`.
+ * 2. **Título alinhado à esquerda, não centralizado.** A pergunta é grande e
+ *    vem seguida de campos alinhados à esquerda; centralizar o título cria uma
+ *    segunda aresta e o olho volta ao lugar errado a cada etapa. A regra da
+ *    Fundação A2 é literal: nunca centralizar bloco de texto com mais de duas
+ *    linhas.
+ * 3. **"Salvar rascunho" sobe para a trilha.** Ele é uma saída, não um passo:
+ *    no rodapé ficava ombro a ombro com o botão de avançar, que é exatamente
+ *    a colisão documentada em `OrderWizard` (alguém errou o alvo e concluiu
+ *    que a criação do pedido estava quebrada).
+ *
+ * A `direcao` continua animando do lado certo: avançar traz da direita, voltar
+ * da esquerda.
  */
 export default function WizardShell({
   passo,
@@ -20,8 +32,10 @@ export default function WizardShell({
   titulo,
   subtitulo,
   onVoltar,
+  acaoDaTrilha,
   children,
   rodape,
+  nota,
 }: {
   passo: number;
   total: number;
@@ -29,86 +43,74 @@ export default function WizardShell({
   titulo: string;
   subtitulo?: string;
   onVoltar?: () => void;
+  /** "Salvar rascunho" — some na última etapa, onde enviar já grava tudo. */
+  acaoDaTrilha?: React.ReactNode;
   children: React.ReactNode;
+  /** A ação que avança (ou envia). Fica à direita do "Voltar". */
   rodape: React.ReactNode;
+  /** Mensagem de estado e recados — linha de baixo, sem competir com a ação. */
+  nota?: React.ReactNode;
 }) {
   const topoRef = useRef<HTMLDivElement>(null);
+  const jaMontou = useRef(false);
 
-  // Cada etapa começa do topo. Sem isto, quem rolou até o fim da lista de
-  // fontes cai no meio da etapa seguinte sem entender o que aconteceu.
+  /* Cada etapa começa do topo — mas NÃO a primeira.
+     Sem a guarda, o efeito roda também na montagem: quem abre o questionário
+     chega com a página já rolada, o cabeçalho fora da tela e um movimento que
+     ninguém pediu. O objetivo é outro — que quem rolou até o fim da lista de
+     fontes não caia no meio da etapa seguinte —, e isso só existe da segunda
+     etapa em diante. */
   useEffect(() => {
+    if (!jaMontou.current) {
+      jaMontou.current = true;
+      return;
+    }
     topoRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
   }, [passo]);
 
-  const progresso = Math.round(((passo + 1) / total) * 100);
-
   return (
-    <div ref={topoRef} className="flex flex-col gap-7 scroll-mt-6">
-      {/* Progresso. Número E barra: a barra dá a sensação, o "3 de 7" dá a
-          certeza — sozinha, a barra deixa a pessoa sem saber quanto falta. */}
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between gap-4">
-          {onVoltar ? (
-            <button
-              type="button"
-              onClick={onVoltar}
-              // -mx-2 px-2 py-3: a área de toque cresce para ~44px sem
-              // deslocar o texto da margem. No celular, 20px de altura é um
-              // alvo que se erra — e este é o botão de desfazer do fluxo.
-              className="-mx-2 flex min-h-11 items-center gap-1.5 px-2 py-3 text-sm text-(--color-olive)/70 transition-colors hover:text-(--color-olive)"
-            >
-              <span aria-hidden>←</span> Voltar
-            </button>
-          ) : (
-            <span />
-          )}
-          <span className="text-xs font-medium tracking-[0.14em] uppercase text-(--color-muted)">
-            {passo + 1} de {total}
-          </span>
-        </div>
-
-        <div
-          role="progressbar"
-          aria-valuenow={progresso}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-label="Progresso do pedido"
-          className="h-1 w-full overflow-hidden rounded-full bg-(--color-olive)/10"
-        >
-          <div
-            className="h-full rounded-full bg-[#2f3a29]"
-            style={{
-              width: `${progresso}%`,
-              transition: "width var(--t-lento) var(--e-saida)",
-            }}
-          />
-        </div>
+    <div
+      ref={topoRef}
+      className="surface-raised rounded-[3px] scroll-mt-6 flex flex-col"
+    >
+      <div className="px-6 pt-6 lg:px-10 lg:pt-8">
+        <Trilha total={total} atual={passo + 1} acessorio={acaoDaTrilha} />
       </div>
 
       {/* `key={passo}` remonta o bloco a cada etapa: é o que faz a animação
           rodar de novo em vez de o React reaproveitar o nó e trocar seco. */}
       <div
         key={passo}
-        className={
+        className={`px-6 py-10 lg:px-10 lg:py-12 flex-1 ${
           direcao === "frente" ? "motion-step-next" : "motion-step-prev"
-        }
+        }`}
       >
-        <div className="flex flex-col gap-2 text-center">
-          <h2 className="text-2xl font-semibold text-(--color-olive)">
-            {titulo}
-          </h2>
+        <div className="flex flex-col gap-3 max-w-[42ch]">
+          <h2 className="t-d2 text-(--c-ink)">{titulo}</h2>
           {subtitulo && (
-            <p className="mx-auto max-w-md text-sm leading-relaxed text-(--color-olive)/70">
-              {subtitulo}
-            </p>
+            <p className="t-corpo-p text-(--c-ink-2)">{subtitulo}</p>
           )}
         </div>
 
-        <div className="mt-7">{children}</div>
+        <div className="mt-9">{children}</div>
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-(--color-gold)/30 pt-5">
-        {rodape}
+      <div className="border-t border-(--c-rule) px-6 py-4 lg:px-10 flex flex-col gap-3">
+        <div className="flex items-center justify-between gap-3">
+          {onVoltar ? (
+            <button
+              type="button"
+              onClick={onVoltar}
+              className="btn btn-quiet btn-sm"
+            >
+              <span aria-hidden>←</span> Voltar
+            </button>
+          ) : (
+            <span />
+          )}
+          {rodape}
+        </div>
+        {nota}
       </div>
     </div>
   );

@@ -67,8 +67,8 @@ export function Numero({
       }}
       className={
         compacto
-          ? "min-h-9 w-16 border border-(--c-rule) bg-white px-1.5 text-right text-[13px]"
-          : "min-h-11 w-[5.5rem] border border-(--c-rule) bg-white px-2 text-right text-[13px]"
+          ? "min-h-9 w-16 border border-(--c-rule) bg-(--c-surface) px-1.5 text-right text-[13px]"
+          : "min-h-11 w-[5.5rem] border border-(--c-rule) bg-(--c-surface) px-2 text-right text-[13px]"
       }
     />
   );

@@ -14,6 +14,7 @@ import {
   type PhotoSlot,
 } from "@/lib/repositories/sitePhotos";
 import { isStorageEnabled } from "@/lib/storage/supabase";
+import LivePreview from "@/components/account/LivePreview";
 import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = { title: `Visual | ${SITE_NAME}` };
@@ -24,7 +25,8 @@ export default async function VisualPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { site } = await carregarGerenciamento(id);
+  const { order, site } = await carregarGerenciamento(id);
+  const previewSrc = order.previewUrl ?? order.siteUrl ?? null;
 
   const template = site ? getTemplate(site.templateId) : null;
 
@@ -89,37 +91,52 @@ export default async function VisualPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1.5">
-        <h1 className="text-2xl font-bold tracking-tight">O visual do site</h1>
-        <p className="text-sm leading-relaxed text-(--color-olive)/70">
-          Cores e tipografia. Cada troca vale na hora.
+      <header className="flex flex-col gap-3">
+        <span className="meta text-(--c-mark)">Visual</span>
+        <h1 className="t-d2 text-(--c-ink)">O visual do site</h1>
+        <p className="t-corpo text-(--c-ink-2) medida">
+          Estilo, cores e tipografia. Cada troca vale na hora.
         </p>
+      </header>
+
+      {/* E4 é PAINEL + PALCO: os controles numa coluna estreita à esquerda e a
+          prévia ocupando o resto. Escolher cor sem ver o resultado é escolher
+          no escuro — e era o que a coluna única obrigava, com a prévia a três
+          rolagens de distância dos seletores. */}
+      <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-8 items-start">
+        <div className="flex flex-col gap-6">
+          {/* O seletor de molde vem SEMPRE, inclusive quando não há molde
+              ainda — é ele que tira o casal do beco em que a tela só sabia
+              dizer "fale com a gente pelo WhatsApp". */}
+          {site !== null && (
+            <TemplatePicker siteId={site.id} atual={site.templateId ?? null} />
+          )}
+
+          {site !== null && temaAtual !== null ? (
+            <ThemeEditor
+              siteId={site.id}
+              nomeDoModelo={nomeDoModelo}
+              fontesDoModelo={fontesDoModelo}
+              fontClassNames={fontClassNames}
+              values={{ ...temaAtual.palette, ...temaAtual.fonts }}
+              fotoSlot={<PhotoOrder siteId={site.id} fotos={fotosOrdenaveis} />}
+            />
+          ) : (
+            site !== null && (
+              <p className="surface-flat rounded-[3px] p-6 t-corpo-p text-(--c-ink-2)">
+                Escolham um modelo acima e as cores e a tipografia aparecem
+                aqui para editar.
+              </p>
+            )
+          )}
+        </div>
+
+        {previewSrc && (
+          <aside className="hidden lg:block lg:sticky lg:top-6">
+            <LivePreview src={previewSrc} fullBleed={false} />
+          </aside>
+        )}
       </div>
-
-      {/* O seletor de molde vem SEMPRE, inclusive quando não há molde ainda —
-          é ele que tira o casal do beco em que a tela só sabia dizer "fale
-          com a gente pelo WhatsApp". */}
-      {site !== null && (
-        <TemplatePicker siteId={site.id} atual={site.templateId ?? null} />
-      )}
-
-      {site !== null && temaAtual !== null ? (
-        <ThemeEditor
-          siteId={site.id}
-          nomeDoModelo={nomeDoModelo}
-          fontesDoModelo={fontesDoModelo}
-          fontClassNames={fontClassNames}
-          values={{ ...temaAtual.palette, ...temaAtual.fonts }}
-          fotoSlot={<PhotoOrder siteId={site.id} fotos={fotosOrdenaveis} />}
-        />
-      ) : (
-        site !== null && (
-          <p className="rounded-2xl border border-(--color-gold)/40 bg-white p-6 text-sm leading-relaxed text-(--color-olive)/70">
-            Escolham um modelo acima e as cores e a tipografia aparecem aqui
-            para editar.
-          </p>
-        )
-      )}
     </div>
   );
 }

@@ -77,7 +77,7 @@ export default function PhotoOrder({
 }) {
   if (fotos.length === 0) {
     return (
-      <p className="text-xs text-(--color-muted)">
+      <p className="text-xs text-(--c-ink-2)">
         Assim que vocês subirem as fotos, a ordem aparece aqui.
       </p>
     );
@@ -93,10 +93,10 @@ export default function PhotoOrder({
     <div className="flex flex-col gap-4">
       {Object.entries(porSlot).map(([slot, doSlot]) => (
         <div key={slot} className="flex flex-col gap-1.5">
-          <p className="text-xs font-medium text-(--color-olive)/80">
+          <p className="text-xs font-medium text-(--c-ink)">
             {doSlot[0].slotLabel}
             {doSlot.length > 1 && (
-              <span className="font-normal text-(--color-muted)">
+              <span className="font-normal text-(--c-ink-2)">
                 {" "}
                 · {doSlot.length} fotos, a primeira abre
               </span>
@@ -105,7 +105,7 @@ export default function PhotoOrder({
           <ul className="grid grid-cols-3 sm:grid-cols-5 gap-2">
             {doSlot.map((foto, i) => (
               <li key={foto.id} className="relative">
-                <div className="relative aspect-square overflow-hidden rounded-lg border border-(--color-gold)/30 bg-(--color-paper)">
+                <div className="relative aspect-square overflow-hidden rounded-[3px] border border-(--c-rule) bg-(--c-base)">
                   {foto.url ? (
                     // URL assinada e temporária; next/image não ajuda aqui.
                     // eslint-disable-next-line @next/next/no-img-element

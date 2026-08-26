@@ -25,6 +25,7 @@ import ColorRow from "@/components/account/wizard/ColorRow";
 import { useConfirmacaoDeEscolha } from "@/components/account/wizard/useConfirmacaoDeEscolha";
 import CelebrationScreen from "@/components/account/wizard/CelebrationScreen";
 import { FONT_PREVIEW_CLASS, CATEGORY_PREVIEW_SIZE } from "@/components/account/wizard/fontPreview";
+import { dataPorExtenso } from "@/lib/site/dataLegivel";
 
 /**
  * O pedido como questionário — uma pergunta por tela.
@@ -69,7 +70,7 @@ const FONT_CATEGORY_ORDER: FontCategory[] = [
 ];
 
 const campoBase =
-  "w-full rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3.5 text-sm text-(--color-olive) transition-colors focus:border-(--color-olive) focus:outline-none";
+  "w-full rounded-[3px] border border-(--c-rule) bg-white px-4 py-3.5 text-sm text-(--c-ink) transition-colors focus:border-(--c-ink) focus:outline-none";
 
 export default function OrderWizard({
   order,
@@ -200,15 +201,15 @@ export default function OrderWizard({
                 onClick={() => setPacote(pkg.tier)}
                 data-escolha={ativo ? "sim" : "nao"}
                 style={{ ["--i" as string]: i }}
-                className={`flex flex-col gap-1.5 rounded-2xl border-2 p-5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
+                className={`flex flex-col gap-1.5 rounded-[3px] border-2 p-5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
                   ativo
-                    ? "border-(--color-olive) bg-(--color-blush) shadow-sm"
-                    : "border-(--color-gold)/40 bg-white"
+                    ? "border-(--c-ink) bg-(--c-sunken) shadow-sm"
+                    : "border-(--c-rule) bg-white"
                 }`}
               >
                 <span className="text-sm font-semibold">{pkg.name}</span>
                 <span className="text-xl font-bold">{pkg.price}</span>
-                <span className="text-xs leading-relaxed text-(--color-olive)/60">
+                <span className="text-xs leading-relaxed text-(--c-ink-2)">
                   {pkg.tagline}
                 </span>
               </button>
@@ -227,7 +228,7 @@ export default function OrderWizard({
               maxLength={120}
               className={campoBase}
             />
-            <span className="text-xs text-(--color-muted)">
+            <span className="text-xs text-(--c-ink-2)">
               Do jeito que vocês querem ver escrito na capa.
             </span>
           </label>
@@ -240,7 +241,7 @@ export default function OrderWizard({
               onChange={(e) => setData(e.target.value)}
               className={campoBase}
             />
-            <span className="text-xs text-(--color-muted)">
+            <span className="text-xs text-(--c-ink-2)">
               Alimenta a contagem regressiva. Ainda não fecharam? Deixem em
               branco.
             </span>
@@ -268,7 +269,7 @@ export default function OrderWizard({
             maxLength={300}
             className={campoBase}
           />
-          <span className="text-xs text-(--color-muted)">
+          <span className="text-xs text-(--c-ink-2)">
             Vira o botão de mapa no convite.
           </span>
         </label>
@@ -312,7 +313,7 @@ export default function OrderWizard({
             setFestaLocal(cerimoniaLocal);
             setFestaEndereco(cerimoniaEndereco);
           }}
-          className="self-start rounded-full border border-(--color-gold)/50 px-4 py-2 text-xs transition-colors hover:bg-(--color-blush)"
+          className="self-start rounded-[2px] border border-(--c-rule) px-4 py-2 text-[13px] text-(--c-ink-2) transition-colors hover:border-(--c-ink) hover:text-(--c-ink)"
         >
           É no mesmo lugar da cerimônia
         </button>
@@ -338,7 +339,7 @@ export default function OrderWizard({
                 type="button"
                 style={{ ["--i" as string]: i }}
                 onClick={() => setTraje(sugestao)}
-                className="rounded-full border border-(--color-gold)/50 px-3.5 py-1.5 text-xs transition-colors hover:bg-(--color-blush)"
+                className="rounded-[2px] border border-(--c-rule) px-3.5 py-1.5 text-[13px] text-(--c-ink-2) transition-colors hover:border-(--c-ink) hover:text-(--c-ink)"
               >
                 {sugestao}
               </button>
@@ -360,7 +361,7 @@ export default function OrderWizard({
             className={`${campoBase} resize-y`}
           />
         </label>
-        <span style={{ ["--i" as string]: 1 }} className="text-xs text-(--color-muted)">
+        <span style={{ ["--i" as string]: 1 }} className="text-xs text-(--c-ink-2)">
           {historia.length}/5000
         </span>
       </div>
@@ -377,10 +378,10 @@ export default function OrderWizard({
                   onClick={() => escolherModelo(estiloItem.id)}
                   data-escolha={ativo ? "sim" : "nao"}
                   style={{ ["--i" as string]: i }}
-                  className={`flex flex-col gap-2.5 rounded-2xl border-2 p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
+                  className={`flex flex-col gap-2.5 rounded-[3px] border-2 p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
                     ativo
-                      ? "border-(--color-olive) bg-(--color-blush) shadow-sm"
-                      : "border-(--color-gold)/40 bg-white"
+                      ? "border-(--c-ink) bg-(--c-sunken) shadow-sm"
+                      : "border-(--c-rule) bg-white"
                   }`}
                 >
                   <span className="text-sm font-semibold">
@@ -395,7 +396,7 @@ export default function OrderWizard({
                       />
                     ))}
                   </span>
-                  <span className="text-xs leading-relaxed text-(--color-olive)/60">
+                  <span className="text-xs leading-relaxed text-(--c-ink-2)">
                     {estiloItem.description}
                   </span>
                 </button>
@@ -406,10 +407,10 @@ export default function OrderWizard({
           <button
             type="button"
             onClick={() => setModelo("")}
-            className={`self-start rounded-full border px-4 py-2 text-xs transition-colors ${
+            className={`self-start rounded-[2px] border px-4 py-2 text-[13px] transition-colors ${
               modelo === ""
-                ? "border-(--color-olive) bg-(--color-blush) font-medium"
-                : "border-(--color-gold)/50 hover:bg-(--color-blush)"
+                ? "border-(--c-ink) bg-(--c-sunken) font-medium"
+                : "border-(--c-rule) text-(--c-ink-2) hover:border-(--c-ink) hover:text-(--c-ink)"
             }`}
           >
             Prefiro montar do zero
@@ -460,7 +461,7 @@ export default function OrderWizard({
     // arrasta querendo descer a página e desce a lista, ou fica presa no fim
     // dela. Com a lista inteira no fluxo, o polegar faz uma coisa só.
     fonte: (
-        <div className="flex flex-col gap-6 rounded-2xl border border-(--color-gold)/30 bg-(--color-paper)/40 p-4 sm:max-h-[30rem] sm:overflow-y-auto">
+        <div className="flex flex-col gap-6 rounded-[3px] border border-(--c-rule) bg-(--c-base)/40 p-4 sm:max-h-[30rem] sm:overflow-y-auto">
           {FONT_CATEGORY_ORDER.map((categoria) => {
             const doGrupo = FONT_STYLES.filter((f) => f.category === categoria);
             if (doGrupo.length === 0) return null;
@@ -473,11 +474,11 @@ export default function OrderWizard({
                     fundo opaco e z-index só trocou "texto vazando" por "texto
                     escondido" — o cartão continuava cortado.
                     Com 4 categorias curtas, seguir a rolagem não vale o preço. */}
-                <p className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.1em] text-(--color-gold)">
+                <p className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.1em] text-(--c-mark)">
                   {FONT_CATEGORY_LABELS[categoria]}
                   <span
                     aria-hidden
-                    className="h-px flex-1 bg-(--color-gold)/30"
+                    className="h-px flex-1 bg-(--c-rule)"
                   />
                 </p>
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -488,23 +489,23 @@ export default function OrderWizard({
                         key={f.id}
                         type="button"
                         onClick={() => setFonte(ativo ? "" : f.id)}
-                        className={`flex items-center justify-between gap-3 rounded-xl border-2 bg-white px-4 py-3 text-left transition-all duration-150 hover:-translate-y-0.5 ${
+                        className={`flex items-center justify-between gap-3 rounded-[3px] border-2 bg-white px-4 py-3 text-left transition-all duration-150 hover:-translate-y-0.5 ${
                           ativo
-                            ? "border-(--color-olive) bg-(--color-blush)"
-                            : "border-(--color-gold)/40"
+                            ? "border-(--c-ink) bg-(--c-sunken)"
+                            : "border-(--c-rule)"
                         }`}
                       >
                         <span className="flex min-w-0 flex-col">
                           <span className="truncate text-sm font-semibold">
                             {f.name}
                           </span>
-                          <span className="truncate text-xs text-(--color-muted)">
+                          <span className="truncate text-xs text-(--c-ink-2)">
                             {f.description}
                           </span>
                         </span>
                         <span
                           aria-hidden
-                          className={`${FONT_PREVIEW_CLASS[f.id as FontStyleId]} ${CATEGORY_PREVIEW_SIZE[f.category]} shrink-0 leading-none text-(--color-olive)`}
+                          className={`${FONT_PREVIEW_CLASS[f.id as FontStyleId]} ${CATEGORY_PREVIEW_SIZE[f.category]} shrink-0 leading-none text-(--c-ink)`}
                         >
                           {primeiroNome ? `${primeiroNome}` : "Ana & Pedro"}
                         </span>
@@ -543,7 +544,7 @@ export default function OrderWizard({
           </label>
           <p
             style={{ ["--i" as string]: 2 }}
-            className="rounded-xl border border-(--color-gold)/40 bg-(--color-blush) px-4 py-3 text-xs leading-relaxed text-(--color-olive)"
+            className="rounded-[3px] border border-(--c-rule) bg-(--c-sunken) px-4 py-3 text-xs leading-relaxed text-(--c-ink)"
           >
             <strong className="font-semibold">As fotos ficam para depois.</strong>{" "}
             Assim que o pedido for enviado, vocês sobem as fotos direto na tela
@@ -559,13 +560,11 @@ export default function OrderWizard({
             ["Nomes", nomes.trim() || "—"],
             [
               "Data",
-              data
-                ? new Date(`${data}T12:00:00`).toLocaleDateString("pt-BR", {
-                    day: "2-digit",
-                    month: "long",
-                    year: "numeric",
-                  })
-                : "a definir",
+              dataPorExtenso(data, {
+                day: "2-digit",
+                month: "long",
+                year: "numeric",
+              }) ?? "a definir",
             ],
             [
               "Ponto de partida",
@@ -581,9 +580,9 @@ export default function OrderWizard({
             <div
               key={rotulo}
               style={{ ["--i" as string]: i }}
-              className="flex items-baseline justify-between gap-4 rounded-xl border border-(--color-gold)/30 bg-white px-4 py-3"
+              className="flex items-baseline justify-between gap-4 rounded-[3px] border border-(--c-rule) bg-white px-4 py-3"
             >
-              <span className="text-xs uppercase tracking-[0.12em] text-(--color-muted)">
+              <span className="text-xs uppercase tracking-[0.12em] text-(--c-ink-2)">
                 {rotulo}
               </span>
               <span className="text-right text-sm font-medium">{valor}</span>
@@ -592,9 +591,9 @@ export default function OrderWizard({
 
           <div
             style={{ ["--i" as string]: 5 }}
-            className="mt-1 flex items-center gap-2.5 rounded-xl border border-(--color-gold)/30 bg-white px-4 py-3"
+            className="mt-1 flex items-center gap-2.5 rounded-[3px] border border-(--c-rule) bg-white px-4 py-3"
           >
-            <span className="text-xs uppercase tracking-[0.12em] text-(--color-muted)">
+            <span className="text-xs uppercase tracking-[0.12em] text-(--c-ink-2)">
               Cores
             </span>
             <span className="flex flex-1 justify-end gap-2">
@@ -673,31 +672,33 @@ export default function OrderWizard({
           titulo={etapa.titulo}
           subtitulo={etapa.subtitulo}
           onVoltar={passo > 0 ? () => ir(-1) : undefined}
-          rodape={
+          acaoDaTrilha={
             <>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                {/* "Salvar rascunho" some na ÚLTIMA etapa.
+              {/* "Salvar rascunho" some na ÚLTIMA etapa.
                     Ali ele é redundante — enviar já grava tudo — e era uma
                     armadilha: ficava colado no "Criar nosso site", com a mesma
                     aparência de botão de formulário. Quem errava o alvo via
                     "Salvando…", nenhum site criado e nenhuma animação, e
                     concluía que a criação do pedido estava quebrada. Foi
                     exatamente o que aconteceu em teste real.
-                    Nas outras etapas ele continua: ali salvar e sair é uma
-                    intenção legítima. */}
-                {!ultima && (
-                  <button
-                    type="submit"
-                    name="intent"
-                    value="save"
-                    disabled={pending || jaEnviado}
-                    className="btn btn-secondary btn-sm"
-                  >
-                    {pending && !enviando ? "Salvando…" : "Salvar rascunho"}
-                  </button>
-                )}
-
-                {ultima ? (
+                  Nas outras etapas ele continua: ali salvar e sair é uma
+                  intenção legítima. */}
+              {!ultima && (
+                <button
+                  type="submit"
+                  name="intent"
+                  value="save"
+                  disabled={pending || jaEnviado}
+                  className="text-[13px] whitespace-nowrap text-(--c-ink-2) underline underline-offset-4 transition-colors hover:text-(--c-ink) disabled:opacity-50"
+                >
+                  {pending && !enviando ? "Salvando…" : "Salvar e sair"}
+                </button>
+              )}
+            </>
+          }
+          rodape={
+            <>
+              {ultima ? (
                   <button
                     type="submit"
                     name="intent"
@@ -712,32 +713,32 @@ export default function OrderWizard({
                       // continuação disto, e não uma navegação qualquer.
                       sessionStorage.setItem(CHAVE_CRIANDO, "1");
                     }}
-                    disabled={pending || jaEnviado}
-                    className="btn btn-primary"
-                  >
-                    {jaEnviado ? "Pedido já enviado" : "Criar nosso site"}
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => ir(1)}
-                    disabled={!etapa.podeAvancar}
-                    className="btn btn-primary"
-                  >
-                    Próximo passo
-                  </button>
-                )}
-              </div>
-
+                  disabled={pending || jaEnviado}
+                  className="btn btn-ink btn-g"
+                >
+                  {jaEnviado ? "Pedido já enviado" : "Criar nosso site"}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => ir(1)}
+                  disabled={!etapa.podeAvancar}
+                  className="btn btn-ink"
+                >
+                  Continuar →
+                </button>
+              )}
+            </>
+          }
+          nota={
+            <>
               <div aria-live="polite" className="min-h-5">
                 {state && "error" in state && (
-                  <p className="motion-rise-in text-sm text-red-700">
-                    {state.error}
-                  </p>
+                  <p className="motion-rise-in erro-do-campo">{state.error}</p>
                 )}
                 {state && "saved" in state && (
-                  <p className="motion-rise-in text-sm text-(--color-olive)">
-                    Rascunho salvo
+                  <p className="motion-rise-in text-[12.5px] text-(--c-ok)">
+                    Rascunho salvo.
                   </p>
                 )}
               </div>
@@ -749,7 +750,7 @@ export default function OrderWizard({
                   socorro humano para ser usado. Agora só na revisão, onde a
                   dúvida de fato pode existir, e sem pedir desculpa. */}
               {ultima && (
-                <p className="text-xs text-(--color-muted)">
+                <p className="text-xs text-(--c-ink-2)">
                   Prefere combinar por mensagem?{" "}
                   <Link
                     href={WHATSAPP_LINK}

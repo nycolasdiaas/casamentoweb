@@ -204,24 +204,20 @@ export default function PhotoManager({
   }
 
   return (
-    <section className="flex flex-col gap-5 border-t border-(--color-gold)/30 pt-6">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-lg font-semibold tracking-tight">Fotos do site</h2>
-        <span className="text-xs text-(--color-muted)">
-          {total} de {limit} fotos
+    <section className="flex flex-col gap-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-(--c-rule) pb-3">
+        <span className="meta text-(--c-ink-2)">
+          As fotos entram no site na hora
+        </span>
+        <span className="t-data text-[12.5px] text-(--c-ink-2)">
+          {total} de {limit}
         </span>
       </div>
-
-      <p className="max-w-lg text-sm text-(--color-olive)/70">
-        As fotos entram no site na hora. Enquanto vocês não subirem as de
-        vocês, o site mostra imagens de exemplo — elas somem assim que a
-        primeira foto sobe.
-      </p>
 
       {erro && (
         <p
           role="alert"
-          className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800"
+          className="aviso text-(--c-danger)"
         >
           {erro}
         </p>
@@ -236,14 +232,14 @@ export default function PhotoManager({
           <div key={spec.key} className="flex flex-col gap-2.5">
             <div>
               <h3 className="text-sm font-semibold">{spec.label}</h3>
-              <p className="text-xs text-(--color-muted)">{spec.hint}</p>
+              <p className="text-xs text-(--c-ink-2)">{spec.hint}</p>
             </div>
 
             <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4">
               {doSlot.map((foto) => (
                 <figure
                   key={foto.id}
-                  className={`group relative overflow-hidden rounded-xl border border-(--color-gold)/40 bg-black/5 ${spec.aspect}`}
+                  className={`group relative overflow-hidden rounded-[3px] border border-(--c-rule) bg-black/5 ${spec.aspect}`}
                 >
                   <Image
                     src={`/f/${foto.id}`}
@@ -302,7 +298,7 @@ export default function PhotoManager({
         );
       })}
 
-      <p className="text-xs text-(--color-muted)">
+      <p className="text-xs text-(--c-ink-2)">
         JPG, PNG ou WebP. As fotos são reduzidas no seu aparelho antes de
         subir, então não precisa se preocupar com o tamanho do arquivo.
       </p>
@@ -342,16 +338,16 @@ function AddTile({
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={busy}
-        className={`flex h-full w-full flex-col items-center justify-center gap-1 rounded-xl border border-dashed text-center transition-colors ${
+        className={`flex h-full w-full flex-col items-center justify-center gap-1 rounded-[3px] border border-dashed text-center transition-colors ${
           arrastando
-            ? "border-(--color-olive) bg-(--color-blush)"
-            : "border-(--color-gold)/60 hover:bg-(--color-blush)/50"
+            ? "border-(--c-ink) bg-(--c-sunken)"
+            : "border-(--c-mark)/60 hover:bg-(--c-sunken)/50"
         } disabled:opacity-60`}
       >
         <span className="text-xl leading-none" aria-hidden>
           {busy ? "⏳" : "+"}
         </span>
-        <span className="px-1 text-[11px] leading-tight text-(--color-olive)/70">
+        <span className="px-1 text-[11px] leading-tight text-(--c-ink-2)">
           {busy ? "enviando…" : multiple ? "adicionar fotos" : "escolher foto"}
         </span>
       </button>
