@@ -83,8 +83,15 @@ hidratação, deixando a tela embaçada para sempre.
 
 ## Critérios de aceite
 
-- **SC-001:** `grep -c "blur\|scale" components/ui/PageTransition.tsx` devolve
-  `0`. Atende FR-001 e FR-002.
+- **SC-001:** O array de quadros passado a `el.animate()` não contém `filter`
+  nem `scale(` em nenhuma das duas ramificações (movimento normal e reduzido).
+  Verificável lendo o bloco `const quadros = …`.
+
+  > *Correção do critério, 25/08/2026:* a versão anterior era
+  > `grep -c "blur\|scale" … devolve 0`, e ela é grosseira demais — reprova o
+  > **comentário** que explica por que o `blur` saiu, que é justamente o que
+  > se quer manter no arquivo. FR-001 e FR-002 falam dos quadros, não do
+  > texto do arquivo.
 - **SC-002:** No navegador, em `/conta/pedidos/<id>`, clicar na aba
   **Conteúdo** e ler `document.querySelector('[data-transicao="rota"]').getAnimations()[0]`
   devolve `effect.getTiming()` com `duration: 620`, `delay: 120` e
