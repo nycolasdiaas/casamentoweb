@@ -1,6 +1,7 @@
 # Spec 006 — Voz e microcopy verificáveis (área: design-system)
 
-**Status:** Pronta para implementação — a pergunta em aberto tem padrão decidido em FR-004/FR-005 e não trava a implementação.
+**Status:** Bloqueada — **FR-004/FR-005 foram implementados e medidos, e não
+funcionam como escritos** (ver "A medição"). Falta decidir o discriminador.
 
 ## Contexto
 
@@ -157,7 +158,74 @@ Nenhum.
   `site-publico/006` (e-mails do convidado), `site-publico/003` e `005` (vitrine),
   `painel-casal/011` (e-mails do casal), `painel-admin/003` (filtros e busca).
 
+## A medição — feita em 25/08/2026
+
+`lib/voz/vocabulario.ts` e `lib/voz/varrer.ts` foram escritos e rodados contra
+a `main`. O varredor usa o **compilador do TypeScript**, não expressão regular:
+`ts.forEachChild` distingue `StringLiteral`, `JsxText` e template literal, e
+comentário simplesmente não é nó — que é o único jeito de não reprovar a
+documentação junto com a interface, num repositório que explica molde, cache e
+render em português o tempo todo.
+
+**Resultado: 98 violações. Cerca de 80 delas são ruído.**
+
+| Termo | Achados | O que de fato eram |
+|---|---:|---|
+| `cache` | 45 | `"next/cache"` (especificador de import), `"use cache"` (a **diretiva do Next**), `"Cache-Control"` (cabeçalho HTTP), tags de cache |
+| `preview` | 18 | `"site-preview:"` (tag), `"preview_ready"` (valor do enum de status), `/preview/` (rota) |
+| `Inválido` | 9 | **violações reais** — "E-mail inválido.", "Preço inválido.", "Link inválido." |
+| `slug` | 8 | nome de coluna em `schema.ts`, caminho de import `@/lib/slug` |
+| `template` | 5 | 3 são `"template_id"`/`"template_style"` (colunas); 2 são reais |
+| `RSVP` | 5 | 4 reais; 1 **legítima** — `lib/packages.ts:47`, "Confirmação de presença (RSVP)", que V5 permite entre parênteses |
+| `upload` | 3 | `console.error("[fotos] falha ao assinar upload:")` — log, não texto |
+| `rota` | 1 | **legítima** — "O convidado abre a rota num toque." é português, não jargão |
+| `render`, `jornada`, `experiência`, `simplesmente` | 4 | a apurar |
+
+**O que a medição provou, e que a spec não previu:** o discriminador não é
+lexical. `"use cache"` é uma **diretiva de linguagem**; `"preview_ready"` é um
+**valor de banco**; `"rota"` é uma **palavra portuguesa comum**; `"RSVP"` entre
+parênteses é **permitido pela própria prancha**. FR-004 pede para varrer "os
+literais de string", e um literal de string não é texto visível — é o que o
+compilador vê, não o que a pessoa lê.
+
+FR-007 (`// voz-ok:`) não salva: com ~80 exceções a escrever, o escape vira o
+próprio defeito que ele documenta evitar — *"a primeira ocorrência legítima
+transformaria o teste em algo que se desliga"*.
+
+**O que sobrevive:** o varredor está escrito, correto e mede. As violações
+reais existem e valem correção. O que falta é uma regra de "isto é texto que
+alguém lê" que não seja adivinhação.
+
 ## Perguntas em aberto
+
+0b. **Qual é o discriminador?** É a decisão que destrava esta spec, e ela é do
+   dono porque escolhe entre um teste que ninguém liga e um teste que esconde
+   violação. Três saídas:
+
+   - **Opção A — varrer só texto de JSX, e podar a lista técnica.** Nó de
+     texto em JSX é prosa por construção: nenhum `"use cache"`, nenhum nome de
+     coluna, nenhum import cai ali. Junto, tirar de `TERMOS_TECNICOS` os cinco
+     que são vocabulário de framework ou português comum — `cache`, `build`,
+     `render`, `rota`, `molde` —, mantendo `template`, `deploy`, `slug`,
+     `preview`, `upload`, `tenant`. Perda: mensagem de erro em Server Action
+     (`"E-mail inválido."`) não é JSX e escaparia — e são justamente as nove
+     ocorrências de `Inválido`, que são as violações mais claras. **Não
+     recomendo sozinha.**
+   - **Opção B — JSX + uma lista fechada de destinos de texto.** Além do JSX,
+     varrer literais que chegam a lugares sabidamente visíveis: `title`,
+     `description`, `label`, `placeholder`, `aria-label`, `alt`, e o valor de
+     `erro`/`mensagem` devolvido por Server Action. Pega os `Inválido` e não
+     pega `"use cache"`. Custo: a lista de destinos precisa ser mantida.
+     **É a recomendação.**
+   - **Opção C — inverter: lista de arquivos varridos, não de termos.** Só
+     `components/**` e `app/**/page.tsx`, nunca `lib/`. Simples, mas deixa
+     `lib/orderStatus.ts` de fora — e é justamente lá que mora a regressão de
+     §2.2 que motivou a spec inteira.
+
+0c. **`RSVP` entre parênteses.** V5 permite (*"`RSVP` só entre parênteses"*) e
+   `lib/packages.ts:47` usa exatamente assim. Qualquer opção acima precisa da
+   exceção — provavelmente `\(RSVP\)` como caso permitido, não `// voz-ok:`
+   linha a linha.
 
 0. **Três violações já estão medidas e não são corrigidas aqui.** Encontradas
    ao fotografar os moldes em 25/08/2026, fora do que a auditoria previu:
@@ -167,6 +235,7 @@ Nenhum.
    | `lib/templates/editorial/sections.tsx` | 119 | `RSVP` (etiqueta no topo da capa) | `Confirmar presença` |
    | `lib/templates/editorial/sections.tsx` | 423 | `RSVP` (`<h2>` da seção) | `Confirme sua presença` ou equivalente |
    | `lib/templates/toscana/sections.tsx` | 370 | `Kindly RSVP` (`<h2>` da seção) | *(idem, e sem inglês)* |
+   | `app/page.tsx` | 42 | `RSVP por família` (item de pacote na vitrine) | `Confirmação de presença por família` |
 
    As três são texto que **o convidado lê**, e as três contrariam
    `regras-de-negocio.md` §6 e a prancha V5. Corrigi-las é escrever texto novo
