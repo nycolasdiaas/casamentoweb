@@ -144,3 +144,44 @@ Nenhum.
 ## Perguntas em aberto
 
 Nenhuma.
+
+## Notas de implementação
+
+- **FR-005 × SC-008 colidiam em um dos três e-mails, e FR-005 venceu.** O de
+  redefinir senha e o de confirmar e-mail já traziam o endereço em texto num
+  parágrafo próprio ("Ou copie e cole: …"); ele saiu de lá e entrou no
+  `button()`, com o mesmo texto e na mesma posição — a versão em texto puro
+  dos dois ficou idêntica. O da prévia **não tinha** essa linha, e agora tem:
+  FR-005 é a regra "sempre repetir o link em texto puro para quem não
+  consegue clicar", e não cumpri-la só ali seria deixar o defeito de pé para
+  poder dizer que nada mudou. SC-008 passa a valer pelo que protege de fato —
+  os parágrafos escritos para o casal e os três assuntos, conferidos frase a
+  frase em `lib/email.test.ts`.
+
+- **Os três preheaders são texto novo que o casal lê**, e AGENTS.md §5 manda
+  passar isso pelo agente `regras-de-negocio`. Para não travar a spec por uma
+  linha, os três **repetem uma frase que já estava aprovada no corpo do
+  próprio e-mail** ("O link vale por 1 hora.", "Montamos o site de vocês.
+  Abram para ver como ficou.", "O link vale por 24 horas."), de modo que
+  nenhuma promessa nova entra no produto. Vale revisão do dono; não bloqueia,
+  porque FR-006/FR-007 tornam o preheader obrigatório e a alternativa seria a
+  caixa de entrada mostrar o cabeçalho.
+
+- **FR-006, "120 caracteres de `&#8199;&#65279;`":** lido como 120 caracteres
+  invisíveis, ou seja, o par repetido 60 vezes. Está escrito no código e
+  conferido em SC-003.
+
+- **VML para o Outlook não entrou.** O desenho cita no Contexto, nenhum FR
+  pede, e a célula de tabela com `bgcolor` sólido já resolve — o VML só é
+  necessário para canto arredondado e gradiente. O raio de 2px vira quadrado
+  no Outlook, e é o único detalhe que degrada.
+
+- `layout()` passou a receber um objeto (`{ titulo, linhaDaCaixa, corpo,
+  permitirDoisBotoes }`) em vez de dois argumentos posicionais. Com o
+  preheader obrigatório seriam três strings seguidas na chamada, e trocar
+  duas de lugar não daria erro de tipo — daria um e-mail com o título na
+  caixa de entrada.
+
+- `layout`, `button`, `preheader`, `rodape` e `toPlainText` agora são
+  exportados. Não é só para o teste: são a superfície que
+  `painel-casal/011` e `site-publico/006` vão consumir.
