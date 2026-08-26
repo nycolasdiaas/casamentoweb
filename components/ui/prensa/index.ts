@@ -25,4 +25,5 @@ export { default as Abas, type Aba } from "./Abas";
 export { default as Trilha } from "./Trilha";
 export { default as Icone, type NomeDoIcone } from "./Icone";
 export { default as CopiarLink } from "./CopiarLink";
+export { BrindeProvider, useBrinde } from "./Brinde";
 export { default as DialogoDestrutivo } from "./DialogoDestrutivo";

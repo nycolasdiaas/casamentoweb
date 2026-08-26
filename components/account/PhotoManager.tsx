@@ -10,6 +10,7 @@ import {
 } from "@/app/actions/photo-actions";
 import { CATEGORIAS_ALBUM } from "@/lib/site/albumCategories";
 import { prepararFoto } from "@/lib/site/prepararFoto";
+import { useBrinde } from "@/components/ui/prensa";
 
 // Painel de fotos do casal.
 //
@@ -81,6 +82,7 @@ export default function PhotoManager({
   const [photos, setPhotos] = useState<ManagedPhoto[]>(iniciais);
   const [erro, setErro] = useState<string | null>(null);
   const [enviando, setEnviando] = useState<string | null>(null);
+  const brinde = useBrinde();
   const [apagando, setApagando] = useState<string | null>(null);
 
   const total = photos.length;
@@ -107,6 +109,7 @@ export default function PhotoManager({
     }
 
     setEnviando(slot);
+    let entraram = 0;
     try {
       for (const file of escolhidas) {
         const preparada = await prepararFoto(file);
@@ -146,6 +149,7 @@ export default function PhotoManager({
           break;
         }
 
+        entraram += 1;
         setPhotos((atuais) => [
           ...atuais,
           {
@@ -166,6 +170,20 @@ export default function PhotoManager({
       );
     } finally {
       setEnviando(null);
+      /* O brinde só aparece quando ALGUMA foto entrou. É a única confirmação
+         que este fluxo tem: a grade muda, mas ninguém garante que o casal
+         estava olhando para ela — a barra de envio some e pronto.
+
+         O texto é a fórmula de Voz V4, resultado no passado com ponto final:
+         "Suas fotos estão no site.", nunca "Upload realizado com sucesso!".
+         No singular ele diz a mesma coisa sem mentir o número. */
+      if (entraram > 0) {
+        brinde(
+          entraram === 1
+            ? "Sua foto está no site."
+            : "Suas fotos estão no site."
+        );
+      }
     }
   }
   /**

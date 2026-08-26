@@ -79,11 +79,31 @@ para "link copiado" disparado de outro lugar da tela.
   continuar visível e acima do scrim (`z-index: 60` contra o `z-50` do
   diálogo). Um "salvo." escondido atrás do scrim é uma confirmação que não
   confirma.
-- **FR-012:** `ContentEditor` DEVE disparar `Conteúdo salvo.` ao concluir o
-  salvamento; `PhotoManager` DEVE disparar `Suas fotos estão no site.` ao
-  concluir o envio; `CopiarLink` DEVE disparar `Link copiado.` — e nesse caso
-  DEVE parar de trocar o próprio rótulo, para a confirmação não aparecer duas
-  vezes.
+- **FR-012:** ~~`ContentEditor`, `PhotoManager` e `CopiarLink` disparam o
+  brinde.~~ **Corrigido na implementação, 26/08/2026.** Dois dos três já
+  confirmam no lugar da ação, e o brinde ali seria a segunda confirmação da
+  mesma coisa:
+
+  | Onde | O que já existe | Decisão |
+  |---|---|---|
+  | `CopiarLink` | "Copiado" dentro do próprio botão, 2s | **fica como está** |
+  | `ContentEditor` | `<div aria-live="polite">` com "Salvo ✓ — o site já está com o conteúdo novo." ao lado do botão | **fica como está** |
+  | `PhotoManager` | **nada** — a barra de envio some e a grade muda | **dispara o brinde** |
+
+  O `CopiarLink` já argumentava contra, no próprio arquivo: *"Um brinde
+  (toast) para isto seria movimento demais para uma ação de meio segundo — e a
+  confirmação precisa aparecer onde o dedo está, não no canto da tela."* O
+  argumento é bom e vale igual para o `ContentEditor`.
+
+  Sobra o `PhotoManager`, que é justamente o exemplo que a prancha A4 e a Voz
+  V4 usam ("Suas fotos estão no site."): ali a grade muda, mas ninguém garante
+  que o casal estava olhando para ela.
+
+- **FR-012b:** `PhotoManager` DEVE disparar ao fim do envio, **e só quando
+  alguma foto entrou** — envio que falhou inteiro já tem a mensagem de erro
+  abaixo do campo, e um brinde de sucesso ao lado dela seria contradição. O
+  texto é `Sua foto está no site.` no singular e `Suas fotos estão no site.`
+  no plural.
 
 ## Critérios de aceite
 
@@ -110,8 +130,11 @@ para "link copiado" disparado de outro lugar da tela.
   continua legível, sem o scrim por cima (medir com
   `document.elementFromPoint` no centro do brinde — devolve o nó do brinde).
   Atende FR-011.
-- **SC-009:** Copiar o link em `/conta/pedidos/<id>/compartilhar` mostra o
-  brinde **e** o botão continua escrito "Copiar". Atende FR-012.
+- **SC-009:** `CopiarLink` e `ContentEditor` **não** importam `useBrinde` —
+  a confirmação deles continua onde a ação está. Atende FR-012.
+- **SC-009b:** Enviar duas fotos mostra `Suas fotos estão no site.`; enviar
+  uma mostra `Sua foto está no site.`; um envio que falha inteiro não mostra
+  brinde nenhum. Atende FR-012b.
 - **SC-010:** `npm run build`, `npm run lint` e `npm run test` passam.
 - **SC-011:** `getComputedStyle` do contêiner da fila devolve `position: fixed`, `bottom: 24px` e `z-index: 60`. Atende FR-002.
 - **SC-012:** `grep -cE '"[A-Z][^"]{5,}\."' components/ui/prensa/Brinde.tsx` devolve `0` — a peça não carrega nenhuma frase própria. Atende FR-008.

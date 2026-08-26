@@ -819,6 +819,74 @@ body:has(.ui-prensa) {
 }
 
 /* --------------------------------------------------------------------------
+   Transição #4 do HANDOFF-motion — o brinde.
+
+   Entra subindo 24px em `--base`, fica 4s, e sai pelo mesmo caminho em
+   `--rapido`. É UMA animação e não três estados em JavaScript: o brinde nasce,
+   espera e morre sozinho, e um `setState` no meio para trocar de classe seria
+   um segundo relógio para manter em sincronia com o primeiro.
+
+   As paradas são o tempo real dividido pelo total (4140ms):
+     440/4140  = 10.63%  → assentou
+     4000/4140 = 96.62%  → começa a sair
+   Assim os números do handoff (§3 item 4: `--base` para entrar, 4s de
+   permanência, `--fast` para sair) ficam no CSS como números, não como
+   proporções escolhidas no olho.
+
+   `animation-timing-function` DENTRO do quadro: é o que permite entrada com
+   `--e-saida` e saída com `--e-suave` numa animação só.
+   -------------------------------------------------------------------------- */
+@keyframes brinde-vai-e-volta {
+  0% {
+    opacity: 0;
+    transform: translateY(24px);
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  10.63% {
+    opacity: 1;
+    transform: none;
+  }
+  96.62% {
+    opacity: 1;
+    transform: none;
+    animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+.ui-prensa .brinde {
+  animation: brinde-vai-e-volta 4140ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* O deslocamento sai; a permanência de 4s NÃO — ela é informação, não
+     movimento. Um brinde que some mais rápido para quem pediu menos movimento
+     seria uma confirmação pior, não uma mais calma. */
+  html:not([data-movimento="ligado"]) .ui-prensa .brinde {
+    animation: brinde-so-opacidade 4140ms both;
+  }
+}
+
+@keyframes brinde-so-opacidade {
+  0% {
+    opacity: 0;
+    animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  7.73% {
+    opacity: 1;
+  }
+  96.62% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* --------------------------------------------------------------------------
    Transição #3 do HANDOFF-motion — o diálogo.
 
    O handoff §3 item 3 pede scrim em `fade` e caixa em
