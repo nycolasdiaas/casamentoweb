@@ -89,3 +89,35 @@ export async function metricasDoSite(siteId: string): Promise<MetricasDoSite> {
     visitas30d: visitas[0]?.n ?? 0,
   };
 }
+
+/**
+ * Só os dois números de gente, numa consulta só.
+ *
+ * A aba Convites precisa de `convidados` e `confirmados` e de mais nada —
+ * chamar `metricasDoSite` ali custaria cinco idas ao banco para usar duas,
+ * com presente e visita de brinde. A ~171 ms medidos por ida, isso é meio
+ * segundo jogado fora numa tela que o casal abre toda semana no mês do
+ * casamento.
+ *
+ * As duas somas cabem no mesmo SELECT porque saem da mesma tabela. E são as
+ * MESMAS expressões de `metricasDoSite`, de propósito: `groups.seats` e
+ * `groups.seats_confirmed`, nunca `guests.rsvp_status`. As duas fontes de RSVP
+ * existem e as duas são verdade (SDD §6.2); a que o painel lê é esta, e um
+ * terceiro número seria pior que qualquer um dos dois.
+ */
+export async function contagemDeConvidados(
+  siteId: string
+): Promise<{ convidados: number; confirmados: number }> {
+  const [linha] = await db
+    .select({
+      convidados: sql<number>`coalesce(sum(${groups.seats}), 0)::int`,
+      confirmados: sql<number>`coalesce(sum(${groups.seatsConfirmed}), 0)::int`,
+    })
+    .from(groups)
+    .where(eq(groups.siteId, siteId));
+
+  return {
+    convidados: linha?.convidados ?? 0,
+    confirmados: linha?.confirmados ?? 0,
+  };
+}

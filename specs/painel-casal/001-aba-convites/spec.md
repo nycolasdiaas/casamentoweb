@@ -1,6 +1,6 @@
 # Spec 001 — E7: a aba Convites como lista de trabalho (área: painel-casal)
 
-**Status:** Pronta para implementação — a pergunta em aberto tem padrão decidido em FR-003 (a coluna `CONVIDADOS` fica de fora) e não trava a implementação.
+**Status:** Implementada (26/08/2026)
 
 ## Contexto
 
@@ -172,3 +172,57 @@ Nenhum. Todos os números vêm de consultas que já existem
    nullable, §13.1) **e** uma decisão de produto — "um convite serve um grupo"
    muda o significado de MAX_CONVITES=5 num casamento com 23 grupos.
    **Decisão do dono.**
+
+## Notas de implementação
+
+- **Nasceu uma consulta enxuta, `contagemDeConvidados`.** FR-011 pede no máximo
+  duas idas ao banco além das do layout. `metricasDoSite` traria **cinco** para
+  usar duas — presente e visita de brinde, a ~171 ms medidos por ida, numa tela
+  que o casal abre toda semana no mês do casamento. A nova faz as duas somas
+  num `SELECT` só, com as **mesmas expressões** de `metricasDoSite`
+  (`groups.seats` e `groups.seats_confirmed`), para não haver chance de as duas
+  divergirem.
+
+- **A lista virou um componente de cliente só, e não três.** Publicar muda três
+  células da MESMA linha: o endereço aparece, a etiqueta vira sólida, e
+  "Publicar" vira "Abrir · Despublicar". Com estado por pedaço, publicar
+  deixaria a linha contando duas histórias. As miniaturas continuam vindo do
+  servidor, passadas como `children` — elas desenham o `InviteDoc` inteiro e
+  não têm por que virar JavaScript no navegador.
+
+- **Tabela e cartões saem do mesmo `useState`.** A marcação de celular fica
+  montada (escondida) no desktop e vice-versa; duas listas com estados
+  separados fariam publicar no celular deixar a tabela desatualizada. Está
+  coberto por teste.
+
+- **SC-010 é `grep` que acusa a própria explicação** — a página cita
+  `listGroupsWithGuests` e `metricasDoSite` justamente para dizer por que não
+  as chama. **Quarta vez** que este padrão aparece nas specs (as outras:
+  `design-system/006`, `site-publico/003`, `site-publico/005`). O teste tira os
+  comentários antes de conferir.
+
+- **A pergunta em aberto continua aberta, e o padrão de FR-003 foi seguido à
+  risca.** Não existe chave ligando `site_invites` a `groups`, então a coluna
+  `CONVIDADOS` da tabela ficou de fora e os números do topo são **do site
+  inteiro** — informação verdadeira. Ligar os dois é migração aditiva
+  (`site_invites.group_id` nullable) **e** decisão de produto: "um convite
+  serve um grupo" muda o significado de `MAX_CONVITES = 5` num casamento com 23
+  grupos. Segue como decisão do dono.
+
+## Como cada critério foi conferido
+
+| Critério | Medida |
+|---|---|
+| SC-001 | `contagemDeConvidados` contra o banco de teste: 2 grupos de 2 lugares com `seats_confirmed` 2 e 1 devolvem `{convidados: 4, confirmados: 3}`; site sem grupo devolve `0` e não `null` (`sum` de conjunto vazio é null no Postgres, e um null na tela viraria "NaN convidados"). As três réguas existem na página, só `Confirmaram` em `--c-ok` |
+| SC-002 | **provado contra o banco**: com `seats_confirmed = 1`, mudar `guests.rsvp_status` de todo o grupo para `confirmed` não muda a contagem |
+| SC-003 | 5 colunas no cabeçalho: `Convite`, `Link`, `Status`, mais miniatura e ações sem rótulo. **Sem** `Convidados` |
+| SC-004 | linha publicada: `/c/familia-noiva` + `.etiqueta.etiqueta-noar` escrita `Publicado`. Rascunho: a palavra `rascunho` em `--c-ink-3` + `.etiqueta` com `.etiqueta-ponto`, escrita `Rascunho` |
+| SC-005 | clicar em `Publicar` chama `publicarConviteAction("s1", "i2")`, e a linha passa a mostrar `/c/padrinhos`, com a etiqueta sólida e `Despublicar` — sem recarregar. O cartão de celular acompanha |
+| SC-006 | o × abre o `DialogoDestrutivo` com o botão `Apagar convite` e o foco em `Manter`; o aviso muda conforme o convite esteja no ar (cita o endereço) ou seja rascunho |
+| SC-007 | `disabled={noLimite}` com o texto `Limite de 5 convites` |
+| SC-008 | com zero convites a lista não renderiza; entra o `EstadoVazio` com o texto do artboard I2 |
+| SC-009 | a tabela é `hidden md:block`, os cartões `md:hidden` — os dois lados do mesmo corte. Conferido pela declaração: o Tailwind não roda no jsdom, e a tela do painel exige sessão, que não foi criada no banco de produção só para medir |
+| SC-010 | a página não chama `listGroupsWithGuests` nem `metricasDoSite`; são duas consultas em `Promise.all` |
+| SC-011 | o texto de apoio não contém `baixem em PNG, JPEG ou PDF`; diz que cada convite "vira uma página com endereço próprio" (SDD §15.1) |
+| SC-012 | `build`, `lint` e `test` (38 arquivos, 447 testes) |
+| SC-013 | miniatura em `48×60px`, nome como `<a href="/conta/convites/i1">` |
