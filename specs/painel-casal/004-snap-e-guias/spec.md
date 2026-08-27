@@ -1,6 +1,6 @@
 # Spec 004 — E9: encaixe e guias no editor de convite (área: painel-casal)
 
-**Status:** Pronta para implementação — retenção levantada em 27/08/2026 pela decisão da `002`
+**Status:** Implementada (27/08/2026)
 
 ## Contexto
 
@@ -166,3 +166,48 @@ que o casal já desenhou).
 A decisão que faltava foi tomada: `painel-casal/002` fechou na **Opção A** (o
 modelo implementado vence). Esta spec volta a `Pronta` e entra como estava
 escrita — a Opção A não muda nenhum requisito dela.
+
+## Notas de implementação
+
+- **O encaixe virou módulo próprio, `lib/site/inviteSnap.ts`.** O
+  `EditorDeConvite` tem 1.400 linhas e nenhuma é testável sem navegador: tudo
+  ali é `PointerEvent`. O encaixe é justamente a parte que erra em silêncio —
+  gruda no alvo errado, fica frouxo com zoom baixo, ou desenha a guia sem
+  corrigir a posição. Separado, é aritmética, e aritmética se confere: 20
+  testes, sem navegador nenhum.
+
+- **A tolerância é separada por eixo.** A spec fala em "6px", e o convite não é
+  quadrado: 6px na horizontal é `6/1000` de fração, e na vertical `6/1250`.
+  Uma tolerância só faria o encaixe vertical ficar 25% mais frouxo que o
+  horizontal, e ninguém saberia dizer por quê.
+
+- **O zoom não é dividido duas vezes.** `getBoundingClientRect` já devolve a
+  medida COM o zoom aplicado — é o que o comentário da moldura já registrava
+  para o arrasto. `toleranciaEmFracao` aceita o zoom como parâmetro, e o editor
+  passa `1`.
+
+- **A altura do bloco vem de `alturaAproximada`, a mesma do export em SVG.**
+  Encaixar por uma altura e exportar por outra alinharia na tela e sairia torto
+  no arquivo — que é exatamente o defeito que o encaixe existe para evitar.
+
+- **FR-011 saiu de graça.** O encaixe acontece DENTRO de `aoMover`, e
+  `registrar` só é chamado em `aoSoltar`. Nunca houve chance de o encaixe
+  gerar entrada própria no histórico.
+
+## Como cada critério foi conferido
+
+Tudo em `lib/site/inviteSnap.test.ts`, sem navegador — o módulo é puro.
+
+| Critério | Medida |
+|---|---|
+| SC-001 | a 5px do centro (tolerância 6px), o bloco gruda e `x + w/2 === 0.5`; a 8px, não gruda **e** não desenha guia |
+| SC-002 | com zoom 200%, 5px de TELA continuam grudando, e 5px de FRAÇÃO deixam de grudar |
+| SC-003 | borda com borda e centro com centro do vizinho, com a guia na posição do alvo |
+| SC-004 | centro do convite vence borda de vizinho; borda do convite vence borda de vizinho; empate de prioridade decidido pela menor distância; nunca mais de um encaixe por eixo |
+| SC-005, SC-007, SC-012 | a guia é `bg-(--c-mark)` com `width: 1` (vertical) ou `height: 1`, `transition: "none"` explícito, e nenhuma animação declarada |
+| SC-006 | `setGuias([])` em `aoSoltar`, no mesmo quadro |
+| SC-008 | `e.altKey` sai antes de calcular encaixe: move livre e não desenha guia |
+| SC-009 | a aresta direita gruda na borda do convite e na de um vizinho; a esquerda a 1px do centro **não** gruda, porque não é ela que está sendo puxada |
+| SC-010 | o encaixe acontece dentro do gesto; `registrar` só em `aoSoltar` |
+| SC-011 | `build`, `lint` e `test` (45 arquivos, 548 testes) |
+| SC-013 | a 9px de tela o toque gruda e o mouse não |

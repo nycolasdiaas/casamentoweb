@@ -1,6 +1,6 @@
 # Spec 005 — E9: atalhos de teclado do editor de convite (área: painel-casal)
 
-**Status:** Pronta para implementação — retenção levantada em 27/08/2026 pela decisão da `002`
+**Status:** Implementada (27/08/2026)
 
 ## Contexto
 
@@ -166,3 +166,47 @@ que o casal já desenhou).
 A decisão que faltava foi tomada: `painel-casal/002` fechou na **Opção A** (o
 modelo implementado vence). Esta spec volta a `Pronta` e entra como estava
 escrita — a Opção A não muda nenhum requisito dela.
+
+## Notas de implementação
+
+- **Feita na mesma passada que a `004`**, como o INDEX recomendava: as duas
+  mexem no mesmo arquivo de 1.400 linhas.
+
+- **A legenda usa `useSyncExternalStore`, não `useState` + efeito.** O servidor
+  não tem plataforma nenhuma, então o valor precisa nascer diferente dos dois
+  lados sem quebrar a hidratação — e é para isso que o terceiro argumento (o
+  retrato do servidor) existe. Estado corrigido num efeito daria o mesmo
+  resultado com um render a mais, e é o que `react-hooks/set-state-in-effect`
+  reprova com razão.
+
+- **`Escape` é tratado ANTES da guarda de FR-001**, e é a única tecla assim.
+  Ele serve justamente para sair da digitação; depois da guarda, nunca
+  chegaria.
+
+- **`Ctrl/Cmd + C` e `+ V` só chamam `preventDefault` quando há bloco.** Sem
+  seleção, o `return` vem antes — a cópia normal do navegador continua
+  funcionando, e roubar `Ctrl+C` de quem queria copiar uma frase do próprio
+  convite seria um defeito difícil de nomear.
+
+- **A rajada de setas fecha em 500ms.** Ajustar a posição em dez toques
+  produziria dez passos de desfazer, e voltar ao ponto de partida exigiria dez
+  desfazeres — o oposto do que a pessoa quer.
+
+- **Nenhuma letra solta.** Um teste varre o arquivo procurando
+  `e.key === "<letra>"` e reprova se aparecer. Letra solta colidiria com a
+  digitação no primeiro instante em que o foco escapasse da guarda.
+
+## Como cada critério foi conferido
+
+| Critério | Medida |
+|---|---|
+| A legenda | abre e fecha; lista treze atalhos com o que cada um faz; tem botão de fechar rotulado |
+| FR-013 | com `navigator.platform = "MacIntel"` a legenda escreve `Cmd + Z` e nenhum `Ctrl`; com `Win32`, o contrário |
+| FR-001 | a guarda `digitando || editandoTexto` vem antes de tudo; `Escape` vem antes dela |
+| FR-002, FR-005, FR-006 | `Ctrl/Cmd` + `z`, `d`, `c`, `v` implementados e listados |
+| FR-003 | `passo = e.shiftKey ? 10 : 1`, dividido por `doc.largura`/`doc.altura` — 1px do ARQUIVO, que não muda com o zoom |
+| FR-004 | `gestoDeSeta` com janela de 500ms |
+| FR-007 a FR-010 | `[`, `]`, `+`, `-`, `0`, `Space` e `altKey` presentes; o zoom por atalho respeita os mesmos limites da roda (0,4 a 4) |
+| FR-011 | o `return` sem bloco vem antes do `preventDefault` |
+| FR-014 | varredura por `e.key === "<letra>"` devolve zero |
+| Build | `build`, `lint` e `test` (45 arquivos, 548 testes) |

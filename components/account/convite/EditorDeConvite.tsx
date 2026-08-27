@@ -14,6 +14,14 @@ import { clipPathDe, NOME_DA_FORMA } from "@/lib/site/inviteShapes";
 import { salvarConviteAction } from "@/app/actions/invite-actions";
 import { temSaida } from "@/lib/site/inviteDoc";
 import {
+  encaixarAoMover,
+  encaixarLargura,
+  toleranciaEmFracao,
+  type Caixa,
+  type Guia,
+} from "@/lib/site/inviteSnap";
+import { alturaAproximada } from "@/lib/site/inviteRender";
+import {
   confirmPhotoUploadAction,
   requestPhotoUploadAction,
 } from "@/app/actions/photo-actions";
@@ -23,6 +31,7 @@ import BlocoNaTela from "./BlocoNaTela";
 import BarraDoBloco from "./BarraDoBloco";
 import Camadas from "./Camadas";
 import PublicarConvite from "./PublicarConvite";
+import LegendaDeAtalhos from "./LegendaDeAtalhos";
 import FormatoDoConvite from "./FormatoDoConvite";
 import { LINKS_DO_CONVITE, linkDaSecao } from "@/lib/site/ancoras";
 import { FONTES, Numero } from "./controles";
@@ -123,6 +132,35 @@ export default function EditorDeConvite({
   // desfazer depois de aproximar seria desfazer a coisa errada.
   const [zoom, setZoom] = useState(1);
 
+  /* As guias do encaixe. Vivem em estado e não em ref porque precisam
+     redesenhar; somem no `pointerup` e nunca sobrevivem ao gesto. */
+  const [guias, setGuias] = useState<Guia[]>([]);
+
+  /* Área de transferência INTERNA, não a do sistema.
+     
+     Copiar um bloco não é copiar texto: o que se guarda é um objeto com
+     posição, cor e fonte. Passar isso pela área do sistema exigiria serializar
+     para o `clipboard` e reconhecer o formato na volta — e roubaria o
+     `Ctrl+C` de quem só queria copiar uma frase do próprio convite. */
+  const areaDeTransferencia = useRef<Bloco | null>(null);
+
+  /* As setas empurram o bloco de 1px por vez, e uma rajada é UM gesto.
+     
+     Sem isto, ajustar a posição em dez toques deixaria dez passos de desfazer
+     — e desfazer teria que ser apertado dez vezes para voltar ao ponto de
+     partida, que é o oposto do que a pessoa quer. O gesto fecha 500ms depois
+     da última tecla. */
+  const gestoDeSeta = useRef<{ antes: InviteDoc; timer: number } | null>(null);
+
+  /* Espaço + arrasto move a tela mesmo com um bloco sob o cursor — o arrasto
+     do fundo, que já existia, não alcança esse caso. */
+  const [espacoPressionado, setEspacoPressionado] = useState(false);
+
+  /* A legenda de atalhos. Atalho que ninguém descobre é atalho que não
+     existe — sem esta lista, os doze do editor seriam funcionalidade que só
+     quem escreveu o código sabe usar. */
+  const [atalhosAbertos, setAtalhosAbertos] = useState(false);
+
   // Deslocamento da tela dentro da moldura, em px. Existe porque com zoom o
   // convite passa do tamanho da janela e é preciso ALCANÇAR o canto de baixo.
   // Barra de rolagem resolveria — e foi o que estava lá —, mas arrastar com o
@@ -185,6 +223,23 @@ export default function EditorDeConvite({
     };
   }
 
+  /**
+   * A caixa de um bloco em fração dos DOIS eixos.
+   *
+   * `w` já é fração da largura; a altura não é campo — sai de `proporcao` no
+   * que tem proporção, e do texto quebrado no resto. `alturaAproximada` é a
+   * mesma conta do export em SVG, de propósito: encaixar por uma altura e
+   * exportar por outra alinharia na tela e sairia torto no arquivo.
+   */
+  function caixaDe(b: Bloco): Caixa {
+    return {
+      x: b.x,
+      y: b.y,
+      w: b.w,
+      h: alturaAproximada(b, doc.largura) / doc.altura,
+    };
+  }
+
   function medidas(): DOMRect {
     return telaRef.current?.getBoundingClientRect() ?? new DOMRect(0, 0, 1, 1);
   }
@@ -197,6 +252,22 @@ export default function EditorDeConvite({
     e.preventDefault();
     e.stopPropagation();
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
+
+    /* Espaço segurado transforma qualquer arrasto em movimento da TELA.
+       O arrasto do fundo já fazia isso, mas não alcança o caso em que há um
+       bloco debaixo do cursor — e é justamente aí que a pessoa precisa, porque
+       com zoom o convite ocupa a moldura inteira. */
+    if (espacoPressionado) {
+      gesto.current = {
+        tipo: "pan",
+        x0: e.clientX,
+        y0: e.clientY,
+        px: pan.x,
+        py: pan.y,
+      };
+      return;
+    }
+
     const r = medidas();
     antesDoGesto.current = doc;
     setSelecionado(alvo.id);
@@ -287,15 +358,57 @@ export default function EditorDeConvite({
     const px = (e.clientX - r.left) / r.width;
     const py = (e.clientY - r.top) / r.height;
 
+    /* Alt suspende o encaixe. É o escape que todo editor precisa: às vezes o
+       casal quer 2px fora do alinhamento de propósito, e uma ferramenta que
+       não deixa desobedecer vira uma ferramenta que se discute. */
+    const semEncaixe = e.altKey;
+    const tol = toleranciaEmFracao(
+      { largura: r.width, altura: r.height },
+      // `getBoundingClientRect` já mede COM zoom: contar de novo dobraria.
+      1,
+      e.pointerType === "touch"
+    );
+
+    const doGesto = doc.blocos.find((b) => b.id === g.id);
+    const vizinhos = doc.blocos
+      .filter((b) => b.id !== g.id)
+      .map(caixaDe);
+
+    const guiasDoQuadro: Guia[] = [];
+
     mudar((d) => ({
       ...d,
       blocos: d.blocos.map((b) => {
         if (b.id !== g.id) return b;
         if (g.tipo === "mover") {
-          return prenderNaTela({ ...b, x: px - g.dx, y: py - g.dy });
+          const solto = prenderNaTela({ ...b, x: px - g.dx, y: py - g.dy });
+          if (semEncaixe || !doGesto) return solto;
+
+          const e2 = encaixarAoMover(
+            { ...caixaDe(doGesto), x: solto.x, y: solto.y },
+            vizinhos,
+            tol
+          );
+          guiasDoQuadro.push(...e2.guias);
+          return prenderNaTela({
+            ...solto,
+            x: e2.x ?? solto.x,
+            y: e2.y ?? solto.y,
+          });
         }
         if (g.tipo === "largura") {
-          return prenderNaTela({ ...b, w: g.w0 + (px - g.x0) });
+          const solto = prenderNaTela({ ...b, w: g.w0 + (px - g.x0) });
+          if (semEncaixe || !doGesto) return solto;
+
+          const e2 = encaixarLargura(
+            { ...caixaDe(doGesto), w: solto.w },
+            vizinhos,
+            tol.x
+          );
+          guiasDoQuadro.push(...e2.guias);
+          return e2.w !== undefined
+            ? prenderNaTela({ ...solto, w: e2.w })
+            : solto;
         }
 
         if (g.tipo === "altura") {
@@ -317,12 +430,17 @@ export default function EditorDeConvite({
         return prenderNaTela({ ...b, w, proporcao: w / h });
       }),
     }));
+
+    setGuias(guiasDoQuadro);
   }
 
   function aoSoltar() {
     const g = gesto.current;
     if (!g) return;
     gesto.current = null;
+    // A guia é do GESTO. Deixá-la na tela depois de soltar transformaria uma
+    // ajuda momentânea num traço que o casal tentaria apagar.
+    setGuias([]);
     // Mover a tela não é edição: não vira passo de desfazer.
     if (g.tipo !== "pan") registrar(antesDoGesto.current);
   }
@@ -394,8 +512,43 @@ export default function EditorDeConvite({
     setSelecionado(null);
   }, [doc, mudar, registrar, selecionado]);
 
-  // Delete apaga o bloco escolhido — nunca enquanto a pessoa digita, senão
-  // apagar uma letra apagaria o bloco inteiro.
+  /** Põe um bloco na tela com id novo, deslocado, e o deixa escolhido. */
+  const duplicarNaTela = useCallback(
+    (base: Bloco) => {
+      // 12px do convite: perto o bastante para o casal ver que é a cópia
+      // daquele bloco, longe o bastante para conseguir pegar o de baixo.
+      const dx = 12 / doc.largura;
+      const dy = 12 / doc.altura;
+      const novo = {
+        ...base,
+        id: crypto.randomUUID(),
+        x: base.x + dx,
+        y: base.y + dy,
+      } as Bloco;
+      acrescentar(prenderNaTela(novo));
+    },
+    // `acrescentar` e `prenderNaTela` não mudam entre renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [doc.largura, doc.altura, doc]
+  );
+
+  /**
+   * Os atalhos do editor.
+   *
+   * ── A guarda vem primeiro, e não é detalhe ──────────────────────────────
+   *
+   * Enquanto o casal digita dentro de um bloco de texto, NENHUM atalho vale.
+   * Sem isso, apagar uma letra apagaria o bloco inteiro, e escrever "[" no
+   * texto mandaria o bloco para trás. A única exceção é `Escape`, que serve
+   * justamente para sair da digitação.
+   *
+   * ── Nenhuma letra solta ─────────────────────────────────────────────────
+   *
+   * Só teclas que ninguém digita dentro de um texto: setas, colchetes, sinais
+   * de zoom, Delete, Escape, Espaço — e o resto com Ctrl/Cmd. Uma letra solta
+   * colidiria com a digitação no primeiro instante em que o foco escapasse da
+   * guarda acima.
+   */
   useEffect(() => {
     function aoTeclar(e: KeyboardEvent) {
       const alvo = e.target as HTMLElement | null;
@@ -403,19 +556,154 @@ export default function EditorDeConvite({
         alvo?.tagName === "INPUT" ||
         alvo?.tagName === "TEXTAREA" ||
         alvo?.isContentEditable === true;
+
+      if (e.key === "Escape") {
+        setSelecionado(null);
+        setMenuBaixar(false);
+        setAtalhosAbertos(false);
+        return;
+      }
       if (digitando || editandoTexto) return;
+
+      const comando = e.ctrlKey || e.metaKey;
+      const bloco = doc.blocos.find((b) => b.id === selecionado) ?? null;
+
+      // ── desfazer e refazer ──────────────────────────────────────────────
+      if (comando && e.key.toLowerCase() === "z") {
+        e.preventDefault();
+        if (e.shiftKey) refazer();
+        else desfazer();
+        return;
+      }
+
+      // ── duplicar ────────────────────────────────────────────────────────
+      if (comando && e.key.toLowerCase() === "d") {
+        if (!bloco) return;
+        e.preventDefault();
+        duplicarNaTela(bloco);
+        return;
+      }
+
+      /* ── copiar e colar ─────────────────────────────────────────────────
+         `preventDefault` só quando há o que copiar: sem seleção, a cópia
+         normal do navegador continua funcionando, e roubar `Ctrl+C` de quem
+         queria copiar uma frase seria um defeito difícil de nomear. */
+      if (comando && e.key.toLowerCase() === "c") {
+        if (!bloco) return;
+        e.preventDefault();
+        areaDeTransferencia.current = bloco;
+        return;
+      }
+      if (comando && e.key.toLowerCase() === "v") {
+        const guardado = areaDeTransferencia.current;
+        if (!guardado) return;
+        e.preventDefault();
+        duplicarNaTela(guardado);
+        return;
+      }
+
+      // ── camadas ─────────────────────────────────────────────────────────
+      if ((e.key === "[" || e.key === "]") && selecionado) {
+        e.preventDefault();
+        const i = doc.blocos.findIndex((b) => b.id === selecionado);
+        if (i < 0) return;
+        moverCamada(i, e.key === "]" ? i + 1 : i - 1);
+        return;
+      }
+
+      // ── zoom ────────────────────────────────────────────────────────────
+      if (!comando && (e.key === "+" || e.key === "=")) {
+        e.preventDefault();
+        setZoom((z) => Math.min(z * 1.1, 4));
+        return;
+      }
+      if (!comando && e.key === "-") {
+        e.preventDefault();
+        setZoom((z) => Math.max(z / 1.1, 0.4));
+        return;
+      }
+      if (!comando && e.key === "0") {
+        e.preventDefault();
+        // 1 é o zoom em que o convite cabe inteiro na moldura — a largura da
+        // tela é calculada por `min()` justamente para isso.
+        setZoom(1);
+        setPan({ x: 0, y: 0 });
+        return;
+      }
+
+      // ── espaço: move a tela mesmo com bloco sob o cursor ────────────────
+      if (e.code === "Space") {
+        e.preventDefault();
+        setEspacoPressionado(true);
+        return;
+      }
+
+      // ── setas ───────────────────────────────────────────────────────────
+      const SETAS: Record<string, [number, number]> = {
+        ArrowLeft: [-1, 0],
+        ArrowRight: [1, 0],
+        ArrowUp: [0, -1],
+        ArrowDown: [0, 1],
+      };
+      const direcao = SETAS[e.key];
+      if (direcao && selecionado) {
+        e.preventDefault();
+        const passo = e.shiftKey ? 10 : 1;
+        const dx = (direcao[0] * passo) / doc.largura;
+        const dy = (direcao[1] * passo) / doc.altura;
+
+        /* Uma rajada de setas é UM gesto. O `antes` é guardado na primeira
+           tecla e o passo de desfazer só fecha 500ms depois da última — senão
+           voltar dez toques exigiria dez desfazeres. */
+        if (!gestoDeSeta.current) {
+          gestoDeSeta.current = { antes: doc, timer: 0 };
+        }
+        window.clearTimeout(gestoDeSeta.current.timer);
+        gestoDeSeta.current.timer = window.setTimeout(() => {
+          if (gestoDeSeta.current) registrar(gestoDeSeta.current.antes);
+          gestoDeSeta.current = null;
+        }, 500);
+
+        mudar((d) => ({
+          ...d,
+          blocos: d.blocos.map((b) =>
+            b.id === selecionado
+              ? prenderNaTela({ ...b, x: b.x + dx, y: b.y + dy })
+              : b
+          ),
+        }));
+        return;
+      }
+
+      // ── apagar ──────────────────────────────────────────────────────────
       if ((e.key === "Delete" || e.key === "Backspace") && selecionado) {
         e.preventDefault();
         apagarSelecionado();
       }
-      if (e.key === "Escape") {
-        setSelecionado(null);
-        setMenuBaixar(false);
-      }
     }
+
+    function aoSoltarTecla(e: KeyboardEvent) {
+      if (e.code === "Space") setEspacoPressionado(false);
+    }
+
     window.addEventListener("keydown", aoTeclar);
-    return () => window.removeEventListener("keydown", aoTeclar);
-  }, [apagarSelecionado, editandoTexto, selecionado]);
+    window.addEventListener("keyup", aoSoltarTecla);
+    return () => {
+      window.removeEventListener("keydown", aoTeclar);
+      window.removeEventListener("keyup", aoSoltarTecla);
+    };
+  }, [
+    apagarSelecionado,
+    doc,
+    duplicarNaTela,
+    editandoTexto,
+    moverCamada,
+    mudar,
+    refazer,
+    registrar,
+    desfazer,
+    selecionado,
+  ]);
 
   /**
    * Zoom com a roda do mouse.
@@ -660,7 +948,9 @@ export default function EditorDeConvite({
           style={{
             // Declara o container para o `100cqh` da tela medir ESTA moldura.
             containerType: "size",
-            cursor: "grab",
+            // Com Espaço, o cursor conta o que vai acontecer antes de a
+            // pessoa arrastar — sem isso o atalho é invisível.
+            cursor: espacoPressionado ? "grabbing" : "grab",
           }}
         >
           <div
@@ -696,6 +986,30 @@ export default function EditorDeConvite({
               aoTerminarEdicao={terminarEdicao}
             />
           ))}
+
+          {/* As guias do encaixe.
+
+              Depois dos blocos e antes das alças de seleção: sobre o desenho,
+              porque uma guia escondida atrás de uma foto não guia nada; sob as
+              alças, porque a alça é o que a mão está mirando.
+
+              `transition: none` explícito — o handoff §3 item 10 é literal:
+              *"sem transição durante o arrasto (segue o dedo)"*. Uma guia que
+              desliza até o lugar chega depois do bloco. */}
+          {guias.map((g) => (
+            <div
+              key={`${g.eixo}${g.pos}`}
+              data-guia={g.eixo}
+              aria-hidden="true"
+              className="pointer-events-none absolute bg-(--c-mark)"
+              style={{
+                transition: "none",
+                ...(g.eixo === "x"
+                  ? { left: `${g.pos * 100}%`, top: 0, bottom: 0, width: 1 }
+                  : { top: `${g.pos * 100}%`, left: 0, right: 0, height: 1 }),
+              }}
+            />
+          ))}
           </div>
         </div>
 
@@ -728,7 +1042,20 @@ export default function EditorDeConvite({
             marcarGesto={marcarGesto}
             fecharGesto={fecharGesto}
           />
-          <span className="flex items-center gap-1">
+          <span className="relative flex items-center gap-1">
+            <LegendaDeAtalhos
+              aberto={atalhosAbertos}
+              aoFechar={() => setAtalhosAbertos(false)}
+            />
+            <button
+              type="button"
+              onClick={() => setAtalhosAbertos((a) => !a)}
+              aria-expanded={atalhosAbertos}
+              aria-label="Atalhos do editor"
+              className="mr-1 size-8 border border-(--c-rule) transition-colors hover:bg-(--c-sunken)"
+            >
+              ?
+            </button>
             <button
               type="button"
               onClick={() => setZoom((z) => Math.max(z / 1.2, 0.4))}
