@@ -1,6 +1,6 @@
 # Spec 002 — F1: a largura do site publicado no desktop (área: site-publico)
 
-**Status:** Bloqueada — **a medição foi feita** (ver "A medição"), e ela mostrou
+**Status:** Rejeitada (27/08/2026) — **Opção C**: a divergência do cartão fica assumida
 que o trabalho não é o que FR-001 descrevia. Falta decisão do dono, não medida.
 
 ## Contexto
@@ -199,3 +199,34 @@ injetada no navegador depois do carregamento — **nunca no código**:
    **1440** — que é a largura da janela do mockup, moldura de navegador
    incluída. Os dois números não são o mesmo número, e o desenho não diz qual
    vale para o site do convidado.
+
+## Decisão registrada — 27/08/2026
+
+**Opção C: assumir a divergência. O cartão de 1120 fica.**
+
+As outras duas se eliminaram sozinhas, e a própria spec já dizia isso:
+
+- **Opção A** (manter o cartão e afastar o teto) — a spec escreve
+  *"não recomendo"*. A medição de 25/08 mostrou o custo: o site fica ~8% mais
+  alto, a capa continua do mesmo tamanho, e só sobra mais ar em volta. Paga
+  altura sem entregar o desenho.
+- **Opção B** (largura cheia de verdade) — **é redesenho, não ajuste**. Seis
+  moldes × ~9 seções, cada uma decidindo entre sangrar e centralizar. E o
+  protótipo desenha **um** deles: F1 não diz o que o Toscana ou o Film fazem a
+  1440. Fazer B exigiria ou decidir que todos sangram igual, ou cinco desenhos
+  que não existem.
+
+**O que sustenta a Opção C**, e não é resignação: o cartão já resolveu o
+defeito que existia — *"um telefone encalhado no meio da tela"* —, a medição
+mostrou que a linha de leitura está protegida pela regra de 70ch, e não há
+estouro horizontal em largura nenhuma. A divergência é entre um desenho e um
+produto que funciona.
+
+**O que reabre isto:** cinco desenhos. No dia em que existir F1 para os seis
+moldes, a Opção B volta à mesa com o custo conhecido — e não antes, porque sem
+eles a decisão seria minha e não sua.
+
+**Fica também a pergunta 3 sem resposta, e ela não tem custo:** o `README.md`
+do pacote diz 1504 e o artboard é desenhado a 1440 (a largura da janela do
+mockup, moldura de navegador incluída). Os dois números não são o mesmo número,
+e o desenho não diz qual vale para o site do convidado.

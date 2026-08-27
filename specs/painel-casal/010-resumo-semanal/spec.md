@@ -1,6 +1,6 @@
 # Spec 010 — J3: o resumo semanal por e-mail (área: painel-casal)
 
-**Status:** Bloqueada (ver Perguntas em aberto)
+**Status:** Bloqueada (27/08/2026) — precisa de decisão sua sobre o agendador, e ela reabre a §14 do SDD
 
 ## Contexto
 
@@ -148,3 +148,31 @@ Depende da resposta:
    pedido. Mandar dois e-mails na mesma segunda seria o oposto do que a
    prancha J quer. Provavelmente um e-mail por **usuário**, com uma seção por
    site ativo — mas isso muda o desenho do artboard, que assume um site.
+
+## Onde ela parou — 27/08/2026
+
+**Esta é a única spec que não pude fechar sozinho, e a razão está escrita nela
+mesma.**
+
+A recomendação é **Vercel Cron**, porque o trabalho é de aplicação (montar
+e-mail, ler métricas, enviar) e não de banco. Mas a spec é literal sobre o
+custo disso: *"isso **contraria a decisão 4 da §14 do SDD**, que precisa ser
+reaberta explicitamente pelo dono em vez de contornada"*.
+
+Implementar seria contornar uma decisão fechada de arquitetura — exatamente o
+que a regra de execução proíbe. E reabrir a §14 é editar o documento que
+registra suas decisões, o que não é meu.
+
+**O que ela precisa, na ordem:**
+
+1. **Você reabre a decisão 4 da §14** e escolhe: `pg_cron` (já instalado, mas
+   SQL puro não envia e-mail — precisaria de fila e de alguém consumindo) ou
+   **Vercel Cron** (resolve sozinho, exige o plano Pro que a §9.2 já lista como
+   obrigatório).
+2. **Provedor de e-mail.** Envio recorrente com a senha de app de uma conta
+   Gmail pessoal não sustenta — empurra para Resend com domínio verificado. É a
+   mesma dependência que parou `site-publico/006`.
+3. Só então `painel-casal/009` (preferências) passa a ter o que oferecer.
+
+**Nada foi implementado**, e nada foi contornado. O trabalho está desenhado e
+espera uma linha sua.

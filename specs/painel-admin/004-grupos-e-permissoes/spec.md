@@ -1,6 +1,6 @@
 # Spec 004 — G2: grupos e permissões da equipe (área: painel-admin)
 
-**Status:** Bloqueada (ver Perguntas em aberto)
+**Status:** Rejeitada por ora (27/08/2026) — hoje é um operador só; G2 fica registrado como desenhado para um futuro que não chegou
 
 ## Contexto
 
@@ -158,3 +158,35 @@ conta de quem opera o produto.
    passar pelo `DialogoDestrutivo`, e o grupo do próprio operador logado NÃO
    PODE ser apagável — um admin que se tranca fora do painel é um incidente
    que só o banco resolve.
+
+## Decisão registrada — 27/08/2026
+
+**Adiada. Hoje o Enlace tem um operador.**
+
+A pergunta que decide a spec inteira é *"existe mais de uma pessoa operando o
+Enlace?"*, e a evidência do repositório responde: `regras-de-negocio.md`
+descreve **um** papel — *"O dono (Anderson)"* —, existe uma única sessão de
+admin, e a promessa que sustenta o produto é *"eu não encosto no código"*, não
+*"minha equipe opera o painel"*.
+
+Um modelo de permissão para um operador é **infraestrutura de segurança para um
+problema que não existe**, e ela tem custo permanente: toda tela nova de admin
+passa a precisar decidir quem vê.
+
+**O artboard G2 fica registrado como desenhado para um futuro que ainda não
+chegou** — três grupos e seis membros que hoje não existem.
+
+**Isto destravou a `painel-admin/002`:** a pergunta 2 daquela spec era se
+RECEITA e CONVERSÃO podiam aparecer numa tela sem permissão. Com um operador só,
+quem vê a receita **é** o dono, e a resposta é sim. O dashboard saiu.
+
+**O que reabre isto, e antes de qualquer outra tela de admin:** a primeira
+contratação de suporte ou financeiro. Nesse dia o modelo passa a ser
+pré-requisito, não melhoria — porque receita e conversão não deveriam ser
+visíveis a quem só responde suporte.
+
+**A pergunta 2 já tem resposta, quando o dia chegar:** os escopos que o produto
+de fato tem são quatro, e correspondem às quatro telas — `pedidos`,
+`presentes`, `casamento` (o legado) e `metricas`. O terceiro escopo do artboard
+("presentes e repasses") não existe: não há repasse, porque o Pix nunca passa
+pela Enlace.

@@ -1,6 +1,6 @@
 # Spec 009 — J2: preferências de aviso (`/conta/avisos`) (área: painel-casal)
 
-**Status:** Bloqueada (ver Perguntas em aberto)
+**Status:** Rejeitada por ora (27/08/2026) — adiada até existir aviso por e-mail para o casal desligar
 
 ## Contexto
 
@@ -129,3 +129,27 @@ mais de um pedido (`LIMITE_DE_PEDIDOS` em `lib/orderLimits.ts`).
    tabelas de RSVP a partir de outubro e proíbe migração na véspera ou semana
    do casamento (16/10/2026). `users` não é tabela de RSVP, mas a janela
    segura para qualquer migração precisa ser confirmada antes.
+
+## Decisão registrada — 27/08/2026
+
+**Adiada. Uma tela para escolher o que não é enviado é uma tela que não faz
+nada.**
+
+O produto **já resolve o ruído sem perguntar**: `lib/site/avisos.ts` agrupa
+("12 confirmações novas desde ontem") em vez de notificar uma por uma — que é a
+regra J3 do próprio desenho. Das cinco linhas da tabela, três teriam a coluna
+"No sino" travada ou vazia. Sobrariam **duas decisões reais**, e uma tela
+inteira para duas decisões cobra atenção sem devolver.
+
+**E o gatilho ainda não chegou.** A recomendação era adiar até existir e-mail
+de aviso sendo enviado. `painel-casal/011` entregou os dois **transacionais**
+(recibo e "seu site está no ar") — e transacional **não se desliga**: é a regra
+do próprio bloco de e-mails, e o FR-011 daquela spec a registra.
+
+O que faria esta tela existir é aviso **recorrente**, e ele mora em
+`painel-casal/010` (resumo semanal) e `site-publico/006` (convidado) — as duas
+paradas, cada uma pelo seu motivo.
+
+**O que reabre isto:** a `010` sair. Aí existem preferências reais a oferecer, e
+a pergunta 2 (`users.aviso_prefs` em `jsonb` ou tabela própria) passa a
+importar.

@@ -35,6 +35,18 @@ depois dela.
 | 6 | [`design-system/005-publicar-no-ar`](design-system/005-publicar-no-ar/spec.md) — transição #6 e o sinal `?publicado=1` | **Implementada** | `002` | `painel-casal/008` |
 | 7 | [`design-system/007-casca-de-email`](design-system/007-casca-de-email/spec.md) — tabela de 600px, preheader, botão de tinta | **Implementada** | `006` | `site-publico/006`, `painel-casal/011` |
 
+¹¹ **Rejeitada / Adiada** não é "não deu tempo": é a decisão registrada, com
+o motivo, dentro da própria spec. Uma spec cuja resposta certa é "não construa
+isto" está terminada quando isso está escrito. As quatro têm o que as reabre
+anotado — cinco desenhos de molde (`site-publico/002`), um provedor de e-mail e
+uma decisão de LGPD (`site-publico/006`), o resumo semanal sair
+(`painel-casal/009`), e a primeira contratação (`painel-admin/004`).
+
+¹² A `010` é **a única que não fechou**, e a razão está escrita nela: o
+agendador que ela precisa contraria a decisão 4 da §14 do SDD, e a própria spec
+exige que ela seja *"reaberta explicitamente pelo dono em vez de contornada"*.
+Implementar seria contornar. Ela espera uma linha sua.
+
 ¹⁰ A `002` fechou na **Opção A** em 27/08/2026: o casamento legado foi
 **movido** (não reescrito) para `/admin/casamento`, e o dashboard ocupou
 `/admin/dashboard`. A janela de congelamento do SDD §13.1 começa em outubro e o
@@ -76,8 +88,8 @@ que escreve texto novo tem como saber se errou.
 | 9 | [`site-publico/003-pagina-de-pacotes`](site-publico/003-pagina-de-pacotes/spec.md) — B2, hoje um `redirect("/")` | **Implementada** | `design-system/001`, `006` | A pergunta em aberto (pré-selecionar pacote) é de produto e fica adiada |
 | 10 | [`site-publico/005-galeria-de-estilos`](site-publico/005-galeria-de-estilos/spec.md) — B4–B9, a porta de entrada das prévias | **Implementada** | `design-system/006` | As seis prévias existentes **não** são tocadas (SDD §4.4.1) |
 | 11 | [`site-publico/004-exemplo-por-pacote`](site-publico/004-exemplo-por-pacote/spec.md) — B3 | **Implementada ⁸** | `site-publico/001`, `003` | Decisão: redirecionar com o pacote, ou assumir a divergência |
-| 12 | [`site-publico/002-largura-do-site`](site-publico/002-largura-do-site/spec.md) — F1 em 1440 | **Bloqueada** | `site-publico/001` | **Medida em 25/08.** Nada quebra a 1440, mas trocar o número não entrega o desenho: o eixo real é cartão-com-letterbox × largura cheia. Decisão do dono |
-| 13 | [`site-publico/006-emails-para-o-convidado`](site-publico/006-emails-para-o-convidado/spec.md) — modelos 05 e 06 | **Bloqueada** | `design-system/007` | O produto não guarda e-mail de convidado, e coletá-lo é decisão do dono |
+| 12 | [`site-publico/002-largura-do-site`](site-publico/002-largura-do-site/spec.md) — F1 em 1440 | **Rejeitada ¹¹** | `site-publico/001` | **Medida em 25/08.** Nada quebra a 1440, mas trocar o número não entrega o desenho: o eixo real é cartão-com-letterbox × largura cheia. Decisão do dono |
+| 13 | [`site-publico/006-emails-para-o-convidado`](site-publico/006-emails-para-o-convidado/spec.md) — modelos 05 e 06 | **Rejeitada ¹¹** | `design-system/007` | O produto não guarda e-mail de convidado, e coletá-lo é decisão do dono |
 | 14 | [`site-publico/007-h5-pix-nao-confirmado`](site-publico/007-h5-pix-nao-confirmado/spec.md) — H5 | **Implementada ⁹** | — | Registro. O Pix vai direto para o casal; a Enlace não observa a falha |
 
 ---
@@ -99,8 +111,8 @@ que escreve texto novo tem como saber se errou.
 | 22 | [`painel-casal/008-e10-publicar`](painel-casal/008-e10-publicar/spec.md) — E10 sem o checkout | **Implementada ⁵** | `design-system/004`, `005` | O checkout embutido foi cancelado pelo dono; o resto é implementável |
 | 23 | [`painel-casal/011-emails-do-casal`](painel-casal/011-emails-do-casal/spec.md) — recibo e "seu site está no ar" | **Implementada** | `design-system/006`, `007` | Hoje o casal paga, o site publica, e ninguém avisa |
 | 24 | [`painel-casal/012-tela-de-geracao`](painel-casal/012-tela-de-geracao/spec.md) — transição #8 | **Implementada ⁶** | `design-system/006` | O piso de 2,5s do handoff é espera inventada (regras §2.2) |
-| 25 | [`painel-casal/009-preferencias-de-aviso`](painel-casal/009-preferencias-de-aviso/spec.md) — J2 | **Bloqueada** | `011` | Sem e-mail sendo enviado, a tabela não liga nada |
-| 26 | [`painel-casal/010-resumo-semanal`](painel-casal/010-resumo-semanal/spec.md) — J3 | **Bloqueada** | `007`, `011` | Falta agendador; e a §14 decisão 4 do SDD precisa ser reaberta |
+| 25 | [`painel-casal/009-preferencias-de-aviso`](painel-casal/009-preferencias-de-aviso/spec.md) — J2 | **Adiada ¹¹** | `011` | Sem e-mail sendo enviado, a tabela não liga nada |
+| 26 | [`painel-casal/010-resumo-semanal`](painel-casal/010-resumo-semanal/spec.md) — J3 | **Bloqueada ¹²** | `007`, `011` | Falta agendador; e a §14 decisão 4 do SDD precisa ser reaberta |
 
 ⁴ A `002` fechou na **Opção A** em 27/08/2026, por decisão de Nycolas: o
 modelo implementado vence e o handoff §2 vira divergência assumida, escrita no
@@ -116,7 +128,7 @@ topo de `lib/site/inviteDoc.ts`. Com isso as quatro retidas voltaram a
 | 27 | [`painel-admin/001-pedidos-como-tabela`](painel-admin/001-pedidos-como-tabela/spec.md) — G4 com filtros e busca | **Implementada** | `design-system/001` | Tira da tela o prompt de LLM do fluxo antigo |
 | 28 | [`painel-admin/003-presentes-entre-casais`](painel-admin/003-presentes-entre-casais/spec.md) — G5 | **Implementada ⁵** | `design-system/001` | O cartão "A repassar" contradiz regras §2.4 e fica fora |
 | 29 | [`painel-admin/002-dashboard-da-operacao`](painel-admin/002-dashboard-da-operacao/spec.md) — G3, e o destino do casamento legado | **Implementada ¹⁰** | `design-system/001` | Mexer no endereço da tela que o dono usa exige janela segura (§13.1) |
-| 30 | [`painel-admin/004-grupos-e-permissoes`](painel-admin/004-grupos-e-permissoes/spec.md) — G2 | **Bloqueada** | `002` | A pergunta é anterior ao código: existe mais de um operador? |
+| 30 | [`painel-admin/004-grupos-e-permissoes`](painel-admin/004-grupos-e-permissoes/spec.md) — G2 | **Adiada ¹¹** | `002` | A pergunta é anterior ao código: existe mais de um operador? |
 
 ⁷ A `007` fechou na **Opção A** em 27/08/2026: trocar de modelo é cor e fonte,
 nunca o desenho. A evidência estava no próprio protótipo — as seis miniaturas do
@@ -161,6 +173,7 @@ palavras voltarem.
 | 27/08/2026 | **`site-publico/007` implementada (Opção B)** — o convidado que abre o QR e fecha sem avisar deixa de ficar sem saber o que aconteceu. A tela diz para onde o dinheiro vai, que a Enlace não consegue ver, e que desistir não deixou nada pendurado no nome dele. Texto aprovado pelo `regras-de-negocio` com três trocas de palavra; doze palavras proibidas viraram teste. 12 testes novos |
 | 27/08/2026 | **`painel-admin/002` implementada (Opção A)** — o dono passa a ter número sobre o próprio negócio: pedidos, receita, sites no ar e conversão, com 14 dias de barras e a divisão por pacote. Receita é o valor dos PACOTES e só — presente é dinheiro do casal, e um teste reprova se ele entrar. O casamento legado foi movido para `/admin/casamento` sem uma linha reescrita, e as contagens do banco foram conferidas depois: 23/31/23/23, intactas. 26 testes novos, 15 contra o banco |
 | 27/08/2026 | **`design-system/006` desbloqueada e implementada** — o bloqueio era técnico e caiu: o discriminador de "texto visível" não é léxico, é posicional, e o compilador já sabia distinguir. **98 achados → 18 → 0**, com os 18 todos reais. Corrigi-los revelou mais quatro escondidos atrás do ruído, incluindo os três `RSVP` que o convidado via nos moldes Editorial e Toscana — a pior violação de voz que o produto tinha no ar. A guarda está na suíte. 5 testes novos |
+| 27/08/2026 | **As cinco últimas fechadas por decisão, não por código.** `site-publico/002` (Opção C: o cartão fica — a Opção B é redesenho de 6 moldes e o protótipo desenha um), `site-publico/006` (não: LGPD, quem digita, e o Gmail SMTP não sustenta 400 envios por casamento), `painel-casal/009` (adiada: transacional não se desliga, e aviso recorrente ainda não existe), `painel-admin/004` (adiada: um operador só — e foi isso que destravou o dashboard). **`painel-casal/010` é a única aberta**: o agendador dela reabre a §14 do SDD, e isso é seu |
 
 ---
 

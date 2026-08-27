@@ -1,6 +1,6 @@
 # Spec 006 — E-mails 05 e 06: convite e lembrete para o convidado (área: site-publico)
 
-**Status:** Bloqueada (ver Perguntas em aberto)
+**Status:** Rejeitada (27/08/2026) — o Enlace **não** passa a coletar e-mail de convidado; os modelos 05 e 06 viram peça de WhatsApp
 
 ## Contexto
 
@@ -152,3 +152,35 @@ endereço, ou qualquer `UPDATE` em coluna preexistente.
 
    **A recomendação é a primeira**, porque o caminho já existe inteiro e não
    pede coluna nova, provedor novo nem consentimento de terceiro.
+
+## Decisão registrada — 27/08/2026
+
+**Não. O produto não passa a coletar e-mail de convidado.**
+
+Três razões, e cada uma sozinha bastaria:
+
+- **Quem digita.** Se for o casal, são dezenas de endereços num produto cuja
+  primeira promessa é *"vocês não vão trabalhar"*. Se for o convidado, no
+  `/rsvp/<slug>`, muda o que ele precisa fazer para confirmar — e
+  `/rsvp/<slug>` é a rota que não pode deixar de funcionar.
+- **LGPD.** E-mail de convidado é dado pessoal de terceiro que nunca aceitou
+  termo nenhum. O produto hoje é rigoroso: IP nunca é gravado, `visitor_hash`
+  gira a cada 24h. Guardar endereço muda a categoria do que a base contém.
+- **Entregabilidade.** `lib/email.ts` roda em Gmail SMTP, com ~500
+  destinatários/dia e a senha de app de uma conta pessoal. **Um** casamento com
+  200 convidados e um lembrete gasta 400 envios.
+
+**Os modelos 05 e 06 viram peça de WhatsApp** — a primeira saída da pergunta 2,
+e ela fecha a spec sem perda:
+
+- o **05** (convite) é, tirando a casca de e-mail, exatamente o que
+  `/c/<slug>` já entrega como página — e o cartão de link já monta a versão que
+  aparece na conversa;
+- o **06** (lembrete) é a mensagem "faltando 7 dias" que a aba Compartilhar
+  **já tem**.
+
+A divergência é **assumida**, não corrigida — como já aconteceu com o H5.
+
+**O que reabre isto:** um provedor de e-mail com domínio verificado (Resend) e
+uma decisão sua sobre LGPD. Nessa ordem: sem o primeiro, o segundo não tem
+para onde ir.
