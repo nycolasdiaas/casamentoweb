@@ -1,6 +1,6 @@
 # Spec 008 — E10: a tela de publicar (área: painel-casal)
 
-**Status:** Pronta para implementação — com **[CONFLITO COM DECISÃO EXISTENTE
+**Status:** Implementada (27/08/2026) — o checkout embutido ficou de fora, como a própria spec determinava
 — REQUER APROVAÇÃO]** na parte do checkout, que fica fora dos requisitos.
 
 ## Contexto
@@ -174,3 +174,59 @@ parâmetro `?publicado=1`.
 2. **Nada aqui bloqueia a implementação dos FR-001 a FR-012**, que são as
    três outras peças do artboard. Esta pergunta existe para o conflito ficar
    registrado com o motivo, não para travar o trabalho.
+
+## Notas de implementação
+
+### O conflito não era pergunta em aberto
+
+O `[CONFLITO]` desta spec registra que o checkout embutido do artboard 10.2 foi
+**cancelado pelo dono**, e os requisitos já o excluíam. Implementar a spec **é**
+deixá-lo de fora. O botão `Publicar site →` rola até o `PaymentButton` que já
+existe, que ganhou `id="pagar"` — um segundo caminho de pagamento seria um
+segundo lugar para manter, e o lugar onde o dinheiro passa é o pior para se ter
+dois.
+
+### O ícone é de 16px, não dos 17px do artboard
+
+A escala de ícone da Prensa tem três degraus (16/20/24) e é fechada em tipo:
+`tamanho={17}` nem compila. Um tamanho fora da escala quebraria a espessura de
+traço que faz os ~60 ícones parecerem a mesma família — que é a razão de o
+componente restringir. **A Fundação vence a tela.**
+
+### A marca d'água é irmã do iframe, e o teste prende isso
+
+O quadro carrega `/preview/<token>`, que é outra origem lógica e já tem a
+própria faixa de prévia. Escrever por dentro exigiria falar com o documento do
+iframe e passaria a existir uma segunda marca d'água para manter. O teste
+confere a ordem no arquivo e reprova qualquer `contentDocument`.
+
+### O endereço é montado do slug quando ainda não há `siteUrl`
+
+`order.siteUrl` só existe depois de publicar (ou quando o admin pôs um domínio
+próprio à mão), e a faixa precisa mostrar o endereço **antes** disso. Ele vem do
+`site.slug`, que já é o definitivo — a mesma regra de imutabilidade dos slugs.
+`baseUrlEstatica` e não `getBaseUrl`: ler header aqui não acrescentaria nada e a
+versão estática não pode ser enganada por `Host` forjado.
+
+### `Copiar link do site` copia a URL completa, e o texto mostra sem esquema
+
+São coisas diferentes de propósito: o casal reconhece `enlace.test/s/ana-e-pedro`
+como "o endereço dele", mas o que vai para a área de transferência precisa
+abrir quando colado. E a área de transferência negada (contexto sem HTTPS,
+permissão do navegador) não vira botão morto — o brinde diz onde o endereço
+está.
+
+## Como cada critério foi conferido
+
+| Critério | Medida |
+|---|---|
+| SC-001, SC-002 | a faixa traz o texto literal e o endereço real, montado do slug; nunca um exemplo |
+| SC-002 (do botão) | `Publicar site →` é `<a href="#pagar">` com `.btn-ink`; o alvo é o `PaymentButton` que já existia, com `scroll-mt-24` para o cabeçalho não cobrir |
+| SC-003 | a marca d'água vem ANTES do `<iframe>` no arquivo, com `rotate(-18deg)`, `pointer-events-none`, `aria-hidden="true"` e `letter-spacing: 0.4em`; nenhum `contentDocument` |
+| SC-004 | 4 linhas no Para Sempre, 3 no Convite — a de confirmação de presença some com `tierAllowsSection` |
+| SC-005 | a faixa, o cartão e a marca d'água são todos guardados por `site.status !== "published"` |
+| SC-006 | o bloco traz `Seu site está no ar!`, a `.etiqueta-noar` escrita `No ar` e os dois botões, com o de convites apontando para a aba certa |
+| SC-007 | a dupla guarda `status === "published" && publicado === "1"`; o parâmetro some do endereço na transição #6, então a navegação seguinte não repete |
+| SC-008 | copiar chama `writeText` com a URL COMPLETA e dá brinde; negado, não lança e diz onde o endereço está |
+| SC-009 | nenhum texto promete prazo — conferido por varredura de `em breve|aguarde|assim que poss` |
+| SC-010 | `build`, `lint` e `test` (50 arquivos, 595 testes) |

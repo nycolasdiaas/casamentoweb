@@ -14,6 +14,9 @@ import LivePreview from "@/components/account/LivePreview";
 import ReguaDeNumeros from "@/components/account/manage/ReguaDeNumeros";
 import PrimeiraVez from "@/components/account/manage/PrimeiraVez";
 import FaixaDoCasamento from "@/components/account/manage/FaixaDoCasamento";
+import PublicarAgora from "@/components/account/manage/PublicarAgora";
+import SiteNoAr from "@/components/account/manage/SiteNoAr";
+import { baseUrlEstatica } from "@/lib/baseUrl";
 import { countSitePhotos } from "@/lib/repositories/sitePhotos";
 import OQueFalta from "@/components/account/manage/OQueFalta";
 import AreasEditaveis from "@/components/account/manage/AreasEditaveis";
@@ -45,7 +48,12 @@ export default async function GerenciarInicioPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ publicacao?: string; provisionamento?: string }>;
+  searchParams: Promise<{
+    publicacao?: string;
+    provisionamento?: string;
+    /** Sinal da transição #6 — ver `specs/design-system/005-publicar-no-ar`. */
+    publicado?: string;
+  }>;
 }) {
   const { id } = await params;
   const { order, site } = await carregarGerenciamento(id);
@@ -76,7 +84,20 @@ export default async function GerenciarInicioPage({
   // exige derrubar cache, e isso não pode acontecer durante o render — então
   // manda para a rota que sabe fazer isso e volta. `publicacao=erro` corta o
   // laço se ela não conseguiu. Ver AGENTS.md.
-  const { publicacao, provisionamento } = await searchParams;
+  const { publicacao, provisionamento, publicado } = await searchParams;
+
+  /* O endereço REAL do site, nunca um exemplo. `order.siteUrl` só existe
+     depois de publicar (ou quando o admin pôs um domínio próprio à mão), então
+     antes disso ele é montado a partir do slug — que já é o definitivo:
+     "slug de grupo existente é imutável", e o do site também.
+
+     `baseUrlEstatica` e não `getBaseUrl`: esta página já é dinâmica, mas ler
+     header aqui não acrescentaria nada, e a versão estática não pode ser
+     enganada por `Host` forjado. */
+  const urlDoSite =
+    order.siteUrl ??
+    (site ? `${baseUrlEstatica().replace(/\/+$/, "")}/s/${site.slug}` : "");
+  const enderecoDoSite = urlDoSite.replace(/^https?:\/\//, "").replace(/\/$/, "");
   const publicacaoFalhou = publicacao === "erro";
 
   // Pedido enviado e SEM site: o provisionamento falhou no envio e nada tenta
@@ -158,6 +179,18 @@ export default async function GerenciarInicioPage({
         </div>
       </div>
 
+      {/* A comemoração aparece UMA vez, no primeiro carregamento depois de
+          publicar. A dupla guarda é a mesma da transição #6: o parâmetro
+          sozinho é digitável na barra de endereços, e sem `published` a tela
+          diria "está no ar" sobre um site que não está. */}
+      {status === "published" && publicado === "1" && (
+        <SiteNoAr
+          endereco={enderecoDoSite}
+          urlCompleta={urlDoSite}
+          linkDosConvites={`/conta/pedidos/${order.id}/convites`}
+        />
+      )}
+
       {/* E1 é DUAS COLUNAS.
           À esquerda o que o casal ACOMPANHA — os números, ou o roteiro do que
           falta no minuto zero. À direita o que ele CONSULTA: quanto falta para
@@ -213,6 +246,20 @@ export default async function GerenciarInicioPage({
           pagamento — o casal precisava rolar para encontrar a única coisa que
           ele realmente quer ver. É o site dele; é o que abre a tela.
           Não depende de status: existindo site, a prévia aparece. */}
+      {/* E10 · "pronto e ainda invisível", logo acima da prévia.
+
+          A prévia do painel é boa demais: o casal vê o site montado com as
+          fotos dele e conclui que já publicou — e descobre que não quando
+          manda o link para alguém. */}
+      {site !== null &&
+        site.status !== "published" &&
+        site.status !== "archived" && (
+          <PublicarAgora
+            endereco={enderecoDoSite}
+            tier={order.packageTier as PackageTier}
+          />
+        )}
+
       {site !== null && site.status !== "archived" && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[300px_minmax(0,1fr)] lg:items-start">
           {/* As ÁREAS EDITÁVEIS ao lado da prévia, não noutra tela.
@@ -231,6 +278,7 @@ export default async function GerenciarInicioPage({
           src={`/preview/${site.previewToken}`}
           descricao="É o site de verdade, com o conteúdo de vocês. Depois de salvar alguma mudança, clique em atualizar."
           fullBleed={false}
+          marcaDePrevia={site.status !== "published"}
         />
         </div>
       )}
