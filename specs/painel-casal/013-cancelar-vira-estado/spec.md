@@ -1,7 +1,8 @@
 # Spec 013 — Cancelar pedido vira estado, não `DELETE` (área: painel-casal)
 
-**Status:** Implementada (27/08/2026) — migração `0018` aplicada em produção
-trava os requisitos abaixo.
+**Status:** Implementada (27/08/2026) — migração `0018` aplicada em produção.
+A pergunta em aberto (o pedido cancelado some ou aparece esmaecido para o
+casal) não travava nada: FR-007 escolheu sumir, que é o comportamento de hoje.
 
 ## Contexto
 
