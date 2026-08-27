@@ -1,6 +1,6 @@
 # Spec 010 — J3: o resumo semanal por e-mail (área: painel-casal)
 
-**Status:** Bloqueada (27/08/2026) — precisa de decisão sua sobre o agendador, e ela reabre a §14 do SDD
+**Status:** Implementada (27/08/2026) — **Vercel Cron**, com a §14 decisão 4 reaberta. Entregue DESLIGADA: sem `CRON_SECRET`, nada é enviado
 
 ## Contexto
 
@@ -176,3 +176,93 @@ registra suas decisões, o que não é meu.
 
 **Nada foi implementado**, e nada foi contornado. O trabalho está desenhado e
 espera uma linha sua.
+
+## Decisão registrada — 27/08/2026
+
+**Vercel Cron**, e a §14 decisão 4 do SDD foi **reaberta explicitamente** — não
+contornada. A reabertura está escrita no próprio SDD, com a razão.
+
+Quem decidiu: **Nycolas**, ao mandar finalizar depois de a execução ter parado
+aqui duas vezes e apresentado o fork. A recomendação da spec era esta.
+
+**Por que `pg_cron` não servia:** o trabalho não é de banco. O resumo precisa
+ler métricas, montar um e-mail e enviá-lo, e SQL puro não fala SMTP — com
+`pg_cron` a arquitetura seria uma tabela de fila mais um consumidor, ou seja, o
+agendador que se queria evitar, mais uma tabela. E a §15.5 já registrava que
+`pg_cron` **nunca chegou a ser usado**: não há `cron.schedule` em migração
+nenhuma.
+
+## Ela é entregue DESLIGADA, e isso é a decisão certa
+
+`/api/cron/resumo-semanal` responde **503 sem `CRON_SECRET`**, e ele não está
+configurado. Mesma postura do `ABACATEPAY_WEBHOOK_SECRET`.
+
+Uma rota pública que dispara e-mail para todos os casais ativos é um canhão de
+spam com URL: quem descobrisse o caminho poderia bombardear a base, e a conta
+de envio é nossa. **Desligada é o padrão seguro.**
+
+**Para ligar, faltam duas coisas suas:**
+
+1. `CRON_SECRET` configurado na Vercel (e o plano Pro, que a §9.2 já lista como
+   obrigatório).
+2. **Resend com domínio verificado.** O Gmail SMTP com senha de app de conta
+   pessoal tem ~500 destinatários/dia e não sustenta envio recorrente — foi o
+   terceiro travamento que a spec listava, e é o único que continua de pé.
+
+## O descadastro não era extra — era condição para poder ligar
+
+O artboard J2 desenha "parar de receber" no rodapé, e este é o **primeiro
+e-mail não transacional do produto**. Um recorrente com link de descadastro
+morto não é falta de acabamento: é o que transforma reclamação em denúncia de
+spam, e denúncia custa o domínio inteiro — o mesmo que manda o recibo e o "seu
+site está no ar".
+
+Por isso entrou junto, com uma **segunda migração aditiva**:
+`users.weekly_digest_opt_out timestamptz`, nullable, sem default, sem backfill.
+Os 5 usuários continuam com `null`, que significa "recebe".
+
+**Timestamp e não booleano:** a pergunta "desde quando?" aparece sempre que
+alguém reclama de ter recebido, e `false` não responde nada.
+
+O link é **assinado por HMAC** e **não expira**. Assinado porque, com só o
+`uuid` na URL, qualquer um descadastraria qualquer casal iterando id. Sem
+expirar porque um "parar de receber" que falha para quem achou o e-mail velho
+na caixa é um "parar de receber" que não funciona — e quem clica ali já decidiu.
+
+E **sem pedir login**: ninguém faz login para cancelar e-mail. Quem quer parar
+está no cliente de e-mail, irritado.
+
+## Notas de implementação
+
+- **A janela de confirmação é `groups.responded_at`**, não um `updated_at`
+  genérico. Ela guarda **quando o convidado respondeu** e é escrita só por
+  `responderRsvpDoGrupo`; um `updated_at` contaria como "confirmação da semana"
+  o grupo que o casal renomeou ontem.
+- **Só sites publicados.** Um site em prévia não tem convidado para confirmar
+  presença — mandar "como foi a semana de vocês" para quem não publicou é falar
+  de um movimento que não podia existir.
+- **Quatro agregados, todos agrupados no banco.** Contar em memória funcionaria
+  hoje e deixaria de funcionar antes de alguém perceber: um casamento com 300
+  presentes viraria 300 linhas na rede para devolver um número.
+- **`after()` no envio.** O Vercel Cron tem teto de tempo por invocação, e um
+  casal a mais na base não pode aproximar a rota do limite. Um envio que falha
+  não derruba os outros.
+- **Duas armadilhas do Next 16 apareceram e estão documentadas no código:**
+  `export const dynamic = "force-dynamic"` é incompatível com
+  `cacheComponents` (a rota já é dinâmica por ler o header), e `searchParams`
+  fora de `<Suspense>` reprovou o build de `/avisos/parar` — a armadilha exata
+  que a Skill `cache-e-build` descreve.
+
+## Como cada critério foi conferido
+
+Treze testes em `lib/site/resumoSemanal.test.ts`, todos contra o banco.
+
+| Critério | Medida |
+|---|---|
+| **SC-001** (FR-002) | site sem movimento fica de fora; uma confirmação, um presente ou um recado já bastam; movimento de dez dias atrás **não** conta |
+| **SC-002** (FR-001) | uma cota de valor livre na semana zera o total em reais. Com todas de preço fixo, o total sai. Sem presente, não há total |
+| Quem entra | site em prévia não recebe; quem pediu para parar sai da lista; parar duas vezes não quebra e guarda a **primeira** data |
+| O que merece atenção | conta os lugares com `seats_confirmed` nulo — `null` é "não respondeu", `0` seria "respondeu que não vai" |
+| O descadastro | o token confere só para o usuário certo; token de outro casal, forjado ou vazio são recusados; a URL aponta para a rota que existe, sem barra dupla |
+| Migração | `backup:full` antes → `db:generate` (uma linha, zero `DROP`/`DELETE`/`UPDATE`) → `db:rehearse` aprovado → `db:migrate`. Verificado: 8 colunas em `users`, **0 opt-out**, 5 usuários, 23 grupos, 31 convidados |
+| Build | `build`, `lint` e `test` |

@@ -17,6 +17,7 @@
 
 import nodemailer, { type Transporter } from "nodemailer";
 import { baseUrlEstatica } from "@/lib/baseUrl";
+import { formatPriceCents } from "@/lib/format";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const GMAIL_USER = process.env.GMAIL_USER;
@@ -513,6 +514,95 @@ export async function sendSiteNoArEmail(
       <p style="font-size:13px;line-height:1.6;color:#5a624f">
         Ainda dá para editar tudo — fotos, textos e presentes — pelo painel, a
         qualquer momento.
+      </p>`,
+    })
+  );
+}
+
+/**
+ * Modelo J2 · o resumo da semana.
+ *
+ * ── O primeiro e-mail NÃO transacional do produto ──────────────────────────
+ *
+ * Todos os outros saem porque algo aconteceu com aquele casal naquele instante
+ * — pagou, publicou, pediu senha. Este sai porque é segunda-feira. Essa
+ * diferença muda uma regra: ele **tem descadastro**, e os outros quatro não
+ * podem ter. É o bloco final da prancha de e-mails: *"01–04 são transacionais
+ * (sem descadastro)"* — e este é o 05 do casal.
+ *
+ * ── O que ele não diz ──────────────────────────────────────────────────────
+ *
+ * "R$ 750 em presentes", quando alguma cota da semana era de valor livre. O
+ * número não existe: o Pix vai direto para o casal, e somar só as cotas de
+ * preço fixo daria um total menor que o real — pior que não mostrar nenhum.
+ */
+export async function sendResumoSemanalEmail(
+  to: string,
+  dados: {
+    nomes: string;
+    /** Janela da semana, já escrita: "12 a 18 de setembro". */
+    semana: string;
+    confirmacoes: number;
+    presentes: number;
+    /** Em centavos, ou `null` se alguma cota da semana era de valor livre. */
+    presentesEmReais: number | null;
+    recados: number;
+    semResposta: number;
+    diasParaOCasamento: number | null;
+    painelUrl: string;
+    descadastroUrl: string;
+  }
+): Promise<void> {
+  const cartao = (rotulo: string, valor: string) =>
+    `<td width="33%" align="center" style="padding:14px 8px;border:1px solid ${FIO}">
+          <div style="font-family:${F_DADO};font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:${TERCIARIO}">${rotulo}</div>
+          <div style="font-family:${F_DISPLAY};font-size:26px;line-height:1.2;color:${TINTA};padding-top:4px">${valor}</div>
+        </td>`;
+
+  /* O cartão de presentes conta COTAS. O valor em reais só entra quando toda
+     cota da semana tinha preço fixo — e aí como linha de apoio, não como o
+     número principal: o que a Enlace sabe é quantas foram escolhidas. */
+  const presentesValor =
+    dados.presentesEmReais !== null
+      ? `${dados.presentes} <span style="font-size:13px;color:${TERCIARIO}">· ${formatPriceCents(dados.presentesEmReais)}</span>`
+      : String(dados.presentes);
+
+  await send(
+    to,
+    `Como foi a semana de vocês`,
+    layout({
+      titulo: "Como foi a semana de vocês",
+      linhaDaCaixa: `${dados.confirmacoes} confirmaram, ${dados.presentes} presentes, ${dados.recados} recados.`,
+      corpo: `<p style="margin:0 0 16px;font-family:${F_DADO};font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:${TERCIARIO}">Semana de ${escaparHtml(dados.semana)}</p>
+
+      <table role="presentation" border="0" cellpadding="0" cellspacing="6" width="100%" style="width:100%;margin:0 0 22px">
+        <tr>
+          ${cartao("Confirmaram", `+${dados.confirmacoes}`)}
+          ${cartao("Presentes", presentesValor)}
+          ${cartao("Recados", String(dados.recados))}
+        </tr>
+      </table>
+      ${
+        dados.semResposta > 0
+          ? `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="width:100%;margin:0 0 20px">
+        <tr><td style="padding:14px 16px;border-left:3px solid ${TINTA};background:#ffffff">
+          <div style="font-family:${F_DADO};font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:${TERCIARIO}">O que merece atenção</div>
+          <div style="font-family:${F_CORPO};font-size:14px;line-height:1.6;color:#3d4a36;padding-top:5px">
+            ${dados.semResposta} ${dados.semResposta === 1 ? "lugar ainda não teve resposta" : "lugares ainda não tiveram resposta"}. O link de cada família está no painel.
+          </div>
+        </td></tr>
+      </table>`
+          : ""
+      }
+      ${button(dados.painelUrl, "Abrir o painel")}
+      ${
+        dados.diasParaOCasamento !== null
+          ? `<p style="font-size:13px;line-height:1.6;color:#5a624f">Faltam ${dados.diasParaOCasamento} ${dados.diasParaOCasamento === 1 ? "dia" : "dias"} para o casamento.</p>`
+          : ""
+      }
+      <p style="margin-top:18px;font-size:11.5px;line-height:1.6;color:${TERCIARIO}">
+        Vocês recebem este resumo às segundas, e só quando houve movimento na
+        semana. <a href="${dados.descadastroUrl}" style="color:${TERCIARIO}">Parar de receber</a>.
       </p>`,
     })
   );

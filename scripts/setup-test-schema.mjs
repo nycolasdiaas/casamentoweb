@@ -25,6 +25,7 @@ const DDL = [
      email text not null unique,
      password_hash text not null,
      whatsapp text,
+     weekly_digest_opt_out timestamptz,
      created_at timestamptz not null default now()
    )`,
 
@@ -171,6 +172,9 @@ const DDL = [
   `alter table test.site_content add column if not exists pix_recipient text`,
   `alter table test.site_content add column if not exists pix_city text`,
   `alter table test.site_content add column if not exists pix_institution text`,
+
+  // Descadastro do resumo semanal (migração 0019). `null` = recebe.
+  `alter table test.users add column if not exists weekly_digest_opt_out timestamptz`,
 
   // Resposta por GRUPO e site com senha (migração 0016). Mesmo motivo dos
   // alters acima: as tabelas já existem no schema `test` e o

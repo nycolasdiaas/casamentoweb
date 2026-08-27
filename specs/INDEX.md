@@ -49,10 +49,11 @@ anotado — cinco desenhos de molde (`site-publico/002`), um provedor de e-mail 
 uma decisão de LGPD (`site-publico/006`), o resumo semanal sair
 (`painel-casal/009`), e a primeira contratação (`painel-admin/004`).
 
-¹² A `010` é **a única que não fechou**, e a razão está escrita nela: o
-agendador que ela precisa contraria a decisão 4 da §14 do SDD, e a própria spec
-exige que ela seja *"reaberta explicitamente pelo dono em vez de contornada"*.
-Implementar seria contornar. Ela espera uma linha sua.
+¹² A `010` fechou em 27/08/2026 com **Vercel Cron**, e a §14 decisão 4 do SDD
+foi **reaberta explicitamente** — a reabertura está escrita no próprio SDD, com
+a razão. Ela é entregue **desligada**: sem `CRON_SECRET` a rota responde 503 e
+nada é enviado. Para ligar faltam duas coisas do dono — o segredo configurado e
+um provedor de e-mail com domínio verificado.
 
 ¹⁰ A `002` fechou na **Opção A** em 27/08/2026: o casamento legado foi
 **movido** (não reescrito) para `/admin/casamento`, e o dashboard ocupou
@@ -119,7 +120,7 @@ que escreve texto novo tem como saber se errou.
 | 23 | [`painel-casal/011-emails-do-casal`](painel-casal/011-emails-do-casal/spec.md) — recibo e "seu site está no ar" | **Implementada** | `design-system/006`, `007` | Hoje o casal paga, o site publica, e ninguém avisa |
 | 24 | [`painel-casal/012-tela-de-geracao`](painel-casal/012-tela-de-geracao/spec.md) — transição #8 | **Implementada ⁶** | `design-system/006` | O piso de 2,5s do handoff é espera inventada (regras §2.2) |
 | 25 | [`painel-casal/009-preferencias-de-aviso`](painel-casal/009-preferencias-de-aviso/spec.md) — J2 | **Adiada ¹¹** | `011` | Sem e-mail sendo enviado, a tabela não liga nada |
-| 26 | [`painel-casal/010-resumo-semanal`](painel-casal/010-resumo-semanal/spec.md) — J3 | **Bloqueada ¹²** | `007`, `011` | Falta agendador; e a §14 decisão 4 do SDD precisa ser reaberta |
+| 26 | [`painel-casal/010-resumo-semanal`](painel-casal/010-resumo-semanal/spec.md) — J3 | **Implementada ¹²** | `007`, `011` | Falta agendador; e a §14 decisão 4 do SDD precisa ser reaberta |
 
 ⁴ A `002` fechou na **Opção A** em 27/08/2026, por decisão de Nycolas: o
 modelo implementado vence e o handoff §2 vira divergência assumida, escrita no
@@ -182,6 +183,7 @@ palavras voltarem.
 | 27/08/2026 | **`design-system/006` desbloqueada e implementada** — o bloqueio era técnico e caiu: o discriminador de "texto visível" não é léxico, é posicional, e o compilador já sabia distinguir. **98 achados → 18 → 0**, com os 18 todos reais. Corrigi-los revelou mais quatro escondidos atrás do ruído, incluindo os três `RSVP` que o convidado via nos moldes Editorial e Toscana — a pior violação de voz que o produto tinha no ar. A guarda está na suíte. 5 testes novos |
 | 27/08/2026 | **As cinco últimas fechadas por decisão, não por código.** `site-publico/002` (Opção C: o cartão fica — a Opção B é redesenho de 6 moldes e o protótipo desenha um), `site-publico/006` (não: LGPD, quem digita, e o Gmail SMTP não sustenta 400 envios por casamento), `painel-casal/009` (adiada: transacional não se desliga, e aviso recorrente ainda não existe), `painel-admin/004` (adiada: um operador só — e foi isso que destravou o dashboard). **`painel-casal/010` é a única aberta**: o agendador dela reabre a §14 do SDD, e isso é seu |
 | 27/08/2026 | **`painel-casal/013` escrita e implementada** — a spec que a decisão 11 pedia e que ninguém tinha escrito: cancelar pedido vira **estado**, não `DELETE`. Corrige de passagem o site órfão que o `AGENTS.md` registra, e devolve a pílula `Cancelados` que `painel-admin/001` teve de excluir por falta do estado. É a **única migração** de todo este trabalho — aditiva, e com a janela antes de outubro. **Migração `0018` aplicada em produção** em 27/08, com `backup:full`, rollback escrito antes e `db:rehearse` aprovado. Enum com 7 valores, zero linhas `cancelled`, e as contagens do casamento idênticas ao backup |
+| 27/08/2026 | **`painel-casal/010` implementada — a última.** Vercel Cron, com a **§14 decisão 4 do SDD reaberta explicitamente** e a reabertura escrita no próprio documento. Entregue **desligada**: sem `CRON_SECRET` a rota responde 503. O descadastro entrou junto (segunda migração aditiva) porque e-mail recorrente com link morto vira denúncia de spam — e isso custa o domínio que manda o recibo. 13 testes novos, todos contra o banco |
 
 ---
 
@@ -252,7 +254,7 @@ O que ficou como **pendência aditiva**, com o motivo, está na seção
 | `painel-casal/003` | nenhuma — **feita** | Tipo novo de bloco dentro do `jsonb` de `site_invites.doc` |
 | `site-publico/006` | ~~`guests.email`~~ — **rejeitada** | O produto não passa a coletar e-mail de convidado |
 | `painel-casal/009` | ~~`users.aviso_prefs`~~ — **adiada** | Sem aviso recorrente, não há o que configurar |
-| `painel-casal/010` | `cron.schedule` **ou** rota protegida | **Aberta.** Depende do agendador que o dono escolher |
+| `painel-casal/010` | `users.weekly_digest_opt_out` (nullable) — **APLICADA** | Aditiva, sem default e sem backfill. O descadastro não era extra: e-mail recorrente com link morto vira denúncia de spam, e isso custa o domínio |
 | `painel-casal/013` | `ALTER TYPE order_status ADD VALUE 'cancelled'` — **APLICADA** | **Aditiva pura**, e a única migração de todo o trabalho. `ADD VALUE` de enum não é reversível: o rollback é não usar o valor, e está escrito em `docs/rollback-0017-cancelled.md` |
 | `painel-admin/004` | `admin_groups` + `admins.group_id` (nullable) | Aditiva; `on delete set null`, nunca `cascade` |
 | `painel-admin/001`, pergunta 1 | `ORDER_STATUSES` ganha `cancelled` | Enum aditivo; muda `deleteOrder` para `cancelOrder` |

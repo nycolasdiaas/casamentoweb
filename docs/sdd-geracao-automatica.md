@@ -860,10 +860,33 @@ Migrar fora do horário de pico e **nunca na véspera/semana do casamento** (16/
 | 1 | Endereço do casal | **Subdomínio nosso** (`ana-e-pedro.enlace.com.br`). Sem domínio próprio, sem custo por casal. Fase 1 entrega por caminho (`/slug`), mesma coluna. |
 | 2 | "Para Sempre" | **Sem hibernação — o site fica no ar, direto.** Em vez de política, coleta de métricas de acesso para decidir com dado depois. §6.1 |
 | 3 | `sites.order_id` | **Nullable** — o casamento real do banco nasceu antes do fluxo de pedidos. |
-| 4 | Agendador | **`pg_cron`** (já instalado no banco), agora só para o roll-up diário de métricas. |
+| 4 | Agendador | ~~**`pg_cron`**~~ → **Vercel Cron**, reaberta em 27/08/2026. Ver a nota abaixo. `pg_cron` continua disponível e continua sem uso. |
 | 5 | O que conta como acesso | **Visita ao site.** Login do casal não conta. |
 | 6 | Integridade dos dados | **Nada é apagado ou reescrito.** Toda migração é aditiva, com backup e rollback. §13.1 |
 | 7 | `groups_slug_unique` | **Mantido global** — não-destrutivo e faz a rota legada seguir funcionando. §5.2 |
+
+#### Decisão 4 reaberta — 27/08/2026
+
+**O agendador passa a ser o Vercel Cron.** Reabertura explícita, e não
+contorno: a `specs/painel-casal/010-resumo-semanal` exigia que fosse assim.
+
+**Por que a decisão original não se sustentou.** Ela escolheu `pg_cron` porque
+ele já está instalado e custa zero. Só que o trabalho que apareceu não é de
+banco: o resumo semanal precisa **ler métricas, montar um e-mail e enviá-lo**, e
+SQL puro não fala SMTP. Com `pg_cron` a arquitetura seria uma tabela de fila
+mais um consumidor — ou seja, o agendador que se queria evitar, mais uma tabela.
+
+A §15.5 já registrava que `pg_cron` **nunca foi usado**: não há `cron.schedule`
+em migração nenhuma, e a `site_daily_stats` da migração 0008 segue sem escritor.
+A decisão não estava sendo abandonada agora; ela nunca chegou a ser exercida.
+
+**O que muda:** o Vercel Cron chama uma rota do próprio app, com todo o
+TypeScript disponível. Exige o plano Pro, que a §9.2 já lista como obrigatório
+("Hobby proíbe uso comercial") — então não acrescenta custo novo.
+
+**O que NÃO muda:** o roll-up diário de métricas continua sem existir, e
+continua podendo ser `pg_cron` no dia em que for feito. Esta reabertura é sobre
+o trabalho que precisa de aplicação, não sobre todo agendamento do produto.
 
 ### Assumidas por padrão (avise se discordar — nenhuma bloqueia a Fase 0)
 

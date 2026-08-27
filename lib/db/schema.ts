@@ -101,6 +101,20 @@ export const users = pgTable("users", {
   // formato "salt:hash" (scrypt), ver lib/auth/password.ts
   passwordHash: text("password_hash").notNull(),
   whatsapp: text("whatsapp"),
+  /**
+   * Quando o casal pediu para parar de receber o resumo semanal.
+   *
+   * `null` = recebe. Um timestamp em vez de um booleano porque a pergunta
+   * "desde quando?" aparece sempre que alguém reclama de ter recebido — e
+   * `false` não responde nada.
+   *
+   * Nullable e sem default de propósito: os 5 usuários de hoje continuam
+   * recebendo, que é o comportamento de antes desta coluna existir. Ver
+   * `specs/painel-casal/010-resumo-semanal`.
+   */
+  weeklyDigestOptOut: timestamp("weekly_digest_opt_out", {
+    withTimezone: true,
+  }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
