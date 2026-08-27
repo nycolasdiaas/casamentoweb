@@ -40,7 +40,13 @@ async function siteDoDono(siteId: string) {
   return getSiteOwnedByUser(siteId, userId);
 }
 
-export type InviteActionResult = { error: string } | { saved: true } | undefined;
+export type InviteActionResult =
+  | { error: string }
+  | { saved: true; updatedAt: number }
+  /** Outra aba gravou depois. O editor para o autosave e pede recarga — o
+      contrato é last-write-wins COM AVISO, nunca sobrescrever em silêncio. */
+  | { conflito: true; updatedAt: number }
+  | undefined;
 
 export async function criarConviteAction(formData: FormData) {
   const siteId = String(formData.get("siteId") ?? "");
@@ -99,21 +105,44 @@ export async function salvarConviteAction(
   inviteId: string,
   orderId: string,
   docBruto: unknown,
-  nome?: string
+  nome?: string,
+  /**
+   * O `updatedAt` que o navegador tinha quando começou a editar, em
+   * milissegundos. Sem ele, a gravação segue como antes (é o caminho do botão
+   * antigo e de qualquer chamada que não acompanha versão).
+   */
+  updatedAtCliente?: number
 ): Promise<InviteActionResult> {
   const site = await siteDoDono(siteId);
   if (!site) return { error: "Não foi possível salvar." };
+
+  /* Guarda de conflito: duas abas abertas no mesmo convite.
+     
+     O contrato é last-write-wins COM AVISO, não merge. Sem isto, a aba que
+     ficou aberta a manhã inteira sobrescreveria em silêncio o que foi salvo na
+     outra — e o casal perderia trabalho sem ver nada acontecer.
+     
+     A margem de 1s existe porque `updatedAt` volta do banco com precisão de
+     microssegundo e o JavaScript arredonda para milissegundo: sem ela, salvar
+     duas vezes seguidas da MESMA aba acusaria conflito consigo mesma. */
+  if (updatedAtCliente !== undefined) {
+    const atual = await getInvite(siteId, inviteId);
+    if (!atual) return { error: "Convite não encontrado." };
+    if (atual.updatedAt.getTime() > updatedAtCliente + 1000) {
+      return { conflito: true, updatedAt: atual.updatedAt.getTime() };
+    }
+  }
 
   // O documento vem do navegador: valida ANTES de gravar, senão o jsonb
   // guarda o que mandarem e o erro só aparece no render de outra pessoa.
   const doc = parseInviteDoc(docBruto);
 
-  const ok = await saveInvite(siteId, inviteId, { doc, name: nome });
-  if (!ok) return { error: "Convite não encontrado." };
+  const gravado = await saveInvite(siteId, inviteId, { doc, name: nome });
+  if (!gravado) return { error: "Convite não encontrado." };
 
   revalidatePath(`/conta/convites/${inviteId}`);
   revalidatePath(`/conta/pedidos/${orderId}/convites`);
-  return { saved: true };
+  return { saved: true, updatedAt: gravado.getTime() };
 }
 
 export async function apagarConviteAction(formData: FormData) {

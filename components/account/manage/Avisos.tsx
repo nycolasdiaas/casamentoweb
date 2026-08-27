@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Icone, type NomeDoIcone } from "@/components/ui/prensa";
 import type { Aviso } from "@/lib/site/avisos";
+import { quando } from "@/lib/site/tempoRelativo";
 
 /**
  * Faixa J1 · o sino do painel.
@@ -49,19 +50,6 @@ const COR: Record<Aviso["tom"], string> = {
   ok: "text-(--c-ok)",
   warn: "text-(--c-warn)",
 };
-
-/** "há 12 min", "há 2 h", "ontem", "12 set". */
-function quando(em: Date, agora: number): string {
-  const min = Math.round((agora - em.getTime()) / 60_000);
-  if (min < 1) return "agora";
-  if (min < 60) return `há ${min} min`;
-  const horas = Math.round(min / 60);
-  if (horas < 24) return `há ${horas} h`;
-  const dias = Math.round(horas / 24);
-  if (dias === 1) return "ontem";
-  if (dias < 7) return `há ${dias} dias`;
-  return em.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
-}
 
 /** Cabeçalho do bloco: Hoje / Ontem / a data. */
 function faixaDoDia(em: Date, agora: number): string {

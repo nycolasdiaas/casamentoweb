@@ -95,7 +95,9 @@ export async function saveInvite(
   siteId: string,
   inviteId: string,
   campos: { name?: string; doc?: InviteDoc }
-): Promise<boolean> {
+  /** O `updatedAt` gravado, ou `null` se o convite não existe. É ele que o
+      editor guarda para a próxima gravação declarar de que versão partiu. */
+): Promise<Date | null> {
   const linhas = await db
     .update(siteInvites)
     .set({
@@ -106,9 +108,9 @@ export async function saveInvite(
     // O `siteId` no WHERE é o que impede um id de convite alheio ser gravado
     // com o site de quem pediu.
     .where(and(eq(siteInvites.siteId, siteId), eq(siteInvites.id, inviteId)))
-    .returning({ id: siteInvites.id });
+    .returning({ updatedAt: siteInvites.updatedAt });
 
-  return linhas.length > 0;
+  return linhas[0]?.updatedAt ?? null;
 }
 
 export async function deleteInvite(

@@ -97,6 +97,7 @@ export default async function EditarConvitePage({
               : null
           }
           noAr={convite.publishedAt !== null}
+          atualizadoEm={convite.updatedAt.getTime()}
           siteNoAr={statusDoSite === "published"}
         />
       </main>

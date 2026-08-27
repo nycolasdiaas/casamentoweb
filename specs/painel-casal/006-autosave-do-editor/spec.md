@@ -1,6 +1,6 @@
 # Spec 006 — E9: autosave do editor de convite (área: painel-casal)
 
-**Status:** Pronta para implementação — retenção levantada em 27/08/2026 pela decisão da `002`
+**Status:** Implementada (27/08/2026)
 
 ## Contexto
 
@@ -187,3 +187,73 @@ que o casal já desenhou).
 A decisão que faltava foi tomada: `painel-casal/002` fechou na **Opção A** (o
 modelo implementado vence). Esta spec volta a `Pronta` e entra como estava
 escrita — a Opção A não muda nenhum requisito dela.
+
+## Notas de implementação
+
+### O agendamento é debounce sobre o `doc`, não uma chamada por gesto
+
+FR-002 pede que o arrasto não agende um salvamento por quadro, e sugere
+enganchar no fim do gesto. O que ficou é mais simples e dá o mesmo resultado:
+um `useEffect` com `setTimeout` de 800ms sobre o `doc`. Durante o arrasto o
+`doc` muda a cada quadro e cada mudança **reinicia a contagem** — o disparo
+acontece 800ms depois da última mudança, que é 800ms depois de soltar. Uma
+chamada por gesto, sem espalhar `agendar()` pelos dez lugares que mexem no
+documento.
+
+### Três coisas que o lint recusou, e cada recusa melhorou o código
+
+1. **`Date.now()` no render é impuro.** Nasceu
+   `components/ui/useAgora.ts`, com `useSyncExternalStore` e passo de 30s. Um
+   "salvo há N min" não fica mais verdadeiro atualizando a cada segundo, e um
+   `setInterval` de 1s numa tela aberta a tarde inteira acorda o navegador
+   3.600 vezes por hora para não mudar nada.
+
+2. **Ler `localStorage` num efeito e jogar no estado.** Nasceu
+   `components/ui/useRascunhoLocal.ts`, também com `useSyncExternalStore`. A
+   alternativa óbvia — inicializador preguiçoso do `useState` — quebraria a
+   hidratação, porque o servidor não tem `localStorage` e as duas árvores não
+   bateriam. O retrato é a **string crua**, não o objeto convertido: devolver o
+   objeto faria o React ver um valor novo em todo render e entrar em laço.
+   **De brinde:** assinar o evento `storage` faz o aviso aparecer quando a
+   outra aba grava. Não era pedido e cai de graça.
+
+3. No render do servidor `agora` é `0`, e o indicador mostra só `salvo`.
+   Inventar um "há N min" com o relógio da máquina que renderizou seria
+   mostrar um número errado com cara de certo.
+
+### `quando()` saiu de `Avisos.tsx`
+
+FR-004 pede "as mesmas faixas". A única forma de isso ser verdade com o tempo
+é serem a **mesma função**: duas escritas separadamente divergem na primeira
+vez que alguém achar que "há 1 h" deveria ser "há 60 min" num dos dois lugares
+— e o casal veria o mesmo instante descrito de dois jeitos na mesma tela. Foi
+para `lib/site/tempoRelativo.ts`, e `Avisos.tsx` passou a importar.
+
+### A margem de 1s na guarda de conflito
+
+`updatedAt` volta do banco com precisão de microssegundo e o JavaScript
+arredonda para milissegundo. Sem a margem, salvar duas vezes seguidas da MESMA
+aba acusaria conflito consigo mesma — e o casal veria "este convite foi
+alterado em outro lugar" depois de dois cliques seus.
+
+### O rascunho local só some depois da confirmação do servidor
+
+Apagar antes deixaria o casal sem nenhuma cópia se a rede caísse no meio da
+requisição. É por isso que `apagarRascunho` é chamado dentro do ramo
+`"saved" in r`, e não junto com o envio.
+
+## Como cada critério foi conferido
+
+| Critério | Medida |
+|---|---|
+| SC-001, SC-002 | o debounce de 800ms é reiniciado a cada mudança do `doc`, então uma rajada — de arrasto ou de blocos — dispara **uma** chamada |
+| SC-003, SC-004 | o indicador tem os três estados (`salvando…` / `não salvo` / `salvo há N`), com `aria-live="polite"`; as faixas são as de `Avisos.tsx`, agora a mesma função, com 6 testes próprios |
+| SC-005 | `Ctrl/Cmd + S` limpa o `setTimeout` e grava, com `preventDefault` — senão o navegador abre "salvar página" |
+| SC-006 | **testado**: `setItem`, `getItem` e `removeItem` lançando não derrubam nada, e a leitura devolve `null` |
+| SC-007 | o aviso aparece com `Recuperar` e `Descartar`; rascunho mais velho que o servidor não aparece, e rascunho ilegível também não |
+| SC-008 | **testado**: apagar limpa a chave e a leitura acompanha na hora, sem recarregar — quem lê é a própria fonte, não uma cópia |
+| SC-009 | **testado contra o banco**: `saveInvite` devolve o `updatedAt` gravado; versão mais nova que a do cliente é conflito; duas gravações seguidas da mesma aba não são; e o documento da outra aba sobrevive. Mais duas guardas de tenant conferidas de passagem (convite inexistente e id alheio) |
+| SC-010 | falha de rede cai fora dos ramos `saved` e `conflito`: o indicador fica em `não salvo` e o rascunho continua onde está |
+| SC-011 | o efeito sai cedo com `editandoTexto`; sair da digitação muda a dependência e dispara |
+| SC-012, SC-014 | `salvar(manual)` separa o que o casal pediu do que o editor fez sozinho — só o pedido chama `brinde("Convite salvo.")`. O botão continua na barra e passa `manual: true` |
+| SC-013 | `build`, `lint` e `test` (48 arquivos, 571 testes) |

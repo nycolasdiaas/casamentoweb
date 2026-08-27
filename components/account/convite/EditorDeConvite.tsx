@@ -5,6 +5,7 @@ import {
   FORMAS,
   ladoValido,
   novoId,
+  parseInviteDoc,
   prenderNaTela,
   type Bloco,
   type FormaId,
@@ -12,6 +13,14 @@ import {
 } from "@/lib/site/inviteDoc";
 import { clipPathDe, NOME_DA_FORMA } from "@/lib/site/inviteShapes";
 import { salvarConviteAction } from "@/app/actions/invite-actions";
+import { useBrinde } from "@/components/ui/prensa";
+import { useAgora } from "@/components/ui/useAgora";
+import {
+  apagarRascunho,
+  guardarRascunho,
+  useRascunhoLocal,
+} from "@/components/ui/useRascunhoLocal";
+import { quando } from "@/lib/site/tempoRelativo";
 import { temSaida } from "@/lib/site/inviteDoc";
 import {
   encaixarAoMover,
@@ -82,6 +91,8 @@ type Props = {
   noAr: boolean;
   /** O SITE do casal já está publicado? Os links do convite dependem disso. */
   siteNoAr: boolean;
+  /** Quando o convite foi gravado pela última vez, em ms. Guarda de conflito. */
+  atualizadoEm: number;
 };
 
 export default function EditorDeConvite({
@@ -96,6 +107,7 @@ export default function EditorDeConvite({
   urlDoConvite,
   noAr,
   siteNoAr,
+  atualizadoEm,
 }: Props) {
   const {
     presente: doc,
@@ -160,6 +172,35 @@ export default function EditorDeConvite({
      existe — sem esta lista, os doze do editor seriam funcionalidade que só
      quem escreveu o código sabe usar. */
   const [atalhosAbertos, setAtalhosAbertos] = useState(false);
+
+  /* ── Autosave ────────────────────────────────────────────────────────────
+
+     O que ele conserta: fechar a aba perdia o trabalho. O botão Salvar
+     existia, mas ninguém aperta botão a cada bloco movido — e o casal mexe no
+     convite durante semanas, em sessões de cinco minutos.
+
+     `versao` é o `updatedAt` de onde esta aba partiu. Vai junto em cada
+     gravação, e é o que deixa o servidor recusar a escrita de uma aba que
+     ficou aberta desde a manhã. */
+  const versao = useRef(atualizadoEm);
+  const debounce = useRef(0);
+  const [salvoEm, setSalvoEm] = useState<number | null>(atualizadoEm);
+  const [conflito, setConflito] = useState(false);
+  /* O rascunho local mais novo que o servidor, esperando decisão do casal.
+     Vem do próprio `localStorage`, não de um estado copiado dele: cópia
+     precisa de um efeito para nascer, e o primeiro render mostraria a tela sem
+     o aviso que ela deveria estar mostrando. */
+  const [rascunhoDescartado, setRascunhoDescartado] = useState(false);
+
+  const brinde = useBrinde();
+  const chaveDoRascunho = `invite:${inviteId}`;
+  const agora = useAgora();
+  const { rascunho: rascunhoGuardado } = useRascunhoLocal(
+    chaveDoRascunho,
+    atualizadoEm,
+    parseInviteDoc
+  );
+  const rascunho = rascunhoDescartado ? null : rascunhoGuardado;
 
   // Deslocamento da tela dentro da moldura, em px. Existe porque com zoom o
   // convite passa do tamanho da janela e é preciso ALCANÇAR o canto de baixo.
@@ -858,15 +899,107 @@ export default function EditorDeConvite({
     }
   }
 
-  function salvar() {
-    iniciarSalvamento(async () => {
-      const r = await salvarConviteAction(siteId, inviteId, orderId, doc, nome);
-      if (r && "saved" in r) {
-        zerar(doc);
-        setSalvo(true);
-      }
-    });
-  }
+  /**
+   * Grava no servidor.
+   *
+   * `manual` separa o que o casal PEDIU do que o editor fez sozinho: só o
+   * pedido ganha brinde. Um brinde a cada 800ms de trabalho é ruído, e o
+   * indicador da barra já conta o mesmo sem interromper.
+   */
+  const salvar = useCallback(
+    (manual = false) => {
+      if (conflito) return;
+      window.clearTimeout(debounce.current);
+
+      iniciarSalvamento(async () => {
+        const r = await salvarConviteAction(
+          siteId,
+          inviteId,
+          orderId,
+          doc,
+          nome,
+          versao.current
+        );
+
+        if (r && "conflito" in r) {
+          /* Outra aba gravou depois desta abrir. Parar aqui é o ponto:
+             sobrescrever devolveria a versão velha por cima da nova, e o casal
+             perderia trabalho sem ver nada acontecer. */
+          setConflito(true);
+          return;
+        }
+
+        if (r && "saved" in r) {
+          versao.current = r.updatedAt;
+          zerar(doc);
+          setSalvo(true);
+          setSalvoEm(r.updatedAt);
+          /* O rascunho local só some depois da CONFIRMAÇÃO do servidor. Apagar
+             antes deixaria o casal sem nenhuma cópia se a rede caísse no meio. */
+          apagarRascunho(chaveDoRascunho);
+          if (manual) brinde("Convite salvo.");
+          return;
+        }
+
+        /* Falha de rede: o indicador NÃO vai para "salvo" e o rascunho local
+           fica onde está. `salvo` continua falso, e a próxima mudança agenda
+           outra tentativa. */
+      });
+    },
+    [
+      brinde,
+      chaveDoRascunho,
+      conflito,
+      doc,
+      inviteId,
+      nome,
+      orderId,
+      siteId,
+      zerar,
+    ]
+  );
+
+  /* O agendamento é debounce sobre o `doc`, e não uma chamada no fim de cada
+     gesto.
+     
+     Durante um arrasto o `doc` muda a cada quadro, e cada mudança reinicia a
+     contagem — então o disparo acontece 800ms depois da ÚLTIMA mudança, que é
+     800ms depois de soltar. Uma chamada por gesto, sem espalhar `agendar()`
+     pelos dez lugares que mexem no documento.
+
+     Enquanto o casal digita dentro de um bloco, não agenda: gravaria meia
+     palavra e faria o indicador piscar a cada letra. Sair da digitação muda
+     `editandoTexto` e o efeito roda de novo, disparando um salvamento. */
+  useEffect(() => {
+    if (salvo || conflito || editandoTexto) return;
+    window.clearTimeout(debounce.current);
+    debounce.current = window.setTimeout(() => salvar(), 800);
+    return () => window.clearTimeout(debounce.current);
+  }, [doc, salvo, conflito, editandoTexto, salvar]);
+
+  /* O rascunho local, gravado a cada mudança.
+     
+     É a rede de segurança de quem fecha a aba nos 800ms de espera — ou de quem
+     perde a conexão. Em `try/catch` porque modo privado e cota cheia lançam, e
+     um editor que quebra por causa do rascunho é pior que um editor sem
+     rascunho. */
+  useEffect(() => {
+    if (salvo) return;
+    guardarRascunho(chaveDoRascunho, doc);
+  }, [doc, salvo, chaveDoRascunho]);
+
+  /** `Ctrl/Cmd + S` — cancela a espera e grava agora. */
+  useEffect(() => {
+    function aoTeclar(e: KeyboardEvent) {
+      if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== "s") return;
+      // Sem isto o navegador abre "salvar página", que não é o que ninguém
+      // quis dizer com Ctrl+S dentro de um editor.
+      e.preventDefault();
+      salvar(true);
+    }
+    window.addEventListener("keydown", aoTeclar);
+    return () => window.removeEventListener("keydown", aoTeclar);
+  }, [salvar]);
 
   // Guarda o elemento de cada bloco para a barra flutuante saber ONDE ele
   // está na janela. Fora do JSX de propósito: o lint do React reprova
@@ -1116,14 +1249,95 @@ export default function EditorDeConvite({
             </button>
           </div>
 
+          {/* O indicador de três estados. É ele que faz o autosave existir
+              para o casal: sem um lugar dizendo "salvo há 2 min", trabalho que
+              se guarda sozinho é indistinguível de trabalho que se perde. */}
+          <p
+            data-estado-do-salvamento
+            aria-live="polite"
+            className="text-center text-[11.5px] text-(--c-ink-2)"
+          >
+            {salvando
+              ? "salvando…"
+              : !salvo
+                ? "não salvo"
+                : salvoEm && agora
+                  ? /* `agora` é 0 no render do servidor, onde não há relógio
+                       que valha. Ali sai só "salvo": inventar um "há N min"
+                       com o relógio da máquina que renderizou seria mostrar
+                       um número errado com cara de certo. */
+                    `salvo ${quando(new Date(salvoEm), agora)}`
+                  : "salvo"}
+          </p>
+
+          {/* O botão continua, e o autosave não o substitui: ele é o que diz
+              ao casal que o trabalho dele está guardado — e é onde a mão vai
+              quando bate a dúvida. */}
           <button
             type="button"
-            onClick={salvar}
+            onClick={() => salvar(true)}
             disabled={salvando || salvo}
             className="btn btn-ink btn-sm min-h-11 w-full"
           >
             {salvando ? "Salvando…" : salvo ? "Tudo salvo" : "Salvar convite"}
           </button>
+
+          {/* Duas abas no mesmo convite. Recarregar é a única saída honesta:
+              o contrato é last-write-wins COM AVISO, e sobrescrever devolveria
+              a versão velha por cima da nova. */}
+          {conflito && (
+            <div className="aviso flex-col items-start gap-2 text-(--c-warn)">
+              <span className="aviso-texto">
+                Este convite foi alterado em outro lugar. Recarregue para não
+                perder o que foi salvo lá.
+              </span>
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="btn btn-quiet btn-sm"
+              >
+                Recarregar
+              </button>
+            </div>
+          )}
+
+          {/* Rascunho local mais novo que o servidor: alguém fechou a aba nos
+              800ms de espera, ou perdeu a conexão. A decisão é do casal —
+              carregar sozinho descartaria em silêncio o que foi salvo de outro
+              aparelho; ignorar sozinho jogaria fora o trabalho do navegador. */}
+          {rascunho && (
+            <div
+              data-aviso-rascunho
+              className="aviso flex-col items-start gap-2 text-(--c-warn)"
+            >
+              <span className="aviso-texto">
+                Vocês têm mudanças que não chegaram a ser salvas.
+              </span>
+              <span className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDoc(rascunho);
+                    setSalvo(false);
+                    setRascunhoDescartado(true);
+                  }}
+                  className="btn btn-ink btn-sm"
+                >
+                  Recuperar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    apagarRascunho(chaveDoRascunho);
+                    setRascunhoDescartado(true);
+                  }}
+                  className="btn btn-quiet btn-sm"
+                >
+                  Descartar
+                </button>
+              </span>
+            </div>
+          )}
         </div>
 
         {/* CAMADAS — a lista de tudo que existe no convite, e a ordem em que
