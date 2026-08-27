@@ -295,7 +295,7 @@ export default function TemplateChrome({
           </div>
           <p className="text-center opacity-70">
             {PACKAGES.find((pkg) => pkg.tier === tier)?.price} · prévia deste
-            pacote no template {styleName}
+            pacote no estilo {styleName}
           </p>
         </div>
         )}

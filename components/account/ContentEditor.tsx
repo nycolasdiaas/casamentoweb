@@ -124,7 +124,7 @@ export default function ContentEditor({
       <div className="flex flex-col gap-1.5">
         <p className="text-sm text-(--c-ink-2) leading-relaxed">
           Editem quando quiserem — a mudança aparece no site na hora. O que
-          ficar em branco simplesmente não aparece, então dá para preencher aos
+          ficar em branco não aparece, então dá para preencher aos
           poucos.
         </p>
       </div>

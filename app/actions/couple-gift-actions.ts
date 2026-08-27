@@ -74,7 +74,7 @@ function parseCota(formData: FormData):
   // escolhe quanto dar, e o BR Code sai sem o campo de valor.
   const priceCents = priceRaw ? parsePriceToCents(priceRaw) : null;
   if (priceRaw && priceCents === null) {
-    return { error: "Preço inválido. Use algo como 180 ou 180,00." };
+    return { error: "Escreva o preço em números, como 180 ou 180,00." };
   }
   if (priceCents !== null && priceCents <= 0) {
     return { error: "O preço precisa ser maior que zero — ou deixem em branco." };

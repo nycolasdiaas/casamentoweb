@@ -74,7 +74,7 @@ export async function requestPhotoUploadAction(input: {
   if ("error" in dono) return dono;
   const { site } = dono;
 
-  if (!isPhotoSlot(input.slot)) return { error: "Lugar de foto inválido." };
+  if (!isPhotoSlot(input.slot)) return { error: "Escolha um dos lugares da página para esta foto." };
   const slot: PhotoSlot = input.slot;
 
   if (!(ALLOWED_IMAGE_TYPES as readonly string[]).includes(input.contentType)) {
@@ -82,7 +82,7 @@ export async function requestPhotoUploadAction(input: {
   }
 
   if (!Number.isFinite(input.sizeBytes) || input.sizeBytes <= 0) {
-    return { error: "Arquivo inválido." };
+    return { error: "Mande uma foto em JPG, PNG ou WebP." };
   }
   if (input.sizeBytes > MAX_PHOTO_BYTES) {
     return { error: "A foto ficou grande demais mesmo depois de comprimida." };
@@ -132,7 +132,7 @@ export async function confirmPhotoUploadAction(input: {
   if ("error" in dono) return dono;
   const { site } = dono;
 
-  if (!isPhotoSlot(input.slot)) return { error: "Lugar de foto inválido." };
+  if (!isPhotoSlot(input.slot)) return { error: "Escolha um dos lugares da página para esta foto." };
   const slot: PhotoSlot = input.slot;
 
   // O caminho tem que estar dentro da pasta deste site. Sem isto, um casal

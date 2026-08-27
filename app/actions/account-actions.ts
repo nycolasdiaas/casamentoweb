@@ -45,7 +45,7 @@ export async function signupAction(formData: FormData) {
   const whatsapp = formData.get("whatsapp")?.toString().trim() ?? "";
 
   if (name.length < 2) return { error: "Conta o nome de vocês pra gente 😊" };
-  if (!EMAIL_PATTERN.test(email)) return { error: "E-mail inválido." };
+  if (!EMAIL_PATTERN.test(email)) return { error: "Confira o e-mail — falta o @ ou o domínio." };
   if (password.length < 8) {
     return { error: "A senha precisa de pelo menos 8 caracteres." };
   }
@@ -136,7 +136,7 @@ function parseOrderForm(formData: FormData) {
     templateStyle !== "" &&
     !TEMPLATE_STYLES.some((style) => style.id === templateStyle)
   ) {
-    return { error: "Estilo de template inválido." as const };
+    return { error: "Escolha um dos estilos da lista." as const };
   }
 
   // A data é validada AQUI para o casal ser avisado, e não descobrir depois

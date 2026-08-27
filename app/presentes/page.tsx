@@ -25,6 +25,10 @@ export default async function GiftsPage() {
         </h1>
         <div className="w-16 border-t border-(--color-gold)" />
         <p className="font-serif text-sm text-(--color-olive) max-w-md leading-relaxed">
+          {/* voz-ok: "render" aqui é o verbo português ("o que render mais
+              risada"), não o termo técnico. É a única homógrafa do produto, e
+              a fuga existe para exatamente este caso — uma exceção escrita,
+              com motivo, ao lado dela. */}
           Nenhuma panela vai precisar viajar até nossa casa: aqui cada
           presente é um Pix disfarçado de carinho. Escolha o seu favorito —
           ou o que render mais risada.

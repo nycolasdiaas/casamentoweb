@@ -28,7 +28,7 @@ depois dela.
 | # | Spec | Status | Depende de | É pré-requisito de |
 |---|---|---|---|---|
 | 1 | [`design-system/001-token-ink-3`](design-system/001-token-ink-3/spec.md) — o oitavo neutro da Fundação A1 | **Implementada** | — | `site-publico/003`, `painel-casal/001`, `painel-admin/001` e `002` |
-| 2 | [`design-system/006-voz-verificavel`](design-system/006-voz-verificavel/spec.md) — as listas de Voz V5 viram teste | **Bloqueada ²** | — | toda spec que escreve texto novo |
+| 2 | [`design-system/006-voz-verificavel`](design-system/006-voz-verificavel/spec.md) — as listas de Voz V5 viram teste | **Implementada** | — | toda spec que escreve texto novo |
 | 3 | [`design-system/002-push-de-rota`](design-system/002-push-de-rota/spec.md) — transição #1, com direção e sem `blur` | **Implementada** | — | `003`, `004`, `005` (vocabulário de movimento) |
 | 4 | [`design-system/003-dialogo`](design-system/003-dialogo/spec.md) — transição #3 | **Implementada** | `002` | `painel-casal/001` |
 | 5 | [`design-system/004-brinde`](design-system/004-brinde/spec.md) — transição #4, a confirmação efêmera | **Implementada** | `002`, `003` | `painel-casal/006`, `008` |
@@ -53,12 +53,13 @@ para a prévia real. Nasceu `/comecar` de passagem — a decisão de destino pel
 sessão virou rota, porque `CtaPacote` é server component e as prévias são
 client de ponta a ponta.
 
-² `006` foi implementada até onde dava e **parou**: o varredor existe
-(`lib/voz/`), roda, e acusou 98 ocorrências das quais cerca de 80 são ruído —
-literal de string não é texto visível (`"use cache"` é diretiva, `"preview_ready"`
-é valor de banco, `"rota"` é português comum). Ligar isso à suíte hoje
-reprovaria o repositório por motivo errado. Está desligado de propósito, com a
-medição escrita no cabeçalho do arquivo. Ver as Perguntas em aberto da spec.
+² A `006` foi **desbloqueada em 27/08/2026**. A conclusão de 25/08 ("um
+literal de string não é texto visível") estava certa sobre o que faltava e
+errada sobre ser impossível: o discriminador não é léxico, é **posicional** —
+import é import, diretiva é diretiva, argumento de `cacheTag` é etiqueta de
+cache, e o compilador distingue cada um. **98 → 18 → 0**, e os 18 eram todos
+reais. Corrigi-los revelou mais quatro, incluindo os três `RSVP` que o
+convidado via nos moldes.
 
 **Por que 001 e 006 vêm antes de tudo:** as duas são baratas, não dependem de
 nada, e as outras 28 as usam. `006` em particular é uma **guarda**: ela
@@ -159,6 +160,7 @@ palavras voltarem.
 | 27/08/2026 | **`site-publico/004` implementada (Opção A)** — `/pacotes/exemplo/:pacote` deixa de engolir qualquer coisa: pacote inválido é 404 e válido é 308 para a prévia real, com a faixa EXEMPLO no topo. Nasceu `/comecar`, a rota que decide o destino pela sessão — `CtaPacote` é server component e as prévias são client de ponta a ponta. 9 testes novos |
 | 27/08/2026 | **`site-publico/007` implementada (Opção B)** — o convidado que abre o QR e fecha sem avisar deixa de ficar sem saber o que aconteceu. A tela diz para onde o dinheiro vai, que a Enlace não consegue ver, e que desistir não deixou nada pendurado no nome dele. Texto aprovado pelo `regras-de-negocio` com três trocas de palavra; doze palavras proibidas viraram teste. 12 testes novos |
 | 27/08/2026 | **`painel-admin/002` implementada (Opção A)** — o dono passa a ter número sobre o próprio negócio: pedidos, receita, sites no ar e conversão, com 14 dias de barras e a divisão por pacote. Receita é o valor dos PACOTES e só — presente é dinheiro do casal, e um teste reprova se ele entrar. O casamento legado foi movido para `/admin/casamento` sem uma linha reescrita, e as contagens do banco foram conferidas depois: 23/31/23/23, intactas. 26 testes novos, 15 contra o banco |
+| 27/08/2026 | **`design-system/006` desbloqueada e implementada** — o bloqueio era técnico e caiu: o discriminador de "texto visível" não é léxico, é posicional, e o compilador já sabia distinguir. **98 achados → 18 → 0**, com os 18 todos reais. Corrigi-los revelou mais quatro escondidos atrás do ruído, incluindo os três `RSVP` que o convidado via nos moldes Editorial e Toscana — a pior violação de voz que o produto tinha no ar. A guarda está na suíte. 5 testes novos |
 
 ---
 

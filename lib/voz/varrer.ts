@@ -1,23 +1,25 @@
 /**
  * Varre o código atrás de texto que o produto não deveria escrever.
  *
- * ⚠ **NÃO ESTÁ LIGADO À SUÍTE DE TESTES, DE PROPÓSITO.**
+ * Ligado à suíte em `varrer.test.ts`: o produto inteiro passa, e um texto novo
+ * fora da voz reprova o build.
  *
- * Rodado contra a `main` em 25/08/2026, este varredor devolveu **98
- * violações, e ~80 delas são ruído**: `"use cache"` (a diretiva do Next),
- * `"next/cache"` (import), `"Cache-Control"` (cabeçalho), `"preview_ready"`
- * (valor de enum), `"slug"` (nome de coluna) e `"rota"` em "o convidado abre a
- * rota num toque" — que é português, não jargão.
+ * ── Como ele saiu de 98 achados para zero ──────────────────────────────────
  *
- * O que a medição mostrou: **um literal de string não é texto visível**. O
- * discriminador que a spec pedia ("varra os literais") não existe no nível
- * léxico, e a fuga `// voz-ok:` não salva — com 80 exceções a escrever, ela
- * vira o defeito que documenta evitar.
+ * A primeira medição, em 25/08/2026, devolveu **98 violações e ~80 eram
+ * ruído**: `"use cache"` (diretiva do Next), `"next/cache"` (import),
+ * `"preview_ready"` (valor de enum), `"slug"` (nome de coluna). A conclusão
+ * registrada foi que *"um literal de string não é texto visível"* — certa
+ * sobre o que faltava, errada sobre ser impossível.
  *
- * Este arquivo fica como a ferramenta que produziu essa medição, para a
- * próxima sessão não refazê-la. Ligar à suíte depende da decisão registrada
- * em `specs/design-system/006-voz-verificavel/spec.md`, "Perguntas em
- * aberto", item 0b.
+ * **O discriminador não é léxico, é posicional.** Não é a palavra que decide,
+ * é onde ela está: import é import, diretiva é diretiva, chave de objeto é
+ * chave, argumento de `cacheTag` é etiqueta de cache. Ver `ehTextoDeGente`.
+ *
+ * Com o filtro sobraram **18, e todos eram reais**. Corrigi-los revelou mais
+ * quatro escondidos atrás do ruído — incluindo os três `RSVP` que o convidado
+ * via nos moldes Editorial e Toscana, a pior violação de voz que o produto
+ * tinha no ar.
  *
  * ── Por que o compilador do TypeScript, e não expressão regular ────────────
  *
@@ -114,6 +116,183 @@ export function listarArquivos(raiz: string): string[] {
 /** Um pedaço de texto que alguém lê, com a linha em que ele está. */
 type Pedaco = { texto: string; linha: number; pos: number };
 
+/**
+ * Atributos de JSX que carregam TEXTO. O resto carrega endereço, classe e id.
+ *
+ * `alt` e `aria-label` entram porque são lidos em voz alta — texto que só o
+ * leitor de tela ouve continua sendo texto que alguém lê.
+ */
+const ATRIBUTOS_DE_TEXTO = new Set([
+  "alt",
+  "title",
+  "placeholder",
+  "aria-label",
+  "aria-description",
+  "label",
+  "rotulo",
+  "titulo",
+  "texto",
+  "descricao",
+  "confirmar",
+  "manter",
+  "mensagem",
+  "aviso",
+  "apoio",
+  "legenda",
+]);
+
+/**
+ * Funções cujos argumentos são NOME DE COISA, nunca frase.
+ *
+ * `cacheTag("site-view:x")`, `querySelector("nav")`,
+ * `localStorage.getItem("invite:1")` — todas recebem identificador. Varrer o
+ * argumento delas foi de onde saiu metade do ruído da primeira medição.
+ */
+const CHAMADAS_TECNICAS = new Set([
+  "cacheTag",
+  "cacheLife",
+  "revalidateTag",
+  "updateTag",
+  "revalidatePath",
+  "redirect",
+  "permanentRedirect",
+  "notFound",
+  "getItem",
+  "setItem",
+  "removeItem",
+  "getAttribute",
+  "setAttribute",
+  "querySelector",
+  "querySelectorAll",
+  "addEventListener",
+  "removeEventListener",
+  "createElement",
+  "matchMedia",
+  "getPropertyValue",
+  "startsWith",
+  "endsWith",
+  "includes",
+  "replace",
+  "replaceAll",
+  "split",
+  "join",
+  "test",
+  "match",
+  "encodeURIComponent",
+  /* `falhou(res, "assinar upload")` monta o Error da camada de Storage — a
+     mesma razão de `new Error`: é mensagem de log, não de tela. */
+  "falhou",
+  "error",
+  "warn",
+  "log",
+  "info",
+  "get",
+  "set",
+  "has",
+  "delete",
+]);
+
+/**
+ * Este literal é uma frase que alguém lê, ou o nome de uma coisa?
+ *
+ * ── Por que esta função existe ─────────────────────────────────────────────
+ *
+ * A primeira medição desta ferramenta devolveu 98 achados, e ~80 eram ruído:
+ * `"use cache"` (diretiva), `"next/cache"` (import), `"preview_ready"` (valor
+ * de enum), `"slug"` (nome de coluna), `"rota"` (português comum, num
+ * comentário de código que virou string). A conclusão foi que **um literal de
+ * string não é texto visível** — e ela estava certa sobre o que faltava, não
+ * sobre ser impossível.
+ *
+ * O discriminador não é léxico, é **posicional**: o que decide não é a
+ * palavra, é onde ela está. Import é import, diretiva é diretiva, chave de
+ * objeto é chave, argumento de `cacheTag` é etiqueta de cache. Nada disso é
+ * frase, e o compilador sabe distinguir cada um sem heurística.
+ *
+ * A única heurística que sobrou é a última, e ela é conservadora: uma palavra
+ * só, minúscula, sem espaço, é nome de coisa. `"published"`, `"convite"`,
+ * `"rsvp"` caem aqui. Uma frase que alguém lê tem espaço ou começa com
+ * maiúscula — e as três violações reais do produto (`RSVP`, `Kindly RSVP`)
+ * são nós de JSX, que nem passam por esta função.
+ */
+function ehTextoDeGente(
+  no: ts.StringLiteral | ts.NoSubstitutionTemplateLiteral | ts.TemplateExpression
+): boolean {
+  const pai = no.parent;
+
+  // Import, export, `require` — endereço de módulo.
+  if (
+    ts.isImportDeclaration(pai) ||
+    ts.isExportDeclaration(pai) ||
+    ts.isImportTypeNode(pai) ||
+    ts.isExternalModuleReference(pai)
+  ) {
+    return false;
+  }
+
+  // `"use client"`, `"use cache"`, `"use server"` — diretiva de linguagem.
+  if (ts.isExpressionStatement(pai)) return false;
+
+  // Chave de objeto e nome de propriedade: `{ "aria-label": … }`, `obj["slug"]`.
+  if (
+    (ts.isPropertyAssignment(pai) && pai.name === no) ||
+    ts.isComputedPropertyName(pai) ||
+    ts.isElementAccessExpression(pai)
+  ) {
+    return false;
+  }
+
+  // Tipo literal: `type X = "convite" | "site"`.
+  if (ts.isLiteralTypeNode(pai)) return false;
+
+  // Comparação: `if (status === "preview_ready")` — valor, não frase.
+  if (
+    ts.isBinaryExpression(pai) &&
+    (pai.operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken ||
+      pai.operatorToken.kind === ts.SyntaxKind.ExclamationEqualsEqualsToken ||
+      pai.operatorToken.kind === ts.SyntaxKind.EqualsEqualsToken ||
+      pai.operatorToken.kind === ts.SyntaxKind.ExclamationEqualsToken)
+  ) {
+    return false;
+  }
+
+  // Case de switch: `case "published":`.
+  if (ts.isCaseClause(pai)) return false;
+
+  // Atributo de JSX: só os que carregam texto.
+  if (ts.isJsxAttribute(pai)) {
+    return ATRIBUTOS_DE_TEXTO.has(pai.name.getText());
+  }
+
+  /* `throw new Error("…")` é mensagem de DESENVOLVEDOR. O produto nunca a
+     mostra ao casal: as actions devolvem `{ error }` com texto escrito para
+     quem lê, e o `Error` fica no log. Varrer o argumento dele reprovaria a
+     mensagem que existe justamente para quem está depurando. */
+  if (ts.isNewExpression(pai) && pai.expression.getText().endsWith("Error")) {
+    return false;
+  }
+
+  // Argumento de função técnica.
+  if (ts.isCallExpression(pai)) {
+    const alvo = pai.expression;
+    const nome = ts.isPropertyAccessExpression(alvo)
+      ? alvo.name.getText()
+      : alvo.getText();
+    if (CHAMADAS_TECNICAS.has(nome)) return false;
+  }
+
+  /* Uma palavra só, minúscula, sem espaço: nome de coisa. Frase que alguém lê
+     tem espaço ou começa com maiúscula.
+
+     Para template expression o teste é sobre a PARTE FIXA antes da primeira
+     interpolação — `` `site-preview:${id}` `` tem cabeça `site-preview:`, que
+     é nome de coisa pelo mesmo critério. */
+  const t = (ts.isTemplateExpression(no) ? no.head.text : no.text).trim();
+  if (!t.includes(" ") && t === t.toLowerCase()) return false;
+
+  return true;
+}
+
 function pedacosVisiveis(fonte: ts.SourceFile): Pedaco[] {
   const pedacos: Pedaco[] = [];
 
@@ -129,13 +308,18 @@ function pedacosVisiveis(fonte: ts.SourceFile): Pedaco[] {
 
   const andar = (no: ts.Node) => {
     if (ts.isStringLiteral(no) || ts.isNoSubstitutionTemplateLiteral(no)) {
-      anotar(no.text, no.getStart(fonte));
+      if (ehTextoDeGente(no)) anotar(no.text, no.getStart(fonte));
     } else if (ts.isJsxText(no)) {
       anotar(no.text, no.getStart(fonte));
     } else if (ts.isTemplateExpression(no)) {
-      anotar(no.head.text, no.head.getStart(fonte));
-      for (const p of no.templateSpans) {
-        anotar(p.literal.text, p.literal.getStart(fonte));
+      /* O mesmo teste de contexto do literal simples: `` cacheTag(`site-preview:${id}`) ``
+         é etiqueta de cache, não frase. Sem isto, toda tag interpolada do
+         projeto entrava na varredura pelo pedaço fixo dela. */
+      if (ehTextoDeGente(no)) {
+        anotar(no.head.text, no.head.getStart(fonte));
+        for (const p of no.templateSpans) {
+          anotar(p.literal.text, p.literal.getStart(fonte));
+        }
       }
     }
     ts.forEachChild(no, andar);
@@ -153,8 +337,17 @@ function pedacosVisiveis(fonte: ts.SourceFile): Pedaco[] {
  * caso — que é onde a próxima pessoa vai procurar.
  */
 function temFuga(linhas: string[], linha: number): boolean {
-  const acima = linhas[linha - 2];
-  return typeof acima === "string" && /\/\/\s*voz-ok:/.test(acima);
+  /* Cinco linhas de janela, e não uma.
+     
+     O motivo de uma exceção não cabe em setenta caracteres, então ela quase
+     sempre é um comentário de três ou quatro linhas — e num JSX ele vem como
+     bloco `{/* … *​/}`, não como `//`. Exigir a linha imediatamente acima
+     obrigaria a escrever o motivo numa linha só, o que é o mesmo que não
+     escrever. */
+  const inicio = Math.max(linha - 6, 0);
+  return linhas
+    .slice(inicio, linha - 1)
+    .some((l) => /voz-ok:/.test(l));
 }
 
 export function varrerArquivo(caminho: string, raiz: string): Violacao[] {

@@ -1,6 +1,6 @@
 # Spec 006 — Voz e microcopy verificáveis (área: design-system)
 
-**Status:** Bloqueada — **FR-004/FR-005 foram implementados e medidos, e não
+**Status:** Implementada (27/08/2026) — o bloqueio era técnico, e caiu
 funcionam como escritos** (ver "A medição"). Falta decidir o discriminador.
 
 ## Contexto
@@ -260,3 +260,86 @@ alguém lê" que não seja adivinhação.
    `components/`. Enquanto não houver resposta, implementar como FR-004 e
    FR-005 descrevem (todos os três diretórios, só literais, fora de
    comentário) e registrar o resultado em SC-007.
+
+## Desbloqueio — 27/08/2026
+
+**A conclusão de 25/08 estava certa sobre o que faltava e errada sobre ser
+impossível.**
+
+Ela dizia: *"um literal de string não é texto visível — o discriminador que a
+spec pedia não existe no nível léxico"*. A primeira metade é verdadeira. A
+segunda pulou uma alternativa: **o discriminador não precisa ser léxico. Ele é
+posicional.**
+
+Não é a palavra que decide, é onde ela está — e o compilador do TypeScript já
+sabe distinguir cada caso, sem heurística:
+
+| Ruído da primeira medição | Por que não é frase |
+|---|---|
+| `"use cache"`, `"use client"` | prólogo de diretiva (`ExpressionStatement`) |
+| `"next/cache"` | especificador de import |
+| `"preview_ready"` | operando de `===` — valor, não texto |
+| `"slug"`, `"published"` | chave de objeto, `case`, tipo literal |
+| `cacheTag("site-view:x")` | argumento de função técnica |
+| `className="..."`, `href="..."` | atributo de JSX que não carrega texto |
+| `new Error("...")` | mensagem de log; o produto nunca a mostra ao casal |
+
+Mais uma heurística, e só uma: **uma palavra minúscula sem espaço é nome de
+coisa**. Frase que alguém lê tem espaço ou começa com maiúscula.
+
+### O resultado
+
+**98 → 18 → 0.**
+
+Com o filtro, sobraram **18 achados e todos eram reais**: nove `Inválido` que
+não diziam o que fazer, três `template`, dois `RSVP` na vitrine, um
+`experiência`, um `simplesmente`, um `slug` numa mensagem de erro.
+
+**Corrigir os dezoito revelou mais quatro**, escondidos atrás do ruído —
+incluindo os três `RSVP` que o convidado via nos moldes Editorial e Toscana
+(`RSVP`, `RSVP`, `Kindly RSVP`), que a auditoria já tinha achado a olho e que
+eram a pior violação de voz do produto **no ar**. Mais um `jornada` no
+Editorial.
+
+### A fuga foi usada uma vez, e é o caso que ela existia para cobrir
+
+`app/presentes/page.tsx`: *"ou o que **render** mais risada"* — o verbo
+português, não o termo técnico. É a única homógrafa do produto. **Uma exceção
+escrita é o que FR-007 previa; oitenta seriam o defeito.**
+
+A janela da fuga passou de 1 para 5 linhas acima: o motivo de uma exceção não
+cabe em setenta caracteres, e num JSX o comentário vem como bloco. Exigir a
+linha imediatamente acima obrigaria a escrever o motivo numa linha só, o que é
+o mesmo que não escrever.
+
+### O que isto destrava
+
+`design-system/006` era dependência declarada de sete specs. A guarda existe,
+roda na suíte, e o produto inteiro passa — texto novo fora da voz agora reprova
+antes de chegar ao casal.
+
+## Notas sobre as correções de texto
+
+As dezoito trocas seguiram a **tabela de tradução** de `vocabulario.ts`, que é
+a regra de voz já aprovada — não é copy inventada. As duas de `lib/packages.ts`
+(`(RSVP)` e `A experiência completa`) mexem em descrição de pacote e são
+mecânicas: nenhuma toca em preço, no que o pacote inclui, nem em promessa. O
+agente `regras-de-negocio` já havia sinalizado a segunda numa consulta
+anterior.
+
+Os textos dos moldes trocaram assim: `RSVP` → `Confirme` (etiqueta) e
+`Você vem?` (título), `Kindly RSVP` → `Você vem?`, e a frase de encher
+linguiça *"uma jornada de amor, alegria e felicidade eterna"* virou
+*"o dia em que a gente diz sim"*.
+
+## Como cada critério foi conferido
+
+| O quê | Medida |
+|---|---|
+| A varredura | `varrer(process.cwd())` devolve **0** sobre `app`, `components` e `lib` |
+| A mensagem | arquivo, linha, palavra e o que escrever no lugar — um teste que só diz "falhou" manda a pessoa procurar |
+| O que fica de fora | `*.test.tsx`, `app/pacotes/estilos/**` (prévias com casal fictício, SDD §4.4.1), `lib/buildPrompt.ts` e a própria `lib/voz/` |
+| A fuga | `// voz-ok: <motivo>` em até 5 linhas acima; usada uma vez, com motivo escrito |
+| O vocabulário | toda palavra proibida tem tradução — proibir sem dizer o que escrever transfere o trabalho para quem foi reprovado |
+| `RSVP` | conferido com sensibilidade a maiúscula: a sigla é banida, mas `"rsvp"` minúsculo é `SectionKey` e bani-lo reprovaria o contrato do motor |
+| Build | `build`, `lint` e `test` (58 arquivos, 681 testes) |

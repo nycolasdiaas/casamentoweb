@@ -116,7 +116,7 @@ export async function Cover({ content, siteId }: SectionProps) {
           className="text-[8.5px] tracking-[0.22em] uppercase px-2.5 py-1.5 shrink-0 lg:text-[9.4px]"
           style={{ border: `1px solid ${fade(40)}` }}
         >
-          RSVP
+          Confirme
         </span>
       </div>
 
@@ -172,7 +172,7 @@ export async function Cover({ content, siteId }: SectionProps) {
           className="mt-5.5 mx-auto max-w-[34ch] text-[10px] tracking-[0.24em] uppercase leading-[2] lg:text-[11px]"
           style={{ color: fade(62) }}
         >
-          Junte-se a nós em uma jornada de amor, alegria e felicidade eterna
+          Junte-se a nós no dia em que a gente diz sim
         </p>
       </div>
     </section>
@@ -420,7 +420,7 @@ export function Rsvp({ slug }: SectionProps) {
       <div className="text-center mb-6">
         <Kicker>Confirme sua presença</Kicker>
         <h2 className="mt-3 font-[family-name:var(--font-display)] text-[40px] font-medium tracking-[0.02em] uppercase lg:text-[64px]">
-          RSVP
+          Você vem?
         </h2>
         <p
           className="mt-4 mx-auto max-w-[36ch] text-[14px] leading-[1.7] lg:text-[16.8px]"

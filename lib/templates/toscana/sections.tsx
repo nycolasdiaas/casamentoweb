@@ -367,7 +367,7 @@ export function Rsvp({ slug }: SectionProps) {
           Confirme com carinho
         </div>
         <h2 className="mt-2.5 font-[family-name:var(--font-display)] text-[38px] font-medium tracking-[0.02em] uppercase lg:text-[60.8px]">
-          Kindly RSVP
+          Você vem?
         </h2>
         <p className="mt-4 text-[15px] leading-[1.7] lg:text-[18px]" style={{ color: papel(82) }}>
           Sua presença é o brinde mais esperado da festa.

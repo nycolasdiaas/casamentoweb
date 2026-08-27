@@ -39,7 +39,7 @@ const FEATURES = [
     text: "Local da cerimônia e da festa com um toque para abrir no Google Maps ou Waze.",
   },
   {
-    title: "RSVP por família",
+    title: "Confirmação por família",
     text: "Cada família recebe um link exclusivo e confirma todo mundo de uma vez.",
   },
   {
@@ -83,7 +83,7 @@ const FAQ: [string, string][] = [
     "Não demora: o site é criado no mesmo instante em que vocês terminam o questionário, e a prévia já abre na tela. O que falta depois disso é só o pagamento, para o endereço entrar no ar.",
   ],
   [
-    "É template pronto ou é personalizado de verdade?",
+    "É modelo pronto ou é personalizado de verdade?",
     "Os estilos são o ponto de partida. Cores, fontes, fotos, textos e a ordem das seções vocês ajustam no painel, e a prévia mostra o resultado na hora. Dois casais no mesmo estilo não saem parecidos.",
   ],
   [
