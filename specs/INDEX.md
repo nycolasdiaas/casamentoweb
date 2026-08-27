@@ -35,6 +35,12 @@ depois dela.
 | 6 | [`design-system/005-publicar-no-ar`](design-system/005-publicar-no-ar/spec.md) — transição #6 e o sinal `?publicado=1` | **Implementada** | `002` | `painel-casal/008` |
 | 7 | [`design-system/007-casca-de-email`](design-system/007-casca-de-email/spec.md) — tabela de 600px, preheader, botão de tinta | **Implementada** | `006` | `site-publico/006`, `painel-casal/011` |
 
+⁹ A `007` fechou na **Opção B** em 27/08/2026: o H5 do artboard continua
+recusado (ele afirma que o pagamento "não foi confirmado", e a Enlace não
+observa o Pix), mas a necessidade dele era real e ganhou uma tela que só diz o
+que é verdade. O texto foi aprovado pelo agente `regras-de-negocio`, com três
+trocas de palavra, e a lista de palavras proibidas virou teste.
+
 ⁸ A `004` fechou na **Opção A** em 27/08/2026: a rota vira atalho permanente
 para a prévia real. Nasceu `/comecar` de passagem — a decisão de destino pela
 sessão virou rota, porque `CtaPacote` é server component e as prévias são
@@ -64,7 +70,7 @@ que escreve texto novo tem como saber se errou.
 | 11 | [`site-publico/004-exemplo-por-pacote`](site-publico/004-exemplo-por-pacote/spec.md) — B3 | **Implementada ⁸** | `site-publico/001`, `003` | Decisão: redirecionar com o pacote, ou assumir a divergência |
 | 12 | [`site-publico/002-largura-do-site`](site-publico/002-largura-do-site/spec.md) — F1 em 1440 | **Bloqueada** | `site-publico/001` | **Medida em 25/08.** Nada quebra a 1440, mas trocar o número não entrega o desenho: o eixo real é cartão-com-letterbox × largura cheia. Decisão do dono |
 | 13 | [`site-publico/006-emails-para-o-convidado`](site-publico/006-emails-para-o-convidado/spec.md) — modelos 05 e 06 | **Bloqueada** | `design-system/007` | O produto não guarda e-mail de convidado, e coletá-lo é decisão do dono |
-| 14 | [`site-publico/007-h5-pix-nao-confirmado`](site-publico/007-h5-pix-nao-confirmado/spec.md) — H5 | **CONFLITO** | — | Registro. O Pix vai direto para o casal; a Enlace não observa a falha |
+| 14 | [`site-publico/007-h5-pix-nao-confirmado`](site-publico/007-h5-pix-nao-confirmado/spec.md) — H5 | **Implementada ⁹** | — | Registro. O Pix vai direto para o casal; a Enlace não observa a falha |
 
 ---
 
@@ -144,6 +150,7 @@ palavras voltarem.
 | 27/08/2026 | **`painel-casal/012` implementada (Opção A)** — o piso de espera não volta, e agora um teste reprova se os números voltarem ao arquivo. O que o produto devia ao handoff era um ponto só: **a falha do provisionamento passa a acontecer onde a pessoa está olhando** — barra em vermelho onde parou, esqueleto parado, pétalas fora, e um `Tentar de novo` que REENVIA. Antes, a tela sumia e o casal descobria o erro na tela seguinte. 14 testes novos |
 | 27/08/2026 | **`painel-casal/007` implementada (Opção A)** — o painel de Modelos do editor de convite. Trocar de modelo troca cor e fonte; a cor que o casal escolheu à mão atravessa intacta, que é o que separa re-tematizar de sobrescrever. Correção registrada: **FR-001 partiu de premissa errada** — não existe "trilha de ferramentas", o painel é uma pilha de seções. As paletas são extraídas no servidor: importar o registry num client component reprova o build por causa do `use cache`. 20 testes novos |
 | 27/08/2026 | **`site-publico/004` implementada (Opção A)** — `/pacotes/exemplo/:pacote` deixa de engolir qualquer coisa: pacote inválido é 404 e válido é 308 para a prévia real, com a faixa EXEMPLO no topo. Nasceu `/comecar`, a rota que decide o destino pela sessão — `CtaPacote` é server component e as prévias são client de ponta a ponta. 9 testes novos |
+| 27/08/2026 | **`site-publico/007` implementada (Opção B)** — o convidado que abre o QR e fecha sem avisar deixa de ficar sem saber o que aconteceu. A tela diz para onde o dinheiro vai, que a Enlace não consegue ver, e que desistir não deixou nada pendurado no nome dele. Texto aprovado pelo `regras-de-negocio` com três trocas de palavra; doze palavras proibidas viraram teste. 12 testes novos |
 
 ---
 

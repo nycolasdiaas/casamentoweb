@@ -1,6 +1,6 @@
 # Spec 007 — H5: "O Pix não foi confirmado" (área: site-publico)
 
-**Status:** Bloqueada — **[CONFLITO COM DECISÃO EXISTENTE — REQUER APROVAÇÃO]**
+**Status:** Implementada (27/08/2026) — **Opção B**: uma tela honesta, com outro texto. O H5 do artboard continua recusado
 
 ## Contexto
 
@@ -138,3 +138,84 @@ Nenhuma. É uma spec de registro.
    sem afirmar nada que a Enlace não saiba. Mas ela **escreve texto novo sobre
    dinheiro para um terceiro**, e isso é decisão do dono
    (`regras-de-negocio.md` §8, itens 2 e 3).
+
+## Decisão registrada — 27/08/2026
+
+**Opção B: uma tela honesta, com outro texto.**
+
+O H5 do artboard continua recusado, e a razão não mudou: ele afirma que o
+pagamento "não foi confirmado", e a Enlace **não observa o Pix**. Não existe
+falha detectável — existe um convidado que fechou a tela e ficou sem saber o
+que aconteceu.
+
+A Opção A (não fazer nada) deixaria esse convidado escrevendo para o casal na
+semana do casamento, que é exatamente o trabalho que o produto existe para
+tirar de cena.
+
+## O texto passou pelo `regras-de-negocio`
+
+**Veredito: PODE, COM AJUSTE.** Três trocas de palavra contra o rascunho da
+spec, e cada uma tem motivo:
+
+| Rascunho | Aprovado | Por quê |
+|---|---|---|
+| `Já paguei, confirmar` | **`Já fiz o Pix`** | é exatamente o rótulo que o convidado acabou de ver no modal. Rótulo diferente para a mesma ação faz ele achar que é um segundo passo — ou uma segunda cobrança |
+| `Escolher outro presente` | **`Ver outros presentes`** | "escolher" é obrigação; "ver" é saída. Ele acabou de desistir de um |
+| `a cota continua livre` | **`nada ficou reservado no seu nome e o presente continua na lista`** | a galeria do convidado nunca mostra disponibilidade nem usa a palavra "cota". "Cota livre" ensinaria que presentes se esgotam — promessa de disponibilidade que a tela não sustenta |
+
+**Confirmado que nada reserva:** abrir o QR não escreve linha nenhuma
+(`buildBrCode` é puro e roda no cliente). A única escrita é o `insert` que o
+clique dispara. A frase é verdade.
+
+**Emoji: não.** Voz V5 libera emoji só em e-mail para convidado e em texto que
+o casal escreve. Esta é tela de site — e numa tela sobre dinheiro ele lê como
+alívio forçado.
+
+**A lista de palavras proibidas cresceu**, e virou teste: além de
+`confirmado`, `processando`, `pendente` e `verificar`, ficaram de fora
+`cobrado`, `estorno`, `reembolso`, `comprovante`, `expirou`,
+`gerar novo código`, `não identificamos`, `erro no pagamento` e qualquer
+`nossa equipe` — dúvida de presente vai para o casal, não para a Enlace.
+
+**Sugestão do agente para `docs/regras-de-negocio.md` §2.4** (não aplicada — é
+edição de documento do dono): *"nenhuma tela pode afirmar ao convidado que um
+Pix de presente caiu, falhou ou foi cobrado, nem prometer estorno; dúvida de
+presente vai para o casal"*.
+
+## Notas de implementação
+
+**A tela mora dentro do `GiftPixModal`**, como um estado de saída — não como
+rota nova. É onde o gesto acontece, e é o único lugar que sabe se o convidado
+chegou a ver o QR.
+
+**Três saídas, e é de propósito.** O agente foi explícito: uma tela com dois
+botões que exigem ato vira a cobrança que ela existe para evitar.
+
+- o **×** fecha direto, sem gravar nada — sempre existe um caminho de um
+  clique para fora;
+- **Escape** e o clique fora passam pela tela honesta, que é onde ela alcança
+  quem fecha por reflexo depois de ver o QR;
+- **`Ver outros presentes`** fecha e não grava nada.
+
+**Ela só aparece para quem viu o QR.** Sem chave Pix configurada não houve QR e
+o convidado não tem o que avisar; já tendo confirmado, a tela não tem o que
+dizer.
+
+**`Já fiz o Pix` chama a MESMA ação**, com o mesmo nome opcional. Um segundo
+caminho de registro seria um segundo lugar para manter — no único lugar do
+produto onde o assunto é dinheiro de terceiro.
+
+## Como cada critério foi conferido
+
+Doze testes em `components/gifts/GiftPixModal.test.tsx`, sobre o texto e sobre
+as saídas:
+
+| O quê | Medida |
+|---|---|
+| O texto | as quatro frases aprovadas estão na tela, palavra por palavra |
+| O que não se pode dizer | doze palavras proibidas, nenhuma presente; nenhuma promessa de prazo; nenhum emoji; nenhuma menção a "cota" |
+| Quem responde dúvida | `Fale com os noivos — a conta é deles`; nenhum `nossa equipe`, `suporte` ou `fale conosco` |
+| As três saídas | `×` → `fecharDeVez`; `Escape` e o scrim → `tentarSair`; `Ver outros presentes` → fecha sem gravar |
+| A guarda | `if (done || !pix || !brCode || saindo)` — só quem viu o QR e ainda não avisou |
+| A ação | `registerContributionAction`, a mesma do modal |
+| Build | `build`, `lint` e `test` (55 arquivos, 650 testes) |
