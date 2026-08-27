@@ -1,6 +1,6 @@
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and, inArray, sql, type SQL, type AnyColumn } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { orders } from "@/lib/db/schema";
+import { orders, users } from "@/lib/db/schema";
 import type { PackageTier } from "@/lib/packages";
 import type { OrderStatus } from "@/lib/orderStatus";
 
@@ -77,11 +77,74 @@ export async function getOrderById(orderId: string) {
 }
 
 /** Para o admin acompanhar os pedidos que chegam. */
-export async function listOrdersWithUsers() {
-  return db.query.orders.findMany({
-    with: { user: true },
-    orderBy: [desc(orders.updatedAt)],
-  });
+/**
+ * Achata acento em SQL, sem depender de extensão.
+ *
+ * `unaccent()` resolveria em uma chamada, mas é extensão do Postgres e pode
+ * não estar instalada — descobrir isso em produção, na tela que o dono usa
+ * para socorrer um casal, é o pior lugar possível. `translate` é função de
+ * base e funciona em qualquer instalação.
+ *
+ * Por que achatar: o operador digita "ana" com o casal cadastrado como "Aná",
+ * ou o contrário. Busca que erra por causa de um til é busca que não serve.
+ */
+function semAcento(expr: SQL | AnyColumn) {
+  return sql`translate(lower(${expr}),
+    'áàâãäéèêëíìîïóòôõöúùûüçñ',
+    'aaaaaeeeeiiiiooooouuuucn')`;
+}
+
+export type FiltroDePedidos = {
+  /** Estados a incluir. Ausente = todos. */
+  estados?: readonly OrderStatus[];
+  /** Texto livre: nome do casal, e-mail ou início do id. */
+  busca?: string;
+};
+
+/**
+ * Os pedidos para o `/admin/pedidos`, já filtrados NO BANCO.
+ *
+ * Filtrar em memória funciona com os 312 pedidos de hoje e deixa de funcionar
+ * bem antes de virar problema visível — e `/admin` é a tela de socorro, onde
+ * lentidão custa o atendimento de um casal esperando.
+ */
+export async function listOrdersWithUsers(filtro: FiltroDePedidos = {}) {
+  const termo = filtro.busca?.trim().replace(/^#/, "") ?? "";
+
+  const condicoes: SQL[] = [];
+
+  if (filtro.estados && filtro.estados.length > 0) {
+    condicoes.push(inArray(orders.status, [...filtro.estados]));
+  }
+
+  if (termo) {
+    const achatado = termo
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "");
+    const como = `%${achatado}%`;
+
+    condicoes.push(
+      sql`(
+        ${semAcento(orders.coupleNames)} like ${como}
+        or ${semAcento(users.email)} like ${como}
+        or ${orders.id}::text like ${`${achatado}%`}
+      )`
+    );
+  }
+
+  /* `innerJoin` e não `query.findMany({ with })`: a busca precisa alcançar
+     `users.email`, e o `with` do relacional não deixa filtrar pela tabela
+     ligada. O formato de saída é remontado igual ao de antes para OrderCard
+     e a página não notarem a troca. */
+  const linhas = await db
+    .select({ pedido: orders, usuario: users })
+    .from(orders)
+    .innerJoin(users, eq(orders.userId, users.id))
+    .where(condicoes.length ? and(...condicoes) : undefined)
+    .orderBy(desc(orders.updatedAt));
+
+  return linhas.map((l) => ({ ...l.pedido, user: l.usuario }));
 }
 
 /** Admin move o pedido pela esteira de produção. */

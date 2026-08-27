@@ -1,6 +1,6 @@
 # Spec 001 — G4: `/admin/pedidos` como tabela com filtros e busca (área: painel-admin)
 
-**Status:** Pronta para implementação
+**Status:** Implementada (26/08/2026)
 
 ## Contexto
 
@@ -202,3 +202,63 @@ busca e o filtro entram como argumentos dela.
    linhas de código morto que descrevem um fluxo abandonado. **A recomendação
    é manter o arquivo e tirar da tela** (que é o que FR-010 faz), com um
    comentário no topo apontando para §7.1. Apagar é decisão do dono.
+
+## Notas de implementação
+
+- **Acento em SQL, sem depender de extensão.** `unaccent()` resolveria FR-004
+  em uma chamada, mas é extensão do Postgres e pode não estar instalada —
+  descobrir isso em produção, na tela que o dono usa para socorrer um casal, é
+  o pior lugar possível. A busca usa `translate(lower(…), 'áàâã…', 'aaaa…')`,
+  que é função de base e funciona em qualquer instalação. Provado contra o
+  banco de teste nos dois sentidos: buscar `ana` acha `Aná`, e buscar `zé`
+  acha `Zé`.
+
+- **`listOrdersWithUsers` trocou o `query.findMany({ with })` por `innerJoin`.**
+  A busca precisa alcançar `users.email`, e o `with` do relacional não deixa
+  filtrar pela tabela ligada. O formato de saída foi remontado igual ao de
+  antes, para o `OrderCard` e o resto não notarem a troca.
+
+- **O detalhe aparece duas vezes no DOM.** A tabela e a pilha de celular leem
+  o mesmo estado, então o `OrderCard` do pedido aberto é montado nas duas — só
+  uma está visível em qualquer largura. É o preço de as duas formas contarem a
+  mesma história (a alternativa, dois estados separados, faria abrir no
+  celular deixar a tabela escondida desatualizada). Um pedido aberto por vez.
+
+- **`lib/buildPrompt.ts` continua no repositório**, como a spec recomenda. O
+  que saiu foi o `<details>` com o `SITE_BUILD_PROMPT` inteiro num `<pre>` —
+  resíduo do fluxo que o SDD §3 rejeitou e a §7 automatizou, ensinando o
+  operador a montar site à mão. `buildFullPrompt` segue alimentando o
+  `OrderCard`. Apagar o arquivo é decisão do dono, e §7.1 dá a ele um destino
+  (a Fase 6, opcional).
+
+- **SC-009 e SC-001 são `grep` que acusam a própria explicação** — a página
+  cita `Cancelados` e `deleteOrder` para dizer por que a quarta pílula não
+  existe. **Quinta vez** que este padrão aparece nas specs (as outras:
+  `design-system/006`, `site-publico/003`, `site-publico/005`,
+  `painel-casal/001`). Vale como achado da auditoria, não como defeito de cada
+  spec: **critério escrito como `grep` cru não distingue o uso da citação**.
+
+- **O que ficou sem medição em navegador.** `/admin` exige sessão de
+  administrador, e criar uma no banco de produção só para medir não se
+  justifica. SC-006, SC-007, SC-008 e SC-011 foram provados por teste de
+  componente sobre a marcação real; SC-002 a SC-005 estão provados **contra o
+  banco**, que é onde eles de fato acontecem.
+
+## Como cada critério foi conferido
+
+| Critério | Medida |
+|---|---|
+| SC-001 | três pílulas (`todos`, `no-ar`, `previa`) e nenhuma `Cancelados`; o número de `Todos` vem de uma consulta sem filtro, não da lista da tela |
+| SC-002 | **contra o banco**: `estados: ["published"]` traz só o publicado |
+| SC-003 | **contra o banco**: `["preview_ready", "paid"]` traz os dois e nenhum publicado |
+| SC-004 | **contra o banco**: `ana` acha `Aná e Pedro`; `ana.silva` acha pelo e-mail em maiúscula; `zé` e `ze` acham o mesmo pedido |
+| SC-005 | **contra o banco**: `#<8 chars>` e `<8 chars>` devolvem o mesmo pedido |
+| SC-006 | 7 colunas: `Pedido`, `Casal`, `E-mail`, `Pacote`, `Valor`, `Status` e a de ação sem rótulo |
+| SC-007 | `R$ 99,90` com `.etiqueta-noar` sólida; prévia não usa a sólida |
+| SC-008 | `Editar` monta o detalhe dentro da própria tabela, `location.pathname` intacto, `aria-expanded` acompanha, e abrir um fecha o outro |
+| SC-009 | sem `SITE_BUILD_PROMPT`, sem `<pre` e sem o texto do `<details>` |
+| SC-010 | `?estado=` desconhecido cai em `FILTROS[0]`; nenhum `notFound()` |
+| SC-010b | os três vazios nomeiam o filtro, com o link `Ver todos os pedidos` |
+| SC-011 | tabela `hidden lg:block`, pilha `lg:hidden`, com a mesma informação e o mesmo botão |
+| SC-012 | `next build` passa e `/admin/pedidos` sai como `◐`; `searchParams` desce sem `await` para dentro de `<Suspense>` |
+| SC-013 | `lint` e `test` (42 arquivos, 491 testes) |

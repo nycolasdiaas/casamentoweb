@@ -95,7 +95,7 @@ que é justamente a que cai na proibição de §13.1.
 
 | # | Spec | Status | Depende de | Nota |
 |---|---|---|---|---|
-| 27 | [`painel-admin/001-pedidos-como-tabela`](painel-admin/001-pedidos-como-tabela/spec.md) — G4 com filtros e busca | **Pronta ¹** | `design-system/001` | Tira da tela o prompt de LLM do fluxo antigo |
+| 27 | [`painel-admin/001-pedidos-como-tabela`](painel-admin/001-pedidos-como-tabela/spec.md) — G4 com filtros e busca | **Implementada** | `design-system/001` | Tira da tela o prompt de LLM do fluxo antigo |
 | 28 | [`painel-admin/003-presentes-entre-casais`](painel-admin/003-presentes-entre-casais/spec.md) — G5 | **Pronta** + **CONFLITO** parcial | `design-system/001` | O cartão "A repassar" contradiz regras §2.4 e fica fora |
 | 29 | [`painel-admin/002-dashboard-da-operacao`](painel-admin/002-dashboard-da-operacao/spec.md) — G3, e o destino do casamento legado | **Bloqueada** | `design-system/001` | Mexer no endereço da tela que o dono usa exige janela segura (§13.1) |
 | 30 | [`painel-admin/004-grupos-e-permissoes`](painel-admin/004-grupos-e-permissoes/spec.md) — G2 | **Bloqueada** | `002` | A pergunta é anterior ao código: existe mais de um operador? |
@@ -117,6 +117,27 @@ que é justamente a que cai na proibição de §13.1.
 | 26/08/2026 | **`site-publico/005` implementada** — a galeria dos seis estilos, com cor e fonte de cada cartão saindo do `defaultTheme` do molde (trocar o preset muda o cartão sozinho). Corrige o `← Pacotes` do `TemplateChrome`, que apontava para `/` e mentia sobre o destino. Correção registrada: **FR-012 partiu de premissa errada** — o link "Ver todos os estilos" não existe na home, que já mostra os seis; a porta nova foi rotulada pelo que a galeria acrescenta. Fica anotado que a faixa da home ainda pinta por `swatches` escritos à mão — segunda verdade, candidata a spec própria. 14 testes novos. **Onda 2 fechada.** |
 | 26/08/2026 | **`painel-casal/001` implementada** — a aba Convites deixa de ser grade de miniaturas e vira lista de trabalho, com publicar/despublicar/apagar fora do editor (antes, saber o estado de cinco convites custava abrir cinco). Nasceu `contagemDeConvidados`: uma consulta em vez das cinco de `metricasDoSite`. SC-002 provado contra o banco de teste — mexer em `guests.rsvp_status` não muda o número, que sai de `groups.seats_confirmed`. A coluna CONVIDADOS segue fora: não há chave ligando convite a grupo. 22 testes novos |
 | 26/08/2026 | **`painel-casal/011` implementada** — os e-mails 03 (recibo) e 04 ("seu site está no ar") passam a sair de `publishSiteForOrder`, dentro de `after()` e só quando aquela chamada publicou. Antes: o casal pagava, o site entrava no ar e ninguém avisava. **Lacuna nova achada:** `orders` não guarda `paid_at` — o recibo usa `updated_at` lido antes da transação, e o recibo só sai com pagamento confirmado. Coluna `paid_at` nullable é migração aditiva pendente do dono. Dois defeitos corrigidos de passagem: o nome do casal ia cru para dentro do HTML, e `toPlainText` não decodificava entidade. 16 testes novos. **Onda 3 fechada.** |
+| 26/08/2026 | **`painel-admin/001` implementada** — `/admin/pedidos` vira tabela com filtro e busca no banco, e o `<details>` com o prompt de LLM sai da tela (ensinava o operador a montar site à mão, contra o SDD §3 e §7). Acento é achatado por `translate` e não por `unaccent`, para não depender de extensão do Postgres. 26 testes novos, 12 contra o banco. **Onda 4 fechada — e com ela as quatro ondas.** |
+
+---
+
+## Um achado transversal da execução
+
+**Critério escrito como `grep` cru não distingue o uso da citação.** Aconteceu
+cinco vezes, em cinco specs de três áreas diferentes:
+
+| Spec | O critério proibia | O que o arquivo dizia |
+|---|---|---|
+| `design-system/006` | palavra de fora do vocabulário | `"use cache"` é diretiva, `"preview_ready"` é valor de banco |
+| `site-publico/003` | `orçamento`, `redirect(` | a página diz "**não tem** orçamento" e o comentário conta que ela "**era** um redirect" |
+| `site-publico/005` | `Usar este estilo`, `← Pacotes` | o arquivo cita os dois para explicar por que não os usa |
+| `painel-casal/001` | `listGroupsWithGuests` | a página cita a função para dizer por que **não** a chama |
+| `painel-admin/001` | `Cancelados` | a página cita a pílula para explicar por que ela não existe |
+
+Nas quatro últimas o teste tira os comentários antes de conferir e a spec
+passa. Na `006` isso não bastou — lá o ruído está em literal de código, não em
+comentário, e é por isso que ela segue Bloqueada. **Para specs futuras: um
+critério de ausência precisa dizer sobre QUE parte do arquivo ele fala.**
 
 ---
 
