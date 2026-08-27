@@ -1,6 +1,6 @@
 # Spec 004 — B3: `/pacotes/exemplo/:pacote` (área: site-publico)
 
-**Status:** Bloqueada (ver Perguntas em aberto)
+**Status:** Implementada (27/08/2026) — **Opção A**: a rota vira atalho permanente para a prévia real
 
 ## Contexto
 
@@ -135,3 +135,61 @@ Nenhum.
 2. **Se for a opção A, o estilo padrão é o Editorial?** A vitrine marca o
    Editorial como "A CASA" (`app/page.tsx`, cartão com a etiqueta), o que
    sustenta a escolha. Confirmar.
+
+## Decisão registrada — 27/08/2026
+
+**Opção A: redirecionar com o pacote.** Uma prévia só, sempre atualizada, sem
+segundo lugar para manter. A Opção B deixaria
+`enlace.com.br/pacotes/exemplo/para-sempre` levando à home para sempre — e a
+comparação por pacote, que é o que B3 vende, continuaria sem tela.
+
+A perda que a Opção A tem (o casal cai no Editorial em vez de escolher o estilo
+antes) é pequena e reversível num clique: o seletor de estilo está dentro da
+própria prévia.
+
+## Notas de implementação
+
+### O defeito que a rota tinha, e ninguém tinha nomeado
+
+`redirect("/")` engolia **qualquer coisa**: `/pacotes/exemplo/qualquer-lixo`
+respondia 307 para a home, como se fosse um endereço válido. Agora pacote fora
+da lista é **404**, que é a verdade, e pacote válido é **308** — permanente,
+porque a mudança é definitiva e o buscador precisa saber disso.
+
+### FR-005 não podia ser cumprido como escrito
+
+O requisito manda usar o `CtaPacote`, e a razão dele é boa: quem já tem sessão
+não pode cair na tela de criar conta. Só que `CtaPacote` é **server component**,
+e as seis prévias de `/pacotes/estilos/<id>` são client de ponta a ponta — a
+faixa nasce dentro do `TemplateChrome`, que é cliente. Não há fronteira de
+servidor onde encaixá-lo.
+
+`/conta` não serve de atalho: ela manda quem **não** tem sessão para
+`/conta/entrar`, e um visitante da vitrine que nunca comprou precisa de
+`/conta/criar`. Mandá-lo para o login é o mesmo defeito, espelhado.
+
+**Nasceu `/comecar`**, uma rota que lê a sessão e decide. Um salto a mais,
+correto nos dois casos, e qualquer componente de cliente pode apontar para lá
+com um `<a href>`. Ela vale para o produto inteiro, não só para esta faixa.
+
+### A faixa mora no `TemplateChrome`
+
+Mesmo motivo de tudo que atravessa as seis prévias: um lugar só, e um molde
+novo herda sem saber que existe.
+
+## Como cada critério foi conferido
+
+Medido no `next build` servido, com as prévias abertas no navegador (elas são
+client components — o HTML servido é a casca, e `curl` não vê a faixa):
+
+| Critério | Medida |
+|---|---|
+| SC-001 | `/pacotes/exemplo/inexistente` → **404** |
+| SC-002 | `/pacotes/exemplo/para-sempre` → **308** para `/pacotes/estilos/editorial?pacote=para-sempre` |
+| SC-003 | `?pacote=convite`: a faixa traz `Exemplo · pacote Convite — este site é só uma amostra` |
+| SC-004 | `?pacote=convite&embutido=1`: sem faixa |
+| SC-005 | sem `?pacote=`: sem faixa |
+| SC-006 | `?pacote=convite` não renderiza presentes, mural nem álbum; `?pacote=para-sempre` renderiza os três. (A ocorrência de "lista de presentes" no HTML cru é o payload do Next, não a tela) |
+| SC-007 | `position: sticky`, `z-index: 30` — acima do `z-20` da barra do site |
+| SC-008 | `build`, `lint` e `test` (54 arquivos, 638 testes) |
+| SC-009 | o botão aponta para `/comecar`, que sem sessão devolve **307** para `/conta/criar` — ver a correção acima |

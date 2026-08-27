@@ -49,7 +49,22 @@ export default function TemplateChrome({
    * saem: a etapa já tem os dela, e dois controles para a mesma escolha
    * na mesma tela é convite a divergirem.
    */
-  const embutido = useSearchParams().get("embutido") === "1";
+  const busca = useSearchParams();
+  const embutido = busca.get("embutido") === "1";
+
+  /* A faixa EXEMPLO (artboard B3).
+     
+     Só aparece quando a prévia foi aberta POR PACOTE — é aí que ela deixa de
+     ser "o estilo Editorial" e passa a ser "como fica o pacote Convite". Sem
+     `?pacote=` na URL, o visitante está olhando estilo, e a faixa não teria o
+     que dizer.
+     
+     Dentro do questionário (`embutido=1`) ela some: ali o casal já está
+     comprando, e a faixa roubaria altura de um quadro que já é apertado. */
+  const pacoteNaUrl = busca.get("pacote");
+  const pacoteDaFaixa = embutido
+    ? null
+    : PACKAGES.find((p) => p.tier === pacoteNaUrl) ?? null;
 
   const raiz = useRef<HTMLDivElement>(null);
   const estadoAntes = useRef<ReturnType<typeof Flip.getState> | null>(null);
@@ -137,9 +152,38 @@ export default function TemplateChrome({
   return (
     <div
       ref={raiz}
-      className="min-h-screen w-full flex justify-center"
+      className="min-h-screen w-full flex flex-col items-center"
       style={{ background: outerBg }}
     >
+      {/* A faixa EXEMPLO do artboard B3.
+          
+          `sticky top-0` com `z-30`: fica acima da barra do site (que é `z-20`)
+          e continua visível ao rolar. Uma faixa que some na primeira rolagem
+          deixaria o visitante lendo o site fictício como se fosse um site
+          real — que é exatamente o mal-entendido que ela existe para evitar. */}
+      {pacoteDaFaixa && (
+        <div
+          data-faixa-exemplo
+          className="sticky top-0 z-30 flex w-full flex-wrap items-center justify-between gap-3 px-4 py-2 sm:px-6"
+          style={{ background: "#1a1d21", color: "#ffffff" }}
+        >
+          <span className="text-[12px] uppercase tracking-[0.12em]" style={{ fontFamily: "ui-monospace, monospace" }}>
+            Exemplo · pacote {pacoteDaFaixa.name} — este site é só uma amostra
+          </span>
+          {/* `/comecar` e não `/conta/criar`: quem já tem sessão não pode
+              cair na tela de criar conta — o mesmo defeito que o `CtaPacote`
+              conserta na vitrine. Ele é server component e esta faixa nasce
+              dentro de um componente de cliente, então a decisão virou rota. */}
+          <a
+            href="/comecar"
+            className="shrink-0 rounded-[2px] px-3.5 py-1.5 text-[12px] no-underline"
+            style={{ background: "#ffffff", color: "#1a1d21" }}
+          >
+            Criar o meu igual →
+          </a>
+        </div>
+      )}
+
       {/* 480px no celular — que é o desenho de origem e não muda — e TELA
           CHEIA a partir de 1024px.
           Estas são as páginas de VENDA: quem está decidindo comprar olha no

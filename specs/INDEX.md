@@ -35,6 +35,11 @@ depois dela.
 | 6 | [`design-system/005-publicar-no-ar`](design-system/005-publicar-no-ar/spec.md) — transição #6 e o sinal `?publicado=1` | **Implementada** | `002` | `painel-casal/008` |
 | 7 | [`design-system/007-casca-de-email`](design-system/007-casca-de-email/spec.md) — tabela de 600px, preheader, botão de tinta | **Implementada** | `006` | `site-publico/006`, `painel-casal/011` |
 
+⁸ A `004` fechou na **Opção A** em 27/08/2026: a rota vira atalho permanente
+para a prévia real. Nasceu `/comecar` de passagem — a decisão de destino pela
+sessão virou rota, porque `CtaPacote` é server component e as prévias são
+client de ponta a ponta.
+
 ² `006` foi implementada até onde dava e **parou**: o varredor existe
 (`lib/voz/`), roda, e acusou 98 ocorrências das quais cerca de 80 são ruído —
 literal de string não é texto visível (`"use cache"` é diretiva, `"preview_ready"`
@@ -56,7 +61,7 @@ que escreve texto novo tem como saber se errou.
 | 8 | [`site-publico/001-barra-do-site`](site-publico/001-barra-do-site/spec.md) — a barra fixa de F1 | **Implementada** | `design-system/006` | Corrige de passagem a âncora `#guestbook`, que hoje vaza nome interno |
 | 9 | [`site-publico/003-pagina-de-pacotes`](site-publico/003-pagina-de-pacotes/spec.md) — B2, hoje um `redirect("/")` | **Implementada** | `design-system/001`, `006` | A pergunta em aberto (pré-selecionar pacote) é de produto e fica adiada |
 | 10 | [`site-publico/005-galeria-de-estilos`](site-publico/005-galeria-de-estilos/spec.md) — B4–B9, a porta de entrada das prévias | **Implementada** | `design-system/006` | As seis prévias existentes **não** são tocadas (SDD §4.4.1) |
-| 11 | [`site-publico/004-exemplo-por-pacote`](site-publico/004-exemplo-por-pacote/spec.md) — B3 | **Bloqueada** | `site-publico/001`, `003` | Decisão: redirecionar com o pacote, ou assumir a divergência |
+| 11 | [`site-publico/004-exemplo-por-pacote`](site-publico/004-exemplo-por-pacote/spec.md) — B3 | **Implementada ⁸** | `site-publico/001`, `003` | Decisão: redirecionar com o pacote, ou assumir a divergência |
 | 12 | [`site-publico/002-largura-do-site`](site-publico/002-largura-do-site/spec.md) — F1 em 1440 | **Bloqueada** | `site-publico/001` | **Medida em 25/08.** Nada quebra a 1440, mas trocar o número não entrega o desenho: o eixo real é cartão-com-letterbox × largura cheia. Decisão do dono |
 | 13 | [`site-publico/006-emails-para-o-convidado`](site-publico/006-emails-para-o-convidado/spec.md) — modelos 05 e 06 | **Bloqueada** | `design-system/007` | O produto não guarda e-mail de convidado, e coletá-lo é decisão do dono |
 | 14 | [`site-publico/007-h5-pix-nao-confirmado`](site-publico/007-h5-pix-nao-confirmado/spec.md) — H5 | **CONFLITO** | — | Registro. O Pix vai direto para o casal; a Enlace não observa a falha |
@@ -138,6 +143,7 @@ palavras voltarem.
 | 27/08/2026 | **`painel-casal/008` implementada** — E10, sem o checkout embutido que o dono cancelou. A prévia do painel era boa demais: o casal via o site montado e concluía que já estava no ar. Agora diz três vezes que não — faixa, marca d'água sobre a miniatura e cartão do que muda ao publicar — e comemora uma vez quando publica. O ícone saiu com 16px e não os 17 do artboard: a escala da Prensa é fechada em tipo. 14 testes novos |
 | 27/08/2026 | **`painel-casal/012` implementada (Opção A)** — o piso de espera não volta, e agora um teste reprova se os números voltarem ao arquivo. O que o produto devia ao handoff era um ponto só: **a falha do provisionamento passa a acontecer onde a pessoa está olhando** — barra em vermelho onde parou, esqueleto parado, pétalas fora, e um `Tentar de novo` que REENVIA. Antes, a tela sumia e o casal descobria o erro na tela seguinte. 14 testes novos |
 | 27/08/2026 | **`painel-casal/007` implementada (Opção A)** — o painel de Modelos do editor de convite. Trocar de modelo troca cor e fonte; a cor que o casal escolheu à mão atravessa intacta, que é o que separa re-tematizar de sobrescrever. Correção registrada: **FR-001 partiu de premissa errada** — não existe "trilha de ferramentas", o painel é uma pilha de seções. As paletas são extraídas no servidor: importar o registry num client component reprova o build por causa do `use cache`. 20 testes novos |
+| 27/08/2026 | **`site-publico/004` implementada (Opção A)** — `/pacotes/exemplo/:pacote` deixa de engolir qualquer coisa: pacote inválido é 404 e válido é 308 para a prévia real, com a faixa EXEMPLO no topo. Nasceu `/comecar`, a rota que decide o destino pela sessão — `CtaPacote` é server component e as prévias são client de ponta a ponta. 9 testes novos |
 
 ---
 
