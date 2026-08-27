@@ -22,6 +22,11 @@ import {
 } from "@/components/ui/useRascunhoLocal";
 import { quando } from "@/lib/site/tempoRelativo";
 import { temSaida } from "@/lib/site/inviteDoc";
+import { retematizarConvite } from "@/lib/site/inviteTema";
+import type { ThemePalette } from "@/lib/theme/spec";
+import type { TemplateStyleId } from "@/lib/templates";
+import PainelDeModelos from "./PainelDeModelos";
+import type { ModeloDeConvite } from "@/lib/templates/modelos";
 import {
   encaixarAoMover,
   encaixarLargura,
@@ -93,6 +98,12 @@ type Props = {
   siteNoAr: boolean;
   /** Quando o convite foi gravado pela última vez, em ms. Guarda de conflito. */
   atualizadoEm: number;
+  /** A paleta do tema do SITE — o ponto de partida das cores deste convite. */
+  paletaDoSite: ThemePalette;
+  /** O estilo do site, só para marcar a miniatura em uso no painel Modelos. */
+  estiloDoSite: TemplateStyleId | null;
+  /** Os seis modelos, extraídos no servidor — ver `lib/templates/modelos.ts`. */
+  modelos: ModeloDeConvite[];
 };
 
 export default function EditorDeConvite({
@@ -108,6 +119,9 @@ export default function EditorDeConvite({
   noAr,
   siteNoAr,
   atualizadoEm,
+  paletaDoSite,
+  estiloDoSite,
+  modelos,
 }: Props) {
   const {
     presente: doc,
@@ -518,6 +532,27 @@ export default function EditorDeConvite({
       tamanho: 0.028,
     });
   }
+
+  /* A paleta de onde as cores deste convite vieram. Muda a cada troca de
+     modelo, porque a próxima troca precisa saber comparar contra a ATUAL — não
+     contra a do site, que ficou para trás na primeira troca. */
+  const paletaAtual = useRef<ThemePalette>(paletaDoSite);
+
+  /**
+   * Troca o modelo: cor e fonte, nunca o desenho.
+   *
+   * Uma entrada de desfazer só, como qualquer gesto — `registrar` depois de
+   * `mudar`, o mesmo par que o arrasto usa.
+   */
+  const trocarModelo = useCallback(
+    (nova: ThemePalette) => {
+      const antes = doc;
+      mudar((d) => retematizarConvite(d, paletaAtual.current, nova));
+      registrar(antes);
+      paletaAtual.current = nova;
+    },
+    [doc, mudar, registrar]
+  );
 
   /**
    * Reordena a pilha. `de` e `para` são índices do DOCUMENTO, onde o último
@@ -1350,6 +1385,14 @@ export default function EditorDeConvite({
           selecionado={selecionado}
           aoEscolher={setSelecionado}
           aoMover={moverCamada}
+        />
+
+        {/* MODELOS em primeiro lugar: é a escolha que muda a tela inteira, e
+            quem vai trocar de estilo faz isso antes de posicionar bloco. */}
+        <PainelDeModelos
+          modelos={modelos}
+          atual={estiloDoSite}
+          aoTrocar={trocarModelo}
         />
 
         <div className="surface-raised flex flex-col gap-2 rounded-[3px] p-4">

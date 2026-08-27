@@ -146,6 +146,9 @@ export async function getInviteDoDono(
   /** `preview` = o site ainda não está no ar, e os links do convite dão 404. */
   statusDoSite: string;
   orderId: string | null;
+  /** Tema e estilo do SITE — o ponto de partida das cores do convite. */
+  temaDoSite: unknown;
+  templateId: string | null;
 } | null> {
   const [l] = await db
     .select({
@@ -160,6 +163,8 @@ export async function getInviteDoDono(
       slugDoSite: sites.slug,
       statusDoSite: sites.status,
       orderId: sites.orderId,
+      temaDoSite: sites.theme,
+      templateId: sites.templateId,
     })
     .from(siteInvites)
     .innerJoin(sites, eq(sites.id, siteInvites.siteId))
@@ -179,6 +184,8 @@ export async function getInviteDoDono(
     slug: l.slugDoSite,
     statusDoSite: l.statusDoSite,
     orderId: l.orderId,
+    temaDoSite: l.temaDoSite,
+    templateId: l.templateId,
   };
 }
 

@@ -76,7 +76,7 @@ que escreve texto novo tem como saber se errou.
 | 18 | [`painel-casal/004-snap-e-guias`](painel-casal/004-snap-e-guias/spec.md) — encaixe de 6px e guias magenta | **Implementada** | `002` | |
 | 19 | [`painel-casal/005-atalhos-do-editor`](painel-casal/005-atalhos-do-editor/spec.md) — os atalhos de §7 | **Implementada** | `002`, `004` | Fazer junto com `004`: mesmo arquivo de 1.417 linhas |
 | 20 | [`painel-casal/006-autosave-do-editor`](painel-casal/006-autosave-do-editor/spec.md) — debounce de 800ms + rascunho local | **Implementada** | `002`, `design-system/004` | Hoje fechar a aba perde o trabalho |
-| 21 | [`painel-casal/007-painel-de-modelos`](painel-casal/007-painel-de-modelos/spec.md) — a quinta ferramenta | **Bloqueada** | `002` | Decisão: "trocar de modelo" re-tematiza ou refaz? |
+| 21 | [`painel-casal/007-painel-de-modelos`](painel-casal/007-painel-de-modelos/spec.md) — a quinta ferramenta | **Implementada ⁷** | `002` | Decisão: "trocar de modelo" re-tematiza ou refaz? |
 | 22 | [`painel-casal/008-e10-publicar`](painel-casal/008-e10-publicar/spec.md) — E10 sem o checkout | **Implementada ⁵** | `design-system/004`, `005` | O checkout embutido foi cancelado pelo dono; o resto é implementável |
 | 23 | [`painel-casal/011-emails-do-casal`](painel-casal/011-emails-do-casal/spec.md) — recibo e "seu site está no ar" | **Implementada** | `design-system/006`, `007` | Hoje o casal paga, o site publica, e ninguém avisa |
 | 24 | [`painel-casal/012-tela-de-geracao`](painel-casal/012-tela-de-geracao/spec.md) — transição #8 | **Implementada ⁶** | `design-system/006` | O piso de 2,5s do handoff é espera inventada (regras §2.2) |
@@ -98,6 +98,10 @@ topo de `lib/site/inviteDoc.ts`. Com isso as quatro retidas voltaram a
 | 28 | [`painel-admin/003-presentes-entre-casais`](painel-admin/003-presentes-entre-casais/spec.md) — G5 | **Implementada ⁵** | `design-system/001` | O cartão "A repassar" contradiz regras §2.4 e fica fora |
 | 29 | [`painel-admin/002-dashboard-da-operacao`](painel-admin/002-dashboard-da-operacao/spec.md) — G3, e o destino do casamento legado | **Bloqueada** | `design-system/001` | Mexer no endereço da tela que o dono usa exige janela segura (§13.1) |
 | 30 | [`painel-admin/004-grupos-e-permissoes`](painel-admin/004-grupos-e-permissoes/spec.md) — G2 | **Bloqueada** | `002` | A pergunta é anterior ao código: existe mais de um operador? |
+
+⁷ A `007` fechou na **Opção A** em 27/08/2026: trocar de modelo é cor e fonte,
+nunca o desenho. A evidência estava no próprio protótipo — as seis miniaturas do
+artboard E9 são o mesmo cartão com cores trocadas.
 
 ⁶ A `012` fechou na **Opção A** em 27/08/2026: o piso de 2,5s do handoff não
 volta. Ele já existiu no produto, gerou a crítica "ter que aguardar o site" e
@@ -133,6 +137,7 @@ palavras voltarem.
 | 27/08/2026 | **`painel-admin/003` implementada** — `/admin/presentes` passa a mostrar as contribuições de TODOS os casais, e não só as do casamento legado. A consulta global é a única sem `siteId` no arquivo, e um teste varre `app/`, `lib/` e `components/` para garantir que só o admin a importe. O cartão "A repassar" e a coluna `STATUS` ficaram de fora, como a spec determinava, e viraram guarda: um teste reprova se as palavras voltarem. 10 testes novos |
 | 27/08/2026 | **`painel-casal/008` implementada** — E10, sem o checkout embutido que o dono cancelou. A prévia do painel era boa demais: o casal via o site montado e concluía que já estava no ar. Agora diz três vezes que não — faixa, marca d'água sobre a miniatura e cartão do que muda ao publicar — e comemora uma vez quando publica. O ícone saiu com 16px e não os 17 do artboard: a escala da Prensa é fechada em tipo. 14 testes novos |
 | 27/08/2026 | **`painel-casal/012` implementada (Opção A)** — o piso de espera não volta, e agora um teste reprova se os números voltarem ao arquivo. O que o produto devia ao handoff era um ponto só: **a falha do provisionamento passa a acontecer onde a pessoa está olhando** — barra em vermelho onde parou, esqueleto parado, pétalas fora, e um `Tentar de novo` que REENVIA. Antes, a tela sumia e o casal descobria o erro na tela seguinte. 14 testes novos |
+| 27/08/2026 | **`painel-casal/007` implementada (Opção A)** — o painel de Modelos do editor de convite. Trocar de modelo troca cor e fonte; a cor que o casal escolheu à mão atravessa intacta, que é o que separa re-tematizar de sobrescrever. Correção registrada: **FR-001 partiu de premissa errada** — não existe "trilha de ferramentas", o painel é uma pilha de seções. As paletas são extraídas no servidor: importar o registry num client component reprova o build por causa do `use cache`. 20 testes novos |
 
 ---
 

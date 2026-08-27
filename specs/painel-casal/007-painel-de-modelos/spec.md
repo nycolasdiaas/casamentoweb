@@ -1,6 +1,6 @@
 # Spec 007 — E9: o painel de Modelos do editor de convite (área: painel-casal)
 
-**Status:** Bloqueada (ver Perguntas em aberto)
+**Status:** Implementada (27/08/2026) — **Opção A**: re-tematizar sem trocar o desenho
 
 ## Contexto
 
@@ -151,3 +151,74 @@ modelo veio. Na Opção B (guardar `doc.template`): é chave nova dentro do
    desenha**: as seis miniaturas do artboard E9 são o mesmo cartão com cores e
    fontes trocadas, exatamente como a Opção A produziria. Isso é evidência
    forte a favor de A, mas a decisão continua sendo do dono.
+
+## Decisão registrada — 27/08/2026
+
+**Opção A: trocar de modelo é cor e fonte, nunca o desenho.**
+
+Quem decidiu: **Nycolas**, ao mandar seguir com as specs em conflito. A Opção A
+era a recomendação, e a evidência a favor dela estava no próprio protótipo: as
+seis miniaturas do artboard E9 são **o mesmo cartão com cores trocadas** —
+exatamente o que a Opção A produz. A Opção B pressupõe seis layouts de convite
+desenhados, um por estilo, que não existem: `conviteInicial` tem um layout só.
+
+E a Opção B apagaria posições e blocos que o casal criou, contra o critério 4
+do próprio handoff (*"sem perder o conteúdo textual"*).
+
+**A pergunta 2 caiu junto:** ela só existia se fosse a Opção B.
+
+## Notas de implementação
+
+### FR-001 partiu de uma premissa errada: não existe "trilha de ferramentas"
+
+A spec pede um item **Modelos** "em primeiro lugar na trilha", e SC-001 fala em
+"cinco ferramentas". O painel do editor não é uma trilha de ferramentas — é uma
+pilha de seções (`Camadas`, `Acrescentar`, `Formas`, `Fundo`…). Não há o que
+numerar.
+
+O que foi feito é o que o requisito queria: a seção **Modelos** entra **em
+primeiro lugar na pilha**. É a escolha que muda a tela inteira, e quem vai
+trocar de estilo faz isso antes de posicionar bloco.
+
+### A regra que protege a escolha do casal
+
+`retematizarConvite` só troca a cor que **ainda é a do tema anterior**. Um
+vermelho escolhido à mão não corresponde a nenhum papel do tema antigo, então
+nenhuma troca o alcança. É o que separa "re-tematizar" de "sobrescrever" — e
+sobrescrever seria a ferramenta discutindo com quem já tinha decidido.
+
+A comparação ignora maiúsculas: o `<input type="color">` devolve minúsculas,
+mas os presets e um `doc` gravado por versão antiga podem trazer `#B8985F`. Sem
+isso, a mesma cor em caixa diferente sobreviveria à troca por engano.
+
+### A paleta de referência avança a cada troca
+
+`paletaAtual` é um `useRef` que começa na paleta do site e é atualizado a cada
+troca. A segunda troca precisa comparar contra a paleta **atual**, não contra a
+do site — que ficou para trás na primeira. Sem isso, trocar duas vezes deixaria
+de reconhecer as cores e a segunda troca não mudaria nada.
+
+### As paletas são extraídas no SERVIDOR
+
+Primeira tentativa importou o `registry` dentro do painel, que é client
+component. O build reprovou com *"It is not allowed to define inline `use cache`
+annotated functions in Client Components"*: os seis moldes arrastam as seções,
+e as seções carregam consultas com `"use cache"`. Nasceu
+`lib/templates/modelos.ts`, que roda no servidor e entrega seis objetos de
+quatro cores. A regra de §4.4.1 continua valendo — a cor vem do `defaultTheme`,
+nunca de hex escrito na tela, e um teste reprova qualquer hex no componente.
+
+## Como cada critério foi conferido
+
+| Critério | Medida |
+|---|---|
+| SC-001 | **corrigido**: não há trilha; a seção Modelos entra em primeiro lugar na pilha do painel |
+| SC-002 | uma miniatura por modelo, com o `paper` do preset como fundo (`#f3eddd` no Toscana); zero hex no componente |
+| SC-003 | com o site em `film`, a miniatura do Film tem `aria-current="true"` e borda `--c-mark`; as outras, `--c-rule`. Sem estilo definido, nenhuma marcada |
+| SC-004 | convite semeado troca inteiro: `ink`, `paper`, `accent` e o fundo do documento |
+| SC-005 | bloco em `#123456` atravessa intacto, e o resto troca normalmente. Preenchimento vazio continua vazio |
+| SC-006 | clicar abre o `DialogoDestrutivo` com o texto literal e **não** troca nada; o foco vai para `Manter`; `Trocar modelo` entrega a paleta daquele modelo |
+| SC-007 | `mudar` seguido de `registrar(antes)` — o mesmo par do arrasto, uma entrada de desfazer |
+| SC-008 | `largura`, `altura` e todo `x`/`y`/`w`/`rotacao` idênticos antes e depois; ordem das camadas idêntica; foto atravessa intacta; trocar de volta devolve o convite original |
+| SC-009 | o painel não menciona `templateId` nem nenhuma action de tema; a troca não toca no site |
+| SC-010 | `build`, `lint` e `test` (53 arquivos, 629 testes) |
