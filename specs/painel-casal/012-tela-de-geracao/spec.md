@@ -1,6 +1,6 @@
 # Spec 012 — Transição #8: a tela "gerando o site" (área: painel-casal)
 
-**Status:** Bloqueada — **[CONFLITO COM DECISÃO EXISTENTE — REQUER APROVAÇÃO]**
+**Status:** Implementada (27/08/2026) — **Opção A**: o produto vence o desenho, e o piso de 2,5s não voltou
 
 ## Contexto
 
@@ -160,3 +160,68 @@ Nenhum.
    qualquer das duas opções. **Vale separar numa spec própria** se a decisão
    do conflito demorar — hoje, uma falha de provisionamento leva o casal a uma
    tela que só diz o que houve depois do redirecionamento.
+
+## Decisão registrada — 27/08/2026
+
+**Opção A: o produto vence o desenho.** O piso de 2,5s do handoff §3.1 **não**
+foi adotado.
+
+Quem decidiu: **Nycolas**, ao mandar seguir com as specs em conflito. E a
+decisão já era dele antes: o piso existiu no produto (2,6s), gerou a crítica
+*"ter que aguardar o site"* contra um concorrente que entrega em minutos, e foi
+removido. As regras §2.2 elevaram isso a norma. A Opção B seria reabrir uma
+crítica que ele mesmo fez.
+
+O registro fica no cabeçalho de `CelebrationScreen.tsx`, que já contava essa
+história — e agora um teste reprova se `2500`, `2600` ou qualquer `PISO`
+voltarem ao arquivo.
+
+## Notas de implementação
+
+**Quase tudo já existia.** FR-001 a FR-004 estavam cumpridos antes desta spec:
+sem piso, `RITMO_MS` como ritmo e não espera, os quatro textos sem promessa de
+prazo, a barra de progresso, e a marca respirando. O que o produto devia ao
+§3.1 era **um ponto só** — e é o que esta spec entregou.
+
+### FR-006: a falha agora acontece onde a pessoa está olhando
+
+Antes, um provisionamento que falhava **desmontava** a tela de criação. O casal
+era devolvido ao formulário para descobrir sozinho o que houve — ou, pior,
+chegava em `/conta/pedidos/<id>?provisionamento=erro` e lia sobre o erro uma
+tela depois.
+
+Agora a tela para de contar a história do site nascendo e passa a dizer o que
+houve, sem sair do lugar:
+
+- **a barra vira `--c-danger` ONDE PAROU.** Levá-la a 100% diria que terminou;
+  zerá-la apagaria o que já andou;
+- **o esqueleto para de construir.** Continuar montando um site que não vai
+  nascer é a tela contando uma história que já acabou — e é justamente nesse
+  momento que a pessoa precisa ler;
+- **as pétalas somem.** Comemorar por cima de um erro é a tela rindo de quem
+  está lendo;
+- **o título troca** para `O site não ficou pronto.`, com a linha
+  `Nada do que vocês responderam se perdeu.` — que é a informação que tira o
+  susto;
+- **`Tentar de novo` REENVIA**, e não apenas fecha. `requestSubmit(botão)` e
+  não `form.submit()`: o submitter é quem carrega `intent=submit`, e sem ele a
+  action gravaria rascunho em vez de enviar.
+
+O texto do erro não promete prazo nem diz "tente mais tarde": não há prazo, há
+uma falha — e o que a pessoa pode fazer agora está no botão.
+
+### `SiteSkeleton` ganhou `parado`
+
+Um booleano, com `dependencies: [parado]` no `useGSAP` para a linha do tempo
+ser recriada quando ele muda. Sem a dependência, o `useGSAP` roda uma vez e o
+esqueleto continuaria construindo depois da falha.
+
+## Como cada critério foi conferido
+
+| Critério | Medida |
+|---|---|
+| SC-001, SC-002 | nenhum `2500`, `2600`, `PISO`, `duracaoMinima` ou `tempoMinimo` no arquivo; a tela vive de `ativo`, do clique à resposta; a barra para em 92% e os 8% finais não são agendados por temporizador |
+| SC-003 | as quatro etapas descrevem o que está sendo feito; nenhuma promessa de prazo na tela, nem no estado de erro |
+| SC-004, SC-005 | com `erro`: barra em `var(--c-danger)`, esqueleto com `parado`, zero pétalas, `role="alert"` com a mensagem e o botão que reenvia. Sem `erro`, nada disso aparece e a barra volta à tinta do molde |
+| SC-006 | movimento reduzido já era tratado em `.motion-petal`, `.motion-breathe` e no `useGSAP` do esqueleto; nada de novo foi acrescentado que animasse |
+| SC-007 | `build`, `lint` e `test` (51 arquivos, 609 testes) |

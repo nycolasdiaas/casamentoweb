@@ -55,6 +55,8 @@ export default function CelebrationScreen({
   accent,
   nome,
   onTerminou,
+  erro = null,
+  aoTentarDeNovo,
 }: {
   ativo: boolean;
   accent?: string | null;
@@ -62,12 +64,23 @@ export default function CelebrationScreen({
   nome?: string | null;
   /** avisa que o mínimo já passou — quem chama decide o que fazer */
   onTerminou?: () => void;
+  /**
+   * O provisionamento falhou. A tela para de contar a história do site
+   * nascendo e passa a dizer o que houve.
+   *
+   * Antes disto, a falha desmontava a tela e o casal era devolvido ao
+   * formulário para descobrir o problema — ou, pior, chegava em
+   * `/conta/pedidos/<id>?provisionamento=erro` e lia sobre o erro uma tela
+   * depois. Errar onde a pessoa está olhando é o mínimo.
+   */
+  erro?: string | null;
+  aoTentarDeNovo?: () => void;
 }) {
   const [etapa, setEtapa] = useState(0);
   const [progresso, setProgresso] = useState(4);
 
   useEffect(() => {
-    if (!ativo) return;
+    if (!ativo || erro) return;
 
     const passoMs = RITMO_MS / ETAPAS.length;
     const timers = ETAPAS.slice(1).map((_, i) =>
@@ -90,7 +103,7 @@ export default function CelebrationScreen({
       setEtapa(0);
       setProgresso(4);
     };
-  }, [ativo, onTerminou]);
+  }, [ativo, erro, onTerminou]);
 
   if (!ativo) return null;
 
@@ -107,8 +120,10 @@ export default function CelebrationScreen({
     >
       {/* Pétalas. `aria-hidden` porque é enfeite: anunciar 14 divs vazias a
           quem usa leitor de tela seria ruído puro. */}
+      {/* As pétalas somem na falha. Comemorar por cima de um erro é a tela
+          rindo de quem está lendo. */}
       <div aria-hidden className="pointer-events-none absolute inset-0">
-        {PETALAS.map((p, i) => (
+        {(erro ? [] : PETALAS).map((p, i) => (
           <span
             key={i}
             className="motion-petal absolute top-0 block rounded-full"
@@ -133,7 +148,7 @@ export default function CelebrationScreen({
       <div className="relative flex w-full max-w-5xl flex-col items-center gap-8 lg:flex-row lg:items-center lg:justify-center lg:gap-16">
         <div className="order-2 w-full max-w-[300px] sm:max-w-[360px] lg:order-1 lg:max-w-[420px]">
           <MotionProvider>
-            <SiteSkeleton accent={accent} className="shadow-2xl" />
+            <SiteSkeleton accent={accent} className="shadow-2xl" parado={!!erro} />
           </MotionProvider>
         </div>
 
@@ -149,30 +164,57 @@ export default function CelebrationScreen({
 
           <div className="flex flex-col items-center gap-2 lg:items-start">
             <h2 className="text-2xl font-semibold text-(--c-ink) sm:text-3xl">
-              {nome ? `Vamos criar o site de vocês, ${nome}!` : "Vamos criar o site de vocês!"}
+              {erro
+                ? "O site não ficou pronto."
+                : nome
+                  ? `Vamos criar o site de vocês, ${nome}!`
+                  : "Vamos criar o site de vocês!"}
             </h2>
             <p className="max-w-sm text-sm leading-relaxed text-(--c-ink-2)">
-              Falta pouco para deixarmos tudo pronto para o grande dia.
+              {erro
+                ? /* Sem prazo, e sem "tente mais tarde": não há prazo, há uma
+                     falha. O que a pessoa pode fazer agora está no botão. */
+                  "Nada do que vocês responderam se perdeu."
+                : "Falta pouco para deixarmos tudo pronto para o grande dia."}
             </p>
           </div>
 
           <div className="flex w-full max-w-xs flex-col gap-2.5">
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-(--c-sunken)">
               <div
+                data-barra
                 className="h-full rounded-full"
                 style={{
                   width: `${progresso}%`,
-                  background: tinta,
+                  // Na falha a barra vira vermelha ONDE PAROU. Levá-la a 100%
+                  // diria que terminou; zerá-la apagaria o que já andou.
+                  background: erro ? "var(--c-danger)" : tinta,
                   transition: "width 400ms var(--e-saida)",
                 }}
               />
             </div>
-            <p
-              key={etapa}
-              className="motion-fade-in text-xs text-(--c-ink-2)"
-            >
-              {ETAPAS[etapa]}…
-            </p>
+
+            {erro ? (
+              <div className="flex flex-col items-center gap-2 lg:items-start">
+                <p role="alert" className="text-[13px] leading-snug text-(--c-danger)">
+                  {erro}
+                </p>
+                <button
+                  type="button"
+                  onClick={aoTentarDeNovo}
+                  className="btn btn-ink btn-sm"
+                >
+                  Tentar de novo
+                </button>
+              </div>
+            ) : (
+              <p
+                key={etapa}
+                className="motion-fade-in text-xs text-(--c-ink-2)"
+              >
+                {ETAPAS[etapa]}…
+              </p>
+            )}
           </div>
         </div>
       </div>

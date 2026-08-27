@@ -79,7 +79,7 @@ que escreve texto novo tem como saber se errou.
 | 21 | [`painel-casal/007-painel-de-modelos`](painel-casal/007-painel-de-modelos/spec.md) — a quinta ferramenta | **Bloqueada** | `002` | Decisão: "trocar de modelo" re-tematiza ou refaz? |
 | 22 | [`painel-casal/008-e10-publicar`](painel-casal/008-e10-publicar/spec.md) — E10 sem o checkout | **Implementada ⁵** | `design-system/004`, `005` | O checkout embutido foi cancelado pelo dono; o resto é implementável |
 | 23 | [`painel-casal/011-emails-do-casal`](painel-casal/011-emails-do-casal/spec.md) — recibo e "seu site está no ar" | **Implementada** | `design-system/006`, `007` | Hoje o casal paga, o site publica, e ninguém avisa |
-| 24 | [`painel-casal/012-tela-de-geracao`](painel-casal/012-tela-de-geracao/spec.md) — transição #8 | **CONFLITO** | `design-system/006` | O piso de 2,5s do handoff é espera inventada (regras §2.2) |
+| 24 | [`painel-casal/012-tela-de-geracao`](painel-casal/012-tela-de-geracao/spec.md) — transição #8 | **Implementada ⁶** | `design-system/006` | O piso de 2,5s do handoff é espera inventada (regras §2.2) |
 | 25 | [`painel-casal/009-preferencias-de-aviso`](painel-casal/009-preferencias-de-aviso/spec.md) — J2 | **Bloqueada** | `011` | Sem e-mail sendo enviado, a tabela não liga nada |
 | 26 | [`painel-casal/010-resumo-semanal`](painel-casal/010-resumo-semanal/spec.md) — J3 | **Bloqueada** | `007`, `011` | Falta agendador; e a §14 decisão 4 do SDD precisa ser reaberta |
 
@@ -98,6 +98,11 @@ topo de `lib/site/inviteDoc.ts`. Com isso as quatro retidas voltaram a
 | 28 | [`painel-admin/003-presentes-entre-casais`](painel-admin/003-presentes-entre-casais/spec.md) — G5 | **Implementada ⁵** | `design-system/001` | O cartão "A repassar" contradiz regras §2.4 e fica fora |
 | 29 | [`painel-admin/002-dashboard-da-operacao`](painel-admin/002-dashboard-da-operacao/spec.md) — G3, e o destino do casamento legado | **Bloqueada** | `design-system/001` | Mexer no endereço da tela que o dono usa exige janela segura (§13.1) |
 | 30 | [`painel-admin/004-grupos-e-permissoes`](painel-admin/004-grupos-e-permissoes/spec.md) — G2 | **Bloqueada** | `002` | A pergunta é anterior ao código: existe mais de um operador? |
+
+⁶ A `012` fechou na **Opção A** em 27/08/2026: o piso de 2,5s do handoff não
+volta. Ele já existiu no produto, gerou a crítica "ter que aguardar o site" e
+foi removido — restaurá-lo seria reabrir uma crítica do próprio dono. Um teste
+reprova se os números voltarem ao arquivo.
 
 ⁵ Os dois `[CONFLITO]` da `003` nunca foram pergunta em aberto: a spec já os
 resolvia excluindo o cartão "A repassar" e a coluna `STATUS` dos requisitos.
@@ -127,6 +132,7 @@ palavras voltarem.
 | 27/08/2026 | **`painel-casal/006` implementada** — autosave com debounce de 800ms, rascunho em `localStorage` e guarda de conflito por `updatedAt`. Antes, fechar a aba perdia o trabalho. Três recusas do lint viraram três módulos melhores: `useAgora`, `useRascunhoLocal` e `quando()` extraído de `Avisos.tsx` — duas faixas de tempo escritas separadamente divergiriam. 23 testes novos, 6 contra o banco. **As quatro que a `002` destravou estão fechadas.** |
 | 27/08/2026 | **`painel-admin/003` implementada** — `/admin/presentes` passa a mostrar as contribuições de TODOS os casais, e não só as do casamento legado. A consulta global é a única sem `siteId` no arquivo, e um teste varre `app/`, `lib/` e `components/` para garantir que só o admin a importe. O cartão "A repassar" e a coluna `STATUS` ficaram de fora, como a spec determinava, e viraram guarda: um teste reprova se as palavras voltarem. 10 testes novos |
 | 27/08/2026 | **`painel-casal/008` implementada** — E10, sem o checkout embutido que o dono cancelou. A prévia do painel era boa demais: o casal via o site montado e concluía que já estava no ar. Agora diz três vezes que não — faixa, marca d'água sobre a miniatura e cartão do que muda ao publicar — e comemora uma vez quando publica. O ícone saiu com 16px e não os 17 do artboard: a escala da Prensa é fechada em tipo. 14 testes novos |
+| 27/08/2026 | **`painel-casal/012` implementada (Opção A)** — o piso de espera não volta, e agora um teste reprova se os números voltarem ao arquivo. O que o produto devia ao handoff era um ponto só: **a falha do provisionamento passa a acontecer onde a pessoa está olhando** — barra em vermelho onde parou, esqueleto parado, pétalas fora, e um `Tentar de novo` que REENVIA. Antes, a tela sumia e o casal descobria o erro na tela seguinte. 14 testes novos |
 
 ---
 

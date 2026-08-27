@@ -129,22 +129,30 @@ export default function OrderWizard({
   const [traje, setTraje] = useState("");
   const [historia, setHistoria] = useState("");
 
+  /** O botão de envio, para a tela de falha conseguir reenviar. */
+  const botaoDeEnvio = useRef<HTMLButtonElement>(null);
+
   const [state, action, pending] = useActionState(
     async (
       _prev: ActionResult | undefined,
       formData: FormData
     ): Promise<ActionResult> => {
       const ehEnvio = formData.get("intent")?.toString() === "submit";
-      try {
-        return ehEnvio
-          ? await submitOrderAction(formData)
-          : await saveOrderAction(formData);
-      } finally {
-        // O envio bem-sucedido termina em `redirect`, então isto só roda
-        // quando a action VOLTA — ou seja, deu erro. Tirar a celebração é o
-        // que deixa a mensagem de erro visível.
-        setEnviando(false);
-      }
+      const r = ehEnvio
+        ? await submitOrderAction(formData)
+        : await saveOrderAction(formData);
+
+      /* O envio bem-sucedido termina em `redirect`, então chegar aqui num
+         envio significa que deu erro.
+
+         A tela de criação NÃO é desmontada nesse caso: ela para de contar a
+         história do site nascendo e passa a dizer o que houve, com o botão de
+         tentar de novo. Desmontar devolveria o casal ao formulário para
+         descobrir sozinho o que aconteceu — ou, pior, deixaria a descoberta
+         para a tela seguinte. */
+      if (!ehEnvio || !(r && "error" in r)) setEnviando(false);
+
+      return r;
     },
     undefined
   );
@@ -157,6 +165,24 @@ export default function OrderWizard({
    * partida, não trava. Antes, escolher "Clássico" não mexia em nada embaixo
    * e a escolha parecia não ter valido.
    */
+  /**
+   * Reenvia o pedido a partir da tela de falha.
+   *
+   * `requestSubmit(botão)` e não `form.submit()`: o submitter é quem carrega
+   * `intent=submit`, e sem ele a action gravaria rascunho em vez de enviar.
+   * `form.submit()` também pularia o `action` do React inteiro.
+   */
+  const reenviar = useCallback(() => {
+    const botao = botaoDeEnvio.current;
+    if (!botao) {
+      // Sem o botão em mãos, o honesto é devolver o formulário — a pessoa
+      // ainda consegue enviar de lá.
+      setEnviando(false);
+      return;
+    }
+    botao.form?.requestSubmit(botao);
+  }, []);
+
   const escolherModelo = useCallback((id: string) => {
     setModelo(id);
     const estiloEscolhido = TEMPLATE_STYLES.find((s) => s.id === id);
@@ -635,6 +661,8 @@ export default function OrderWizard({
         ativo={enviando}
         accent={cor1 || null}
         nome={primeiroNome}
+        erro={state && "error" in state ? state.error : null}
+        aoTentarDeNovo={reenviar}
       />
 
       <form action={action} className="flex flex-col">
@@ -700,6 +728,7 @@ export default function OrderWizard({
             <>
               {ultima ? (
                   <button
+                    ref={botaoDeEnvio}
                     type="submit"
                     name="intent"
                     value="submit"
