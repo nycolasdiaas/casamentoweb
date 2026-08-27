@@ -18,6 +18,13 @@ import { quebrarLinhas } from "@/lib/site/inviteRender";
  * o SVG do export, que usa as mesmas frações multiplicadas por 1080.
  */
 
+/** A mesma pilha de fontes no texto e no botão — divergir seria dois desenhos. */
+function familia(fonte: "serif" | "sans" | "script"): string {
+  if (fonte === "sans") return "var(--font-sans, sans-serif)";
+  if (fonte === "script") return "cursive";
+  return "var(--font-serif, serif)";
+}
+
 export function estiloDoBloco(b: Bloco): React.CSSProperties {
   return {
     position: "absolute",
@@ -91,6 +98,33 @@ export default function BlocoVisual({ bloco: b }: { bloco: Bloco }) {
     );
   }
 
+  if (b.tipo === "botao") {
+    /* O botão é caixa, não texto: tem fundo, raio e ar em volta. O `padding`
+       em `cqw` mantém a proporção do editor até a miniatura de 120px, e o
+       `minHeight` de 44px é o piso de área de toque da Fundação A4 — abaixo
+       disso o dedo erra, e errar aqui é o convidado não confirmar presença. */
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: 44,
+          padding: `${b.tamanho * 60}cqw ${b.tamanho * 130}cqw`,
+          background: b.fundo,
+          color: b.cor,
+          borderRadius: `${(b.raio / CONVITE_LARGURA) * 100}cqw`,
+          fontSize: `${b.tamanho * 100}cqw`,
+          lineHeight: 1.2,
+          textAlign: "center",
+          fontFamily: familia(b.fonte),
+        }}
+      >
+        {b.rotulo}
+      </div>
+    );
+  }
+
   return (
     <div
       style={{
@@ -101,12 +135,7 @@ export default function BlocoVisual({ bloco: b }: { bloco: Bloco }) {
         letterSpacing: `${b.espacamento}em`,
         lineHeight: 1.25,
         whiteSpace: "pre-wrap",
-        fontFamily:
-          b.fonte === "sans"
-            ? "var(--font-sans, sans-serif)"
-            : b.fonte === "script"
-              ? "cursive"
-              : "var(--font-serif, serif)",
+        fontFamily: familia(b.fonte),
       }}
     >
       {quebrarLinhas(

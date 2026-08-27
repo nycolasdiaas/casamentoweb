@@ -42,6 +42,7 @@ function rotulo(b: Bloco): string {
   if (b.tipo === "texto") return b.texto.trim() || "Texto vazio";
   if (b.tipo === "foto") return "Foto";
   if (b.tipo === "linha") return "Divisor";
+  if (b.tipo === "botao") return b.rotulo.trim() || "Botão";
   return NOME_DA_FORMA[b.forma];
 }
 
@@ -49,6 +50,7 @@ function icone(b: Bloco): string {
   if (b.tipo === "texto") return "Aa";
   if (b.tipo === "foto") return "▣";
   if (b.tipo === "linha") return "―";
+  if (b.tipo === "botao") return "▭";
   return "◆";
 }
 

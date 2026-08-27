@@ -25,8 +25,10 @@ export function conviteInicial(
     local: string | null;
     /** Como o endereço APARECE no convite, sem `https://`. */
     endereco: string;
-    /** O endereço de verdade, com esquema — é ele que vira link. */
+    /** O endereço de verdade, com esquema. Hoje só o texto o usa. */
     url: string;
+    /** O pacote inclui confirmação de presença? Decide o botão semeado. */
+    temRsvp: boolean;
   },
   cores: ThemeCoresLocal
 ): InviteDoc {
@@ -113,25 +115,53 @@ export function conviteInicial(
     });
   }
 
+  /* O convite termina num BOTÃO, não num texto com link.
+     
+     Antes era um bloco de texto apontando para a capa do site: o convidado
+     clicava em "confirmar presença" e caía na primeira tela, de onde ainda
+     precisava rolar até achar a confirmação. O SDD §15.1 é a razão de o
+     convite ter virado página — *"numa imagem, o botão 'Lista de presentes' é
+     desenho; aqui ele leva à lista"*.
+
+     O `destino` é uma chave, não um endereço: gravar a URL congelaria o slug
+     do site dentro do convite. Quem resolve é o render. */
+  blocos.push({
+    tipo: "botao",
+    id: novoId(),
+    rotacao: 0,
+    x: 0.22,
+    y: 0.82,
+    w: 0.56,
+    /* Num pacote sem confirmação de presença o botão leva à capa e diz isso.
+       Semear "Confirmar presença" onde não há confirmação seria vender pelo
+       desenho o que o pacote não entrega. */
+    destino: dados.temRsvp ? "rsvp" : "site",
+    rotulo: dados.temRsvp ? "Confirmar presença" : "Ver o site",
+    fundo: cores.ink,
+    cor: cores.paper,
+    raio: 2,
+    fonte: "sans",
+    tamanho: 0.028,
+  });
+
+  /* O endereço abaixo do botão, como texto SEM link — igual ao artboard F3.
+     Ele serve a quem vai digitar, não a quem vai clicar; quem clica tem o
+     botão logo acima, e dois destinos colados confundem mais do que ajudam. */
   blocos.push({
     tipo: "texto",
     id: novoId(),
-      rotacao: 0,
+    rotacao: 0,
     x: 0.1,
-    y: 0.86,
+    y: 0.9,
     w: 0.8,
     texto: dados.endereco,
-    tamanho: 0.022,
+    tamanho: 0.02,
     cor: cores.accent,
     fonte: "sans",
     peso: "normal",
     alinhamento: "center",
     espacamento: 0.15,
-    // O `url` vem pronto de quem chamou, com o esquema certo. Montar
-    // `https://${endereco}` aqui — como estava — quebrava em desenvolvimento:
-    // o endereço chega sem esquema, e `https://localhost:3000` responde
-    // ERR_SSL_PROTOCOL_ERROR porque o servidor local fala http.
-    link: dados.url,
+    link: "",
   });
 
   return {

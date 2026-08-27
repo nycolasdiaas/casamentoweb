@@ -12,6 +12,7 @@ import {
 } from "@/lib/site/inviteDoc";
 import { clipPathDe, NOME_DA_FORMA } from "@/lib/site/inviteShapes";
 import { salvarConviteAction } from "@/app/actions/invite-actions";
+import { temSaida } from "@/lib/site/inviteDoc";
 import {
   confirmPhotoUploadAction,
   requestPhotoUploadAction,
@@ -333,6 +334,30 @@ export default function EditorDeConvite({
     mudar((d) => ({ ...d, blocos: [...d.blocos, novo] }));
     registrar(antes);
     setSelecionado(novo.id);
+  }
+
+  /**
+   * Põe de volta o botão que leva à confirmação de presença.
+   *
+   * No rodapé, na mesma posição em que a semente o cria: é onde o convite
+   * termina, e é onde o convidado já está olhando quando acaba de ler.
+   */
+  function acrescentarBotao() {
+    acrescentar({
+      tipo: "botao",
+      id: crypto.randomUUID(),
+      rotacao: 0,
+      x: 0.22,
+      y: 0.82,
+      w: 0.56,
+      destino: "rsvp",
+      rotulo: "Confirmar presença",
+      fundo: doc.fundo === "#1a1d21" ? "#f2efe7" : "#1a1d21",
+      cor: doc.fundo === "#1a1d21" ? "#1a1d21" : "#f2efe7",
+      raio: 2,
+      fonte: "sans",
+      tamanho: 0.028,
+    });
   }
 
   /**
@@ -1359,6 +1384,8 @@ export default function EditorDeConvite({
           noAr={noAr}
           temMudancaNaoSalva={!salvo}
           siteNoAr={siteNoAr}
+          temSaida={temSaida(doc)}
+          aoAcrescentarBotao={acrescentarBotao}
         />
 
         {/* BAIXAR: um botão, e o menu abre com os formatos.

@@ -7,6 +7,7 @@ import {
   listPublishedInviteSlugs,
 } from "@/lib/repositories/siteInvites";
 import ConviteVisual from "@/components/site/ConviteVisual";
+import { baseUrlEstatica } from "@/lib/baseUrl";
 import BecoComSaida from "@/components/site/BecoComSaida";
 import { dataPorExtenso } from "@/lib/site/dataLegivel";
 import { getSiteViewBySlug } from "@/lib/repositories/siteView";
@@ -126,6 +127,11 @@ export default async function ConvitePage({
   }
 
   const { doc } = achado.convite;
+  /* `baseUrlEstatica` e não `getBaseUrl`: esta rota é cacheada, e ler o header
+     da requisição a tornaria dinâmica — o que o comentário de `baseUrl.ts` já
+     documenta para o cartão de link. O destino do botão é o mesmo para todo
+     convidado. */
+  const base = baseUrlEstatica();
 
   return (
     <main
@@ -138,7 +144,7 @@ export default async function ConvitePage({
         className="w-full"
         style={{ maxWidth: `min(100%, calc(92svh * ${doc.largura / doc.altura}))` }}
       >
-        <ConviteVisual doc={doc} />
+        <ConviteVisual doc={doc} slug={achado.siteSlug} baseUrl={base} />
       </div>
     </main>
   );

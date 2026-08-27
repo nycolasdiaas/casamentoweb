@@ -21,7 +21,8 @@ import {
   saveInvite,
 } from "@/lib/repositories/siteInvites";
 import { conviteInicial } from "@/lib/site/inviteSeed";
-import { MAX_CONVITES, parseInviteDoc } from "@/lib/site/inviteDoc";
+import { MAX_CONVITES, parseInviteDoc, temSaida } from "@/lib/site/inviteDoc";
+import { tierAllowsSection } from "@/lib/templates/contract";
 import { dataPorExtenso } from "@/lib/site/dataLegivel";
 
 /**
@@ -75,6 +76,8 @@ export async function criarConviteAction(formData: FormData) {
       local: v.ceremonyVenue.trim() || null,
       endereco: `${baseUrl.replace(/^https?:\/\//, "")}/s/${site.slug}`,
       url: `${baseUrl.replace(/\/+$/, "")}/s/${site.slug}`,
+      // O gating de verdade, o mesmo que o `SiteRenderer` obedece.
+      temRsvp: tierAllowsSection(site.tier, "rsvp"),
     },
     tema.palette
   );
@@ -150,6 +153,24 @@ export async function publicarConviteAction(
 ): Promise<{ url: string } | { error: string }> {
   const site = await siteDoDono(siteId);
   if (!site) return { error: "Não foi possível publicar." };
+
+  /* Convite sem saída não publica.
+     
+     A regra da prancha H: *"toda tela tem uma saída primária. Beco sem saída é
+     bug."* Um convite publicado é uma página que o convidado abre e fecha sem
+     ter para onde ir — e o casal só descobre quando alguém avisa.
+     
+     O que NÃO trava: nomes, data, local. As regras §2.3 são literais —
+     *"só uma coisa é obrigatória: os nomes"*, e *"a lista 'o que falta' é
+     guia, nunca trava"*. Convite sem data é legítimo: casal que ainda não
+     fechou o dia.
+     
+     A guarda vale AQUI e não só na tela: `PublicarConvite` é client component,
+     e a action é a fronteira que importa. */
+  const atualParaValidar = await getInvite(siteId, inviteId);
+  if (atualParaValidar && !temSaida(atualParaValidar.doc)) {
+    return { error: "sem-saida" };
+  }
 
   const [slug, baseUrl] = await Promise.all([
     publicarConvite(siteId, inviteId),

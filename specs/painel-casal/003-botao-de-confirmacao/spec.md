@@ -1,6 +1,6 @@
 # Spec 003 — E9/F3: o botão de confirmar presença no convite (área: painel-casal)
 
-**Status:** Pronta para implementação — retenção levantada em 27/08/2026 pela decisão da `002`
+**Status:** Implementada (27/08/2026)
 
 ## Contexto
 
@@ -192,3 +192,53 @@ que o casal já desenhou).
 A decisão que faltava foi tomada: `painel-casal/002` fechou na **Opção A** (o
 modelo implementado vence). Esta spec volta a `Pronta` e entra como estava
 escrita — a Opção A não muda nenhum requisito dela.
+
+## Notas de implementação
+
+- **`temSaida` mora em `lib/site/inviteDoc.ts`, não na action.** A spec a
+  colocaria junto de `publicarConviteAction`, mas `invite-actions.ts` é
+  `"use server"` — e todo export de um módulo desses precisa ser função
+  assíncrona. O editor precisa chamar isto no navegador, para o aviso aparecer
+  **antes** de o casal clicar em publicar. É regra do documento, e o lugar dela
+  é o arquivo do documento.
+
+- **A saída aceita botão OU texto com link.** FR-009 já dizia isso, e vale
+  registrar por quê: um casal que apagou o botão e pôs o próprio endereço num
+  texto resolveu o problema do jeito dele. Recusar seria a ferramenta
+  discutindo com quem já acertou.
+
+- **Destino desconhecido cai em `site`, não em `rsvp`.** A spec não diz qual é
+  o padrão. `site` é o seguro: um convite antigo ou forjado apontando para a
+  capa é inofensivo; apontando para uma confirmação que o pacote não inclui,
+  não.
+
+- **O botão não vira `<a>` quando não há slug.** Editor e miniatura chamam
+  `ConviteVisual` sem o site em mãos. Melhor um botão desenhado que não faz
+  nada dentro do painel do que um link para o lugar errado.
+
+- **`/c/<slug>` usa `baseUrlEstatica`, não `getBaseUrl`.** A rota é cacheada;
+  ler header de requisição a tornaria dinâmica — é o que `lib/baseUrl.ts` já
+  documenta para o cartão de link. O destino do botão é o mesmo para todo
+  convidado.
+
+- **Três arquivos precisaram de um ramo novo porque o `Bloco` ganhou um quinto
+  tipo:** `BlocoVisual` (o desenho), `Camadas` (rótulo e ícone na lista) e
+  `inviteRender` (o retângulo e o rótulo no SVG do export). Os três terminavam
+  num `return` que assumia "o que sobrou é texto" — o TypeScript pegou os três.
+
+## Como cada critério foi conferido
+
+| Critério | Medida |
+|---|---|
+| SC-001 | `parseInviteDoc` num `doc` com texto e linha, sem botão nenhum, devolve os dois blocos intactos |
+| SC-002 | `conviteInicial({ temRsvp: true })` produz **um** bloco `botao`, `destino: "rsvp"`, rótulo `Confirmar presença`, `fundo` = tinta e `cor` = papel do tema |
+| SC-003 | `temRsvp: false` produz `destino: "site"`, rótulo `Ver o site` |
+| SC-004 | `<a href="https://enlace.test/s/ana-e-pedro#confirmacao">`, com a caixa em `min-height: 44px`, `background` e `border-radius` |
+| SC-005 | o mesmo `doc` renderizado com dois slugs devolve dois `href`; o JSON do `doc` é byte a byte idêntico antes e depois |
+| SC-006 | a action chama `temSaida` antes de publicar e devolve `"sem-saida"`; `temSaida` está coberto em cinco casos (botão, texto com link, só desenho, link em branco, convite vazio) |
+| SC-007 | o aviso `warn` traz o texto exato de FR-010 e o botão que acrescenta o bloco |
+| SC-008 | o corpo de `publicarConviteAction` não menciona `weddingDate`, `coupleNames` nem `ceremonyVenue` — só o beco sem saída trava |
+| SC-009 | `lib/site/inviteDoc.test.ts`: 31 testes, 11 deles novos |
+| SC-010 | `build`, `lint` e `test` (43 arquivos, 514 testes) |
+| SC-011 | `BlocoBotao` exportado; `Bloco` é a união dos cinco |
+| SC-012 | `destino: "http://exemplo.com"` e `javascript:alert(1)` caem os dois em `"site"` |
