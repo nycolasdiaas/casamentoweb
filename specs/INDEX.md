@@ -95,9 +95,14 @@ topo de `lib/site/inviteDoc.ts`. Com isso as quatro retidas voltaram a
 | # | Spec | Status | Depende de | Nota |
 |---|---|---|---|---|
 | 27 | [`painel-admin/001-pedidos-como-tabela`](painel-admin/001-pedidos-como-tabela/spec.md) — G4 com filtros e busca | **Implementada** | `design-system/001` | Tira da tela o prompt de LLM do fluxo antigo |
-| 28 | [`painel-admin/003-presentes-entre-casais`](painel-admin/003-presentes-entre-casais/spec.md) — G5 | **Pronta** + **CONFLITO** parcial | `design-system/001` | O cartão "A repassar" contradiz regras §2.4 e fica fora |
+| 28 | [`painel-admin/003-presentes-entre-casais`](painel-admin/003-presentes-entre-casais/spec.md) — G5 | **Implementada ⁵** | `design-system/001` | O cartão "A repassar" contradiz regras §2.4 e fica fora |
 | 29 | [`painel-admin/002-dashboard-da-operacao`](painel-admin/002-dashboard-da-operacao/spec.md) — G3, e o destino do casamento legado | **Bloqueada** | `design-system/001` | Mexer no endereço da tela que o dono usa exige janela segura (§13.1) |
 | 30 | [`painel-admin/004-grupos-e-permissoes`](painel-admin/004-grupos-e-permissoes/spec.md) — G2 | **Bloqueada** | `002` | A pergunta é anterior ao código: existe mais de um operador? |
+
+⁵ Os dois `[CONFLITO]` da `003` nunca foram pergunta em aberto: a spec já os
+resolvia excluindo o cartão "A repassar" e a coluna `STATUS` dos requisitos.
+Implementar a spec **é** deixá-los de fora, e agora um teste reprova se as
+palavras voltarem.
 
 > A numeração desta coluna é a **ordem de execução**, não o número da spec. O
 > número da spec é o do diretório.
@@ -120,6 +125,7 @@ topo de `lib/site/inviteDoc.ts`. Com isso as quatro retidas voltaram a
 | 27/08/2026 | **`painel-casal/002` decidida (Opção A)** e **`003` implementada** — o convite ganha um tipo de bloco `botao`, aditivo no `jsonb`, e passa a terminar num botão que leva à confirmação em vez de um texto que levava à capa. Publicar recusa convite sem saída, no servidor. O endereço é resolvido no render: trocar o slug do site muda o botão sem tocar no `doc`. 23 testes novos |
 | 27/08/2026 | **`painel-casal/004` e `005` implementadas** na mesma passada, como o INDEX recomendava. O encaixe virou módulo puro (`lib/site/inviteSnap.ts`) com 20 testes sem navegador — a parte que erra em silêncio saiu das 1.400 linhas de `PointerEvent`. Treze atalhos, com legenda alcançável na barra de zoom que escreve Cmd ou Ctrl conforme a plataforma. 34 testes novos |
 | 27/08/2026 | **`painel-casal/006` implementada** — autosave com debounce de 800ms, rascunho em `localStorage` e guarda de conflito por `updatedAt`. Antes, fechar a aba perdia o trabalho. Três recusas do lint viraram três módulos melhores: `useAgora`, `useRascunhoLocal` e `quando()` extraído de `Avisos.tsx` — duas faixas de tempo escritas separadamente divergiriam. 23 testes novos, 6 contra o banco. **As quatro que a `002` destravou estão fechadas.** |
+| 27/08/2026 | **`painel-admin/003` implementada** — `/admin/presentes` passa a mostrar as contribuições de TODOS os casais, e não só as do casamento legado. A consulta global é a única sem `siteId` no arquivo, e um teste varre `app/`, `lib/` e `components/` para garantir que só o admin a importe. O cartão "A repassar" e a coluna `STATUS` ficaram de fora, como a spec determinava, e viraram guarda: um teste reprova se as palavras voltarem. 10 testes novos |
 
 ---
 

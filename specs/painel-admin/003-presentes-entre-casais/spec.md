@@ -1,6 +1,6 @@
 # Spec 003 — G5: `/admin/presentes` entre casais (área: painel-admin)
 
-**Status:** Pronta para implementação — com **[CONFLITO COM DECISÃO EXISTENTE
+**Status:** Implementada (27/08/2026) — os dois conflitos ficaram de fora, como a própria spec determinava
 — REQUER APROVAÇÃO]** no cartão "A repassar", que fica fora dos requisitos.
 
 ## Contexto
@@ -170,3 +170,66 @@ Nenhum. Só leitura: `gift_contributions`, `gifts`, `sites`, `site_content`.
    **A alternativa honesta**, se o dono quiser uma coluna ali: `ORIGEM`,
    dizendo `o convidado confirmou` — que é a verdade do dado. Fica como
    sugestão, não como requisito.
+
+## Notas de implementação
+
+### O conflito não precisava de decisão: a spec já o tinha resolvido
+
+O `[CONFLITO]` desta spec nunca foi uma pergunta em aberto. Ele registra que o
+cartão "A REPASSAR" e a coluna `STATUS` descrevem um produto que não é este, e
+os requisitos já os excluíam. Implementar a spec **é** deixá-los de fora.
+
+- **"A repassar"** só faz sentido se a Enlace receber o dinheiro do presente e
+  repassar depois. O Pix vai direto para a conta do casal e nunca passa por
+  aqui (regras §2.4; §7 lista "taxa sobre presente" como descartada). Não há o
+  que repassar, porque nada foi recebido.
+- **`STATUS`** (`confirmado` / `processando`) descreve estados que não existem:
+  a contribuição é auto-declarada pelo convidado num gesto só. Escrever
+  "confirmado" ao lado de uma auto-declaração daria ao operador uma certeza que
+  ninguém tem.
+
+Um teste varre a tela procurando `repass|pendente|processando|estorn` e reprova
+se aparecer — o conflito virou guarda, não só nota de rodapé.
+
+### A consulta global é a única do arquivo, e o nome carrega o aviso
+
+`lib/repositories/gifts.ts` abre dizendo que TODA consulta é escopada por
+`siteId`. `listContributionsParaAdmin` é a exceção, e por isso:
+
+1. o nome diz para quem ela serve, antes de o código rodar;
+2. o cabeçalho do arquivo passou a apontar a exceção;
+3. **um teste varre `app/`, `lib/` e `components/` inteiros** e reprova se
+   qualquer arquivo além de `app/admin/presentes/page.tsx` a importar.
+
+O terceiro é o que de fato protege. Comentário não impede ninguém de importar;
+o teste impede.
+
+### O total do mês só sai quando pode sair
+
+Com uma cota de valor livre no meio, qualquer soma seria um número inventado —
+e número inventado numa tela de operação vira relatório. Nesse caso a linha diz
+`algumas cotas são de valor livre`, que é a verdade.
+
+### A tela ganhou duas seções, e a antiga não saiu
+
+As cotas do casamento legado continuam editáveis pelo `GiftAdmin` de sempre. É
+o único site cujas cotas o admin edita à mão — os outros casais mexem no
+próprio painel —, e tirar a seção deixaria o casamento de 16/10/2026 sem
+ninguém que consiga ajustar a lista dele.
+
+## Como cada critério foi conferido
+
+| Critério | Medida |
+|---|---|
+| SC-001, SC-005 | a consulta junta `gifts → sites → site_content`, então cada linha traz o nome do casal (com o slug como reserva) e um link para `/admin/pedidos?q=<slug>` |
+| SC-002 | **varredura de `app/`, `lib/` e `components/`**: só `app/admin/presentes/page.tsx` importa `listContributionsParaAdmin` |
+| SC-003 | cota sem preço mostra `—`, nunca um valor estimado |
+| SC-004 | o total em reais só aparece quando `doMes.every(l => l.priceCents !== null)` |
+| SC-005 | a frase do rodapé está na tela, literal |
+| SC-006 | varredura por `repass|pendente|processando|estorn` devolve zero, e não há gesto de marcar contribuição como paga |
+| SC-007 | `GiftAdmin` e `getLegacySiteId` continuam na tela, em seção própria |
+| SC-008 | `gifts.test.ts` verde — o isolamento por `siteId` das outras consultas está intacto |
+| SC-009 | `build`, `lint` e `test` (49 arquivos, 581 testes) |
+| SC-010 | quatro colunas: `Data`, `Casal`, `Cota`, `Valor`. Nenhum `Status` |
+| SC-011 | `dataCurta` devolve `19 Set · 14h`, em `t-data`, no fuso do casamento |
+| SC-012 | as duas leituras de banco vivem cada uma dentro de um `<Suspense>`; `next build` passa |
