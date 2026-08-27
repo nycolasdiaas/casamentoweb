@@ -1,6 +1,6 @@
 # Spec 003 — E9/F3: o botão de confirmar presença no convite (área: painel-casal)
 
-**Status:** Bloqueada — retida pela decisão pendente de `painel-casal/002` (ver "Retida na execução" no fim)
+**Status:** Pronta para implementação — retenção levantada em 27/08/2026 pela decisão da `002`
 
 ## Contexto
 
@@ -186,3 +186,9 @@ conflito aberto entra antes de a decisão estar registrada.
 ou C, esta spec entra como está. Só a Opção B a invalidaria — e a própria 002
 mostra que B cai na proibição de §13.1 (exigiria `UPDATE` em `doc` de convites
 que o casal já desenhou).
+
+## Retenção levantada — 27/08/2026
+
+A decisão que faltava foi tomada: `painel-casal/002` fechou na **Opção A** (o
+modelo implementado vence). Esta spec volta a `Pronta` e entra como estava
+escrita — a Opção A não muda nenhum requisito dela.

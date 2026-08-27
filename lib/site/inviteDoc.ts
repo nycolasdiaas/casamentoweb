@@ -23,6 +23,27 @@
  * `parseInviteDoc` descarta o bloco inválido em vez de recusar o convite
  * inteiro: perder um bloco é um convite estranho, que o casal conserta;
  * recusar o documento é o casal perder o trabalho todo.
+ *
+ * ── O modelo do HANDOFF §2 NÃO foi adotado, e é decisão fechada ────────────
+ *
+ * `HANDOFF-editor-convite.md` §2 prescreve outro modelo — `elements` em vez de
+ * `blocos`, `x/y/w/h` em px, `canvas` em mm @96dpi, `h` explícito em todo
+ * elemento. Ele não vale aqui, e a divergência é assumida (decisão de
+ * 27/08/2026, Opção A de `specs/painel-casal/002-modelo-do-convite`):
+ *
+ * | Handoff §2 | Aqui | Por quê |
+ * |---|---|---|
+ * | `x/y/w/h` em px | `x/y/w` em fração | o editor roda em área que muda de tamanho; px acerta uma tela e erra as outras |
+ * | `canvas` em mm @96dpi | `largura`/`altura` em px, 1080×1350 | o convite viaja por WhatsApp e Instagram, não pela gráfica |
+ * | `h` explícito | `proporcao` em foto e forma; texto reflui | altura fixa em texto quebra ao trocar de fonte ou de formato |
+ * | `locked` / `hidden` | não existem | aditivos; entram quando alguém precisar (travar o fundo é o caso clássico) |
+ *
+ * Migrar para o modelo do handoff exigiria `UPDATE` no `doc` de convites que o
+ * casal já desenhou — o que §13.1 proíbe — e não desbloquearia nada: snap,
+ * inspetor, undo e autosave (§5 a §7 do handoff) funcionam igual em fração.
+ *
+ * Quem chegar aqui vindo do handoff e achar que o código está atrasado: não
+ * está. É escolha, e a razão de cada linha está na tabela acima.
  */
 
 /**

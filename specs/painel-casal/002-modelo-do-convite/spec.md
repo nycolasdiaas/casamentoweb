@@ -1,6 +1,6 @@
 # Spec 002 — E9: o modelo de dados do convite × `HANDOFF-editor-convite.md` §2 (área: painel-casal)
 
-**Status:** Bloqueada — **[CONFLITO COM DECISÃO EXISTENTE — REQUER APROVAÇÃO]**
+**Status:** Resolvida (27/08/2026) — **Opção A**, decidida por Nycolas. A divergência com o handoff §2 está assumida e escrita em `lib/site/inviteDoc.ts`
 
 ## Contexto
 
@@ -139,3 +139,27 @@ começar antes desta decisão.
    o casal pediria — travar o fundo para não arrastá-lo sem querer é o caso
    clássico. Os dois são **aditivos** e cabem na Opção A sem tocar em nada.
    **Vale a pena agora?** — decisão do dono, e não bloqueia esta spec.
+
+## Decisão registrada — 27/08/2026
+
+**Opção A: o modelo implementado vence, e o handoff §2 vira divergência
+assumida.**
+
+Quem decidiu: **Nycolas**, ao mandar seguir com as specs retidas depois de a
+execução ter parado exatamente aqui e apresentado as três opções. A Opção A era
+a recomendação escrita, custa zero, e é a única das três que não esbarra em
+nada: a B exigiria `UPDATE` no `doc` de convites já desenhados (proibido por
+§13.1) e a C dobraria a superfície do editor para sempre.
+
+**Onde a decisão foi escrita:** no topo de `lib/site/inviteDoc.ts`, com a
+tabela de diferenças e a razão de cada uma. Não no `HANDOFF-editor-convite.md`,
+que não está no repositório — veio junto do protótipo. O lugar útil é o arquivo
+que define o modelo adotado, onde tropeça quem for mexer nele.
+
+**O que isto destrava:** `painel-casal/003`, `004`, `005` e `006`, que
+declaravam depender desta decisão.
+
+**Pergunta 2 (`locked` / `hidden`) segue aberta e não bloqueia nada.** Os dois
+campos são aditivos e cabem na Opção A sem tocar em nada. Travar o fundo para
+não arrastá-lo sem querer é o caso que o casal pediria primeiro. Entra quando
+alguém precisar.
