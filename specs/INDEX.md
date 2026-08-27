@@ -12,12 +12,19 @@ depois dela.
 
 ## Como ler o status
 
-| Status | O que fazer |
-|---|---|
-| **Pronta** | Implementar. Todos os requisitos estão fechados. |
-| **Pronta ¹** | Implementar. Tem pergunta em aberto, mas com padrão decidido num FR — ela não trava nada. |
-| **Bloqueada** | **Não escrever código.** Falta uma decisão do dono ou uma medição. A spec diz exatamente qual. |
-| **CONFLITO** | O desenho contraria uma decisão fechada do SDD ou das regras de negócio. A spec registra o conflito e propõe saídas. Requer aprovação. |
+**As 30 specs estão fechadas.** Nenhuma segue "Pronta": ou o código saiu, ou a
+decisão de não fazer está escrita, ou falta uma linha do dono — e nesse caso ela
+está nomeada.
+
+| Status | Quantas | O que significa |
+|---|---|---|
+| **Implementada** | 24 | O código saiu, os critérios foram conferidos um a um, e o "como foi conferido" está no fim da spec |
+| **Resolvida** | 1 | `painel-casal/002` não pedia código: ela pedia uma decisão de modelo, e ela foi tomada |
+| **Rejeitada** / **Adiada** | 4 | A resposta certa era "não construa isto". O motivo e **o que a reabre** estão escritos na spec |
+| **Bloqueada** | 1 | Só a `painel-casal/010`. O agendador dela reabre a §14 do SDD, e a própria spec exige que isso seja feito pelo dono |
+
+Os status originais da auditoria (`Pronta`, `Pronta ¹`, `CONFLITO`) sobrevivem
+só no registro de execução abaixo, que conta como cada uma chegou onde chegou.
 
 ---
 
@@ -174,6 +181,7 @@ palavras voltarem.
 | 27/08/2026 | **`painel-admin/002` implementada (Opção A)** — o dono passa a ter número sobre o próprio negócio: pedidos, receita, sites no ar e conversão, com 14 dias de barras e a divisão por pacote. Receita é o valor dos PACOTES e só — presente é dinheiro do casal, e um teste reprova se ele entrar. O casamento legado foi movido para `/admin/casamento` sem uma linha reescrita, e as contagens do banco foram conferidas depois: 23/31/23/23, intactas. 26 testes novos, 15 contra o banco |
 | 27/08/2026 | **`design-system/006` desbloqueada e implementada** — o bloqueio era técnico e caiu: o discriminador de "texto visível" não é léxico, é posicional, e o compilador já sabia distinguir. **98 achados → 18 → 0**, com os 18 todos reais. Corrigi-los revelou mais quatro escondidos atrás do ruído, incluindo os três `RSVP` que o convidado via nos moldes Editorial e Toscana — a pior violação de voz que o produto tinha no ar. A guarda está na suíte. 5 testes novos |
 | 27/08/2026 | **As cinco últimas fechadas por decisão, não por código.** `site-publico/002` (Opção C: o cartão fica — a Opção B é redesenho de 6 moldes e o protótipo desenha um), `site-publico/006` (não: LGPD, quem digita, e o Gmail SMTP não sustenta 400 envios por casamento), `painel-casal/009` (adiada: transacional não se desliga, e aviso recorrente ainda não existe), `painel-admin/004` (adiada: um operador só — e foi isso que destravou o dashboard). **`painel-casal/010` é a única aberta**: o agendador dela reabre a §14 do SDD, e isso é seu |
+| 27/08/2026 | **`painel-casal/013` escrita** — a spec que a decisão 11 pedia e que ninguém tinha escrito: cancelar pedido vira **estado**, não `DELETE`. Corrige de passagem o site órfão que o `AGENTS.md` registra, e devolve a pílula `Cancelados` que `painel-admin/001` teve de excluir por falta do estado. É a **única migração** de todo este trabalho — aditiva, e com a janela antes de outubro. **Não implementada:** migração em banco com casamento no ar exige `backup:full` e rollback escrito, e isso é decisão de quando, não de código |
 
 ---
 
@@ -225,21 +233,27 @@ pergunta está escrita por inteiro.
 | 8 | O site do casal cresce para 1440? | `site-publico/002` | **Medido.** Recomendação: opção C (assumir a divergência) ou B (largura cheia de verdade) — a opção "trocar o número" foi descartada pela medição |
 | 9 | O casamento legado sai de `/admin` e `/admin/dashboard`? | `painel-admin/002` | Sim, para `/admin/casamento` — **fora da janela do casamento** |
 | 10 | Existe mais de uma pessoa operando o Enlace? | `painel-admin/004` | Se não, adiar G2 inteiro |
-| 11 | Cancelar pedido vira estado em vez de `DELETE`? | `painel-admin/001`, pergunta 1 | Sim, em spec própria — corrige de passagem o site órfão do `AGENTS.md` |
+| 11 | Cancelar pedido vira estado em vez de `DELETE`? | **`painel-casal/013`, escrita em 27/08** | A spec própria que a recomendação pedia. Fechada e pronta; é a **única migração** de todo o trabalho, e a janela é antes de outubro |
 
 ---
 
 ## Impacto em dados — o mapa completo
 
-Nenhuma spec **Pronta** exige migração. Todas as que exigem estão
-**Bloqueadas**, e todas são aditivas.
+**Nenhuma migração foi executada.** Das quatro specs que exigiam mudança de
+schema, três foram rejeitadas ou adiadas e uma (`painel-casal/003`) resolveu-se
+dentro do `jsonb`, sem tocar em coluna.
+
+O que ficou como **pendência aditiva**, com o motivo, está na seção
+"Pendências de dados abertas na execução" mais acima. Todas são
+`add column` nullable — nenhuma apaga, reescreve ou torna obrigatório.
 
 | Spec | Migração | Natureza |
 |---|---|---|
-| `painel-casal/003` | nenhuma | Tipo novo de bloco dentro do `jsonb` de `site_invites.doc` |
-| `site-publico/006` | `guests.email` ou `groups.email` (nullable) | Aditiva, sem backfill, `NOT NULL` nunca |
-| `painel-casal/009` | `users.aviso_prefs jsonb` (nullable) | Aditiva, sem default, sem backfill |
-| `painel-casal/010` | `cron.schedule` **ou** rota protegida | Depende do agendador escolhido |
+| `painel-casal/003` | nenhuma — **feita** | Tipo novo de bloco dentro do `jsonb` de `site_invites.doc` |
+| `site-publico/006` | ~~`guests.email`~~ — **rejeitada** | O produto não passa a coletar e-mail de convidado |
+| `painel-casal/009` | ~~`users.aviso_prefs`~~ — **adiada** | Sem aviso recorrente, não há o que configurar |
+| `painel-casal/010` | `cron.schedule` **ou** rota protegida | **Aberta.** Depende do agendador que o dono escolher |
+| `painel-casal/013` | `ALTER TYPE order_status ADD VALUE 'cancelled'` | **Aditiva pura**, e a única migração escrita. `ADD VALUE` de enum não é reversível: o rollback é não usar o valor |
 | `painel-admin/004` | `admin_groups` + `admins.group_id` (nullable) | Aditiva; `on delete set null`, nunca `cascade` |
 | `painel-admin/001`, pergunta 1 | `ORDER_STATUSES` ganha `cancelled` | Enum aditivo; muda `deleteOrder` para `cancelOrder` |
 

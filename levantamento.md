@@ -3,6 +3,19 @@
 **Fase 1 do trabalho de SDD. Não prescreve solução: só constata fatos.**
 As correções fechadas estão em `specs/`, indexadas em `specs/INDEX.md`.
 
+> ## ⚠ Este documento é um RETRATO de 25/08/2026, não o estado de hoje
+>
+> Ele descreve o repositório **antes** da execução das specs. Os "divergente" e
+> "NOVO" abaixo eram verdade no commit `f10a528`; **25 deles deixaram de ser**
+> entre 26 e 27/08/2026.
+>
+> Ele fica como está de propósito: reescrevê-lo apagaria a linha de base contra
+> a qual cada spec foi escrita, e é ela que explica por que cada requisito
+> existe. Quem quer o estado ATUAL lê `specs/INDEX.md`, que carrega o registro
+> de execução e o status real de cada uma das 30.
+>
+> **Onde os dois discordam, o INDEX vence.**
+
 - **Versão atual auditada:** este repositório, branch `main`, commit `f10a528`,
   em 25/08/2026. Next 16 com `cacheComponents: true`.
 - **Protótipo de referência:** `C:\Users\fande\Downloads\enlace\` — 15 arquivos
