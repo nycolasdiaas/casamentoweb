@@ -81,6 +81,25 @@ const F_CORPO = "Helvetica, Arial, sans-serif";
 const F_DADO = "'Courier New', Courier, monospace";
 
 /**
+ * Texto de pessoa entrando em HTML.
+ *
+ * O nome do casal é digitado por ele, e daqui vai direto para dentro de um
+ * atributo `alt` e de uma célula de tabela. Um `&` já quebra o atributo; aspas
+ * ou `<` quebrariam a mensagem inteira e, no limite, deixariam um casal
+ * escrever marcação no e-mail que a Enlace assina.
+ *
+ * Escapar aqui, e não confiar em cliente de e-mail: o Outlook desenha com o
+ * motor do Word, e o que ele faz com marcação torta não é previsível.
+ */
+function escaparHtml(texto: string): string {
+  return texto
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/**
  * A linha que a caixa de entrada mostra ao lado do assunto.
  *
  * Sem ela o Gmail puxa o começo do cabeçalho — que é o logotipo, ou seja,
@@ -93,7 +112,7 @@ const F_DADO = "'Courier New', Courier, monospace";
  */
 export function preheader(texto: string): string {
   const invisivel = "&#8199;&#65279;".repeat(60); // 60 pares = 120 caracteres
-  return `<div data-preheader="1" style="display:none;font-size:1px;color:${PAPEL};line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden">${texto}${invisivel}</div>`;
+  return `<div data-preheader="1" style="display:none;font-size:1px;color:${PAPEL};line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden">${escaparHtml(texto)}${invisivel}</div>`;
 }
 
 /** O rodapé: quem mandou e de onde. Em mono, como a `t-data` da Prensa. */
@@ -117,13 +136,31 @@ export function rodape(base: string): string {
  * quem lê o e-mail num cliente que engole o link, ou de um aparelho e
  * responde de outro.
  */
-export function button(href: string, label: string): string {
+export function button(
+  href: string,
+  label: string,
+  /**
+   * Repetir o endereço em texto puro logo abaixo (FR-005 de
+   * `design-system/007`). Existe para o DESTINO que o leitor pode querer abrir
+   * de outro jeito — de outro aparelho, de um cliente que engole o link.
+   *
+   * `false` só para botão de AÇÃO, cujo endereço não é um destino que alguém
+   * copiaria: `wa.me/?text=…` colado num navegador não leva a lugar nenhum
+   * útil, e imprimir 140 caracteres de URL escapada abaixo de "Compartilhar no
+   * WhatsApp" é ruído, não acessibilidade.
+   */
+  repetirEndereco = true
+): string {
   return `<table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin:24px 0">
         <tr><td bgcolor="${TINTA}" style="border-radius:2px">
           <a href="${href}" style="display:inline-block;padding:15px 28px;font-family:${F_CORPO};font-size:15px;line-height:20px;font-weight:500;color:#ffffff;text-decoration:none">${label}</a>
         </td></tr>
-      </table>
-      <p style="margin:0 0 8px;font-family:${F_CORPO};font-size:12px;line-height:1.6;color:${TERCIARIO};word-break:break-all">Ou copie e cole: ${href}</p>`;
+      </table>${
+        repetirEndereco
+          ? `
+      <p style="margin:0 0 8px;font-family:${F_CORPO};font-size:12px;line-height:1.6;color:${TERCIARIO};word-break:break-all">Ou copie e cole: ${href}</p>`
+          : ""
+      }`;
 }
 
 /**
@@ -142,12 +179,20 @@ export function layout({
   titulo,
   linhaDaCaixa,
   corpo,
+  antesDoTitulo = "",
   permitirDoisBotoes = false,
 }: {
   titulo: string;
   /** O preheader. Obrigatório de propósito — ver `preheader()`. */
   linhaDaCaixa: string;
   corpo: string;
+  /**
+   * `<tr>` que entram entre o cabeçalho e o título, sem o recuo de 40px do
+   * miolo — a faixa de foto do modelo 04 precisa alcançar as bordas dos
+   * 600px. Vem como linha de tabela e não como bloco solto porque este é o
+   * único jeito de sangrar até a borda num HTML que o Outlook desenha.
+   */
+  antesDoTitulo?: string;
   permitirDoisBotoes?: boolean;
 }): string {
   const botoes = corpo.split(`bgcolor="${TINTA}"`).length - 1;
@@ -169,6 +214,7 @@ export function layout({
         <tr><td style="padding:24px 40px;border-bottom:1px solid ${FIO}">
           <img src="${base}/logo-enlace.png" alt="Enlace" height="26" style="height:26px;width:auto;border:0;display:block">
         </td></tr>
+        ${antesDoTitulo}
         <tr><td style="padding:32px 40px;font-family:${F_CORPO};color:#3d4a36">
           <h1 style="margin:0 0 16px;font-family:${F_DISPLAY};font-size:24px;line-height:1.3;font-weight:400;color:${TINTA}">${titulo}</h1>
           ${corpo}
@@ -196,7 +242,16 @@ export function toPlainText(html: string): string {
     .replace(/<br\s*\/?>/gi, "\n")
     .replace(/<[^>]+>/g, "")
     .replace(/&middot;/g, "·")
-    .replace(/&#8199;|&#65279;/g, "")
+    .replace(/&#8199;|&#65279;|&nbsp;/g, " ")
+    /* As entidades voltam a ser caracteres. Sem isto, um casal chamado
+       "Ana & Pedro" lia "Ana &amp; Pedro" na versão em texto — que é a que
+       alguns clientes mostram. `&amp;` por último, senão `&amp;lt;` viraria
+       `<`. */
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, "&")
     .replace(/\n{3,}/g, "\n\n")
     .replace(/[ \t]+/g, " ")
     .trim();
@@ -280,7 +335,7 @@ export async function sendPreviewReadyEmail(
       titulo: "A prévia está pronta!",
       linhaDaCaixa: "Montamos o site de vocês. Abram para ver como ficou.",
       corpo: `<p style="font-size:14px;line-height:1.6;color:#5a624f">
-        Oi, ${name}! Montamos o site de vocês com o que veio no pedido. Abram
+        Oi, ${escaparHtml(name)}! Montamos o site de vocês com o que veio no pedido. Abram
         para ver como ficou.
       </p>
       ${button(previewUrl, "Ver a prévia do site")}
@@ -309,12 +364,156 @@ export async function sendEmailVerification(
       titulo: "Falta só confirmar o e-mail",
       linhaDaCaixa: "O link vale por 24 horas.",
       corpo: `<p style="font-size:14px;line-height:1.6;color:#5a624f">
-        Oi, ${name}! A conta de vocês na Enlace foi criada. Clique no botão
+        Oi, ${escaparHtml(name)}! A conta de vocês na Enlace foi criada. Clique no botão
         para confirmar que este e-mail é de vocês — é por ele que a gente
         avisa quando a prévia do site ficar pronta. O link vale por 24 horas.
       </p>
       ${button(verifyUrl, "Confirmar meu e-mail")}
       <p style="font-size:12px;color:#a8a39a">Se não foi você quem criou a conta, é só ignorar este e-mail.</p>`,
+    })
+  );
+}
+
+/* ==========================================================================
+   Os dois e-mails do fim do funil — modelos 03 e 04 da prancha de e-mails.
+
+   Eles não existiam, e o buraco era o pior tipo: `publishSiteForOrder` põe o
+   site no ar por três caminhos (SDD §7.2) e NENHUM avisava ninguém. O casal
+   pagava, o site entrava no ar, e ele só descobria se voltasse ao painel por
+   conta própria. Com o webhook do AbacatePay desligado
+   (`ABACATEPAY_WEBHOOK_SECRET` vazio), esse silêncio era o caminho mais
+   provável, não a exceção.
+   ========================================================================== */
+
+/** Data no formato de Voz V5 (`19 Set 2026`), no fuso do SITE. */
+function dataCurta(quando: Date, timezone: string): string {
+  /* O fuso do site e não o do servidor: um pagamento às 22h de 19/09 em
+     Fortaleza vira 20/09 em UTC, e o recibo diria um dia depois do que o
+     extrato do casal diz. */
+  const partes = new Intl.DateTimeFormat("pt-BR", {
+    timeZone: timezone,
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).formatToParts(quando);
+  const p = (t: string) => partes.find((x) => x.type === t)?.value ?? "";
+  const mes = p("month").replace(".", "");
+  return `${p("day")} ${mes.charAt(0).toUpperCase()}${mes.slice(1)} ${p("year")}`;
+}
+
+function linhaDaTabela(rotulo: string, valor: string, forte = false): string {
+  return `<tr>
+            <td style="padding:9px 0;border-bottom:1px solid #e8e2d5;font-family:${F_CORPO};font-size:13px;color:${TERCIARIO}">${rotulo}</td>
+            <td align="right" style="padding:9px 0;border-bottom:1px solid #e8e2d5;font-family:${F_DADO};font-size:${forte ? "16px;font-weight:500" : "13px"};color:${TINTA}">${valor}</td>
+          </tr>`;
+}
+
+/**
+ * Modelo 03 · o recibo.
+ *
+ * Só sai quando o pagamento está confirmado de verdade — publicar por
+ * cortesia pelo admin não gera recibo, porque não houve pagamento e um
+ * "Pagamento confirmado" ali seria mentira com carimbo.
+ */
+export async function sendReciboEmail(
+  to: string,
+  dados: {
+    /** Identificador curto e legível do pedido. */
+    numero: string;
+    pacote: string;
+    total: string;
+    pagoEm: Date;
+    timezone: string;
+    painelUrl: string;
+  }
+): Promise<void> {
+  const quando = `${dataCurta(dados.pagoEm, dados.timezone)} · Pix`;
+
+  await send(
+    to,
+    `Pagamento confirmado · pedido #${dados.numero}`,
+    layout({
+      titulo: "Está tudo certo",
+      linhaDaCaixa: `${dados.total} · ${dados.pacote}. Seu site já está no ar.`,
+      corpo: `<p style="margin:0 0 14px;font-family:${F_DADO};font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#2f6b4f">Pagamento confirmado</p>
+      <p style="font-size:14px;line-height:1.6;color:#5a624f">
+        Recebemos seu pagamento e o site de vocês já está no ar.
+      </p>
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="width:100%;margin:22px 0">
+        ${linhaDaTabela("Pedido", `#${dados.numero}`)}
+        ${linhaDaTabela("Pacote", dados.pacote)}
+        ${linhaDaTabela("Pago em", quando)}
+        ${linhaDaTabela("Total", dados.total, true)}
+      </table>
+      ${button(dados.painelUrl, "Ver meu site")}
+      <p style="font-size:12px;line-height:1.6;color:${TERCIARIO}">
+        Guarde este e-mail como comprovante. Precisa de nota fiscal? Responda
+        esta mensagem.
+      </p>`,
+    })
+  );
+}
+
+/**
+ * Modelo 04 · "o site de vocês está no ar".
+ *
+ * Sem emoji no assunto, contra o artboard. A prancha de Voz V5 é literal:
+ * *"Emoji: só em e-mail para convidado e em texto que o casal escreve. Nunca
+ * em rótulo, botão, estado de erro ou no admin."* Assunto de transacional é
+ * rótulo, e quando a tela e a Fundação discordam a Fundação vence.
+ */
+export async function sendSiteNoArEmail(
+  to: string,
+  dados: {
+    nomes: string;
+    /** Endereço público completo, com protocolo. */
+    siteUrl: string;
+    /** `/f/<id>` absoluto da foto de capa, ou `null`. */
+    capaUrl: string | null;
+  }
+): Promise<void> {
+  const endereco = dados.siteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "");
+  const nomes = escaparHtml(dados.nomes);
+
+  /* Com foto, a faixa; sem foto, o cartão tipográfico em papel — nunca um
+     retângulo quebrado. Mesma queda que o cartão de link já faz
+     (`lib/site/ogImagem.tsx`) e que a prancha I3 escreve.
+
+     Nos dois casos os NOMES são texto de verdade, não pixels: metade dos
+     clientes de e-mail bloqueia imagem por padrão, e a mensagem tem que
+     funcionar inteira sem ela. */
+  const faixa = dados.capaUrl
+    ? `<tr><td style="padding:0;position:relative">
+            <img src="${dados.capaUrl}" alt="Foto de ${nomes}" width="600" height="170" style="display:block;width:100%;height:170px;object-fit:cover;border:0">
+          </td></tr>
+          <tr><td align="center" style="padding:18px 40px 0;font-family:${F_DISPLAY};font-size:26px;color:${TINTA}">${nomes}</td></tr>`
+    : `<tr><td align="center" style="padding:44px 40px;background:${PAPEL};border-bottom:1px solid ${FIO};font-family:${F_DISPLAY};font-size:30px;color:${TINTA}">${nomes}</td></tr>`;
+
+  await send(
+    to,
+    "O site de vocês está no ar",
+    layout({
+      titulo: "Está no ar!",
+      linhaDaCaixa: `${endereco} — hora de compartilhar.`,
+      antesDoTitulo: faixa,
+      corpo: `<p style="font-size:14px;line-height:1.6;color:#5a624f">
+        O site de vocês saiu da prévia. Qualquer pessoa com o endereço abaixo
+        já consegue abrir, confirmar presença e ver a lista de presentes.
+      </p>
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="width:100%;margin:20px 0">
+        <tr><td align="center" style="padding:16px;background:#ffffff;border:1px solid ${FIO};font-family:${F_DADO};font-size:15px;color:${TINTA}">
+          <a href="${dados.siteUrl}" style="color:${TINTA};text-decoration:none">${endereco}</a>
+        </td></tr>
+      </table>
+      ${button(
+        `https://wa.me/?text=${encodeURIComponent(`O site do nosso casamento está no ar: ${dados.siteUrl}`)}`,
+        "Compartilhar no WhatsApp",
+        false
+      )}
+      <p style="font-size:13px;line-height:1.6;color:#5a624f">
+        Ainda dá para editar tudo — fotos, textos e presentes — pelo painel, a
+        qualquer momento.
+      </p>`,
     })
   );
 }

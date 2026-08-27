@@ -1,6 +1,6 @@
 # Spec 011 — E-mails 01 a 04: os transacionais do casal (área: painel-casal)
 
-**Status:** Pronta para implementação — com uma pergunta em aberto no modelo
+**Status:** Implementada (26/08/2026) — o modelo 01 segue como pergunta do dono, e não travou 03 nem 04
 01, que não trava os modelos 03 e 04.
 
 ## Contexto
@@ -184,3 +184,75 @@ escrito por `publishSiteForOrder`.
    junto com as outras duas (custo zero, já está no escopo de `007`) e abrir
    uma frente própria para a verificação, quando o dono decidir que ela vale.
    **Nada disso trava os modelos 03 e 04**, que são o assunto desta spec.
+
+## Notas de implementação
+
+### Uma lacuna real no banco, que a spec não previu
+
+**`orders` não guarda quando o pagamento caiu.** FR-003 pede `Pago em`, e não
+existe coluna `paid_at`: `markOrderPaid` grava `payment_status = 'PAID'` e
+mexe em `updated_at`, mais nada.
+
+O que foi feito, e por que não é invenção: `avisarPublicacao` lê
+`order.updatedAt` **antes** da transação de publicar — que, no caminho do
+pagamento, é exatamente o instante em que `markOrderPaid` escreveu. Depois da
+transação esse valor já seria a hora de publicar, e aí sim seria outra coisa.
+
+O que protege contra o caso ruim: **o recibo só sai com
+`payment_status === "PAID"`**. O admin publica por cortesia com
+`requirePaid: false`, e um "Pagamento confirmado" ali seria mentira com
+carimbo.
+
+**Pendência para o dono:** uma coluna `orders.paid_at` nullable resolveria de
+vez, e é migração aditiva (§13.1: `add column` nullable → backfill →
+verificação). Não entrou aqui porque a spec declara "Impacto em dados:
+Nenhum", e mudar isso por conta própria seria trocar o escopo no meio.
+
+### Correções e decisões
+
+- **`Pix` não é invenção.** `lib/payments/abacatepay.ts` cria toda cobrança
+  com `methods: ["PIX"]`. Toda cobrança do produto é Pix, hoje, por
+  construção.
+
+- **O fuso vem de `site_content.timezone`, não de `sites`.** `sites` não tem
+  fuso; quem tem é o conteúdo, onde o casal escolheu a cidade do casamento —
+  que é o fuso certo para um recibo.
+
+- **`layout()` ganhou `antesDoTitulo`.** A faixa de foto do modelo 04 precisa
+  sangrar até as bordas dos 600px, e o miolo tem 40px de recuo. Entra como
+  `<tr>` porque, num HTML que o Outlook desenha com o motor do Word, linha de
+  tabela é o único jeito de alcançar a borda.
+
+- **`button()` ganhou `repetirEndereco`.** FR-005 de `design-system/007` manda
+  repetir o endereço em texto puro abaixo do botão — regra escrita para um
+  **destino** que o leitor possa abrir de outro jeito. `Compartilhar no
+  WhatsApp` aponta para `wa.me/?text=…`, que colado num navegador não leva a
+  lugar útil: imprimir 140 caracteres de URL escapada ali seria ruído, não
+  acessibilidade. Os outros três e-mails seguem repetindo.
+
+- **Dois defeitos achados de passagem, e corrigidos:**
+  1. **O nome do casal ia cru para dentro do HTML.** Um `&` já quebrava o
+     atributo `alt`; aspas ou `<` quebrariam a mensagem e, no limite,
+     deixariam um casal escrever marcação no e-mail que a Enlace assina.
+     Agora passa por `escaparHtml`, e os dois e-mails que já existiam
+     (`sendPreviewReadyEmail`, `sendEmailVerification`) também.
+  2. **`toPlainText` não decodificava entidade.** Um casal "Ana & Pedro" lia
+     `Ana &amp; Pedro` na versão em texto — que é a que alguns clientes
+     mostram.
+
+## Como cada critério foi conferido
+
+| Critério | Medida |
+|---|---|
+| SC-001 | rótulo `Pagamento confirmado`, tabela de 4 linhas (`Pedido`, `Pacote`, `Pago em`, `Total`), um único `bgcolor="#1a1d21"`, botão `Ver meu site` |
+| SC-002 | com `America/Fortaleza` e pagamento às 22h de 19/09 local (01h de 20/09 em UTC), o recibo diz `19 Set 2026 · Pix` e **não** `20 Set`. Conferido também pelo contrário: em `Europe/Lisbon`, o mesmo instante vira `20 Set 2026` — o fuso é lido de verdade |
+| SC-003 | o assunto passa em `/^[\u0020-\u00ff]+$/`: sem o `💚` do artboard. Voz V5 vence a tela |
+| SC-004 | com capa: `<img src=".../f/abc" alt="Foto de Ana &amp; Pedro">`. Sem capa: nenhum `/f/`, os nomes em `Georgia` sobre `#f2efe7` |
+| SC-005 | `toPlainText` do HTML sem as imagens ainda traz `enlace.test/s/ana-e-pedro`, `Ana & Pedro` e `Está no ar!` |
+| SC-006 | o disparo está dentro de `if (!alreadyPublished)`, depois da transação. A idempotência em si é `publish.test.ts`, que segue verde (11 testes) |
+| SC-007 | três camadas: `after()` roda depois da resposta; o `try/catch` em volta cobre o caso de não haver requisição (teste, script); e cada envio tem catch próprio dentro de `avisarPublicacao` |
+| SC-008 | **teste em arquivo próprio**, com o ambiente carregado vazio (o `.env.local` do repositório traz as duas chaves): `isEmailConfigured()` é falso, o relatório volta `sem-transporte` nos dois, e `sendMail` não é chamado nenhuma vez |
+| SC-009 | nenhum dos dois HTML contém `unsubscribe` nem `parar de receber` |
+| SC-010 | `publish.test.ts` verde; nenhum texto promete prazo |
+| SC-011 | `build`, `lint` e `test` (40 arquivos, 465 testes) |
+| SC-012 | assunto exatamente `O site de vocês está no ar`; preheader termina em `— hora de compartilhar.` |

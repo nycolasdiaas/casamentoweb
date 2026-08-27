@@ -78,7 +78,7 @@ que escreve texto novo tem como saber se errou.
 | 20 | [`painel-casal/006-autosave-do-editor`](painel-casal/006-autosave-do-editor/spec.md) — debounce de 800ms + rascunho local | **Retida ³** | `002`, `design-system/004` | Hoje fechar a aba perde o trabalho |
 | 21 | [`painel-casal/007-painel-de-modelos`](painel-casal/007-painel-de-modelos/spec.md) — a quinta ferramenta | **Bloqueada** | `002` | Decisão: "trocar de modelo" re-tematiza ou refaz? |
 | 22 | [`painel-casal/008-e10-publicar`](painel-casal/008-e10-publicar/spec.md) — E10 sem o checkout | **Pronta** + **CONFLITO** parcial | `design-system/004`, `005` | O checkout embutido foi cancelado pelo dono; o resto é implementável |
-| 23 | [`painel-casal/011-emails-do-casal`](painel-casal/011-emails-do-casal/spec.md) — recibo e "seu site está no ar" | **Pronta ¹** | `design-system/006`, `007` | Hoje o casal paga, o site publica, e ninguém avisa |
+| 23 | [`painel-casal/011-emails-do-casal`](painel-casal/011-emails-do-casal/spec.md) — recibo e "seu site está no ar" | **Implementada** | `design-system/006`, `007` | Hoje o casal paga, o site publica, e ninguém avisa |
 | 24 | [`painel-casal/012-tela-de-geracao`](painel-casal/012-tela-de-geracao/spec.md) — transição #8 | **CONFLITO** | `design-system/006` | O piso de 2,5s do handoff é espera inventada (regras §2.2) |
 | 25 | [`painel-casal/009-preferencias-de-aviso`](painel-casal/009-preferencias-de-aviso/spec.md) — J2 | **Bloqueada** | `011` | Sem e-mail sendo enviado, a tabela não liga nada |
 | 26 | [`painel-casal/010-resumo-semanal`](painel-casal/010-resumo-semanal/spec.md) — J3 | **Bloqueada** | `007`, `011` | Falta agendador; e a §14 decisão 4 do SDD precisa ser reaberta |
@@ -116,6 +116,18 @@ que é justamente a que cai na proibição de §13.1.
 | 26/08/2026 | **`site-publico/003` implementada** — `/pacotes` deixa de redirecionar e vira a proposta que as regras §1 pedem. O ✓/✕ sai de `tierAllowsSection`, provado mudando o gating de verdade e vendo a vitrine mudar sozinha. As três respostas do acordeão passaram pelo agente `regras-de-negocio`. Correções registradas: os rótulos da vitrine não podem vir de `SECTION_LABELS` (é a voz do painel); o Tailwind não gera `border-[1.5px]`; SC-008, SC-010 e SC-014 medem por métodos que não resolvem o que perguntam. 14 testes novos. **Duas perguntas novas para o dono** (renovação do domínio do Para Sempre; tempo no ar dos outros dois) |
 | 26/08/2026 | **`site-publico/005` implementada** — a galeria dos seis estilos, com cor e fonte de cada cartão saindo do `defaultTheme` do molde (trocar o preset muda o cartão sozinho). Corrige o `← Pacotes` do `TemplateChrome`, que apontava para `/` e mentia sobre o destino. Correção registrada: **FR-012 partiu de premissa errada** — o link "Ver todos os estilos" não existe na home, que já mostra os seis; a porta nova foi rotulada pelo que a galeria acrescenta. Fica anotado que a faixa da home ainda pinta por `swatches` escritos à mão — segunda verdade, candidata a spec própria. 14 testes novos. **Onda 2 fechada.** |
 | 26/08/2026 | **`painel-casal/001` implementada** — a aba Convites deixa de ser grade de miniaturas e vira lista de trabalho, com publicar/despublicar/apagar fora do editor (antes, saber o estado de cinco convites custava abrir cinco). Nasceu `contagemDeConvidados`: uma consulta em vez das cinco de `metricasDoSite`. SC-002 provado contra o banco de teste — mexer em `guests.rsvp_status` não muda o número, que sai de `groups.seats_confirmed`. A coluna CONVIDADOS segue fora: não há chave ligando convite a grupo. 22 testes novos |
+| 26/08/2026 | **`painel-casal/011` implementada** — os e-mails 03 (recibo) e 04 ("seu site está no ar") passam a sair de `publishSiteForOrder`, dentro de `after()` e só quando aquela chamada publicou. Antes: o casal pagava, o site entrava no ar e ninguém avisava. **Lacuna nova achada:** `orders` não guarda `paid_at` — o recibo usa `updated_at` lido antes da transação, e o recibo só sai com pagamento confirmado. Coluna `paid_at` nullable é migração aditiva pendente do dono. Dois defeitos corrigidos de passagem: o nome do casal ia cru para dentro do HTML, e `toPlainText` não decodificava entidade. 16 testes novos. **Onda 3 fechada.** |
+
+---
+
+## Pendências de dados abertas na execução
+
+| O quê | Onde apareceu | Por que não entrou |
+|---|---|---|
+| `orders.paid_at` nullable | `painel-casal/011` | O recibo precisa da hora do pagamento e o banco não guarda. Hoje usa `updated_at` lido antes da transação de publicar, que no caminho do pagamento é o instante certo. Migração aditiva; a spec declarava "Impacto em dados: Nenhum" |
+| Quem paga a renovação do domínio do "Para Sempre" | `site-publico/003` | O pacote vende `anaepedro.com.br` por R$ 99,90 uma vez, e registro `.com.br` é anual. Se o casal pagar, "sem mensalidade" ganha asterisco |
+| Por quanto tempo o site de Convite e Site do Casamento fica no ar | `site-publico/003` | Sem resposta, a vitrine fica calada — que é o que ela faz hoje |
+| `site_invites.group_id` nullable | `painel-casal/001` | A coluna CONVIDADOS da tabela de convites depende disso. É migração aditiva **e** decisão de produto: "um convite serve um grupo" muda o sentido de `MAX_CONVITES = 5` num casamento com 23 grupos |
 
 ---
 

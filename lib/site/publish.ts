@@ -1,6 +1,8 @@
+import { after } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { sites, orders } from "@/lib/db/schema";
+import { avisarPublicacao } from "./avisarPublicacao";
 
 // Publicação: o site sai da prévia e vai ao ar.
 //
@@ -97,6 +99,27 @@ export async function publishSiteForOrder(
         .where(eq(orders.id, orderId));
     }
   });
+
+  /* Os dois e-mails do casal (recibo e "está no ar"), e só quando ESTA chamada
+     foi a que publicou.
+
+     A idempotência já existia aqui e agora carrega um peso novo: webhook
+     reenviado e tela recarregada chamam esta função de novo, e sem a guarda o
+     casal receberia o mesmo recibo três vezes. `alreadyPublished` é o mesmo
+     sinal que a transição #6 usa para não repetir a comemoração.
+
+     `after()` porque falar com SMTP é lento e pode falhar, e o site no ar é o
+     produto — o aviso é cortesia. O `try/catch` em volta não é zelo excessivo:
+     `after` exige uma requisição em volta, e esta função também roda em teste
+     e em script, onde ela lançaria. Fora de requisição, publica-se sem avisar,
+     que é exatamente o certo. */
+  if (!alreadyPublished) {
+    try {
+      after(() => avisarPublicacao(orderId));
+    } catch {
+      // Sem requisição em volta (teste, script): publicar continua valendo.
+    }
+  }
 
   return {
     ok: true,
