@@ -163,14 +163,23 @@ describe("a página em volta", () => {
     expect(CODIGO).toContain("buildFullPrompt");
   });
 
-  it("SC-001: três pílulas, e nenhuma escrita Cancelados", () => {
-    // `ORDER_STATUSES` não tem `cancelled`: cancelar chama `deleteOrder` e
-    // APAGA a linha. Uma pílula que só pode mostrar zero é pior que nenhuma.
+  it("SC-001: quatro pílulas — a de Cancelados nasceu com a spec 013", () => {
+    /* Este critério mudou, e a mudança é a história de duas specs.
+    
+       Quando `painel-admin/001` foi escrita, a pílula `Cancelados` do artboard
+       G4 ficou de fora porque `ORDER_STATUSES` não tinha `cancelled`: cancelar
+       chamava `deleteOrder` e APAGAVA a linha, então ela só poderia mostrar
+       zero — e pílula que só mostra zero é pior que pílula nenhuma.
+    
+       A `painel-casal/013` fez cancelar virar estado, pelas razões dela (o site
+       órfão, e a regra 6 da §14 do SDD). Com o estado existindo, a pílula passa
+       a ter o que mostrar, e o "fora de escopo" da 001 caiu junto. */
     expect(CODIGO).toContain('chave: "todos"');
     expect(CODIGO).toContain('chave: "no-ar"');
     expect(CODIGO).toContain('chave: "previa"');
-    expect(CODIGO).not.toContain("Cancelados");
-    expect(CODIGO.split('chave: "').length - 1).toBe(3);
+    expect(CODIGO).toContain('chave: "cancelados"');
+    expect(CODIGO).toContain('estados: ["cancelled"]');
+    expect(CODIGO.split('chave: "').length - 1).toBe(4);
   });
 
   it("SC-010: valor desconhecido em `?estado=` cai em todos, sem erro", () => {

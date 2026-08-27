@@ -55,8 +55,30 @@ export async function submitOrderById(orderId: string) {
 }
 
 /** Cancela = remove o pedido (só permitido antes da produção). */
-export async function deleteOrder(orderId: string) {
-  await db.delete(orders).where(eq(orders.id, orderId));
+/**
+ * Cancelar é MARCAR, não apagar.
+ *
+ * A função que existia aqui, `deleteOrder`, fazia `DELETE FROM orders` — a
+ * única exceção viva à regra 6 da §14 do SDD, *"nada é apagado ou
+ * reescrito"*. Ela saiu, e não ficou exportada sem uso: uma função que apaga
+ * pedido viva no repositório é um convite para alguém chamá-la.
+ *
+ * O que se ganhou apagando o `DELETE`:
+ *
+ * - a operação passa a **ver** o cancelamento (a pílula `Cancelados` de
+ *   `/admin/pedidos` existia no desenho e não tinha o que mostrar);
+ * - o **site órfão some**. Quando o site não pode ser apagado junto —
+ *   publicado, ou com convidados, os dois protegidos por
+ *   `cancelarPedidoComSite` — o `sites.order_id` virava null e o site ficava
+ *   acumulando invisível, como o `AGENTS.md` registrava.
+ *
+ * O casal continua sem ver o pedido: quem filtra é a tela.
+ */
+export async function cancelarOrder(orderId: string) {
+  await db
+    .update(orders)
+    .set({ status: "cancelled", updatedAt: new Date() })
+    .where(eq(orders.id, orderId));
 }
 
 /** Acha o pedido dono de uma cobrança AbacatePay (usado no webhook). */

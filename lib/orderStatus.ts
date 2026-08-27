@@ -8,6 +8,19 @@ export const ORDER_STATUSES = [
   "preview_ready",
   "paid",
   "published",
+  /* Cancelado NÃO é etapa do fluxo, e por isso entra no fim.
+     
+     A ordem deste array é a ordem real do caminho até o site no ar, e mais de
+     um lugar lê posição. Pôr `cancelled` no meio deslocaria índice de coisa
+     que não tem nada a ver com ele.
+     
+     Ele existe porque cancelar APAGAVA a linha do pedido — a única exceção
+     viva à regra 6 da §14 do SDD ("nada é apagado ou reescrito"). O custo
+     disso não era teórico: a operação não conseguia ver um cancelamento nem
+     contar quantos foram, e o site que não podia ser apagado junto (publicado,
+     ou com convidados) ficava órfão, acumulando. Ver
+     `specs/painel-casal/013-cancelar-vira-estado`. */
+  "cancelled",
 ] as const;
 
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
@@ -100,6 +113,20 @@ export const STATUS_META: Record<OrderStatus, StatusMeta> = {
       "Prontinho! O site está publicado e pronto para compartilhar com todo mundo. Parabéns, casal!",
     adminLabel: "Site no ar (finalizado)",
   },
+  /* Cancelado não aparece no acompanhamento do casal — `TRACKER_STEPS` não o
+     inclui, e a lista dele filtra o estado fora. Este texto existe para a
+     operação, em `/admin/pedidos`.
+
+     Sem exclamação e sem emoji: cancelar é uma escolha do casal, e comemorar
+     ou lamentar por ele seria a tela opinando sobre uma decisão que não é
+     dela. */
+  cancelled: {
+    short: "Cancelado",
+    icon: "",
+    title: "Pedido cancelado",
+    description: "Este pedido foi cancelado pelo casal antes do pagamento.",
+    adminLabel: "Cancelado pelo casal",
+  },
 };
 
 /** Índice da etapa no fluxo do tracker (-1 se for rascunho / desconhecido). */
@@ -122,5 +149,8 @@ export function canCancelOrder(status: OrderStatus): boolean {
   //
   // Depois de pago, cancelar deixa de ser um botão e vira conversa de
   // estorno — por isso `paid` e `published` ficam de fora.
-  return status !== "paid" && status !== "published";
+  // E `cancelled` sai também: cancelar duas vezes não é operação.
+  return (
+    status !== "paid" && status !== "published" && status !== "cancelled"
+  );
 }

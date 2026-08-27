@@ -58,6 +58,9 @@ const TOM_DO_STATUS: Record<OrderStatus, TomDaEtiqueta> = {
   preview_ready: "gold",
   paid: "ok",
   published: "noar",
+  /* `neutro`, nunca `danger`. Cancelar é uma escolha do casal, não uma falha —
+     e vermelho numa lista de operação faz o olho parar no que não é problema. */
+  cancelled: "neutro",
 };
 
 export function EtiquetaDoPedido({

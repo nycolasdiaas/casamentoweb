@@ -34,6 +34,10 @@ export const orderStatusEnum = pgEnum("order_status", [
   "preview_ready", // prévia pronta pro casal ver
   "paid", // pagamento confirmado
   "published", // site no ar, pedido finalizado
+  // Cancelado pelo casal antes de pagar. No FIM do enum de propósito: não é
+  // etapa do fluxo, e `ADD VALUE` do Postgres acrescenta no fim de qualquer
+  // jeito. Ver `specs/painel-casal/013-cancelar-vira-estado`.
+  "cancelled",
 ]);
 
 // Contas de administrador da plataforma (uma por pessoa — substitui a

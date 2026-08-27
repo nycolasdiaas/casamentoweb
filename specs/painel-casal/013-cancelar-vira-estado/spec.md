@@ -1,6 +1,6 @@
 # Spec 013 — Cancelar pedido vira estado, não `DELETE` (área: painel-casal)
 
-**Status:** Pronta para implementação — com uma pergunta em aberto que **não**
+**Status:** Implementada (27/08/2026) — migração `0018` aplicada em produção
 trava os requisitos abaixo.
 
 ## Contexto
@@ -169,3 +169,73 @@ casamento.**
    **A recomendação é FR-007 (desaparecer) agora**, porque é o comportamento de
    hoje e não muda nada para quem já usa. Mostrar é aditivo e pode vir depois,
    com dado real de quantos cancelamentos acontecem. **Não trava a spec.**
+
+## Notas de implementação
+
+### O procedimento do `AGENTS.md`, na ordem
+
+1. **`npm run backup:full`** → `backups/full-backup-2026-08-27T21-12-18-055Z.json`
+   (2,2 MB). Contagens no momento: 23 grupos, 31 convidados, 12 pedidos, 17
+   sites, 110 presentes.
+2. **Rollback escrito ANTES**, em `docs/rollback-0017-cancelled.md`, com os três
+   níveis e a verificação de contagens.
+3. **`db:generate`** → `0018_clean_adam_destine.sql`, **uma linha**:
+   `ALTER TYPE "public"."order_status" ADD VALUE 'cancelled';`
+   Varredura por `DROP|DELETE|UPDATE|ALTER COLUMN|NOT NULL` devolveu **0**.
+4. **`db:rehearse`** → *"tabelas novas: nenhuma · tabelas SUMIDAS: nenhuma ·
+   contagens alteradas pela migração: nenhuma · banco voltou ao estado original:
+   true"*.
+5. **`db:migrate`**. `drizzle-kit push` não foi usado em momento nenhum.
+6. **Verificação**: enum com 7 valores e `cancelled` no fim; 12 pedidos
+   (`preview_ready=7 published=2 submitted=3`), **zero `cancelled`**; 23 grupos,
+   31 convidados, 23 `seats_confirmed`, 17 sites — todos idênticos ao backup.
+
+### A correção é para frente, e isso precisa ficar escrito
+
+Depois da migração o banco tem **9 sites com `order_id` nulo**. Eles são o
+casamento legado (que nasceu antes do fluxo de pedidos e nunca teve pedido) mais
+os órfãos que o `deleteOrder` antigo já havia produzido.
+
+**Esses não se consertam.** O pedido deles foi apagado; não existe para onde o
+`order_id` apontar de volta. O que muda a partir de agora é que **nenhum órfão
+novo aparece** — está coberto por dois testes, o de site com convidados e o de
+site já publicado.
+
+### `deleteOrder` não ficou exportada sem uso
+
+FR-005 aceitava as duas saídas. Escolhi a mais forte: a função sumiu, e no lugar
+dela nasceu `cancelarOrder`. Uma função que apaga pedido viva no repositório é
+um convite para alguém chamá-la — e ela era a única exceção à regra 6 da §14.
+
+### O teste precisou limpar o que os outros não limpam
+
+`limparSchemaDeTeste` não apaga `groups` nem `guests`, e está certo em não
+apagar: `groups.site_id` é `onDelete: restrict` justamente para ninguém arrancar
+do ar um `/rsvp/<slug>` sem querer. Como este é o único arquivo que **cria**
+grupo, é ele que limpa o que criou.
+
+### Um critério de outra spec ficou obsoleto, e foi atualizado
+
+`painel-admin/001` SC-001 afirmava *"três pílulas, e nenhuma escrita
+Cancelados"* — correto **porque o estado não existia**. Com ele existindo, o
+teste passou a exigir quatro, e o comentário dele conta a história das duas
+specs. É a mudança que a própria `painel-admin/001` previa na pergunta 1.
+
+## Como cada critério foi conferido
+
+| Critério | Medida |
+|---|---|
+| SC-001 | `ORDER_STATUSES` com 7 valores, `cancelled` no índice 6; `isOrderStatus("cancelled")` verdadeiro |
+| SC-002 | a migração tem só `ADD VALUE`; zero ocorrências de `DROP`, `DELETE`, `UPDATE`, `ALTER COLUMN`, `NOT NULL` |
+| SC-003 | `TRACKER_STEPS` continua com 5, sem `cancelled` |
+| SC-004 | **contra o banco**: pedido sem convidados vira `cancelled` e o site sai, como antes |
+| SC-005 | **contra o banco**: com convidados, o pedido vira `cancelled` e `sites.order_id` continua apontando para ele. Mesma coisa para site já publicado |
+| SC-006 | `grep -rn "deleteOrder("` não devolve chamador nenhum — a função deixou de existir |
+| SC-007 | `canCancelOrder("cancelled")` é `false` |
+| SC-008 | `/conta/pedidos` filtra o estado fora, na página e não no repositório |
+| SC-009 | a quarta pílula existe, mapeando para `["cancelled"]`, com vazio próprio |
+| SC-010 | tom `neutro` — contorno em terciário. **Nunca `danger`**: cancelar é escolha do casal, não falha |
+| SC-011 | **contra o banco**: 3 criados, 1 pago, 1 cancelado → conversão `33%`. O cancelado continua no denominador |
+| SC-012 | `backup:full` rodado antes, rollback escrito antes |
+| SC-013 | `db:rehearse` aprovado; `drizzle-kit push` não usado |
+| SC-014 | `build`, `lint` e `test` (59 arquivos, 688 testes) |

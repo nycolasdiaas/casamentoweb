@@ -20,7 +20,20 @@ export default async function OrdersListPage() {
   const userId = await getSessionUserId();
   if (!userId) redirect("/conta/entrar");
 
-  const orders = await listOrdersByUserId(userId);
+  /* O pedido cancelado sai da lista do casal.
+     
+     Ele existe no banco — cancelar virou estado em vez de `DELETE`, para a
+     operação conseguir ver e para o site não ficar órfão — mas isso é registro
+     da operação, não conteúdo desta tela. O casal clicou em cancelar; a linha
+     continuar aqui seria a tela discutindo com o gesto dele.
+     
+     Filtrado aqui e não na consulta: `listOrdersByUserId` é usada em mais de
+     um lugar, e esconder pedido por padrão numa função de repositório é o tipo
+     de decisão que some do radar. Ver
+     `specs/painel-casal/013-cancelar-vira-estado`, FR-007. */
+  const orders = (await listOrdersByUserId(userId)).filter(
+    (o) => o.status !== "cancelled"
+  );
 
   return (
     <AccountShell active="pedidos">

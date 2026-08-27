@@ -21,21 +21,25 @@ const dateFmt = new Intl.DateTimeFormat("pt-BR", {
 });
 
 /**
- * Os três filtros da operação.
+ * Os quatro filtros da operação.
  *
  * `previa` junta `preview_ready` e `paid` de propósito: do ponto de vista de
  * quem opera, os dois são "prévia pronta, ainda não no ar" — e separá-los
  * criaria uma pílula para um estado que dura minutos.
  *
- * A quarta pílula do artboard, `Cancelados`, fica de fora: `ORDER_STATUSES`
- * não tem `cancelled`, porque cancelar chama `deleteOrder` e APAGA a linha.
- * Uma pílula que só pode mostrar zero é pior que pílula nenhuma. Ver as
- * Perguntas em aberto da spec.
+ * `Cancelados` nasceu com `painel-casal/013`. Ela ficou fora da primeira
+ * versão desta tela porque o estado não existia — cancelar apagava a linha, e
+ * uma pílula que só pode mostrar zero é pior que pílula nenhuma. Agora o
+ * pedido cancelado fica no banco, e a operação consegue vê-lo.
+ *
+ * **A contagem começa do zero.** Os cancelamentos anteriores a 27/08/2026
+ * foram apagados e não voltam — quem comparar meses precisa saber disso.
  */
 const FILTROS = [
   { chave: "todos", rotulo: "Todos", estados: ORDER_STATUSES },
   { chave: "no-ar", rotulo: "No ar", estados: ["published"] },
   { chave: "previa", rotulo: "Prévia", estados: ["preview_ready", "paid"] },
+  { chave: "cancelados", rotulo: "Cancelados", estados: ["cancelled"] },
 ] as const satisfies readonly {
   chave: string;
   rotulo: string;
@@ -198,7 +202,9 @@ async function Lista({
                 ? "Nenhum pedido no ar agora."
                 : filtro.chave === "previa"
                   ? "Nenhum pedido em prévia agora."
-                  : "Nenhum pedido ainda."
+                  : filtro.chave === "cancelados"
+                    ? "Nenhum pedido cancelado."
+                    : "Nenhum pedido ainda."
           }
           acao={
             filtro.chave !== "todos" || termo ? (
