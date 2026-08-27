@@ -31,7 +31,7 @@ const ITENS = [
   { href: "/admin/dashboard", rotulo: "Dashboard" },
   { href: "/admin/pedidos", rotulo: "Pedidos" },
   { href: "/admin/presentes", rotulo: "Presentes" },
-  { href: "/admin", rotulo: "Convidados" },
+  { href: "/admin/casamento", rotulo: "Casamento" },
 ];
 
 export default function AdminNav({ iniciais }: { iniciais: string }) {

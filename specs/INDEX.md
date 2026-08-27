@@ -35,6 +35,13 @@ depois dela.
 | 6 | [`design-system/005-publicar-no-ar`](design-system/005-publicar-no-ar/spec.md) — transição #6 e o sinal `?publicado=1` | **Implementada** | `002` | `painel-casal/008` |
 | 7 | [`design-system/007-casca-de-email`](design-system/007-casca-de-email/spec.md) — tabela de 600px, preheader, botão de tinta | **Implementada** | `006` | `site-publico/006`, `painel-casal/011` |
 
+¹⁰ A `002` fechou na **Opção A** em 27/08/2026: o casamento legado foi
+**movido** (não reescrito) para `/admin/casamento`, e o dashboard ocupou
+`/admin/dashboard`. A janela de congelamento do SDD §13.1 começa em outubro e o
+casamento é 16/10 — cinquenta dias de folga. As contagens do banco foram
+conferidas depois da mudança: 23 grupos, 31 convidados, 23 confirmações,
+intactas.
+
 ⁹ A `007` fechou na **Opção B** em 27/08/2026: o H5 do artboard continua
 recusado (ele afirma que o pagamento "não foi confirmado", e a Enlace não
 observa o Pix), mas a necessidade dele era real e ganhou uma tela que só diz o
@@ -107,7 +114,7 @@ topo de `lib/site/inviteDoc.ts`. Com isso as quatro retidas voltaram a
 |---|---|---|---|---|
 | 27 | [`painel-admin/001-pedidos-como-tabela`](painel-admin/001-pedidos-como-tabela/spec.md) — G4 com filtros e busca | **Implementada** | `design-system/001` | Tira da tela o prompt de LLM do fluxo antigo |
 | 28 | [`painel-admin/003-presentes-entre-casais`](painel-admin/003-presentes-entre-casais/spec.md) — G5 | **Implementada ⁵** | `design-system/001` | O cartão "A repassar" contradiz regras §2.4 e fica fora |
-| 29 | [`painel-admin/002-dashboard-da-operacao`](painel-admin/002-dashboard-da-operacao/spec.md) — G3, e o destino do casamento legado | **Bloqueada** | `design-system/001` | Mexer no endereço da tela que o dono usa exige janela segura (§13.1) |
+| 29 | [`painel-admin/002-dashboard-da-operacao`](painel-admin/002-dashboard-da-operacao/spec.md) — G3, e o destino do casamento legado | **Implementada ¹⁰** | `design-system/001` | Mexer no endereço da tela que o dono usa exige janela segura (§13.1) |
 | 30 | [`painel-admin/004-grupos-e-permissoes`](painel-admin/004-grupos-e-permissoes/spec.md) — G2 | **Bloqueada** | `002` | A pergunta é anterior ao código: existe mais de um operador? |
 
 ⁷ A `007` fechou na **Opção A** em 27/08/2026: trocar de modelo é cor e fonte,
@@ -151,6 +158,7 @@ palavras voltarem.
 | 27/08/2026 | **`painel-casal/007` implementada (Opção A)** — o painel de Modelos do editor de convite. Trocar de modelo troca cor e fonte; a cor que o casal escolheu à mão atravessa intacta, que é o que separa re-tematizar de sobrescrever. Correção registrada: **FR-001 partiu de premissa errada** — não existe "trilha de ferramentas", o painel é uma pilha de seções. As paletas são extraídas no servidor: importar o registry num client component reprova o build por causa do `use cache`. 20 testes novos |
 | 27/08/2026 | **`site-publico/004` implementada (Opção A)** — `/pacotes/exemplo/:pacote` deixa de engolir qualquer coisa: pacote inválido é 404 e válido é 308 para a prévia real, com a faixa EXEMPLO no topo. Nasceu `/comecar`, a rota que decide o destino pela sessão — `CtaPacote` é server component e as prévias são client de ponta a ponta. 9 testes novos |
 | 27/08/2026 | **`site-publico/007` implementada (Opção B)** — o convidado que abre o QR e fecha sem avisar deixa de ficar sem saber o que aconteceu. A tela diz para onde o dinheiro vai, que a Enlace não consegue ver, e que desistir não deixou nada pendurado no nome dele. Texto aprovado pelo `regras-de-negocio` com três trocas de palavra; doze palavras proibidas viraram teste. 12 testes novos |
+| 27/08/2026 | **`painel-admin/002` implementada (Opção A)** — o dono passa a ter número sobre o próprio negócio: pedidos, receita, sites no ar e conversão, com 14 dias de barras e a divisão por pacote. Receita é o valor dos PACOTES e só — presente é dinheiro do casal, e um teste reprova se ele entrar. O casamento legado foi movido para `/admin/casamento` sem uma linha reescrita, e as contagens do banco foram conferidas depois: 23/31/23/23, intactas. 26 testes novos, 15 contra o banco |
 
 ---
 

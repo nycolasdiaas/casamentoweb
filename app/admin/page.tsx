@@ -1,23 +1,17 @@
-import { listGroupsWithGuests } from "@/lib/repositories/groups";
-import { getLegacySiteId } from "@/lib/repositories/sites";
-import { requireAdmin } from "@/lib/auth/requireAdmin";
-import GroupForm from "@/components/admin/GroupForm";
-import GroupList from "@/components/admin/GroupList";
+import { redirect } from "next/navigation";
 
-export default async function AdminPage() {
-  await requireAdmin();
-  const groups = await listGroupsWithGuests(await getLegacySiteId());
-
-  return (
-    <main className="flex-1 flex flex-col gap-8 trilho py-12">
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="t-display text-[26px] leading-none text-(--c-ink)">
-          Gerenciar convidados
-        </h1>
-      </div>
-
-      <GroupForm />
-      <GroupList groups={groups} />
-    </main>
-  );
+/**
+ * `/admin` é a porta, não uma tela.
+ *
+ * Ela mostrava os convidados do casamento legado — o único que existia quando
+ * o painel nasceu. Com a multi-tenancy, a primeira tela do admin passou a ser
+ * a operação inteira, e o casamento ganhou endereço próprio em
+ * `/admin/casamento`.
+ *
+ * 307 e não 308: temporário de propósito. Quando G2 (grupos e permissões)
+ * existir, `/admin` pode voltar a ter conteúdo — e um 308 já teria ensinado o
+ * navegador a nunca mais pedir.
+ */
+export default function AdminRaiz() {
+  redirect("/admin/dashboard");
 }

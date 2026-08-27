@@ -1,6 +1,6 @@
 # Spec 002 — G3: o dashboard da operação, e o destino das telas do casamento legado (área: painel-admin)
 
-**Status:** Bloqueada (ver Perguntas em aberto)
+**Status:** Implementada (27/08/2026) — **Opção A**: o casamento legado ganhou endereço próprio e o dashboard ocupou o dele
 
 ## Contexto
 
@@ -191,3 +191,74 @@ O dashboard só **lê**: `orders`, `sites` e (se necessário) `site_events`.
    que o SDD §6.1 desenhou para isso e que **continua sem escritor** (§15.5).
    A recomendação é somar direto agora e revisitar quando o roll-up existir;
    confirmar que isso é aceitável.
+
+## Decisão registrada — 27/08/2026
+
+**Opção A: mover o casamento legado para `/admin/casamento`.** O dono ganha o
+dashboard que as regras §3 prometem, e o casamento continua inteiro, com um
+endereço próprio e honesto.
+
+**A janela de congelamento não se aplica.** A spec avisa: *"não fazer nada
+disso na semana do casamento"*, e o SDD §13.1 congela mudanças a partir de
+outubro. Hoje é 27/08/2026 e o casamento é 16/10 — cinquenta dias. Feito agora,
+com folga; feito em outubro, seria risco desnecessário.
+
+**Pergunta 2 (RECEITA e CONVERSÃO numa tela sem permissão) respondida pelos
+fatos:** o produto tem **um** papel de operação. `regras-de-negocio.md`
+descreve *"O dono (Anderson)"*, e o repositório tem uma única sessão de admin —
+quem vê a receita É o dono. O modelo de permissão de G2
+(`specs/painel-admin/004`) só passa a ser pré-requisito no dia em que existir
+uma segunda pessoa com acesso.
+
+## Notas de implementação
+
+### O que NÃO foi tocado, e é o mais importante desta spec
+
+As duas telas do casamento legado foram **movidas, não reescritas**: mesmos
+componentes, mesma consulta, mesmo site. Reescrever a tela de um casamento a
+cinquenta dias do dia seria trocar risco por nada.
+
+**Conferido no banco depois da mudança:** 23 grupos, 31 convidados, 23 em
+`guests.rsvp_status`, 23 em `groups.seats_confirmed`. Exatamente os números que
+o `AGENTS.md` §2 registra. Nada mudou.
+
+### `reaisCurtos` trunca, nunca arredonda para cima
+
+`Math.round` transformava R$ 99,90 em `R$ 100` — e um número de receita que erra
+para MAIS é o único tipo de erro que não se pode cometer numa tela onde o dono
+decide. Para menos, ele vê um real a menos do que tem; para mais, conta com
+dinheiro que não existe. Achado por um teste que eu tinha escrito com a
+expectativa errada.
+
+### "Chegou a pago", e não "está pago"
+
+Um pedido pago que publicou tem `status = 'published'`, não `'paid'`. Contar só
+`paid` deixaria de fora justamente as vendas que deram certo — o número cairia
+quanto **melhor** fosse o mês.
+
+### Sem base de comparação, `sem comparação`
+
+`variacao` devolve `null` quando o mês anterior foi zero. Um `+100%` ali seria
+matemática correta e informação falsa.
+
+### Os três pacotes aparecem sempre, mesmo zerados
+
+A ausência de uma barra é informação ("ninguém comprou o Convite este mês"), e
+uma lista que muda de tamanho a cada mês não dá para comparar de relance. Mesma
+razão do piso de 2px nas barras do gráfico: um dia com zero pedidos precisa
+existir na linha de base.
+
+## Como cada critério foi conferido
+
+| Critério | Medida |
+|---|---|
+| SC-001 | os quatro cartões com os rótulos do artboard |
+| SC-002 | **contra o banco**: pedido de R$ 99,90 pago soma R$ 99,90; uma contribuição de presente de R$ 250 **não** muda a receita; pedido `published` conta e pedido não pago não |
+| SC-003 | **contra o banco**: 10 criados e 6 pagos dão `60%`; mês vazio dá `0%`, sem divisão por zero |
+| SC-004 | 14 barras sempre, com os dias parados em zero |
+| SC-005 | os três pacotes, com a proporção somando 100% |
+| SC-006 | as duas telas existem em `/admin/casamento` e `/admin/casamento/confirmacoes`, com os mesmos componentes e a mesma consulta; a barra aponta para o endereço novo |
+| SC-007 | `/admin` chama `redirect("/admin/dashboard")` — 307, e nunca `permanentRedirect`. (Sem sessão, o `curl` mostra o 307 do login, que vem antes) |
+| SC-008 | o dashboard não importa `listGroupsWithGuests` nem o schema; a consulta lê só `orders` e `sites`, e nem `gifts` nem `giftContributions` |
+| SC-009 | `next build` passa; a leitura fica dentro do `<Suspense>` |
+| SC-010 | **conferido no banco**: 23 grupos, 31 convidados, 23 `rsvp_status`, 23 `seats_confirmed` — intactos |
