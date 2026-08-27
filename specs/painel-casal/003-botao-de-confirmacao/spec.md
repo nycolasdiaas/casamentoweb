@@ -1,6 +1,6 @@
 # Spec 003 — E9/F3: o botão de confirmar presença no convite (área: painel-casal)
 
-**Status:** Pronta para implementação
+**Status:** Bloqueada — retida pela decisão pendente de `painel-casal/002` (ver "Retida na execução" no fim)
 
 ## Contexto
 
@@ -168,3 +168,21 @@ novo é uma chave nova dentro do JSON, não uma coluna. Nenhum `doc` existente
 ## Perguntas em aberto
 
 Nenhuma.
+
+## Retida na execução de 26/08/2026
+
+**Não implementada, e a razão não é técnica.** Esta spec declara, no próprio
+campo Dependências, que depende da **decisão** de
+`specs/painel-casal/002-modelo-do-convite` — que segue
+`[CONFLITO COM DECISÃO EXISTENTE — REQUER APROVAÇÃO]`, sem decisão registrada.
+O INDEX diz o mesmo com todas as letras: *"002 destrava 003 a 007"*.
+
+Implementar agora seria escolher a **Opção A** da 002 (o modelo implementado
+vence) em nome do dono. A Opção A é a recomendação escrita e custa zero — mas
+recomendar não é decidir, e a regra de execução é explícita: nenhuma spec com
+conflito aberto entra antes de a decisão estar registrada.
+
+**O que destrava:** uma linha do dono escolhendo A, B ou C na spec 002. Com A
+ou C, esta spec entra como está. Só a Opção B a invalidaria — e a própria 002
+mostra que B cai na proibição de §13.1 (exigiria `UPDATE` em `doc` de convites
+que o casal já desenhou).

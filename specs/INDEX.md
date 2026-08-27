@@ -72,16 +72,22 @@ que escreve texto novo tem como saber se errou.
 |---|---|---|---|---|
 | 15 | [`painel-casal/001-aba-convites`](painel-casal/001-aba-convites/spec.md) — E7, a grade vira lista de trabalho | **Implementada** | `design-system/001`, `003` | A coluna `CONVIDADOS` fica de fora: não há chave ligando convite a grupo |
 | 16 | [`painel-casal/002-modelo-do-convite`](painel-casal/002-modelo-do-convite/spec.md) — `InviteDoc` × handoff §2 | **CONFLITO** | — | **Destrava 003 a 007.** Recomendação: o modelo implementado vence |
-| 17 | [`painel-casal/003-botao-de-confirmacao`](painel-casal/003-botao-de-confirmacao/spec.md) — o convite precisa levar ao RSVP | **Pronta** | `002`, `design-system/006` | Aditivo no `jsonb`; sem migração |
-| 18 | [`painel-casal/004-snap-e-guias`](painel-casal/004-snap-e-guias/spec.md) — encaixe de 6px e guias magenta | **Pronta** | `002` | |
-| 19 | [`painel-casal/005-atalhos-do-editor`](painel-casal/005-atalhos-do-editor/spec.md) — os atalhos de §7 | **Pronta** | `002`, `004` | Fazer junto com `004`: mesmo arquivo de 1.417 linhas |
-| 20 | [`painel-casal/006-autosave-do-editor`](painel-casal/006-autosave-do-editor/spec.md) — debounce de 800ms + rascunho local | **Pronta** | `002`, `design-system/004` | Hoje fechar a aba perde o trabalho |
+| 17 | [`painel-casal/003-botao-de-confirmacao`](painel-casal/003-botao-de-confirmacao/spec.md) — o convite precisa levar ao RSVP | **Retida ³** | `002`, `design-system/006` | Aditivo no `jsonb`; sem migração |
+| 18 | [`painel-casal/004-snap-e-guias`](painel-casal/004-snap-e-guias/spec.md) — encaixe de 6px e guias magenta | **Retida ³** | `002` | |
+| 19 | [`painel-casal/005-atalhos-do-editor`](painel-casal/005-atalhos-do-editor/spec.md) — os atalhos de §7 | **Retida ³** | `002`, `004` | Fazer junto com `004`: mesmo arquivo de 1.417 linhas |
+| 20 | [`painel-casal/006-autosave-do-editor`](painel-casal/006-autosave-do-editor/spec.md) — debounce de 800ms + rascunho local | **Retida ³** | `002`, `design-system/004` | Hoje fechar a aba perde o trabalho |
 | 21 | [`painel-casal/007-painel-de-modelos`](painel-casal/007-painel-de-modelos/spec.md) — a quinta ferramenta | **Bloqueada** | `002` | Decisão: "trocar de modelo" re-tematiza ou refaz? |
 | 22 | [`painel-casal/008-e10-publicar`](painel-casal/008-e10-publicar/spec.md) — E10 sem o checkout | **Pronta** + **CONFLITO** parcial | `design-system/004`, `005` | O checkout embutido foi cancelado pelo dono; o resto é implementável |
 | 23 | [`painel-casal/011-emails-do-casal`](painel-casal/011-emails-do-casal/spec.md) — recibo e "seu site está no ar" | **Pronta ¹** | `design-system/006`, `007` | Hoje o casal paga, o site publica, e ninguém avisa |
 | 24 | [`painel-casal/012-tela-de-geracao`](painel-casal/012-tela-de-geracao/spec.md) — transição #8 | **CONFLITO** | `design-system/006` | O piso de 2,5s do handoff é espera inventada (regras §2.2) |
 | 25 | [`painel-casal/009-preferencias-de-aviso`](painel-casal/009-preferencias-de-aviso/spec.md) — J2 | **Bloqueada** | `011` | Sem e-mail sendo enviado, a tabela não liga nada |
 | 26 | [`painel-casal/010-resumo-semanal`](painel-casal/010-resumo-semanal/spec.md) — J3 | **Bloqueada** | `007`, `011` | Falta agendador; e a §14 decisão 4 do SDD precisa ser reaberta |
+
+³ **Retida**, não bloqueada por si: as quatro estão prontas e a única coisa
+que falta é a decisão da `002`, que segue em conflito aberto. Implementá-las
+escolheria a Opção A (o modelo implementado vence) em nome do dono. Uma linha
+dele em `002` destrava as quatro de uma vez — e só a Opção B as invalidaria,
+que é justamente a que cai na proibição de §13.1.
 
 ---
 
