@@ -231,9 +231,23 @@ export async function markOrderPaid(orderId: string) {
       ? "paid"
       : existing.status;
 
+  const agora = new Date();
+
   const [updated] = await db
     .update(orders)
-    .set({ paymentStatus: "PAID", status: nextStatus, updatedAt: new Date() })
+    .set({
+      paymentStatus: "PAID",
+      status: nextStatus,
+      /* A hora do pagamento, escrita UMA vez.
+      
+         `existing.paidAt ?? agora` e não `agora` direto: esta função é chamada
+         pelos dois caminhos de confirmação (o webhook e a volta do casal do
+         checkout), e o segundo costuma acontecer depois. Sobrescrever moveria
+         a hora do recibo para a segunda chamada, que não é quando o dinheiro
+         entrou. */
+      paidAt: existing.paidAt ?? agora,
+      updatedAt: agora,
+    })
     .where(eq(orders.id, orderId))
     .returning();
   return updated ?? null;

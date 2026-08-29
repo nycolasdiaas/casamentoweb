@@ -90,13 +90,17 @@ export async function avisarPublicacao(
         numero: numeroDoPedido(order.id),
         pacote: pacote?.name ?? order.packageTier,
         total: formatPriceCents(order.priceCents ?? pacote?.priceCents ?? null),
-        /* O momento do pagamento é o melhor valor que o banco tem: `orders`
-           não guarda `paid_at`, e `updatedAt` foi escrito por `markOrderPaid`
-           na confirmação. Ler ANTES da transação de publicar é o que mantém
-           esse valor — depois dela, `updatedAt` já é a hora de publicar.
-           Coluna própria seria migração aditiva; está anotada como pendência
-           no INDEX das specs, não inventada aqui. */
-        pagoEm: order.updatedAt,
+        /* `paid_at` é a hora real, escrita uma vez por `markOrderPaid`
+           (migração `0021`, 28/08/2026).
+        
+           O `?? updatedAt` é para os 13 pedidos anteriores à coluna, que têm
+           `null` e não têm como ser reconstituídos. Para eles vale o que valia
+           antes — e valia por um acidente de ordem: o recibo é montado ANTES
+           da transação que publica, então `updatedAt` ainda era a hora da
+           confirmação. Bastava alguém acrescentar uma escrita em `orders` no
+           meio, ou reenviar um recibo depois, para o comprovante sair errado.
+           É exatamente esse acidente que a coluna aposenta. */
+        pagoEm: order.paidAt ?? order.updatedAt,
         // O fuso é do CONTEÚDO, não do site: é onde o casal escolheu a
         // cidade do casamento.
         timezone: conteudo?.timezone ?? "America/Fortaleza",
