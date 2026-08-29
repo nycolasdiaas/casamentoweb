@@ -36,6 +36,15 @@ const CAMINHOS = {
   chevronDireita: "m9 18 6-6-6-6",
   setaDireita: "M5 12h14m-7-7 7 7-7 7",
   setaEsquerda: "M19 12H5m7-7-7 7 7 7",
+  /* Cima e baixo NÃO estão na prancha, que desenha só `arrow-left`,
+     `arrow-right` e `chevron-down`. Entraram porque o produto reordena em
+     dois eixos — seção sobe e desce no painel, foto anda para os lados — e
+     sem eles a alternativa era gigar `chevronBaixo` 180° no CSS, que produz
+     um ícone com a ponta redonda no lado errado e sai do alinhamento óptico.
+     A geometria é a do Lucide, mesma família das outras quatro. */
+  chevronCima: "m18 15-6-6-6 6",
+  setaCima: "M12 19V5m-7 7 7-7 7 7",
+  setaBaixo: "M12 5v14m7-7-7 7-7-7",
   buscar: "m21 21-4.3-4.3",
   lixeira: "M3 6h18M6 6l1 14h10l1-14M9 6V4h6v2",
   mais: "M12 5v14M5 12h14",

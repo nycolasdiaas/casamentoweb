@@ -6,6 +6,7 @@ import {
   moveSectionAction,
   setSiteVisibilityAction,
 } from "@/app/actions/site-actions";
+import { Icone } from "@/components/ui/prensa";
 
 export type SecaoView = {
   key: string;
@@ -53,7 +54,7 @@ function MoveButtons({
           title="Mover para cima"
           className={classe}
         >
-          ↑
+          <Icone nome="setaCima" tamanho={16} />
         </button>
       </form>
       <form action={descer}>
@@ -67,7 +68,7 @@ function MoveButtons({
           title="Mover para baixo"
           className={classe}
         >
-          ↓
+          <Icone nome="setaBaixo" tamanho={16} />
         </button>
       </form>
     </div>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useActionState } from "react";
 import CascaDeConta from "@/components/account/CascaDeConta";
-import { Botao, Campo } from "@/components/ui/prensa";
+import { Botao, Campo, Icone } from "@/components/ui/prensa";
 import { requestPasswordResetAction } from "@/app/actions/password-reset-actions";
 
 /**
@@ -31,9 +31,12 @@ export default function ForgotPasswordPage() {
         <p className="t-corpo-p text-(--c-ink-2)">
           <Link
             href="/conta/entrar"
-            className="text-(--c-ink) underline underline-offset-4"
+            className="inline-flex items-center gap-1.5 text-(--c-ink)"
           >
-            ← Voltar para entrar
+            <Icone nome="setaEsquerda" tamanho={16} />
+            <span className="underline underline-offset-4">
+              Voltar para entrar
+            </span>
           </Link>
         </p>
       }

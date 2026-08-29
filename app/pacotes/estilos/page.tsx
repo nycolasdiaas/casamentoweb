@@ -9,6 +9,7 @@ import { themeToCssVars, themeFontClassNames } from "@/lib/theme/css";
 import { FONT_STYLES } from "@/lib/customization";
 import AccountNav, { LoggedOutLinks } from "@/components/landing/AccountNav";
 import InterruptorDeMovimento from "@/components/ui/InterruptorDeMovimento";
+import { Icone } from "@/components/ui/prensa";
 
 export const metadata: Metadata = {
   /* O layout raiz põe "| Enlace" pelo `template`. Ver o comentário gêmeo em
@@ -161,8 +162,9 @@ function CartaoDeEstilo({ estilo }: { estilo: TemplateStyle }) {
         <div className="flex flex-col gap-1.5 border-t border-(--c-rule) p-4">
           <p className="t-display text-[19px] leading-none">{estilo.name}</p>
           <p className="meta text-(--c-ink-2)">{estilo.carater}</p>
-          <span className="mt-1 text-[13px] font-medium underline underline-offset-4">
-            Ver →
+          <span className="mt-1 inline-flex items-center gap-1.5 text-[13px] font-medium">
+            <span className="underline underline-offset-4">Ver</span>
+            <Icone nome="setaDireita" tamanho={16} />
           </span>
         </div>
       </Link>

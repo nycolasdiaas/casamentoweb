@@ -26,6 +26,7 @@ import { useConfirmacaoDeEscolha } from "@/components/account/wizard/useConfirma
 import CelebrationScreen from "@/components/account/wizard/CelebrationScreen";
 import { FONT_PREVIEW_CLASS, CATEGORY_PREVIEW_SIZE } from "@/components/account/wizard/fontPreview";
 import { dataPorExtenso } from "@/lib/site/dataLegivel";
+import { Icone } from "@/components/ui/prensa";
 
 /**
  * O pedido como questionário — uma pergunta por tela.
@@ -752,9 +753,10 @@ export default function OrderWizard({
                   type="button"
                   onClick={() => ir(1)}
                   disabled={!etapa.podeAvancar}
-                  className="btn btn-ink"
+                  className="btn btn-ink inline-flex items-center gap-1.5"
                 >
-                  Continuar →
+                  Continuar
+                  <Icone nome="setaDireita" tamanho={16} />
                 </button>
               )}
             </>

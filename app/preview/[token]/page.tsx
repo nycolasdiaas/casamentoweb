@@ -4,6 +4,7 @@ import { getSiteViewByPreviewToken } from "@/lib/repositories/siteView";
 import SiteFromView from "@/components/site/SiteFromView";
 import Link from "next/link";
 import { uiPrensa } from "@/lib/fonts/ui";
+import { Icone } from "@/components/ui/prensa";
 
 /**
  * Prévia privada do site, antes de publicar.
@@ -74,9 +75,12 @@ export default async function PreviewPage({
           </span>
           <Link
             href="/conta/pedidos"
-            className="text-[12.5px] text-white underline underline-offset-4 shrink-0"
+            className="inline-flex shrink-0 items-center gap-1.5 text-[12.5px] text-white"
           >
-            Abrir o painel →
+            <span className="underline underline-offset-4">
+              Abrir o painel
+            </span>
+            <Icone nome="setaDireita" tamanho={16} />
           </Link>
         </div>
       </div>

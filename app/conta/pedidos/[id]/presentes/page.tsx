@@ -94,7 +94,7 @@ export default async function PresentesPage({
         <Aviso
           tom="warn"
           acao={{
-            rotulo: "Cadastrar a chave →",
+            rotulo: "Cadastrar a chave",
             href: `/conta/pedidos/${order.id}/conteudo`,
           }}
         >

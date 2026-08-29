@@ -9,6 +9,7 @@ import { useWeddingDemoState } from "@/components/templates/useWeddingDemoState"
 import { usePackageTier } from "@/components/templates/usePackageTier";
 import { buildDemoPixCode } from "@/lib/demoPix";
 import { DEMO_COUPLE, tierIncludes } from "@/lib/packages";
+import { Icone } from "@/components/ui/prensa";
 
 const serif = Cormorant_Garamond({
   subsets: ["latin"],
@@ -544,10 +545,13 @@ function FilmTemplateInner() {
                     <button
                       type="button"
                       onClick={() => s.setAlbumPreview(true)}
-                      className="mt-6 text-[10.5px] tracking-[0.16em] uppercase underline underline-offset-4"
+                      className="mt-6 inline-flex items-center gap-1.5 text-[10.5px] tracking-[0.16em] uppercase"
                       style={{ color: GOLD_LT }}
                     >
-                      Ver prévia (demonstração) →
+                      <span className="underline underline-offset-4">
+                        Ver prévia (demonstração)
+                      </span>
+                      <Icone nome="setaDireita" tamanho={16} />
                     </button>
                   </div>
                 ) : (

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Icone from "./Icone";
 
 /**
  * A4 · Aviso — a faixa de "falta alguma coisa".
@@ -41,11 +42,19 @@ export default function Aviso({
       <span className="etiqueta-ponto" aria-hidden="true" />
       <p className="aviso-texto flex-1">{children}</p>
       {acao && (
+        /* A seta e do COMPONENTE, nao do rotulo.
+
+           Antes cada chamador escrevia "→" no fim da propria string, e o
+           resultado era uma seta tipografica que nao acompanha peso nem
+           tamanho do icone do resto do sistema — e que some da leitura de
+           tela como um caractere solto. Aqui ela e desenhada uma vez, e todo
+           `Aviso` herda. */
         <Link
           href={acao.href}
-          className="text-[13.5px] font-medium whitespace-nowrap underline underline-offset-4"
+          className="inline-flex items-center gap-1.5 whitespace-nowrap text-[13.5px] font-medium"
         >
-          {acao.rotulo}
+          <span className="underline underline-offset-4">{acao.rotulo}</span>
+          <Icone nome="setaDireita" tamanho={16} />
         </Link>
       )}
     </div>

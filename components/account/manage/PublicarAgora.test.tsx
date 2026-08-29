@@ -56,7 +56,13 @@ describe("SC-001 e SC-002: a faixa", () => {
        lugar onde o dinheiro passa é o pior para se ter dois. O artboard 10.2
        desenha um checkout embutido, e ele foi cancelado pelo dono. */
     montar("para-sempre");
-    const botao = screen.getByRole("link", { name: "Publicar site →" });
+    /* Sem a seta no nome: ela virou <Icone>, que nasce `aria-hidden`.
+
+       O nome acessivel do botao passou de "Publicar site →" para "Publicar
+       site" — que é o que um leitor de tela deveria ter anunciado desde
+       sempre. A seta tipografica era lida como caractere solto no fim da
+       frase. */
+    const botao = screen.getByRole("link", { name: "Publicar site" });
     expect(botao.getAttribute("href")).toBe("#pagar");
     expect(botao.className).toContain("btn-ink");
   });

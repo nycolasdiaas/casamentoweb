@@ -2,6 +2,7 @@
 
 import { NOME_DA_FORMA } from "@/lib/site/inviteShapes";
 import type { Bloco } from "@/lib/site/inviteDoc";
+import { Icone } from "@/components/ui/prensa";
 
 /**
  * As camadas do convite.
@@ -69,7 +70,11 @@ export default function Camadas({
     <div className="surface-raised flex flex-col rounded-[3px]">
       <div className="flex items-center justify-between border-b border-(--c-rule) px-4 py-3">
         <span className="meta text-(--c-ink-2)">Camadas</span>
-        <span className="meta text-[9.5px] text-(--c-ink-2)">frente ↑</span>
+        {/* "frente" é para CIMA na pilha — a seta é o sentido, não enfeite. */}
+        <span className="meta inline-flex items-center gap-1 text-[9.5px] text-(--c-ink-2)">
+          frente
+          <Icone nome="setaCima" tamanho={16} />
+        </span>
       </div>
 
       <ul className="max-h-72 overflow-y-auto">

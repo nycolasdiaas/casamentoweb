@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { movePhotoAction } from "@/app/actions/theme-actions";
+import { Icone } from "@/components/ui/prensa";
 
 export type FotoOrdenavel = {
   id: string;
@@ -43,7 +44,9 @@ function Setas({
           title="Mover para antes"
           className={classe}
         >
-          ←
+          {/* O nome da acao ja esta no `aria-label` e no `title` do botao —
+              o icone e decorativo, e o `Icone` ja nasce `aria-hidden`. */}
+          <Icone nome="setaEsquerda" tamanho={16} />
         </button>
       </form>
       <form action={descer}>
@@ -57,7 +60,7 @@ function Setas({
           title="Mover para depois"
           className={classe}
         >
-          →
+          <Icone nome="setaDireita" tamanho={16} />
         </button>
       </form>
     </div>

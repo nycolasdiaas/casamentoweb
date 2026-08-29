@@ -75,8 +75,12 @@ export default function PublicarAgora({
           </p>
           {/* Âncora, não rota nova: a decisão de pagar já mora no
               `PaymentButton` lá embaixo. */}
-          <a href="#pagar" className="btn btn-ink mt-1 self-start">
-            Publicar site →
+          <a
+            href="#pagar"
+            className="btn btn-ink mt-1 inline-flex items-center gap-1.5 self-start"
+          >
+            Publicar site
+            <Icone nome="setaDireita" tamanho={16} />
           </a>
         </div>
       </div>

@@ -136,9 +136,15 @@ describe("as ligações da galeria", () => {
   });
 
   it("SC-011: o caminho de volta da prévia é a galeria, não a home", () => {
-    const linha = CHROME.split("\n").find((l) => l.includes("← Estilos"));
-    expect(linha).toBeTruthy();
+    /* O rótulo perdeu a seta tipográfica para o `<Icone nome="setaEsquerda">`,
+       mas o que este critério trava não é o desenho da seta: é o DESTINO. O
+       caminho de volta de uma prévia é a galeria, nunca a home. */
+    expect(CHROME).toContain("Estilos");
+    expect(CHROME).toContain('nome="setaEsquerda"');
     expect(CHROME).toContain('href="/pacotes/estilos"');
+    /* O rótulo antigo continua proibido pelo literal exato: ele levava para a
+       home, e é essa volta errada que o critério existe para impedir. Buscar
+       só "Pacotes" daria falso positivo — a barra tem um seletor de pacote. */
     expect(CHROME_CODIGO).not.toContain("← Pacotes");
   });
 

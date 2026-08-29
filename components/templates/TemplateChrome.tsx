@@ -12,6 +12,7 @@ import { TEMPLATE_STYLES, type TemplateStyleId } from "@/lib/templates";
 import type { ReactNode } from "react";
 import RevealOnScroll from "@/components/ui/RevealOnScroll";
 import PaperBackdrop from "@/components/webgl/PaperBackdrop";
+import { Icone } from "@/components/ui/prensa";
 
 gsap.registerPlugin(useGSAP, Flip);
 
@@ -176,10 +177,11 @@ export default function TemplateChrome({
               dentro de um componente de cliente, então a decisão virou rota. */}
           <a
             href="/comecar"
-            className="shrink-0 rounded-[2px] px-3.5 py-1.5 text-[12px] no-underline"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-[2px] px-3.5 py-1.5 text-[12px] no-underline"
             style={{ background: "#ffffff", color: "#1a1d21" }}
           >
-            Criar o meu igual →
+            Criar o meu igual
+            <Icone nome="setaDireita" tamanho={16} />
           </a>
         </div>
       )}
@@ -210,23 +212,62 @@ export default function TemplateChrome({
             2,5 s. */}
         <PaperBackdrop tinta={accent} forca={0.09} />
         {!embutido && (
+        /* ── A barra de troca virou CABECALHO DE VITRINE ──────────────────
+
+           Ate 28/08/2026 ela eram tres linhas empilhadas de pilulas com o
+           preco numa legenda centrada no pe. A critica do desenho foi exata:
+           "parecia um painel de depuracao colado no canto". No celular isso
+           esta certo — a tela e estreita e empilhar e o que cabe. Num monitor
+           nao: ali ela e a moldura da peca que esta a venda.
+
+           A partir de `lg` ela vira UMA linha de 88px: estilos em serifa com
+           fio de 2px no ativo, pacote num controle segmentado a direita, preco
+           ancorado no canto.
+
+           As duas variaveis existem porque o estado ativo mora em `style`
+           inline (a cor vem do molde, em tempo de execucao) e atributo inline
+           ganha de classe utilitaria. Sem elas nao ha como dizer "no
+           widescreen, ignore o fundo solido e pinte so o fio" — a pilula
+           continuaria pintada por baixo. */
         <div
-          className="sticky top-0 z-50 flex flex-col gap-2.5 px-4 py-2.5 text-[11px]"
+          className="sticky top-0 z-50 flex flex-col gap-2.5 px-4 py-2.5 text-[11px] lg:h-[88px] lg:flex-row lg:items-end lg:gap-0 lg:px-12 lg:py-0"
           style={{
             background: cardBg,
             borderBottom: `1px solid ${accent}66`,
             color: ink,
+            ["--cor-ativa" as string]: accent,
+            ["--cor-tinta" as string]: ink,
           }}
         >
-          <div className="flex items-center justify-between gap-2">
+          {/* `lg:contents` e não `lg:hidden`.
+
+              A primeira versão deste cabeçalho escondia esta linha inteira no
+              desktop, porque o desenho de 1920 não desenha nenhuma das duas —
+              e o resultado foi uma prévia sem NENHUMA saída no monitor: nem
+              volta para a galeria, nem entrada para a conta. O desenho é
+              autoridade sobre composição, não sobre navegação; e o caminho de
+              volta aqui já tinha sido consertado uma vez (ver o comentário
+              logo abaixo), então escondê-lo era desfazer um conserto.
+
+              `contents` dissolve o invólucro no widescreen: os dois links
+              viram filhos diretos da barra de 88px e se ancoram nos cantos,
+              em vez de virarem uma quarta linha empilhada. */}
+          <div className="flex items-center justify-between gap-2 lg:contents">
             {/* Para a GALERIA, não para a home. O rótulo diz "Pacotes" e
                 levava para "/" — quem clicava caía na landing inteira e
                 tinha que procurar de onde veio. O caminho de volta de uma
                 prévia é a tela onde se escolhe qual prévia abrir. */}
-            <Link href="/pacotes/estilos" className="underline underline-offset-2">
-              ← Estilos
+            <Link
+              href="/pacotes/estilos"
+              className="inline-flex items-center gap-1.5 underline underline-offset-2 lg:mr-9 lg:pb-[18px] lg:text-[13px] lg:no-underline lg:opacity-60 lg:transition-opacity lg:hover:opacity-100"
+            >
+              <Icone nome="setaEsquerda" tamanho={16} />
+              Estilos
             </Link>
-            <Link href="/conta" className="underline underline-offset-2">
+            <Link
+              href="/conta"
+              className="underline underline-offset-2 lg:order-last lg:ml-9 lg:pb-[18px] lg:text-[13px] lg:no-underline lg:opacity-60 lg:transition-opacity lg:hover:opacity-100"
+            >
               Minha conta
             </Link>
           </div>
@@ -235,12 +276,12 @@ export default function TemplateChrome({
               min-w-0 é essencial: sem ele, um item flex não encolhe abaixo do
               conteúdo e a linha estoura a tela em aparelhos estreitos — a
               rolagem horizontal (overflow-x-auto) é o fallback nesse caso. */}
-          <div className="flex items-center gap-2">
-            <span className="shrink-0 w-9 sm:w-12 tracking-[0.12em] uppercase text-[9px] opacity-55">
+          <div className="flex items-center gap-2 lg:flex-1 lg:items-end lg:gap-9 lg:pb-0">
+            <span className="shrink-0 w-9 sm:w-12 tracking-[0.12em] uppercase text-[9px] opacity-55 lg:w-auto lg:pb-[18px] lg:text-[11px] lg:tracking-[0.14em]">
               Modelo
             </span>
-            <div className="flex-1 min-w-0 overflow-x-auto no-scrollbar">
-              <div className="flex gap-1.5 w-max">
+            <div className="flex-1 min-w-0 overflow-x-auto no-scrollbar lg:flex-none lg:overflow-visible">
+              <div className="flex gap-1.5 w-max lg:items-end lg:gap-[30px]">
                 {TEMPLATE_STYLES.map((t) => {
                   const active = t.id === styleId;
                   return (
@@ -248,7 +289,11 @@ export default function TemplateChrome({
                       key={t.id}
                       href={`/pacotes/estilos/${t.id}?pacote=${tier}`}
                       aria-current={active ? "page" : undefined}
-                      className="shrink-0 whitespace-nowrap text-center leading-tight px-3 py-1.5 rounded-full border transition-colors"
+                      className={`shrink-0 whitespace-nowrap text-center leading-tight px-3 py-1.5 rounded-full border transition-colors lg:rounded-none! lg:border-0! lg:bg-transparent! lg:px-0! lg:py-0! lg:text-[23px] lg:opacity-100! ${
+                        active
+                          ? "lg:border-b-2! lg:border-b-(--cor-ativa)! lg:pb-4! lg:text-(--cor-tinta)!"
+                          : "lg:pb-[18px]! lg:opacity-55!"
+                      }`}
                       style={{
                         background: active ? ink : "transparent",
                         borderColor: active ? ink : `${ink}33`,
@@ -265,12 +310,15 @@ export default function TemplateChrome({
           </div>
 
           {/* Trocar de pacote (muda quais seções aparecem) */}
-          <div className="flex items-center gap-2">
-            <span className="shrink-0 w-9 sm:w-12 tracking-[0.12em] uppercase text-[9px] opacity-55">
+          <div className="flex items-center gap-2 lg:items-center lg:gap-3.5 lg:pb-[14px]">
+            <span className="shrink-0 w-9 sm:w-12 tracking-[0.12em] uppercase text-[9px] opacity-55 lg:w-auto lg:text-[11px] lg:tracking-[0.14em]">
               Pacote
             </span>
-            <div className="flex-1 min-w-0 overflow-x-auto no-scrollbar">
-              <div className="flex gap-1.5 w-max">
+            <div className="flex-1 min-w-0 overflow-x-auto no-scrollbar lg:flex-none lg:overflow-visible">
+              <div
+                className="flex gap-1.5 w-max lg:gap-0 lg:overflow-hidden lg:rounded-[2px] lg:border"
+                style={{ borderColor: `${ink}33` }}
+              >
                 {PACKAGES.map((pkg) => {
                   const active = pkg.tier === tier;
                   return (
@@ -278,7 +326,9 @@ export default function TemplateChrome({
                       key={pkg.tier}
                       type="button"
                       onClick={() => trocarPacote(pkg.tier)}
-                      className="shrink-0 whitespace-nowrap text-center leading-tight px-3 py-1.5 rounded-full border transition-colors"
+                      className={`shrink-0 whitespace-nowrap text-center leading-tight px-3 py-1.5 rounded-full border transition-colors lg:rounded-none! lg:border-0! lg:px-4! lg:py-[9px]! lg:text-[13.5px] lg:opacity-100! ${
+                        active ? "" : "lg:bg-transparent! lg:text-(--cor-tinta)! lg:opacity-70!"
+                      }`}
                       style={{
                         background: active ? accent : "transparent",
                         borderColor: active ? accent : `${ink}33`,
@@ -293,10 +343,26 @@ export default function TemplateChrome({
               </div>
             </div>
           </div>
-          <p className="text-center opacity-70">
+          {/* No celular continua a legenda de sempre, que diz o que a tela e.
+              No widescreen ela se parte em duas: o preco ancorado no canto,
+              como numero, e a frase explicativa sai — a barra inteira ja diz
+              qual estilo e qual pacote, e repetir isso ao lado do preco e o
+              que fazia a linha parecer legenda de depuracao. */}
+          <p className="text-center opacity-70 lg:hidden">
             {PACKAGES.find((pkg) => pkg.tier === tier)?.price} · prévia deste
             pacote no estilo {styleName}
           </p>
+          <div className="hidden lg:mb-[14px] lg:ml-[26px] lg:flex lg:items-center lg:gap-[26px]">
+            <span className="h-[30px] w-px" style={{ background: `${ink}22` }} />
+            <div className="text-right">
+              <div className="text-[18px] leading-none tabular-nums">
+                {PACKAGES.find((pkg) => pkg.tier === tier)?.price}
+              </div>
+              <div className="mt-[5px] text-[11px] tracking-[0.05em] opacity-55">
+                pagamento único
+              </div>
+            </div>
+          </div>
         </div>
         )}
 

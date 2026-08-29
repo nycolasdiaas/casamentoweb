@@ -87,7 +87,9 @@ describe("SC-003 a SC-007: a faixa EXEMPLO", () => {
 
   it("o botão é branco sobre tinta, como o desenho", () => {
     expect(CHROME).toContain('background: "#ffffff", color: "#1a1d21"');
-    expect(CHROME).toContain("Criar o meu igual →");
+    // A seta saiu da string e virou <Icone nome="setaDireita">.
+    expect(CHROME).toContain("Criar o meu igual");
+    expect(CHROME).toContain('nome="setaDireita"');
   });
 });
 

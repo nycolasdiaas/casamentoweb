@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Trilha } from "@/components/ui/prensa";
+import { Icone, Trilha } from "@/components/ui/prensa";
 
 /**
  * Faixa D · a casca do questionário.
@@ -101,9 +101,10 @@ export default function WizardShell({
             <button
               type="button"
               onClick={onVoltar}
-              className="btn btn-quiet btn-sm"
+              className="btn btn-quiet btn-sm inline-flex items-center gap-1.5"
             >
-              <span aria-hidden>←</span> Voltar
+              <Icone nome="setaEsquerda" tamanho={16} />
+              Voltar
             </button>
           ) : (
             <span />
