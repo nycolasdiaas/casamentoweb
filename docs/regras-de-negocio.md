@@ -80,6 +80,24 @@ já está pronta quando o casal lê a frase.
 *Onde vive:* `lib/wizard/etapas.ts`, `lib/site/oQueFalta.ts`,
 `clampThemeFonts` em `lib/theme/`.
 
+### 2.5 Retenção de site fora do ar — EM ABERTO
+
+**Nenhum texto ao casal promete prazo de guarda.** Nem "para sempre", nem "por
+N meses".
+
+Quando um site sai do ar — por decisão do casal ou pelo fim do prazo do pacote
+(spec `site-publico/008`) — nada é apagado: ele vira `archived`, e conteúdo,
+fotos, presentes, grupos e confirmações continuam no banco.
+
+Os avisos por e-mail dizem **"nada foi apagado"**, no passado, descrevendo o
+que aconteceu. Isso é fato. **"Vamos guardar" seria promessa futura**, e um
+prazo escrito criaria a obrigação de apagar dado de casamento — que colide com
+a FR-004 da mesma spec e com a regra 6 da §14 do SDD.
+
+Consultado em 28/08/2026, o dono respondeu *"não sei ainda"*. Enquanto a
+política não existir, o silêncio é o estado seguro: não promete nada e não
+apaga nada.
+
 ### 2.4 O dinheiro do presente é do casal, sempre
 
 - **100% do presente vai para o casal. O Enlace nunca fica no meio.**

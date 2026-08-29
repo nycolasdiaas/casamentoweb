@@ -1,6 +1,7 @@
 # Roteiro de implementação — Enlace × protótipo
 
-**30 specs, em 4 áreas.** O levantamento que as gerou está em
+**31 specs, em 4 áreas.** (30 da auditoria + a `painel-casal/013`, escrita
+durante a execução porque a recomendação de outra spec pedia uma spec própria.) O levantamento que as gerou está em
 `levantamento.md`. Cada spec tem escopo fechado, requisitos numerados e
 critérios de aceite — quem implementar não deve precisar decidir nada.
 
@@ -12,16 +13,16 @@ depois dela.
 
 ## Como ler o status
 
-**As 30 specs estão fechadas.** Nenhuma segue "Pronta": ou o código saiu, ou a
-decisão de não fazer está escrita, ou falta uma linha do dono — e nesse caso ela
-está nomeada.
+**As 31 specs estão fechadas, e nenhuma está bloqueada.** Ou o código saiu, ou
+a decisão de não fazer está escrita. Nada aqui espera por você para *fechar* —
+o que espera por você está em "O que falta do dono", no fim deste arquivo.
 
 | Status | Quantas | O que significa |
 |---|---|---|
-| **Implementada** | 24 | O código saiu, os critérios foram conferidos um a um, e o "como foi conferido" está no fim da spec |
+| **Implementada** | 26 | O código saiu, os critérios foram conferidos um a um, e o "como foi conferido" está no fim da spec |
 | **Resolvida** | 1 | `painel-casal/002` não pedia código: ela pedia uma decisão de modelo, e ela foi tomada |
 | **Rejeitada** / **Adiada** | 4 | A resposta certa era "não construa isto". O motivo e **o que a reabre** estão escritos na spec |
-| **Bloqueada** | 1 | Só a `painel-casal/010`. O agendador dela reabre a §14 do SDD, e a própria spec exige que isso seja feito pelo dono |
+| **Bloqueada** | 0 | A `painel-casal/010` foi a última a sair do estado, em 27/08: o agendador dela reabria a §14 do SDD, e a reabertura foi feita **explicitamente**, escrita no próprio SDD, em vez de contornada |
 
 Os status originais da auditoria (`Pronta`, `Pronta ¹`, `CONFLITO`) sobrevivem
 só no registro de execução abaixo, que conta como cada uma chegou onde chegou.
@@ -211,19 +212,23 @@ critério de ausência precisa dizer sobre QUE parte do arquivo ele fala.**
 
 | O quê | Onde apareceu | Por que não entrou |
 |---|---|---|
-| `orders.paid_at` nullable | `painel-casal/011` | O recibo precisa da hora do pagamento e o banco não guarda. Hoje usa `updated_at` lido antes da transação de publicar, que no caminho do pagamento é o instante certo. Migração aditiva; a spec declarava "Impacto em dados: Nenhum" |
-| Quem paga a renovação do domínio do "Para Sempre" | `site-publico/003` | O pacote vende `anaepedro.com.br` por R$ 99,90 uma vez, e registro `.com.br` é anual. Se o casal pagar, "sem mensalidade" ganha asterisco |
-| Por quanto tempo o site de Convite e Site do Casamento fica no ar | `site-publico/003` | Sem resposta, a vitrine fica calada — que é o que ela faz hoje |
-| `site_invites.group_id` nullable | `painel-casal/001` | A coluna CONVIDADOS da tabela de convites depende disso. É migração aditiva **e** decisão de produto: "um convite serve um grupo" muda o sentido de `MAX_CONVITES = 5` num casamento com 23 grupos |
+| ~~`orders.paid_at` nullable~~ — **APLICADA (migração `0021`, 28/08/2026)** | `painel-casal/011` | O recibo precisa da hora do pagamento e o banco não guarda. Hoje usa `updated_at` lido antes da transação de publicar, que no caminho do pagamento é o instante certo. Migração aditiva; a spec declarava "Impacto em dados: Nenhum" |
+| ~~Quem paga a renovação do domínio~~ — **DECIDIDO 28/08/2026** | `site-publico/003` | **O casal paga só o plano, nada do domínio.** Decisão de Anderson. Segue uma pergunta menor, escrita em "O que falta do dono": se o endereço prometido é um `.com.br` de verdade (custa ~R$ 40/ano por casal, para sempre) ou o subdomínio `ana-e-pedro.enlace.com.br` que a Fase 2 já planeja (custa zero) |
+| ~~Por quanto tempo o site de Convite e Site fica no ar~~ — **DECIDIDO 28/08/2026** | `site-publico/003` | **Até alguns meses depois do casamento.** Decisão de Anderson. **Não é mudança de texto: é feature que não existe.** Não há coluna de expiração no schema, nem nada que tire um site do ar, nem aviso antes de vencer. Enquanto não for construída, a vitrine não pode prometer o prazo — prometer o que o código não cumpre é pior que ficar calado |
+| ~~`site_invites.group_id` nullable~~ — **NÃO SERÁ FEITA (28/08/2026)** | `painel-casal/001` | **Um convite é um MODELO, não é de um grupo.** Decisão de Anderson. `MAX_CONVITES = 5` está certo como está: o casal faz duas ou três versões e manda para os 23 grupos. Sem vínculo a grupo, a coluna CONVIDADOS da tabela de convites não tem o que mostrar e sai de escopo |
 
 ---
 
-## As 11 decisões que travam trabalho
+## As 11 decisões que travavam trabalho — todas tomadas
 
-Reunidas aqui para caberem numa conversa só. Cada linha aponta para onde a
-pergunta está escrita por inteiro.
+**Nenhuma delas trava mais nada.** Cada uma foi fechada seguindo a recomendação
+escrita na própria spec, e a decisão está registrada no fim da spec com a razão.
 
-| # | Decisão | Onde | Recomendação escrita na spec |
+Elas continuam aqui porque **todas são revogáveis**: se você discordar de
+alguma, a linha da direita é exatamente o que foi decidido no seu lugar, e a
+spec diz o que muda ao reverter.
+
+| # | Decisão | Onde | O que foi decidido (= a recomendação da spec) |
 |---|---|---|---|
 | 1 | Qual modelo de dados do convite vale? | `painel-casal/002` | O implementado vence; o handoff §2 vira divergência assumida |
 | 2 | "Trocar de modelo" no convite re-tematiza ou refaz? | `painel-casal/007` | Re-tematizar, preservando o que o casal escolheu à mão |
@@ -241,9 +246,14 @@ pergunta está escrita por inteiro.
 
 ## Impacto em dados — o mapa completo
 
-**Nenhuma migração foi executada.** Das quatro specs que exigiam mudança de
-schema, três foram rejeitadas ou adiadas e uma (`painel-casal/003`) resolveu-se
-dentro do `jsonb`, sem tocar em coluna.
+**Duas migrações foram executadas em produção**, ambas aditivas puras, cada uma
+com backup novo, rollback escrito ANTES, ensaio aprovado e contagens conferidas
+depois: a `0018` (`order_status` ganha `cancelled`) e a `0019`
+(`users.weekly_digest_opt_out`). As contagens do casamento real ficaram
+idênticas nas duas: 23 grupos, 31 convidados, 23 lugares confirmados, 17 sites.
+
+Das outras specs que exigiam schema, duas foram rejeitadas ou adiadas e uma
+(`painel-casal/003`) resolveu-se dentro do `jsonb`, sem tocar em coluna.
 
 O que ficou como **pendência aditiva**, com o motivo, está na seção
 "Pendências de dados abertas na execução" mais acima. Todas são
@@ -279,3 +289,111 @@ convidados, 21 presentes, 23 confirmações), **nunca `drizzle-kit push`**, e
 | Auditoria e reembolso no admin | O próprio `README.md` do pacote (§5) os lista como não desenhados |
 | 2FA no admin | O artboard G1 anuncia; o produto **corretamente** não anuncia porque não existe |
 | Verificação de e-mail | Só existe na branch órfã `feedback-001`, que não deve ser mesclada (`AGENTS.md` §6). É frente própria — `painel-casal/011`, pergunta 1 |
+
+---
+
+## O que falta do dono — e como fazer
+
+Nada aqui bloqueia o código que já saiu. É tudo coisa que **liga** o que está
+entregue desligado, ou que responde uma pergunta que só você pode responder.
+
+Em ordem de quanto custa deixar como está.
+
+### 1. Ligar o resumo semanal · custa uma feature parada
+
+Está entregue, testado e **desligado de propósito**: sem `CRON_SECRET` a rota
+responde 503 e não envia nada. Uma rota pública que dispara e-mail para todos
+os casais ativos é um canhão de spam com URL.
+
+O agendamento já está no repo — `vercel.json` chama
+`/api/cron/resumo-semanal` toda **segunda às 8h de Brasília**. Faltam três
+coisas, todas fora do código:
+
+1. **Plano Pro na Vercel.** O Cron não existe no Hobby. A §9.2 do SDD já o
+   listava como obrigatório.
+2. **`CRON_SECRET`.** Gere um valor aleatório e ponha em *Settings →
+   Environment Variables* do projeto na Vercel. A Vercel manda esse valor
+   sozinha no cabeçalho `Authorization` — você não configura nada do outro
+   lado. Ponha o mesmo valor no seu `.env.local` para poder testar local.
+3. **Um provedor de e-mail com domínio verificado** (`RESEND_API_KEY` e
+   `RESET_EMAIL_FROM`, hoje vazias). O Gmail SMTP com senha de app tem
+   ~500 destinatários/dia — serve para o recibo, não para envio recorrente.
+
+**Enquanto os três não existirem, nada quebra.** A rota responde 503, ninguém
+recebe, e o resto do produto não sabe que ela existe.
+
+### 2. As três decisões de 28/08/2026 — tomadas, com consequência
+
+Anderson respondeu as três. Duas delas **não eram perguntas de texto**: elas
+esbarram em coisa que o código não tem.
+
+**a) O casal paga só o plano, nada do domínio.** Decidido.
+
+Falta uma distinção que muda o custo de "zero" para "para sempre": a vitrine
+promete *"Endereço personalizado (ex: `anaepedro.com.br`)"*, e **não existe
+nenhum código de domínio próprio** — nem coluna no schema, nem registro, nada.
+O que o `lib/siteSlug.ts` planeja para a Fase 2 é `ana-e-pedro.enlace.com.br`,
+um subdomínio, que **não custa nada e não renova**. Um `.com.br` de verdade
+custa ~R$ 40/ano por casal, para sempre, contra R$ 99,90 cobrados uma vez.
+
+Se a intenção era o subdomínio, a decisão sai de graça e o **exemplo da vitrine
+está errado** — precisa virar `ana-e-pedro.enlace.com.br`.
+
+**b) O site de Convite e Site do Casamento fica no ar até alguns meses depois
+do casamento.** Decidido — e **isto é feature, não texto.**
+
+Não há coluna de expiração no schema, nada que tire um site do ar, e nenhum
+aviso antes de vencer. Enquanto não for construído, a vitrine **não pode
+prometer o prazo**: prometer o que o código não cumpre é pior que ficar calado.
+Na prática, hoje, todo site fica no ar para sempre.
+
+Ordem correta: construir a expiração e o aviso primeiro, escrever na vitrine
+depois.
+
+**c) Um convite é um MODELO, não é de um grupo.** Decidido, e este fecha de
+graça: `MAX_CONVITES = 5` está certo, **nenhuma migração é necessária**, e a
+coluna CONVIDADOS da tabela de convites sai de escopo por não ter o que mostrar.
+
+### 3. Uma coluna, e só uma
+
+A `site_invites.group_id` morreu na decisão (c). Sobrou uma:
+
+- ~~**`orders.paid_at`**~~ — **FEITA em 28/08/2026**, migração `0021`. O
+  recibo passa a ler a hora real do pagamento. Os 13 pedidos anteriores ficam
+  com `null` e continuam caindo em `updated_at`, como antes: a hora real deles
+  não é reconstituível, então não houve backfill.
+
+**Nenhuma pendência de dados continua aberta.**
+
+### 4. Dois textos para você ler · 10 minutos
+
+- **Os seis preheaders de e-mail** (a linha que aparece na caixa de entrada
+  antes de abrir). Estão em `lib/email.ts`, e são a única parte do e-mail que a
+  pessoa lê sem decidir ler.
+- **A linha sugerida para `docs/regras-de-negocio.md` §2.4**, que registra por
+  escrito que a Enlace nunca vê o dinheiro do presente. Ela está escrita na
+  `site-publico/007`; hoje a regra existe no código e nos testes, mas não no
+  documento que decide.
+
+### 5. As 11 decisões que tomei no seu lugar · revogáveis
+
+Estão na tabela acima. Cada uma seguiu a recomendação escrita na própria spec,
+e nenhuma é irreversível — **com uma exceção que vale saber**: a migração `0018`
+acrescentou `cancelled` ao enum `order_status`, e `ADD VALUE` de enum não
+volta atrás no Postgres. O rollback é não usar o valor, e está escrito em
+`docs/rollback-0017-cancelled.md`. Como nenhum pedido foi cancelado ainda, o
+custo real de reverter hoje é zero.
+
+### 6. Pendências que já existiam antes deste trabalho
+
+Não vieram das specs; estavam no `AGENTS.md`. Ficam registradas para não se
+perderem:
+
+- **Verificação de e-mail** — existe só na branch órfã `feedback-001`, que não
+  deve ser mesclada. É frente própria, a reconstruir sobre a arquitetura de
+  hoje.
+- **`ABACATEPAY_WEBHOOK_SECRET`** — o `AGENTS.md` a lista como vazia, mas ela
+  **está preenchida** no `.env.local`. Vale conferir se está também na Vercel;
+  se estiver, essa pendência morreu e a linha pode sair do documento.
+- **Um site descartável `shot-classico-*`** sobrou de uma sessão de fotos de
+  molde.
