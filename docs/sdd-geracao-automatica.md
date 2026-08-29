@@ -241,6 +241,39 @@ implementado — o recado do convidado aparece no site assim que é enviado. A
 moderação que a §11 pede continua pendente, e mudou de natureza no caminho:
 deixou de ser risco previsto e virou **escrita pública anônima já no ar**.
 
+**Widescreen — os moldes cresceram para 1920 (28/08/2026).**
+
+O cartão centralizado de 1120px acabou. `specs/site-publico/002` foi reaberta
+e fechada na **Opção B**: `.site-canvas` vai a `lg:max-w-[1920px]`, e cada
+seção decide entre sangrar e ficar no trilho, na própria marcação.
+
+O que destravou foi o que a spec dizia que destravaria — **os cinco desenhos
+que faltavam**. `Enlace - Estilos Completos.dc.html` traz os seis moldes
+inteiros a 1920, e `Enlace - Estilos 1920.dc.html` as seis capas mais o
+cabeçalho de vitrine.
+
+Três coisas dessa passagem valem como regra, e não como história:
+
+1. **O corte da composição larga é `xl` (1280), não `lg` (1024).** Uma capa de
+   duas colunas em `lg` dá 512px por coluna, e o Editorial estourava a página
+   na horizontal com a data em `whitespace-nowrap`. A faixa de 1024 a 1279
+   fica com o desenho de cartão, que é o desenho para o qual ela foi medida.
+2. **O celular é intocável, e `max-xl:` é a ferramenta.** Onde os dois lados
+   pedem alinhamentos diferentes, usa-se `max-xl:` em vez de trocar a classe
+   base — inclusive para escapar de
+   `.site-canvas p[class~="text-center"] { margin-inline: auto }`, que tem
+   especificidade maior que a utilitária e recentralizaria o parágrafo.
+3. **A regra global de `74vh` casa pelo TEXTO da classe.** `xl:aspect-auto`
+   desliga a proporção mas não apaga `aspect-[3/4]` da string, e o seletor
+   `[class*="aspect-"]` continua casando. Foto que deve preencher uma coluna
+   de `100svh` precisa de `xl:max-h-none!` — sem o `!` a utilitária perde.
+
+**O que os desenhos pedem e o banco não tem** segue a mesma regra desta seção:
+a história em duas duplas datadas ("2019 — o encontro", "2025 — o pedido", com
+citação própria em cada) precisaria de um modelo de linha do tempo.
+`site_content.story` é **um** campo de texto livre. Não foi inventado; ficou
+registrado como migração aditiva pendente (§13.1).
+
 ### 4.5 Gating por pacote
 
 Já existe `tierIncludes()` em [lib/packages.ts:85](../lib/packages.ts#L85). Formaliza-se como tabela:

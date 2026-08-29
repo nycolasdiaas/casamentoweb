@@ -116,13 +116,22 @@ export async function Cover({ content, siteId }: SectionProps) {
         )}
       </div>
 
+      {/* A 1920 a capa deixa de ser coluna centrada e ANCORA À ESQUERDA, com a
+          linha de cerimônia/festa/onde no pé — é a composição do desenho.
+
+          O que NÃO veio do desenho: a lavagem diagonal clara com texto escuro.
+          Ela pressupõe uma foto que o desenho escolheu; aqui a foto é a que o
+          casal subir, e o véu escuro logo acima existe justamente porque texto
+          claro sobre foto clara some. Trocar a lógica de contraste pelo gosto
+          de um mockup devolveria o defeito que o véu conserta. Muda a
+          composição, não a identidade. */}
       <div
-        className="relative z-10 mt-auto px-6 pb-14 text-center lg:px-20"
+        className="relative z-10 mt-auto px-6 pb-14 text-center lg:px-20 xl:px-14 xl:pb-20 xl:text-left"
         style={{ color: "var(--paper)" }}
       >
         {content.weddingDateParts && (
           <div
-            className="font-[family-name:var(--font-script)] text-[44px] leading-none lg:text-[70.4px]"
+            className="font-[family-name:var(--font-script)] text-[44px] leading-none lg:text-[70.4px] xl:text-[88px]"
             style={{ color: DOURADO_CLARO }}
           >
             {content.weddingDateParts.day}.{content.weddingDateParts.month}.
@@ -130,13 +139,13 @@ export async function Cover({ content, siteId }: SectionProps) {
           </div>
         )}
 
-        <h1 className="mt-3.5 font-[family-name:var(--font-display)] text-[58px] font-medium leading-[0.98] tracking-[0.02em] uppercase lg:text-[92.8px]">
+        <h1 className="mt-3.5 font-[family-name:var(--font-display)] text-[58px] font-medium leading-[0.98] tracking-[0.02em] uppercase lg:text-[92.8px] xl:text-[128px]">
           {a && b && content.partnerA && content.partnerB ? (
             <>
               {content.partnerA}
               <br />
               <span
-                className="font-[family-name:var(--font-script)] text-[46px] lg:text-[73.6px]"
+                className="font-[family-name:var(--font-script)] text-[46px] lg:text-[73.6px] xl:text-[96px]"
                 style={{ color: DOURADO_CLARO }}
               >
                 &amp;
@@ -145,19 +154,63 @@ export async function Cover({ content, siteId }: SectionProps) {
               {content.partnerB}
             </>
           ) : (
-            <span className="text-[44px] leading-[1.06] lg:text-[70.4px]"><SplitReveal text={content.coupleNames} atraso={260} /></span>
+            <span className="text-[44px] leading-[1.06] lg:text-[70.4px] xl:text-[104px]"><SplitReveal text={content.coupleNames} atraso={260} /></span>
           )}
         </h1>
 
-        <div className="mt-5 flex items-center justify-center gap-3">
-          <span className="h-px w-10" style={{ background: papel(60) }} />
+        <div className="mt-5 flex items-center justify-center gap-3 xl:justify-start">
+          <span className="h-px w-10 xl:w-[120px]" style={{ background: papel(60) }} />
           <span className="text-[10px] tracking-[0.42em] uppercase lg:text-[11px]">Save the Date</span>
-          <span className="h-px w-10" style={{ background: papel(60) }} />
+          <span className="h-px w-10 xl:w-[120px]" style={{ background: papel(60) }} />
         </div>
 
         {(local || content.weddingTimeLabel) && (
-          <div className="mt-4 italic text-[17px] opacity-90 lg:text-[20.4px]">
+          <div className="mt-4 italic text-[17px] opacity-90 lg:text-[20.4px] xl:hidden">
             {[local, content.weddingTimeLabel].filter(Boolean).join(" · ")}
+          </div>
+        )}
+
+        {/* No widescreen a mesma informação deixa de ser uma linha corrida e
+            vira a régua de rótulos do desenho: cada dado com o seu rótulo,
+            espaçados no pé da capa.
+
+            É o MESMO conteúdo do bloco acima — por isso ele ganha `xl:hidden`
+            em vez de os dois aparecerem juntos. Cerimônia, festa e local saem
+            de `content`; o desenho ainda escreve "MMXXVI" e "con tutto il
+            nostro amore", que são assinatura do molde e não dado do casal, e
+            por isso ficam onde já estavam. */}
+        {(local || content.weddingTimeLabel || content.receptionVenue) && (
+          <div className="hidden xl:mt-11 xl:flex xl:flex-wrap xl:items-end xl:gap-x-16 xl:gap-y-6">
+            {content.weddingTimeLabel && (
+              <div>
+                <div className="text-[11px] tracking-[0.32em] uppercase" style={{ color: DOURADO_CLARO }}>
+                  Cerimônia
+                </div>
+                <div className="mt-2 font-[family-name:var(--font-display)] text-[31px]">
+                  {content.weddingTimeLabel}
+                </div>
+              </div>
+            )}
+            {content.receptionVenue && (
+              <div>
+                <div className="text-[11px] tracking-[0.32em] uppercase" style={{ color: DOURADO_CLARO }}>
+                  Festa
+                </div>
+                <div className="mt-2 font-[family-name:var(--font-display)] text-[31px]">
+                  {content.receptionVenue}
+                </div>
+              </div>
+            )}
+            {local && (
+              <div>
+                <div className="text-[11px] tracking-[0.32em] uppercase" style={{ color: DOURADO_CLARO }}>
+                  Onde
+                </div>
+                <div className="mt-2 font-[family-name:var(--font-display)] text-[31px]">
+                  {local}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -169,7 +222,7 @@ export function CountdownSection({ content }: SectionProps) {
   if (!content.weddingDate) return null;
 
   return (
-    <section className="px-8 py-14 lg:py-24" style={{ background: CREME }}>
+    <section className="px-8 xl:px-14 py-14 lg:py-24" style={{ background: CREME }}>
       <div className="text-center mb-8">
         <div className="text-[10px] tracking-[0.4em] uppercase text-(--accent) lg:text-[11px]">
           A contagem começou
@@ -283,7 +336,7 @@ export function Details({ content }: SectionProps) {
   if (!temAlgo) return null;
 
   return (
-    <section className="px-8 py-16 lg:py-28" style={{ background: CREME_FUNDO }}>
+    <section className="px-8 xl:px-14 py-16 lg:py-28" style={{ background: CREME_FUNDO }}>
       <SectionTitle kicker="Quando & onde" title="O grande dia" />
       <div className="flex flex-col gap-4.5">
         {content.ceremonyVenue && (
@@ -332,7 +385,7 @@ export async function Gallery({ siteId }: SectionProps) {
   const [larga, ...resto] = fotos;
 
   return (
-    <section className="px-8 py-16 lg:py-28" style={{ background: CREME_FUNDO }}>
+    <section className="px-8 xl:px-14 py-16 lg:py-28" style={{ background: CREME_FUNDO }}>
       <SectionTitle kicker="Antes do grande dia" title="Nosso pré-wedding" />
 
       <div className="mb-3">
@@ -361,7 +414,7 @@ export async function Gallery({ siteId }: SectionProps) {
 
 export function Rsvp({ slug }: SectionProps) {
   return (
-    <section className="px-8 py-16 lg:py-28" style={{ background: "var(--ink)", color: "var(--paper)" }}>
+    <section className="px-8 xl:px-14 py-16 lg:py-28" style={{ background: "var(--ink)", color: "var(--paper)" }}>
       <div className="text-center mb-6">
         <div className="text-[10px] tracking-[0.4em] uppercase lg:text-[11px]" style={{ color: DOURADO_CLARO }}>
           Confirme com carinho
@@ -396,7 +449,7 @@ export async function Gifts({ siteId, content }: SectionProps) {
   if (gifts.length === 0) return null;
 
   return (
-    <section className="px-8 py-16 lg:py-28" style={{ background: CREME }}>
+    <section className="px-8 xl:px-14 py-16 lg:py-28" style={{ background: CREME }}>
       <SectionTitle kicker="Con affetto" title="Lista de presentes" />
       <p className="mb-6 text-center text-[15px] leading-[1.7] lg:text-[18px]">
         {content.giftMessage ??
@@ -416,7 +469,7 @@ export async function Gifts({ siteId, content }: SectionProps) {
  */
 export async function Guestbook({ siteId, slug }: SectionProps) {
   return (
-    <section className="px-8 py-16 lg:py-28">
+    <section className="px-8 xl:px-14 py-16 lg:py-28">
       <SectionTitle kicker="Com carinho" title="Mural de recados" />
       <Mural
         siteId={siteId}
@@ -437,7 +490,7 @@ export async function Album({ content, siteId }: SectionProps) {
 
 function Vazio({ content }: { content: SectionProps["content"] }) {
   return (
-    <section className="px-8 py-16 lg:py-28" style={{ background: "var(--ink)", color: "var(--paper)" }}>
+    <section className="px-8 xl:px-14 py-16 lg:py-28" style={{ background: "var(--ink)", color: "var(--paper)" }}>
       <SectionTitle kicker="Para matar a saudade" title="Álbum da festa" onDark />
 
       <div className="px-6 py-9 text-center lg:px-20" style={{ border: `1px solid ${papel(28)}` }}>
@@ -482,7 +535,7 @@ export function Footer({ content }: SectionProps) {
 
   return (
     <footer
-      className="text-center px-8 pt-14 pb-12 lg:pb-20"
+      className="text-center px-8 xl:px-14 pt-14 pb-12 lg:pb-20"
       style={{
         background: "color-mix(in srgb, var(--ink) 88%, black)",
         color: "var(--paper)",

@@ -230,3 +230,93 @@ eles a decisão seria minha e não sua.
 do pacote diz 1504 e o artboard é desenhado a 1440 (a largura da janela do
 mockup, moldura de navegador incluída). Os dois números não são o mesmo número,
 e o desenho não diz qual vale para o site do convidado.
+
+---
+
+## Reaberta e fechada na Opção B — 28/08/2026
+
+**Os cinco desenhos chegaram.** A condição que a decisão de 27/08 escreveu —
+*"no dia em que existir F1 para os seis moldes, a Opção B volta à mesa"* —
+foi cumprida por dois arquivos do Claude Design:
+
+- `Enlace - Estilos Completos.dc.html` — **os seis moldes inteiros a 1920**,
+  com os sete blocos de cada um (capa, contagem, história, cerimônia·festa·
+  traje, galeria, álbum trancado, rodapé).
+- `Enlace - Estilos 1920.dc.html` — as seis **capas** a 1920 × 1080, mais o
+  cabeçalho de vitrine.
+
+Não é mais um molde desenhado e cinco supostos. São seis, com paleta, fonte e
+assinatura conferidas contra `TEMPLATE_STYLES` — os hex batem um a um.
+
+**A decisão do dono foi Opção B**, tomada em 28/08/2026.
+
+### O que mudou no código
+
+| Onde | De | Para |
+|---|---|---|
+| `components/site/SiteRenderer.tsx` | `lg:max-w-[1120px]` | `lg:max-w-[1920px]` |
+| `components/site/SiteFromView.tsx` | `lg:max-w-[1120px]` | `lg:max-w-[1920px]` |
+| `components/site/SitePhoto.tsx` | `sizes="… 1120px"` | `sizes="… 1920px"` |
+
+O teto é **1920 e não `none`** de propósito. 1920 é a prancha: é a largura em
+que os seis foram desenhados, e é até ela que existe decisão de desenho. Sem
+teto, num monitor de 2560 a capa de duas colunas do Editorial e a grade
+`2fr 1fr 1fr` da galeria esticariam para uma medida que ninguém compôs — que é
+o mesmo defeito que esta spec apontou na Opção A, do outro lado. Num monitor de
+1920 não sobra um pixel de `--outer`.
+
+### O corte é `xl`, não `lg` — e isso é a correção de um defeito real
+
+A primeira tentativa pôs a capa de duas colunas do Editorial em `lg:`
+(1024px). **Ela estoura.** Metade de 1024 é 512; descontada a margem sobram
+400px para uma linha que tem duas miniaturas e a data inteira lado a lado, e a
+data tem `whitespace-nowrap` — ela sai para fora e rola a página na
+horizontal, reprovando o **SC-004** desta própria spec.
+
+Então a composição de largura cheia entra em **`xl` (1280)**, e a faixa de
+1024–1279 fica com o desenho de cartão que já tinha — que é o desenho para o
+qual ela foi medida, quando o cartão parava em 1120.
+
+### O celular não mudou, e isso é requisito
+
+Toda a recomposição está atrás de `xl:` / `@min-[1400px]:`. Onde um bloco
+precisou de alinhamento diferente nos dois lados, ele usa `max-xl:` em vez de
+trocar a classe base — inclusive para escapar da regra global
+`.site-canvas p[class~="text-center"] { margin-inline: auto }`, que tem
+especificidade maior que a utilitária e recentralizaria o parágrafo que o
+desenho quer na margem. **FR-008 mantido.**
+
+### O que NÃO foi portado dos desenhos, e por quê
+
+§4.4.1 — o que não existe no banco não é transplantado:
+
+- **"DESDE 2019 · Nº 01"** (Editorial, canto da foto de capa) — não há campo
+  de início do relacionamento no modelo.
+- **A segunda dupla da história** ("2025 — o pedido", com citação própria) —
+  `site_content.story` é **um** campo de texto livre. O desenho compõe duas
+  citações datadas, que sairiam de um modelo de linha do tempo que não existe.
+  O Clássico já tinha essa mesma omissão registrada em comentário desde o
+  porte original. **É o único campo de conteúdo que os desenhos pedem e o
+  banco não tem** — fica como migração aditiva pendente (§13.1), não decidida
+  aqui.
+- **"O jardim é de grama — salto fino não é boa ideia"** — nota de traje
+  inventada para o casal fictício. Só `content.dressCode` entra.
+
+### A lavagem clara do Toscana foi recusada, com motivo
+
+O desenho do Toscana troca o véu escuro por uma lavagem diagonal creme com
+texto escuro. **Não foi portada.** Ela pressupõe a foto que o desenho
+escolheu; aqui a foto é a que o casal subir, e o véu escuro existe justamente
+porque texto claro sobre foto clara some. Trocar a lógica de contraste pelo
+enquadramento de um mockup devolveria o defeito que o véu conserta.
+
+O mesmo raciocínio vale para a capa do Editorial: o desenho põe o **nome** como
+peça grande, e o catálogo vende este molde como *"data gigante"*. A composição
+mudou; a hierarquia não. É o que o próprio arquivo do desenho diz — *"o que
+muda é a composição, não a identidade"*.
+
+### Pergunta 3, agora respondida
+
+O número não é 1504 nem 1440: é **1920**, porque é onde os seis moldes foram
+efetivamente desenhados. Os 1504 do `README.md` seguem valendo para a `.trilho`
+da plataforma (marketing, painel), que é outra coisa e continua intacta.

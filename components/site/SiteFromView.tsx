@@ -148,7 +148,7 @@ function EmPreparacao({ view }: { view: SiteView }) {
           abrir o link cedo, e um cartão de 480px encalhado num monitor entrega
           que é estado provisório mal-acabado. */}
       <div
-        className="site-canvas w-full max-w-[480px] lg:max-w-[1120px] flex flex-col items-center justify-center gap-5 px-8 py-20 lg:px-24 lg:py-32 text-center shadow-2xl"
+        className="site-canvas w-full max-w-[480px] lg:max-w-[1920px] flex flex-col items-center justify-center gap-5 px-8 py-20 lg:px-24 lg:py-32 text-center shadow-2xl"
         style={{ background: "var(--paper)", color: "var(--ink)" }}
       >
         <div

@@ -364,6 +364,19 @@ label:has(> .sr-only) {
 }
 
 /* --------------------------------------------------------------------------
+   Foto dentro de link não promete lupa.
+
+   `SitePhoto` marca toda foto com `cursor: zoom-in`, porque o `PhotoLightbox`
+   abre qualquer imagem grande do cartão. Só que ele PULA as que estão dentro
+   de um `<a>` — ali o clique é do link, não da lupa. Sem esta regra o cursor
+   prometeria ampliar e o clique navegaria, que é a pior combinação: o
+   ponteiro mente sobre o que vai acontecer.
+   -------------------------------------------------------------------------- */
+.site-canvas a [data-foto] {
+  cursor: inherit;
+}
+
+/* --------------------------------------------------------------------------
    A revelação na rolagem NÃO mora mais aqui.
    Ela virou coreografia em GSAP ScrollTrigger, em
    components/site/ScrollChoreography.tsx, porque a CSS não escalona os

@@ -102,19 +102,19 @@ export async function Cover({ content, siteId }: SectionProps) {
       </div>
 
       <div
-        className="relative z-10 mt-auto px-7 pb-14 text-center lg:px-24"
+        className="relative z-10 mt-auto px-7 pb-14 text-center lg:px-24 xl:pb-24"
         style={{ color: "var(--paper)" }}
       >
         <div className="flex justify-center mb-1.5">
           <Ornament onDark />
         </div>
 
-        <h1 className="font-[family-name:var(--font-display)] text-[52px] font-medium leading-[0.96] tracking-[0.04em] uppercase lg:text-[83.2px]">
+        <h1 className="font-[family-name:var(--font-display)] text-[52px] font-medium leading-[0.96] tracking-[0.04em] uppercase lg:text-[83.2px] xl:text-[124px]">
           {content.partnerA && content.partnerB ? (
             <>
               {content.partnerA}{" "}
               <span
-                className="font-[family-name:var(--font-script)] text-[52px] normal-case lg:text-[83.2px]"
+                className="font-[family-name:var(--font-script)] text-[52px] normal-case lg:text-[83.2px] xl:text-[124px]"
                 style={{ color: DOURADO_CLARO }}
               >
                 &amp;
@@ -122,12 +122,12 @@ export async function Cover({ content, siteId }: SectionProps) {
               {content.partnerB}
             </>
           ) : (
-            <span className="text-[40px] lg:text-[64px]"><SplitReveal text={content.coupleNames} atraso={260} /></span>
+            <span className="text-[40px] lg:text-[64px] xl:text-[104px]"><SplitReveal text={content.coupleNames} atraso={260} /></span>
           )}
         </h1>
 
         <div
-          className="mt-1 font-[family-name:var(--font-script)] text-[40px] leading-none lg:text-[64px]"
+          className="mt-1 font-[family-name:var(--font-script)] text-[40px] leading-none lg:text-[64px] xl:text-[104px]"
           style={{ color: DOURADO_CLARO }}
         >
           para sempre
@@ -140,7 +140,7 @@ export async function Cover({ content, siteId }: SectionProps) {
         </div>
 
         {content.weddingDateLabel && (
-          <div className="mt-3.5 font-[family-name:var(--font-display)] text-[20px] lg:text-[29px]">
+          <div className="mt-3.5 font-[family-name:var(--font-display)] text-[20px] lg:text-[29px] xl:text-[34px]">
             {[content.weddingDateLabel, content.weddingTimeLabel].filter(Boolean).join(" · ")}
           </div>
         )}
@@ -159,7 +159,7 @@ export function CountdownSection({ content }: SectionProps) {
   if (!content.weddingDate) return null;
 
   return (
-    <section className="px-8 py-14 lg:py-24" style={{ background: CREME }}>
+    <section className="px-8 xl:px-14 py-14 lg:py-24" style={{ background: CREME }}>
       <Head kicker="A contagem começou" title="falta pouco" />
       <Countdown targetDate={content.weddingDate.toISOString()} />
     </section>
@@ -242,7 +242,7 @@ export function Details({ content }: SectionProps) {
   if (itens.length === 0) return null;
 
   return (
-    <section className="px-8 py-16 lg:py-28" style={{ background: CREME }}>
+    <section className="px-8 xl:px-14 py-16 lg:py-28" style={{ background: CREME }}>
       <Head kicker="Quando & onde" title="O grande dia" />
 
       <div className="flex flex-col gap-7">
@@ -324,7 +324,7 @@ export async function Gallery({ siteId }: SectionProps) {
 
 export function Rsvp({ slug }: SectionProps) {
   return (
-    <section className="px-8 py-16 lg:py-28" style={{ background: "var(--ink)", color: "var(--paper)" }}>
+    <section className="px-8 xl:px-14 py-16 lg:py-28" style={{ background: "var(--ink)", color: "var(--paper)" }}>
       <Head kicker="Confirme sua presença" title="você vem?" onDark />
 
       <div className="px-6 py-8 text-center lg:px-20 lg:py-14" style={{ border: `1px solid ${papel(28)}` }}>
@@ -349,7 +349,7 @@ export async function Gifts({ siteId, content }: SectionProps) {
   if (gifts.length === 0) return null;
 
   return (
-    <section className="px-8 py-16 lg:py-28" style={{ background: CREME }}>
+    <section className="px-8 xl:px-14 py-16 lg:py-28" style={{ background: CREME }}>
       <Head kicker="Com carinho" title="Lista de presentes" />
       <p className="mb-6 text-center text-[15px] leading-[1.7] lg:text-[18px]" style={{ color: tinta(85) }}>
         {content.giftMessage ??
@@ -390,7 +390,7 @@ export async function Album({ content, siteId }: SectionProps) {
 
 function Vazio({ content }: { content: SectionProps["content"] }) {
   return (
-    <section className="px-8 py-16 lg:py-28" style={{ background: "var(--ink)", color: "var(--paper)" }}>
+    <section className="px-8 xl:px-14 py-16 lg:py-28" style={{ background: "var(--ink)", color: "var(--paper)" }}>
       <Head kicker="Para matar a saudade" title="Álbum da festa" onDark />
 
       <div className="px-6 py-9 text-center lg:px-20" style={{ border: `1px solid ${papel(28)}` }}>
@@ -424,7 +424,7 @@ export function Footer({ content }: SectionProps) {
 
   return (
     <footer
-      className="px-8 pt-14 pb-12 text-center lg:pb-20"
+      className="px-8 xl:px-14 pt-14 pb-12 text-center lg:pb-20"
       style={{
         background: "color-mix(in srgb, var(--ink) 90%, black)",
         color: "var(--paper)",

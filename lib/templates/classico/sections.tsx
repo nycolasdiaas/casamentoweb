@@ -71,8 +71,18 @@ function GoldFrame({
 }
 
 /** Largura útil do conteúdo no desktop. Texto de 1120px de ponta a ponta é
- *  ilegível; o respiro é que cresce, não a linha. */
-const MIOLO = "mx-auto w-full max-w-[1160px]";
+ *  ilegível; o respiro é que cresce, não a linha.
+ *
+ *  O segundo degrau entrou com a spec 002 (Opção B), quando o cartão virou
+ *  largura cheia: parado em 1160, o trilho deixaria 380px de papel vazio de
+ *  cada lado num monitor de 1920, e o Clássico voltaria a ser o cartão
+ *  centrado que a spec justamente decidiu abandonar. 1760 é a medida do
+ *  desenho — 1920 menos os 80px de respiro de cada lado.
+ *
+ *  O degrau é `@min-[]` e não `lg:` porque quem manda aqui é a largura do
+ *  CARTÃO, não a da janela: dentro do <iframe> de 390px da prévia do painel,
+ *  uma media query leria os 1920 da janela e entregaria o desenho largo. */
+const MIOLO = "mx-auto w-full max-w-[1160px] @min-[1400px]:max-w-[1760px]";
 
 export async function Cover({ content, siteId }: SectionProps) {
   const [a, b] = content.initials ?? [null, null];
@@ -80,7 +90,11 @@ export async function Cover({ content, siteId }: SectionProps) {
 
   return (
     <section
-      className="relative flex min-h-[78svh] items-center justify-center overflow-hidden text-center @min-[900px]:min-h-[88svh]"
+      /* A capa do desenho é uma prancha inteira de 1080px de altura. A partir
+         de 1400 de cartão ela passa a ocupar a janela toda — é a única seção
+         em que o desenho pede a dobra completa, e o que faz a moldura dupla
+         dourada valer como moldura de PÁGINA, não como caixa no meio da tela. */
+      className="relative flex min-h-[78svh] items-center justify-center overflow-hidden text-center @min-[900px]:min-h-[88svh] @min-[1400px]:min-h-[100svh]"
       style={{ background: "var(--outer)", color: "var(--paper)" }}
     >
       {/* Foto sangrando o quadro inteiro. `priority` porque é o LCP. */}
