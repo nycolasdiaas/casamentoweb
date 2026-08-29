@@ -60,15 +60,6 @@ const FEATURES = [
   },
 ];
 
-const COMPARISON: [string, string, string][] = [
-  ["Quem monta o site", "O questionário monta — ele nasce pronto", "Vocês mesmos, arrastando bloco"],
-  ["Design", "Seis estilos, ajustados às cores e fotos de vocês", "Modelo usado por milhares"],
-  ["Taxa sobre os presentes", "0% — Pix direto na conta", "≈ 3,89% sobre cada presente"],
-  ["Em R$ 10.000 de presentes", "R$ 0 de taxa", "≈ R$ 389 de taxa"],
-  ["Suporte", "Atendimento de quem faz o produto", "Central de ajuda"],
-  ["Depois da festa", "Vira álbum permanente (Para Sempre)", "Depende do plano"],
-];
-
 const FAQ: [string, string][] = [
   [
     "Quanto custa e tem mensalidade?",
@@ -271,82 +262,6 @@ export default function PackagesPage() {
         </div>
       </section>
 
-      {/* Faixa de garantias */}
-      <section className="border-b border-(--c-rule) bg-white">
-        <ul className="trilho py-5 flex flex-wrap items-center justify-center gap-x-10 gap-y-2 text-sm text-(--c-ink-2)">
-          <li className="flex items-center gap-2">
-            <span aria-hidden className="text-(--c-ink-2)">✦</span>
-            Nada para instalar
-          </li>
-          <li className="flex items-center gap-2">
-            <span aria-hidden className="text-(--c-ink-2)">✦</span>
-            Prévia pronta antes de pagar
-          </li>
-          <li className="flex items-center gap-2">
-            <span aria-hidden className="text-(--c-ink-2)">✦</span>
-            Edição ilimitada, sempre
-          </li>
-          <li className="flex items-center gap-2">
-            <span aria-hidden className="text-(--c-ink-2)">✦</span>
-            Zero parte técnica para vocês
-          </li>
-        </ul>
-      </section>
-
-      {/* Tudo por nossa conta */}
-      <section className="bg-white">
-        <div className="trilho py-20 flex flex-col gap-10">
-          <div className="flex flex-col gap-3 text-center">
-            <h2 className="t-d1 text-(--c-ink)">
-              Vocês só se preocupam com o casamento
-            </h2>
-            <p className="t-corpo text-(--c-ink-2) max-w-[46ch] mx-auto">
-              Nada de configuração, servidor ou código. Vocês escrevem o
-              conteúdo e escolhem o visual; o resto acontece sozinho.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto w-full">
-            <div className="flex flex-col gap-4 rounded-[3px] border border-(--c-rule) bg-(--c-base) p-8">
-              <p className="meta text-(--c-ink-2)">Vocês fazem</p>
-              <ul className="flex flex-col gap-3 text-sm">
-                {[
-                  "Escolhem o pacote e o estilo",
-                  "Respondem o questionário — só os nomes são obrigatórios",
-                  "Enviam as fotos e ajustam o texto no painel, quando quiserem",
-                ].map((item) => (
-                  <li key={item} className="flex items-start gap-2 leading-snug">
-                    <span aria-hidden className="text-(--c-ink-2)">✦</span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <p className="text-xs text-(--c-ink-2) pt-1">
-                Só isso. Sem reunião, sem orçamento, sem esperar resposta.
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-4 rounded-[3px] bg-(--c-olive) text-white p-8">
-              <p className="meta text-white/60">O site faz</p>
-              <ul className="flex flex-col gap-3 text-sm">
-                {[
-                  "Monta o site inteiro na hora em que vocês terminam",
-                  "Cuida do endereço, da hospedagem e da parte técnica",
-                  "Gera o QR do Pix de vocês na hora, com o valor da cota",
-                  "Cria um link de confirmação para cada família",
-                  "Entra no ar sozinho assim que o pagamento é confirmado",
-                ].map((item) => (
-                  <li key={item} className="flex items-start gap-2 leading-snug">
-                    <span aria-hidden className="text-white/70">✓</span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Estilos e exemplos, unificados */}
       <section id="estilos" className="scroll-mt-20 bg-(--c-base)">
         <div className="trilho py-20 flex flex-col gap-10">
@@ -362,28 +277,6 @@ export default function PackagesPage() {
               os três pacotes em ação, seção por seção.
             </p>
           </div>
-
-          <Link
-            href="/isabelle-e-nycolas"
-            className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-[3px] border border-(--c-rule) bg-white p-5 max-w-2xl mx-auto w-full transition-all hover:shadow-md hover:-translate-y-0.5"
-          >
-            <div className="flex items-center gap-4 min-w-0">
-              <span className="flex items-center justify-center size-12 rounded-full bg-(--c-sunken) font-script text-xl text-(--c-ink-2) shrink-0">
-                I &amp; N
-              </span>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold">
-                  Isabelle &amp; Nycolas
-                </p>
-                <p className="text-xs text-(--c-ink-2)">
-                  Não é exemplo: o site real de um casal, no ar agora
-                </p>
-              </div>
-            </div>
-            <span className="text-xs font-medium text-(--c-ink) underline underline-offset-4 shrink-0">
-              Ver site →
-            </span>
-          </Link>
 
           <ul className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {TEMPLATE_STYLES.map((style) => (
@@ -425,8 +318,9 @@ export default function PackagesPage() {
                   <p className="text-sm text-(--c-ink-2) flex-1">
                     {style.description}
                   </p>
-                  <span className="text-[13px] font-medium text-(--c-ink) underline underline-offset-4">
-                    Ver este estilo →
+                  <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-(--c-ink)">
+                    <span className="underline underline-offset-4">Ver este estilo</span>
+                    <Icone nome="setaDireita" tamanho={16} />
                   </span>
                 </Link>
               </li>
@@ -439,9 +333,12 @@ export default function PackagesPage() {
               paleta de cada estilo lado a lado. O rótulo promete isso. */}
           <Link
             href="/pacotes/estilos"
-            className="text-[13px] font-medium text-(--c-ink) underline underline-offset-4 mx-auto"
+            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-(--c-ink) mx-auto"
           >
-            Comparar fontes e paletas dos seis →
+            <span className="underline underline-offset-4">
+              Comparar fontes e paletas dos seis
+            </span>
+            <Icone nome="setaDireita" tamanho={16} />
           </Link>
         </div>
       </section>
@@ -474,65 +371,6 @@ export default function PackagesPage() {
               </li>
             ))}
           </ul>
-        </div>
-      </section>
-
-      {/* Comparativo */}
-      <section className="bg-(--c-base)">
-        <div className="trilho py-20 flex flex-col gap-10">
-          <div className="flex flex-col gap-3 text-center">
-            <h2 className="t-d1 text-(--c-ink)">
-              &ldquo;Mas tem site grátis por aí…&rdquo;
-            </h2>
-            <p className="t-corpo text-(--c-ink-2) max-w-[46ch] mx-auto">
-              Tem — e ele se paga com uma taxa sobre cada presente que vocês
-              recebem. Compare:
-            </p>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full max-w-3xl mx-auto border-collapse bg-white rounded-[3px] overflow-hidden text-sm">
-              <thead>
-                <tr className="border-b border-(--c-rule)">
-                  <th className="px-5 py-4" />
-                  <th className="text-left px-5 py-4 t-display text-[20px] font-normal text-(--c-ink)">
-                    {SITE_NAME}
-                  </th>
-                  <th className="text-left px-5 py-4 meta text-(--c-ink-2)">
-                    Plataformas &ldquo;grátis&rdquo;
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {COMPARISON.map(([label, us, them], index) => (
-                  <tr
-                    key={label}
-                    className={index % 2 ? "bg-(--c-base)/50" : ""}
-                  >
-                    <td className="px-5 py-3.5 text-(--c-ink-2)">
-                      {label}
-                    </td>
-                    <td className="px-5 py-3.5 font-medium text-(--c-ink)">
-                      <span className="inline-flex items-center gap-2">
-                        <span className="text-(--c-ok) shrink-0">
-                          <Icone nome="check" tamanho={16} />
-                        </span>
-                        {us}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5 text-(--c-ink-2)">
-                      {them}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <p className="text-xs text-(--c-ink-2) text-center max-w-xl mx-auto">
-            Taxa de referência de 3,89% praticada pela principal plataforma
-            gratuita de sites de casamento do Brasil (julho/2026).
-          </p>
         </div>
       </section>
 
