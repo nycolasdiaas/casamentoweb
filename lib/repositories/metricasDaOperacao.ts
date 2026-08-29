@@ -50,6 +50,22 @@ export type MetricasDaOperacao = {
   porPacote: { tier: PackageTier; nome: string; pedidos: number }[];
 };
 
+/**
+ * Chave YYYY-MM-DD no fuso de São Paulo.
+ *
+ * Tem que ser o MESMO fuso do `AT TIME ZONE` da consulta — o defeito que isto
+ * conserta era exatamente os dois lados usando fusos diferentes. Mesma função
+ * que `lib/site/avisos.ts` usa para agrupar por dia, pela mesma razão.
+ */
+function diaDeSaoPaulo(data: Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(data);
+}
+
 const primeiroDoMes = (base: Date, deslocamento = 0) =>
   new Date(base.getFullYear(), base.getMonth() + deslocamento, 1);
 
@@ -97,14 +113,25 @@ export async function metricasDaOperacao(
       /* Agrupado no BANCO, não em memória: com mil pedidos, trazer todas as
          linhas para contar catorze números seria mil linhas na rede para
          devolver catorze. */
+      /* O DIA é o dia de SÃO PAULO, nos dois lados da conta.
+
+         Antes o Postgres agrupava por `date_trunc('day', created_at)` — no
+         fuso da sessão, que é UTC — e o JS montava as chaves dos catorze
+         baldes com `getFullYear/getMonth/getDate`, que é hora local. Das 21h
+         em diante os dois discordam: em Fortaleza ainda é hoje, em UTC já é
+         amanhã. A chave gerada não casava com nenhum balde, e o pedido do fim
+         da noite SUMIA do gráfico — justo no horário em que casal navega.
+
+         Ninguém vê esse defeito acontecer: a barra de hoje simplesmente fica
+         mais baixa do que foi. Foi um teste noturno que o pegou. */
       db
         .select({
-          dia: sql<string>`date_trunc('day', ${orders.createdAt})::date::text`,
+          dia: sql<string>`(${orders.createdAt} AT TIME ZONE 'America/Sao_Paulo')::date::text`,
           n: sql<number>`count(*)::int`,
         })
         .from(orders)
         .where(gte(orders.createdAt, inicioDosDias))
-        .groupBy(sql`date_trunc('day', ${orders.createdAt})`),
+        .groupBy(sql`(${orders.createdAt} AT TIME ZONE 'America/Sao_Paulo')::date`),
 
       db
         .select({ tier: orders.packageTier, n: sql<number>`count(*)::int` })
@@ -119,7 +146,7 @@ export async function metricasDaOperacao(
   const ultimos14 = Array.from({ length: 14 }, (_, i) => {
     const dia = new Date(inicioDosDias);
     dia.setDate(dia.getDate() + i);
-    const chave = `${dia.getFullYear()}-${String(dia.getMonth() + 1).padStart(2, "0")}-${String(dia.getDate()).padStart(2, "0")}`;
+    const chave = diaDeSaoPaulo(dia);
     return { dia, pedidos: contagemPorDia.get(chave) ?? 0 };
   });
 

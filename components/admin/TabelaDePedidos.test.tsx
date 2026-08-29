@@ -159,8 +159,19 @@ describe("a página em volta", () => {
     expect(CODIGO).not.toContain("SITE_BUILD_PROMPT");
     expect(CODIGO).not.toContain("Como gerar o site a partir de um pedido");
     expect(CODIGO).not.toContain("<pre");
-    // `buildFullPrompt` continua alimentando o `OrderCard`, que é outra tela.
-    expect(CODIGO).toContain("buildFullPrompt");
+
+    /* 28/08/2026 — este critério era `toContain("buildFullPrompt")`, porque a
+       função ainda alimentava o `OrderCard`. Não alimenta mais.
+
+       O botão "Copiar prompt + pedido" saiu do card, e com ele o último
+       consumidor: `submitOrderAction` provisiona o site na hora, então não há
+       passo humano para o prompt instruir. Copiá-lo levava a operação de volta
+       ao trabalho manual que a §7 do SDD automatizou.
+
+       A função continua exportada em `lib/buildPrompt.ts` — remover código
+       morto é outra mudança, e `orderToJson` mora no mesmo módulo. O que este
+       caso trava é a TELA: nenhum caminho do admin volta a oferecer o prompt. */
+    expect(CODIGO).not.toContain("buildFullPrompt");
   });
 
   it("SC-001: quatro pílulas — a de Cancelados nasceu com a spec 013", () => {

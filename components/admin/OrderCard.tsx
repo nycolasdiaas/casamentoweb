@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { type OrderStatus } from "@/lib/orderStatus";
-import { EtiquetaDoPedido } from "@/components/ui/prensa";
+import { EtiquetaDoPedido, Icone } from "@/components/ui/prensa";
 import AdminOrderControls from "./AdminOrderControls";
 
 export type AuditEntry = {
@@ -21,11 +21,9 @@ export type AdminOrder = {
   whatsapp: string | null;
   updatedAt: string;
   json: string;
-  fullPrompt: string;
   previewUrl: string | null;
   siteUrl: string | null;
   priceCents: number | null;
-  adminMessage: string | null;
   paymentStatus: string | null;
   defaultPriceCents: number;
   auditLog: AuditEntry[];
@@ -102,8 +100,17 @@ export default function OrderCard({ order }: { order: AdminOrder }) {
           >
             {openManage ? "Fechar" : "Gerenciar"}
           </button>
+          {/* "Copiar JSON" fica: é o que se cola num chamado quando um
+              pedido está estranho, e mostra o pedido inteiro sem interpretar.
+
+              "Copiar prompt + pedido" SAIU. Ele montava um prompt de LLM
+              ensinando alguém a construir o site à mão — o fluxo que a §3 do
+              SDD rejeitou e a §7 automatizou. Desde que `submitOrderAction`
+              provisiona o site na hora, não existe passo humano para o prompt
+              alimentar: copiá-lo levava a operação de volta ao trabalho que a
+              plataforma existe para não fazer. A `TabelaDePedidos` já o tinha
+              removido da tela dela; esta era a última que restava. */}
           <CopyButton label="Copiar JSON" text={order.json} />
-          <CopyButton label="Copiar prompt + pedido" text={order.fullPrompt} />
           <button
             type="button"
             onClick={() => setOpenJson((v) => !v)}
@@ -142,7 +149,15 @@ export default function OrderCard({ order }: { order: AdminOrder }) {
                   <span className="text-(--c-ink-2)">
                     {entry.oldValue ?? "vazio"}
                   </span>{" "}
-                  → {entry.newValue ?? "vazio"}
+                  {/* A seta aqui e o proprio sentido da frase — "de X para Y".
+                      Fica alinhada ao texto com `align-middle`: sem isso o
+                      icone senta na linha de base e desce meio pixel. */}
+                  <Icone
+                    nome="setaDireita"
+                    tamanho={16}
+                    className="inline-block align-middle"
+                  />{" "}
+                  {entry.newValue ?? "vazio"}
                   <span className="text-(--c-ink-2)"> · {entry.when}</span>
                 </li>
               ))}
@@ -158,7 +173,6 @@ export default function OrderCard({ order }: { order: AdminOrder }) {
           previewUrl={order.previewUrl}
           siteUrl={order.siteUrl}
           priceCents={order.priceCents}
-          adminMessage={order.adminMessage}
           paymentStatus={order.paymentStatus}
           defaultPriceCents={order.defaultPriceCents}
         />

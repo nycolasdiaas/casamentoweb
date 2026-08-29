@@ -5,7 +5,7 @@ import { listOrdersWithUsers } from "@/lib/repositories/orders";
 import { listOrderAuditLog } from "@/lib/repositories/orderAudit";
 import { getPackage } from "@/lib/packages";
 import { formatPriceCents } from "@/lib/format";
-import { orderToJson, buildFullPrompt, type OrderForPrompt } from "@/lib/buildPrompt";
+import { orderToJson, type OrderForPrompt } from "@/lib/buildPrompt";
 import { ORDER_STATUSES, type OrderStatus } from "@/lib/orderStatus";
 import OrderCard, { type AdminOrder } from "@/components/admin/OrderCard";
 import TabelaDePedidos, {
@@ -106,11 +106,9 @@ async function Lista({
         whatsapp: order.user.whatsapp,
         updatedAt: dateFmt.format(new Date(order.updatedAt)),
         json: JSON.stringify(orderToJson(forPrompt), null, 2),
-        fullPrompt: buildFullPrompt(forPrompt),
         previewUrl: order.previewUrl,
         siteUrl: order.siteUrl,
         priceCents: order.priceCents,
-        adminMessage: order.adminMessage,
         paymentStatus: order.paymentStatus,
         defaultPriceCents: pkg?.priceCents ?? 0,
         auditLog: auditLog.map((entry) => ({
