@@ -71,3 +71,63 @@ export async function getLegacySiteId(): Promise<string> {
   }
   return site.id;
 }
+
+/**
+ * O modo de acesso e o hash da senha — a consulta que NÃO desce para a árvore.
+ *
+ * Vive separada de `getSiteViewBySlug` de propósito: aquela view é passada
+ * inteira para os componentes do site público, e tudo que um server component
+ * entrega a um filho viaja no payload. O hash da senha precisa ficar aqui,
+ * onde só o servidor lê.
+ *
+ * Sem cache, pela mesma razão de `getSiteOwnedByUser`: é decisão de acesso.
+ * Servir de cache seria conceder entrada com base num estado que o casal pode
+ * ter mudado há um segundo — e a mudança que mais importa é justamente a de
+ * quem acabou de descobrir que a senha vazou.
+ */
+export async function getSiteAccess(slug: string) {
+  const [linha] = await db
+    .select({
+      id: sites.id,
+      accessMode: sites.accessMode,
+      accessPasswordHash: sites.accessPasswordHash,
+    })
+    .from(sites)
+    .where(eq(sites.slug, slug))
+    .limit(1);
+
+  return linha ?? null;
+}
+
+/**
+ * Liga ou desliga a senha do site.
+ *
+ * `senhaHash` só é gravado quando vem — trocar para `password` sem senha nova
+ * mantém a que já existia, que é o que permite ao casal desligar e religar a
+ * proteção sem redigitar.
+ *
+ * Voltar para `public` **apaga o hash**. Guardar a senha de um site que deixou
+ * de ser protegido é guardar segredo que ninguém mais usa, e um dia alguém
+ * religa a proteção sem saber que a senha antiga voltou junto.
+ */
+export async function setSiteAccess(
+  siteId: string,
+  modo: "public" | "password",
+  senhaHash?: string
+) {
+  const [atualizado] = await db
+    .update(sites)
+    .set({
+      accessMode: modo,
+      ...(modo === "public"
+        ? { accessPasswordHash: null }
+        : senhaHash
+          ? { accessPasswordHash: senhaHash }
+          : {}),
+      updatedAt: new Date(),
+    })
+    .where(eq(sites.id, siteId))
+    .returning({ id: sites.id, accessMode: sites.accessMode });
+
+  return atualizado ?? null;
+}

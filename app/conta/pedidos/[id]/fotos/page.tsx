@@ -24,13 +24,14 @@ export default async function FotosPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1.5">
-        <h1 className="text-2xl font-bold tracking-tight">As fotos de vocês</h1>
-        <p className="text-sm leading-relaxed text-(--color-olive)/70">
+      <header className="flex flex-col gap-3">
+        <span className="meta text-(--c-mark)">Fotos</span>
+        <h1 className="t-d2 text-(--c-ink)">As fotos de vocês</h1>
+        <p className="t-corpo text-(--c-ink-2) medida">
           Subam direto daqui — a gente ajusta o tamanho e a orientação sozinho.
           Enquanto um lugar estiver vazio, o site mostra uma imagem de exemplo.
         </p>
-      </div>
+      </header>
 
       {podeSubir ? (
         <PhotoManager
@@ -47,7 +48,7 @@ export default async function FotosPage({
       ) : (
         // Sem SUPABASE_SERVICE_ROLE_KEY o upload fica desligado e nada avisa —
         // ver AGENTS.md. Aqui pelo menos o casal entende por que o painel sumiu.
-        <p className="rounded-2xl border border-(--color-gold)/40 bg-white p-6 text-sm leading-relaxed text-(--color-olive)/70">
+        <p className="rounded-[3px] border border-(--c-rule) bg-white p-6 text-sm leading-relaxed text-(--c-ink-2)">
           {site === null
             ? "O site de vocês ainda está sendo montado. Assim que a prévia ficar pronta, o envio de fotos abre aqui."
             : "O envio de fotos está temporariamente indisponível. Mandem as fotos pelo WhatsApp que a gente sobe para vocês."}

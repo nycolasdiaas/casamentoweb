@@ -23,6 +23,27 @@
  * `parseInviteDoc` descarta o bloco inválido em vez de recusar o convite
  * inteiro: perder um bloco é um convite estranho, que o casal conserta;
  * recusar o documento é o casal perder o trabalho todo.
+ *
+ * ── O modelo do HANDOFF §2 NÃO foi adotado, e é decisão fechada ────────────
+ *
+ * `HANDOFF-editor-convite.md` §2 prescreve outro modelo — `elements` em vez de
+ * `blocos`, `x/y/w/h` em px, `canvas` em mm @96dpi, `h` explícito em todo
+ * elemento. Ele não vale aqui, e a divergência é assumida (decisão de
+ * 27/08/2026, Opção A de `specs/painel-casal/002-modelo-do-convite`):
+ *
+ * | Handoff §2 | Aqui | Por quê |
+ * |---|---|---|
+ * | `x/y/w/h` em px | `x/y/w` em fração | o editor roda em área que muda de tamanho; px acerta uma tela e erra as outras |
+ * | `canvas` em mm @96dpi | `largura`/`altura` em px, 1080×1350 | o convite viaja por WhatsApp e Instagram, não pela gráfica |
+ * | `h` explícito | `proporcao` em foto e forma; texto reflui | altura fixa em texto quebra ao trocar de fonte ou de formato |
+ * | `locked` / `hidden` | não existem | aditivos; entram quando alguém precisar (travar o fundo é o caso clássico) |
+ *
+ * Migrar para o modelo do handoff exigiria `UPDATE` no `doc` de convites que o
+ * casal já desenhou — o que §13.1 proíbe — e não desbloquearia nada: snap,
+ * inspetor, undo e autosave (§5 a §7 do handoff) funcionam igual em fração.
+ *
+ * Quem chegar aqui vindo do handoff e achar que o código está atrasado: não
+ * está. É escolha, e a razão de cada linha está na tabela acima.
  */
 
 /**
@@ -133,7 +154,60 @@ export type BlocoForma = BlocoBase & {
   raio: number;
 };
 
-export type Bloco = BlocoTexto | BlocoFoto | BlocoLinha | BlocoForma;
+/**
+ * Para onde um botão do convite pode levar.
+ *
+ * Lista fechada, e é o ponto principal do tipo. O handoff §6 é literal: o
+ * botão *"sempre leva ao RSVP, não editável como link"*. Endereço digitado à
+ * mão reabriria a superfície que o bloco de TEXTO já tem — e ali ela existe
+ * porque o casal às vezes quer apontar para o Instagram do casamento. Num
+ * botão de "Confirmar presença", endereço livre só serve para o convite
+ * mandar o convidado para o lugar errado.
+ *
+ * As cinco primeiras são as chaves de `LINKS_DO_CONVITE`; `site` é a capa.
+ */
+export const DESTINOS_DO_BOTAO = [
+  "rsvp",
+  "gifts",
+  "details",
+  "gallery",
+  "story",
+  "site",
+] as const;
+
+export type DestinoDoBotao = (typeof DESTINOS_DO_BOTAO)[number];
+
+/**
+ * O botão do convite — o que faz `/c/<slug>` ser página e não figura.
+ *
+ * O SDD §15.1 diz por que ele existe: *"numa imagem, o botão 'Lista de
+ * presentes' é desenho; aqui ele leva à lista"*. Antes disto, o convite
+ * terminava num bloco de TEXTO com link para a capa do site — o convidado
+ * clicava em "confirmar presença" e caía na primeira tela, de onde ainda
+ * precisava achar a confirmação.
+ *
+ * O endereço NÃO mora aqui: só o `destino`. Gravar a URL congelaria o slug do
+ * site dentro do convite, e um site que muda de endereço deixaria para trás
+ * convites publicados apontando para lugar nenhum. Quem resolve é o render,
+ * por `linkDaSecao`.
+ */
+export type BlocoBotao = BlocoBase & {
+  tipo: "botao";
+  destino: DestinoDoBotao;
+  rotulo: string;
+  fundo: string;
+  cor: string;
+  raio: number;
+  fonte: "serif" | "sans" | "script";
+  tamanho: number;
+};
+
+export type Bloco =
+  | BlocoTexto
+  | BlocoFoto
+  | BlocoLinha
+  | BlocoForma
+  | BlocoBotao;
 
 export type InviteDoc = {
   versao: 1;
@@ -244,6 +318,23 @@ function parseBloco(bruto: unknown): Bloco | null {
     };
   }
 
+  if (b.tipo === "botao") {
+    return {
+      ...base,
+      tipo: "botao",
+      /* Destino desconhecido cai em `site`, não em `rsvp`: um convite antigo
+         ou forjado apontando para a capa é inofensivo; apontando para uma
+         confirmação que o pacote não inclui, não. */
+      destino: umDe(b.destino, DESTINOS_DO_BOTAO, "site"),
+      rotulo: txt(b.rotulo, "Confirmar presença"),
+      fundo: cor(b.fundo, "#1a1d21"),
+      cor: cor(b.cor, "#f2efe7"),
+      raio: num(b.raio, 2),
+      fonte: umDe(b.fonte, ["serif", "sans", "script"] as const, "sans"),
+      tamanho: num(b.tamanho, 0.028),
+    };
+  }
+
   if (b.tipo === "forma") {
     return {
       ...base,
@@ -313,4 +404,25 @@ export function prenderNaTela<T extends { x: number; y: number; w: number }>(
 
 export function novoId(): string {
   return Math.random().toString(36).slice(2, 10);
+}
+
+/**
+ * O convite tem para onde levar?
+ *
+ * A regra da prancha H: *"toda tela tem uma saída primária. Beco sem saída é
+ * bug."* Um convite publicado sem saída é uma página que o convidado abre, lê
+ * e fecha — e o casal só descobre quando alguém avisa.
+ *
+ * Botão conta, e texto com link também: um casal que apagou o botão e pôs o
+ * próprio endereço num texto resolveu o problema do jeito dele, e recusar isso
+ * seria a ferramenta discutindo com quem já acertou.
+ *
+ * Mora aqui, e não na action, por duas razões: é regra do DOCUMENTO, e um
+ * arquivo `"use server"` só pode exportar função assíncrona — o editor precisa
+ * chamar isto no navegador, para o aviso aparecer antes de o casal clicar.
+ */
+export function temSaida(doc: InviteDoc): boolean {
+  return doc.blocos.some(
+    (b) => b.tipo === "botao" || (b.tipo === "texto" && b.link.trim() !== "")
+  );
 }

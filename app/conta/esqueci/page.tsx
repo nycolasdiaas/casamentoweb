@@ -2,12 +2,20 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { Inter } from "next/font/google";
+import CascaDeConta from "@/components/account/CascaDeConta";
+import { Botao, Campo, Icone } from "@/components/ui/prensa";
 import { requestPasswordResetAction } from "@/app/actions/password-reset-actions";
-import { SITE_NAME } from "@/lib/site";
 
-const inter = Inter({ subsets: ["latin"] });
-
+/**
+ * C3 · GET /conta/esqueci → POST requestPasswordResetAction
+ *
+ * O sucesso é ESTADO DA MESMA ROTA, não outra página: quem acabou de pedir o
+ * link precisa ver, no mesmo lugar, para qual e-mail ele foi. Trocar de tela
+ * leva embora justamente o dado que a pessoa quer conferir.
+ *
+ * O texto de sucesso continua vindo do servidor (`state.info`) — é ele que
+ * responde "se existe uma conta com esse e-mail", sem confirmar se existe.
+ */
 export default function ForgotPasswordPage() {
   const [state, action, pending] = useActionState(
     requestPasswordResetAction,
@@ -15,59 +23,52 @@ export default function ForgotPasswordPage() {
   );
 
   return (
-    <main
-      className={`${inter.className} flex-1 flex items-center justify-center bg-(--color-paper) px-6 py-16 text-(--color-olive)`}
-    >
-      <div className="w-full max-w-sm flex flex-col gap-6">
-        <div className="text-center flex flex-col gap-2">
-          <p className="text-xs font-medium tracking-[0.25em] uppercase text-(--color-gold)">
-            {SITE_NAME}
-          </p>
-          <h1 className="text-2xl font-bold tracking-tight">Esqueci a senha</h1>
-          <p className="text-sm text-(--color-olive)/70">
-            Digite o e-mail da conta e enviamos um link para criar uma nova
-            senha.
-          </p>
-        </div>
-
-        {state?.info ? (
-          <p className="rounded-xl border border-(--color-olive)/30 bg-(--color-blush) px-4 py-3 text-sm text-(--color-olive) leading-relaxed text-center">
-            {state.info}
-          </p>
-        ) : (
-          <form action={action} className="flex flex-col gap-3">
-            <input
-              type="email"
-              name="email"
-              placeholder="E-mail"
-              autoComplete="email"
-              required
-              className="rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm transition-colors focus:border-(--color-gold) focus:outline-none"
-            />
-
-            {state?.error && (
-              <p className="text-sm text-red-700">{state.error}</p>
-            )}
-
-            <button
-              type="submit"
-              disabled={pending}
-              className="mt-1 rounded-full bg-(--color-olive) text-white py-3.5 text-sm font-medium transition-colors hover:bg-(--color-olive)/90 disabled:opacity-50"
-            >
-              {pending ? "Enviando..." : "Enviar link"}
-            </button>
-          </form>
-        )}
-
-        <p className="text-center">
+    <CascaDeConta
+      semFoto
+      titulo="Esqueceram a senha?"
+      chamada="Escreva o e-mail da conta e a gente manda um link para criar uma senha nova."
+      rodape={
+        <p className="t-corpo-p text-(--c-ink-2)">
           <Link
             href="/conta/entrar"
-            className="text-xs text-(--color-muted) underline underline-offset-4"
+            className="inline-flex items-center gap-1.5 text-(--c-ink)"
           >
-            ← Voltar para entrar
+            <Icone nome="setaEsquerda" tamanho={16} />
+            <span className="underline underline-offset-4">
+              Voltar para entrar
+            </span>
           </Link>
         </p>
-      </div>
-    </main>
+      }
+    >
+      {state?.info ? (
+        <div className="surface-raised rounded-[3px] p-6 flex gap-4 items-start">
+          <span
+            className="mt-1 w-2 h-2 rounded-full bg-(--c-ok) shrink-0"
+            aria-hidden="true"
+          />
+          <div className="flex flex-col gap-1.5">
+            <p className="t-display text-[20px] leading-tight text-(--c-ink)">
+              Link enviado
+            </p>
+            <p className="t-corpo-p text-(--c-ink-2)">{state.info}</p>
+          </div>
+        </div>
+      ) : (
+        <form action={action} className="flex flex-col gap-5">
+          <Campo
+            rotulo="E-mail"
+            type="email"
+            name="email"
+            autoComplete="email"
+            required
+            erro={state?.error}
+          />
+          <Botao type="submit" carregando={pending} className="self-start">
+            Enviar link
+          </Botao>
+        </form>
+      )}
+    </CascaDeConta>
   );
 }

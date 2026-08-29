@@ -33,6 +33,10 @@ const CARIMBO: Record<OrderStatus, string> = {
   preview_ready: "Prova pronta",
   paid: "Prova aprovada",
   published: "No ar",
+  /* O casal não vê este carimbo num pedido cancelado — a lista dele filtra o
+     estado fora. Ele existe para o tipo ficar completo, e para a operação, se
+     um dia esta peça for reusada em `/admin`. */
+  cancelled: "Cancelado",
 };
 
 /**

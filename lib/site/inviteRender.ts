@@ -102,6 +102,10 @@ export function alturaAproximada(b: Bloco, L: number): number {
   const w = b.w * L;
   if (b.tipo === "foto" || b.tipo === "forma") return w / (b.proporcao || 1);
   if (b.tipo === "linha") return b.espessura;
+  /* O botão é uma caixa de uma linha com respiro: a mesma conta do
+     `padding` de `BlocoVisual`, para o retângulo do export bater com o que o
+     casal viu no editor. */
+  if (b.tipo === "botao") return b.tamanho * L * (1.2 + 2 * 0.6);
   const tamanho = b.tamanho * L;
   return quebrarLinhas(b.texto, w, tamanho, b.fonte).length * tamanho * 1.25;
 }
@@ -154,6 +158,20 @@ function desenharConteudo(
     const r = Math.min(b.raio, w / 2);
     return `<clipPath id="${id}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" ry="${r}"/></clipPath>` +
       `<image x="${x}" y="${y}" width="${w}" height="${h}" href="${href}" preserveAspectRatio="xMidYMid slice" clip-path="url(#${id})"/>`;
+  }
+
+  if (b.tipo === "botao") {
+    const tamanho = b.tamanho * L;
+    const h = alturaAproximada(b, L);
+    const r = Math.min(b.raio, w / 2, h / 2);
+    /* `dominant-baseline` não é confiável no rasterizador do `sharp`; a linha
+       de base sai da conta, como no resto deste arquivo. */
+    const linhaDeBase = y + h / 2 + tamanho * 0.36;
+    return (
+      `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" ry="${r}" fill="${b.fundo}"/>` +
+      `<text x="${x + w / 2}" y="${linhaDeBase}" text-anchor="middle" fill="${b.cor}" ` +
+      `font-family="${FAMILIAS[b.fonte]}" font-size="${tamanho}">${escapar(b.rotulo)}</text>`
+    );
   }
 
   const tamanho = b.tamanho * L;

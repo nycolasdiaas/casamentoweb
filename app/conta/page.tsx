@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getSessionUserId } from "@/lib/auth/userSession";
 import { getUserById } from "@/lib/repositories/users";
+import { signoutAction } from "@/app/actions/account-actions";
 import { listOrdersByUserId } from "@/lib/repositories/orders";
 import AccountShell from "@/components/account/AccountShell";
 import { STATUS_META } from "@/lib/orderStatus";
@@ -174,6 +175,42 @@ export default async function AccountHubPage() {
             </nav>
           </aside>
         </div>
+
+        <section className="mt-24 flex flex-col gap-3">
+          <span className="meta text-(--c-ink-2)">Dados da conta</span>
+          <div className="surface-flat rounded-[3px]">
+            <div className="flex flex-wrap items-baseline justify-between gap-3 px-4 py-3.5 border-b border-(--c-rule)">
+              <span className="text-[13.5px] text-(--c-ink-2)">Nome</span>
+              <span className="text-[13.5px] text-(--c-ink)">{user.name}</span>
+            </div>
+            <div className="flex flex-wrap items-baseline justify-between gap-3 px-4 py-3.5 border-b border-(--c-rule)">
+              <span className="text-[13.5px] text-(--c-ink-2)">E-mail</span>
+              <span className="t-data text-[13px] text-(--c-ink)">
+                {user.email}
+              </span>
+            </div>
+            <div className="flex flex-wrap items-baseline justify-between gap-3 px-4 py-3.5">
+              <span className="text-[13.5px] text-(--c-ink-2)">Senha</span>
+              <Link
+                href="/conta/esqueci"
+                className="text-[13.5px] text-(--c-ink) underline underline-offset-4"
+              >
+                Alterar senha
+              </Link>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-4 pt-6 mt-2 border-t border-(--c-rule)">
+            <span className="meta text-(--c-ink-2)">
+              Sessão aberta neste aparelho
+            </span>
+            <form action={signoutAction}>
+              <button type="submit" className="btn btn-perigo btn-sm">
+                Sair da conta
+              </button>
+            </form>
+          </div>
+        </section>
       </div>
     </AccountShell>
   );

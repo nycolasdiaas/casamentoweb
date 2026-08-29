@@ -143,7 +143,12 @@ export default function OrderStatusTracker({
                             Pagamento confirmado — publicando o site.
                           </p>
                         ) : (
-                          <div className="w-full max-w-xs">
+                          /* `id="pagar"` é o destino do "Publicar site →" da
+                             faixa E10: a decisão de pagar mora aqui e só
+                             aqui. Um segundo caminho de pagamento seria um
+                             segundo lugar para manter — e o lugar onde o
+                             dinheiro passa é o pior para se ter dois. */
+                          <div id="pagar" className="w-full max-w-xs scroll-mt-24">
                             <PaymentButton
                               orderId={orderId}
                               amountLabel={amountLabel}

@@ -92,9 +92,9 @@ export default function BarraDoBloco({
   const pos = { left, top };
 
   const botao =
-    "flex size-9 items-center justify-center border border-(--c-rule) bg-white text-[13px] transition-colors hover:bg-(--c-sunken)";
+    "flex size-9 items-center justify-center border border-(--c-rule) bg-(--c-surface) text-[13px] transition-colors hover:bg-(--c-sunken)";
   const botaoAtivo =
-    "flex size-9 items-center justify-center border border-(--c-ink) bg-(--c-ink) text-[13px] text-white";
+    "flex size-9 items-center justify-center border border-(--c-ink) bg-(--c-ink) text-[13px] text-(--c-surface)";
 
   return (
     <div
@@ -117,7 +117,7 @@ export default function BarraDoBloco({
                 fonte: e.target.value as "serif" | "sans" | "script",
               })
             }
-            className="min-h-9 border border-(--c-rule) bg-white px-1.5 text-[13px]"
+            className="min-h-9 border border-(--c-rule) bg-(--c-surface) px-1.5 text-[13px]"
           >
             {FONTES.map((f) => (
               <option key={f.id} value={f.id}>
@@ -215,7 +215,7 @@ export default function BarraDoBloco({
             onChange={(e) =>
               trocarEregistrar({ forma: e.target.value as FormaId })
             }
-            className="min-h-9 border border-(--c-rule) bg-white px-1.5 text-[13px]"
+            className="min-h-9 border border-(--c-rule) bg-(--c-surface) px-1.5 text-[13px]"
           >
             {FORMAS.map((f) => (
               <option key={f} value={f}>
@@ -310,7 +310,7 @@ export default function BarraDoBloco({
         type="button"
         title="Remover bloco"
         onClick={aoApagar}
-        className="flex size-9 items-center justify-center border border-(--c-rule) bg-white text-(--c-mark) transition-colors hover:bg-(--c-mark) hover:text-white"
+        className="flex size-9 items-center justify-center border border-(--c-rule) bg-(--c-surface) text-(--c-mark) transition-colors hover:bg-(--c-mark) hover:text-(--c-surface)"
       >
         <svg
           aria-hidden

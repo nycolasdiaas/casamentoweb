@@ -2,15 +2,34 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { carregarGerenciamento } from "@/lib/site/manageData";
 import { getSiteContent } from "@/lib/repositories/siteContent";
-import { listGifts } from "@/lib/repositories/gifts";
+import { listGifts, contribuicoesPorCota } from "@/lib/repositories/gifts";
 import { listSiteSections } from "@/lib/repositories/siteSections";
 import { formatPriceCents } from "@/lib/format";
 import { ROTULO_TIPO, type PixKeyType } from "@/lib/pix/key";
-import { WHATSAPP_LINK } from "@/lib/site";
 import { SITE_NAME } from "@/lib/site";
+import { Aviso } from "@/components/ui/prensa";
+import Cotas from "@/components/account/manage/Cotas";
 
 export const metadata: Metadata = { title: `Presentes | ${SITE_NAME}` };
 
+/**
+ * E6 · a lista de presentes do casal.
+ *
+ * ── Duas colunas, como a prancha ───────────────────────────────────────────
+ *
+ * À esquerda o que o casal EDITA (as cotas). À direita o que ele CONSULTA:
+ * quanto já foi escolhido e a chave que faz o Pix funcionar. Empilhado, a
+ * chave Pix — que é o que trava a lista inteira quando falta — ficava embaixo
+ * de uma lista de vinte cotas.
+ *
+ * ── Por que o valor arrecadado não aparece em reais ────────────────────────
+ *
+ * Porque ele não existe. O Pix vai direto do convidado para o casal e **nunca
+ * passa pela Enlace** (regras §2.4): `gift_contributions` guarda o nome do
+ * presente e de quem deu, nunca um centavo. O card oliva mostra quantas cotas
+ * foram escolhidas, que é o que sabemos de verdade — e o valor estimado só
+ * quando todas as cotas escolhidas tinham preço fixo.
+ */
 export default async function PresentesPage({
   params,
 }: {
@@ -19,151 +38,157 @@ export default async function PresentesPage({
   const { id } = await params;
   const { order, site } = await carregarGerenciamento(id);
 
-  const conteudo = site ? await getSiteContent(site.id) : null;
-  const presentes = site ? await listGifts(site.id) : [];
-  const secaoLigada = site
-    ? (await listSiteSections(site.id)).some(
-        (s) => s.sectionKey === "gifts" && s.enabled
-      )
-    : false;
+  if (site === null) {
+    return (
+      <div className="flex flex-col gap-6">
+        <Cabecalho />
+        <p className="surface-raised p-6 text-sm text-(--c-ink-2)">
+          O site de vocês ainda está sendo montado. Assim que a prévia ficar
+          pronta, a lista de presentes aparece aqui.
+        </p>
+      </div>
+    );
+  }
 
+  const [conteudo, presentes, escolhas, secoes] = await Promise.all([
+    getSiteContent(site.id),
+    listGifts(site.id),
+    contribuicoesPorCota(site.id),
+    listSiteSections(site.id),
+  ]);
+
+  const secaoLigada = secoes.some((s) => s.sectionKey === "gifts" && s.enabled);
   const temPix = Boolean(conteudo?.pixKey);
-  const noAr = site !== null && site.status !== "archived" && secaoLigada;
+  const noAr = site.status !== "archived" && secaoLigada;
+
+  const cotas = presentes.map((g) => ({
+    id: g.id,
+    name: g.name,
+    category: g.category,
+    priceCents: g.priceCents,
+    quantity: g.quantity,
+    escolhidas: escolhas.get(g.id) ?? 0,
+  }));
+
+  const totalEscolhidas = cotas.reduce((n, c) => n + c.escolhidas, 0);
+
+  /* O valor só é somado quando TODA cota escolhida tinha preço fixo.
+     Uma cota de "valor livre" não tem quanto o convidado deu — e somar só as
+     de preço fixo daria um número menor que o real, apresentado como se fosse
+     o total. Melhor não mostrar valor nenhum que mostrar um errado. */
+  const escolhidasSemPreco = cotas.some(
+    (c) => c.escolhidas > 0 && c.priceCents === null
+  );
+  const valorEstimado = escolhidasSemPreco
+    ? null
+    : cotas.reduce((s, c) => s + c.escolhidas * (c.priceCents ?? 0), 0);
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1.5">
-        <h1 className="text-2xl font-bold tracking-tight">
-          Lista de presentes
-        </h1>
-        <p className="text-sm leading-relaxed text-(--color-olive)/70">
-          O convidado escolhe uma cota e paga por Pix — direto na conta de
-          vocês, sem passar por ninguém.
-        </p>
-      </div>
+      <Cabecalho />
 
       {/* O estado que mais importa: lista visível sem chave. A trava impede o
           site de mostrar chave de outra pessoa; este aviso impede o casal de
           descobrir só depois do casamento que ninguém conseguiu presentear. */}
-      {noAr && !temPix && presentes.length > 0 && (
-        <div className="flex flex-col gap-2 rounded-2xl border border-amber-400/60 bg-amber-50 p-5">
-          <p className="text-sm font-semibold text-amber-900">
+      {noAr && !temPix && cotas.length > 0 && (
+        <Aviso
+          tom="warn"
+          acao={{
+            rotulo: "Cadastrar a chave",
+            href: `/conta/pedidos/${order.id}/conteudo`,
+          }}
+        >
+          <strong className="font-semibold">
             A lista está no ar, mas sem chave Pix.
-          </p>
-          <p className="text-sm leading-relaxed text-amber-900/80">
-            Os convidados veem os presentes e não conseguem presentear — a tela
-            pede que falem com vocês. Cadastrem a chave em{" "}
-            <Link
-              href={`/conta/pedidos/${order.id}/conteudo`}
-              className="font-semibold underline underline-offset-2"
-            >
-              Conteúdo → Pix dos presentes
-            </Link>{" "}
-            e o Pix passa a funcionar na hora.
-          </p>
-        </div>
+          </strong>{" "}
+          Os convidados veem os presentes e não conseguem presentear — a tela
+          pede que falem com vocês. Com a chave cadastrada, o Pix passa a
+          funcionar na hora.
+        </Aviso>
       )}
 
-      <section className="flex flex-col gap-4 rounded-2xl border border-(--color-gold)/40 bg-white p-6">
-        <div className="flex items-center justify-between gap-4">
-          <h2 className="text-lg font-semibold">O Pix de vocês</h2>
-          <Link
-            href={`/conta/pedidos/${order.id}/conteudo`}
-            className="btn btn-secondary btn-sm"
-          >
-            {temPix ? "Trocar" : "Cadastrar"}
-          </Link>
-        </div>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px] lg:items-start">
+        <Cotas siteId={site.id} cotas={cotas} />
 
-        {temPix ? (
-          <div className="flex flex-col gap-2 text-sm">
-            <p className="flex flex-wrap items-baseline gap-x-2">
-              <span className="text-xs uppercase tracking-[0.12em] text-(--color-muted)">
-                Chave
-              </span>
-              <span className="font-mono">{conteudo!.pixKey}</span>
-              {conteudo!.pixKeyType && (
-                <span className="text-xs text-(--color-muted)">
-                  ({ROTULO_TIPO[conteudo!.pixKeyType as PixKeyType]})
-                </span>
-              )}
+        <div className="flex flex-col gap-5">
+          {/* ARRECADADO — o card oliva do desenho. */}
+          <section className="rounded-[3px] bg-(--c-olive) p-6 text-(--c-paper-warm)">
+            <p className="meta text-white/60">Escolhidas</p>
+            <p className="t-display mt-2 text-[40px] leading-none">
+              {totalEscolhidas}
             </p>
-            {conteudo!.pixRecipient && (
-              <p className="flex flex-wrap items-baseline gap-x-2">
-                <span className="text-xs uppercase tracking-[0.12em] text-(--color-muted)">
-                  Recebe
-                </span>
-                <span>
-                  {conteudo!.pixRecipient}
-                  {conteudo!.pixInstitution
-                    ? ` · ${conteudo!.pixInstitution}`
-                    : ""}
-                </span>
-              </p>
-            )}
-            <p className="mt-1 text-xs leading-relaxed text-(--color-muted)">
-              Esta chave fica visível para quem abrir o site — é assim que o
-              convidado consegue presentear. O código do Pix é gerado na hora,
-              já com o valor da cota preenchido.
+            <p className="mt-1 text-[12.5px] text-white/75">
+              {totalEscolhidas === 1 ? "cota escolhida" : "cotas escolhidas"}
+              {valorEstimado !== null && valorEstimado > 0
+                ? ` · ${formatPriceCents(valorEstimado)}`
+                : ""}
             </p>
-          </div>
-        ) : (
-          <p className="text-sm leading-relaxed text-(--color-olive)/70">
-            Sem chave cadastrada, a lista aparece para o convidado mas sem forma
-            de pagamento. Não existe chave padrão — só a de vocês serve.
-          </p>
-        )}
-      </section>
+            <p className="mt-4 border-t border-white/15 pt-3 text-[12px] leading-relaxed text-white/60">
+              O Pix vai direto para a conta de vocês — a gente nunca fica no
+              meio, então o valor que aparece aqui é o das cotas com preço
+              fixo.
+            </p>
+          </section>
 
-      <section className="flex flex-col gap-4 rounded-2xl border border-(--color-gold)/40 bg-white p-6">
-        <h2 className="text-lg font-semibold">
-          As cotas{" "}
-          <span className="text-sm font-normal text-(--color-muted)">
-            ({presentes.length})
-          </span>
-        </h2>
-
-        {presentes.length === 0 ? (
-          <p className="text-sm leading-relaxed text-(--color-olive)/70">
-            A lista ainda está vazia.
-          </p>
-        ) : (
-          <ul className="flex flex-col divide-y divide-(--color-gold)/20">
-            {presentes.map((g) => (
-              <li
-                key={g.id}
-                className="flex items-baseline justify-between gap-4 py-2.5"
+          {/* CHAVE PIX — na própria aba, como no desenho.
+              Ela vivia só em Conteúdo, e esta tela apenas apontava para lá: o
+              casal descobria que faltava a chave aqui e tinha que ir para
+              outra aba resolver. */}
+          <section className="surface-raised flex flex-col gap-3 p-6">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="meta text-(--c-ink-2)">Chave Pix</h2>
+              <Link
+                href={`/conta/pedidos/${order.id}/conteudo`}
+                className="btn btn-quiet btn-sm"
               >
-                <span className="flex min-w-0 flex-col">
-                  <span className="truncate text-sm">{g.name}</span>
-                  <span className="text-xs text-(--color-muted)">
-                    {g.category}
-                  </span>
-                </span>
-                <span className="shrink-0 text-sm font-medium">
-                  {formatPriceCents(g.priceCents)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
+                {temPix ? "Trocar" : "Cadastrar"}
+              </Link>
+            </div>
 
-        {/* Honestidade sobre o que ainda não existe: o CRUD de presentes pelo
-            casal é a Fase 4 e ainda não foi feito. Melhor dizer isso que
-            deixar o casal procurando um botão que não tem. */}
-        <p className="rounded-xl border border-(--color-gold)/40 bg-(--color-blush) px-4 py-3 text-xs leading-relaxed text-(--color-olive)">
-          Montar e editar as cotas ainda é feito pela nossa equipe. Mandem a
-          lista de vocês{" "}
-          <Link
-            href={WHATSAPP_LINK}
-            target="_blank"
-            className="font-semibold underline underline-offset-2"
-          >
-            pelo WhatsApp
-          </Link>{" "}
-          que a gente cadastra — e em breve isso vem para cá.
-        </p>
-      </section>
+            {temPix ? (
+              <>
+                <p className="t-data break-all text-[14px] text-(--c-ink)">
+                  {conteudo!.pixKey}
+                </p>
+                <p className="t-corpo-p text-(--c-ink-2)">
+                  {conteudo!.pixKeyType
+                    ? `${ROTULO_TIPO[conteudo!.pixKeyType as PixKeyType]}`
+                    : ""}
+                  {conteudo!.pixRecipient ? ` · ${conteudo!.pixRecipient}` : ""}
+                </p>
+                <p className="t-corpo-p text-(--c-ink-2)">
+                  O código do Pix é gerado na hora, já com o valor da cota
+                  preenchido.
+                </p>
+              </>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span
+                  className="size-2 rounded-full bg-(--c-warn)"
+                  aria-hidden="true"
+                />
+                <p className="t-corpo-p text-(--c-ink-2)">
+                  Ainda não cadastrada. Sem ela a lista aparece, mas sem forma
+                  de pagamento.
+                </p>
+              </div>
+            )}
+          </section>
+        </div>
+      </div>
     </div>
+  );
+}
+
+function Cabecalho() {
+  return (
+    <header className="flex flex-col gap-3">
+      <span className="meta text-(--c-mark)">Presentes</span>
+      <h1 className="t-d2 text-(--c-ink)">Lista de presentes</h1>
+      <p className="t-corpo text-(--c-ink-2) medida">
+        O convidado escolhe uma cota e paga por Pix — direto na conta de vocês,
+        sem passar por ninguém.
+      </p>
+    </header>
   );
 }

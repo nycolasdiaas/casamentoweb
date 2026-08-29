@@ -5,11 +5,10 @@ import { getSessionUserId } from "@/lib/auth/userSession";
 import { listOrdersByUserId } from "@/lib/repositories/orders";
 import AccountShell from "@/components/account/AccountShell";
 import CancelOrderButton from "@/components/account/CancelOrderButton";
-import {
-  STATUS_META,
-  canCancelOrder,
-  type OrderStatus,
-} from "@/lib/orderStatus";
+import { canCancelOrder, type OrderStatus } from "@/lib/orderStatus";
+import { EtiquetaDoPedido } from "@/components/ui/prensa";
+import ContagemDaLinha from "@/components/account/ContagemDaLinha";
+import { diasAte } from "@/lib/site/dataLegivel";
 import { getPackage } from "@/lib/packages";
 import { SITE_NAME } from "@/lib/site";
 
@@ -21,7 +20,20 @@ export default async function OrdersListPage() {
   const userId = await getSessionUserId();
   if (!userId) redirect("/conta/entrar");
 
-  const orders = await listOrdersByUserId(userId);
+  /* O pedido cancelado sai da lista do casal.
+     
+     Ele existe no banco — cancelar virou estado em vez de `DELETE`, para a
+     operação conseguir ver e para o site não ficar órfão — mas isso é registro
+     da operação, não conteúdo desta tela. O casal clicou em cancelar; a linha
+     continuar aqui seria a tela discutindo com o gesto dele.
+     
+     Filtrado aqui e não na consulta: `listOrdersByUserId` é usada em mais de
+     um lugar, e esconder pedido por padrão numa função de repositório é o tipo
+     de decisão que some do radar. Ver
+     `specs/painel-casal/013-cancelar-vira-estado`, FR-007. */
+  const orders = (await listOrdersByUserId(userId)).filter(
+    (o) => o.status !== "cancelled"
+  );
 
   return (
     <AccountShell active="pedidos">
@@ -60,37 +72,42 @@ export default async function OrdersListPage() {
               {/* Cabeçalho de coluna: é o que transforma uma pilha de cards
                   numa LISTA. Some no celular, onde cada linha vira bloco. */}
               <div className="hidden lg:grid grid-cols-12 gap-4 px-4 pb-2 border-b border-(--c-rule)">
-                <span className="meta text-(--c-ink-2) col-span-4">Etapa</span>
-                <span className="meta text-(--c-ink-2) col-span-3">
-                  Pacote e casal
-                </span>
+                <span className="meta text-(--c-ink-2) col-span-4">O site</span>
+                <span className="meta text-(--c-ink-2) col-span-2">Pacote</span>
                 <span className="meta text-(--c-ink-2) col-span-2">Registro</span>
-                <span className="col-span-3" />
+                <span className="meta text-(--c-ink-2) col-span-2 text-right">
+                  Faltam
+                </span>
+                <span className="col-span-2" />
               </div>
 
               <ul className="surface-flat rounded-[3px] border-t-0 lg:border-t-0">
                 {orders.map((order) => {
                   const status = order.status as OrderStatus;
-                  const meta = STATUS_META[status];
                   const isDraft = status === "draft";
                   return (
                     <li
                       key={order.id}
                       className="grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-4 lg:items-center px-4 py-4 border-b border-(--c-rule) last:border-b-0 transition-colors hover:bg-(--c-sunken)"
                     >
-                      <div className="lg:col-span-4 min-w-0">
-                        {/* Sem o emoji do STATUS_META: o rótulo carrega o
-                            significado sozinho. */}
-                        <span className="t-display text-[19px] leading-snug text-(--c-ink)">
-                          {meta.short}
+                      {/* O NOME DO CASAL lidera a linha, e o status é
+                          etiqueta ao lado.
+                          Estava ao contrário: o título era a etapa, então
+                          quem tinha três pedidos em prévia via três linhas
+                          idênticas escritas "Prévia pronta" e só distinguia
+                          uma da outra pelo cinza pequeno embaixo. O assunto
+                          da linha é o SITE; a etapa é um atributo dele. */}
+                      <div className="lg:col-span-4 min-w-0 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                        <span className="t-display text-[19px] leading-snug text-(--c-ink) truncate">
+                          {order.coupleNames?.trim() || "Sem nome ainda"}
                         </span>
+                        <EtiquetaDoPedido status={status} />
                       </div>
 
-                      <div className="lg:col-span-3 min-w-0">
+                      <div className="lg:col-span-2 min-w-0">
                         <span className="text-[13px] text-(--c-ink-2) truncate block">
                           {getPackage(order.packageTier)?.name ??
                             order.packageTier}
-                          {order.coupleNames ? ` · ${order.coupleNames}` : ""}
                         </span>
                       </div>
 
@@ -100,7 +117,15 @@ export default async function OrdersListPage() {
                         </span>
                       </div>
 
-                      <div className="lg:col-span-3 flex items-center gap-4 lg:justify-end">
+                      {/* A contagem — o dado que o casal mais procura, e o
+                          único número da linha. Sem data marcada não aparece
+                          nada: um "—" grande chamaria atenção para uma
+                          ausência que não é problema. */}
+                      <div className="hidden lg:block lg:col-span-2 text-right">
+                        <ContagemDaLinha dias={diasAte(order.weddingDate)} />
+                      </div>
+
+                      <div className="lg:col-span-2 flex items-center gap-4 lg:justify-end">
                         {canCancelOrder(status) && (
                           <CancelOrderButton orderId={order.id} />
                         )}
@@ -112,7 +137,7 @@ export default async function OrdersListPage() {
                           }
                           className="btn btn-quiet btn-sm"
                         >
-                          {isDraft ? "Continuar" : "Acompanhar"}
+                          {isDraft ? "Continuar" : "Gerenciar"}
                         </Link>
                       </div>
                     </li>

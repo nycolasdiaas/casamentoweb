@@ -21,7 +21,9 @@ import {
   saveInvite,
 } from "@/lib/repositories/siteInvites";
 import { conviteInicial } from "@/lib/site/inviteSeed";
-import { MAX_CONVITES, parseInviteDoc } from "@/lib/site/inviteDoc";
+import { MAX_CONVITES, parseInviteDoc, temSaida } from "@/lib/site/inviteDoc";
+import { tierAllowsSection } from "@/lib/templates/contract";
+import { dataPorExtenso } from "@/lib/site/dataLegivel";
 
 /**
  * Ações do editor de convites.
@@ -38,7 +40,13 @@ async function siteDoDono(siteId: string) {
   return getSiteOwnedByUser(siteId, userId);
 }
 
-export type InviteActionResult = { error: string } | { saved: true } | undefined;
+export type InviteActionResult =
+  | { error: string }
+  | { saved: true; updatedAt: number }
+  /** Outra aba gravou depois. O editor para o autosave e pede recarga — o
+      contrato é last-write-wins COM AVISO, nunca sobrescrever em silêncio. */
+  | { conflito: true; updatedAt: number }
+  | undefined;
 
 export async function criarConviteAction(formData: FormData) {
   const siteId = String(formData.get("siteId") ?? "");
@@ -57,13 +65,11 @@ export async function criarConviteAction(formData: FormData) {
   }
 
   const v = toEditorValues(conteudo ?? null);
-  const data = v.weddingDate
-    ? new Date(`${v.weddingDate}T12:00:00`).toLocaleDateString("pt-BR", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-      })
-    : null;
+  const data = dataPorExtenso(v.weddingDate, {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
 
   const tema =
     (site.theme as ThemeSpec | null) ?? themePresetFor(site.templateId);
@@ -76,6 +82,8 @@ export async function criarConviteAction(formData: FormData) {
       local: v.ceremonyVenue.trim() || null,
       endereco: `${baseUrl.replace(/^https?:\/\//, "")}/s/${site.slug}`,
       url: `${baseUrl.replace(/\/+$/, "")}/s/${site.slug}`,
+      // O gating de verdade, o mesmo que o `SiteRenderer` obedece.
+      temRsvp: tierAllowsSection(site.tier, "rsvp"),
     },
     tema.palette
   );
@@ -97,21 +105,44 @@ export async function salvarConviteAction(
   inviteId: string,
   orderId: string,
   docBruto: unknown,
-  nome?: string
+  nome?: string,
+  /**
+   * O `updatedAt` que o navegador tinha quando começou a editar, em
+   * milissegundos. Sem ele, a gravação segue como antes (é o caminho do botão
+   * antigo e de qualquer chamada que não acompanha versão).
+   */
+  updatedAtCliente?: number
 ): Promise<InviteActionResult> {
   const site = await siteDoDono(siteId);
   if (!site) return { error: "Não foi possível salvar." };
+
+  /* Guarda de conflito: duas abas abertas no mesmo convite.
+     
+     O contrato é last-write-wins COM AVISO, não merge. Sem isto, a aba que
+     ficou aberta a manhã inteira sobrescreveria em silêncio o que foi salvo na
+     outra — e o casal perderia trabalho sem ver nada acontecer.
+     
+     A margem de 1s existe porque `updatedAt` volta do banco com precisão de
+     microssegundo e o JavaScript arredonda para milissegundo: sem ela, salvar
+     duas vezes seguidas da MESMA aba acusaria conflito consigo mesma. */
+  if (updatedAtCliente !== undefined) {
+    const atual = await getInvite(siteId, inviteId);
+    if (!atual) return { error: "Convite não encontrado." };
+    if (atual.updatedAt.getTime() > updatedAtCliente + 1000) {
+      return { conflito: true, updatedAt: atual.updatedAt.getTime() };
+    }
+  }
 
   // O documento vem do navegador: valida ANTES de gravar, senão o jsonb
   // guarda o que mandarem e o erro só aparece no render de outra pessoa.
   const doc = parseInviteDoc(docBruto);
 
-  const ok = await saveInvite(siteId, inviteId, { doc, name: nome });
-  if (!ok) return { error: "Convite não encontrado." };
+  const gravado = await saveInvite(siteId, inviteId, { doc, name: nome });
+  if (!gravado) return { error: "Convite não encontrado." };
 
   revalidatePath(`/conta/convites/${inviteId}`);
   revalidatePath(`/conta/pedidos/${orderId}/convites`);
-  return { saved: true };
+  return { saved: true, updatedAt: gravado.getTime() };
 }
 
 export async function apagarConviteAction(formData: FormData) {
@@ -151,6 +182,24 @@ export async function publicarConviteAction(
 ): Promise<{ url: string } | { error: string }> {
   const site = await siteDoDono(siteId);
   if (!site) return { error: "Não foi possível publicar." };
+
+  /* Convite sem saída não publica.
+     
+     A regra da prancha H: *"toda tela tem uma saída primária. Beco sem saída é
+     bug."* Um convite publicado é uma página que o convidado abre e fecha sem
+     ter para onde ir — e o casal só descobre quando alguém avisa.
+     
+     O que NÃO trava: nomes, data, local. As regras §2.3 são literais —
+     *"só uma coisa é obrigatória: os nomes"*, e *"a lista 'o que falta' é
+     guia, nunca trava"*. Convite sem data é legítimo: casal que ainda não
+     fechou o dia.
+     
+     A guarda vale AQUI e não só na tela: `PublicarConvite` é client component,
+     e a action é a fronteira que importa. */
+  const atualParaValidar = await getInvite(siteId, inviteId);
+  if (atualParaValidar && !temSaida(atualParaValidar.doc)) {
+    return { error: "sem-saida" };
+  }
 
   const [slug, baseUrl] = await Promise.all([
     publicarConvite(siteId, inviteId),

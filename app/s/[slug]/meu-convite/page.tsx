@@ -7,34 +7,46 @@ import {
   listPublishedSiteSlugs,
 } from "@/lib/repositories/siteView";
 import { findGroupByGuestName } from "@/lib/repositories/findGroupByGuestName";
+import { getRsvpViewBySlug } from "@/lib/repositories/groups";
+import { dataPorExtenso } from "@/lib/site/dataLegivel";
 import { resolveTheme, type ThemeSpec } from "@/lib/theme/spec";
 import { themePresetFor } from "@/lib/theme/presets";
 
 /**
- * "Não recebi meu link" — a página que o botão do site do convidado nunca teve.
+ * F2 · o convite pessoal do convidado — e a porta de entrada dele.
  *
- * O botão existia nos 6 moldes e apontava para `/s/<slug>`: a própria página em
- * que o convidado já estava. Em prévia isso dava 404 na cara dele; publicado,
- * recarregava a página e não resolvia nada. Era um beco.
+ * A rota tem DOIS estados, e os dois são necessários:
  *
- * ── Por que uma busca por nome, e não um formulário de contato ─────────────
+ * 1. **Sem `?grupo=`** — a busca por nome. Existe porque o problema real do
+ *    convidado é que a mensagem sumiu na conversa; mandar ele escrever para o
+ *    casal transfere trabalho para quem está casando, no mês do casamento,
+ *    com dezenas de pessoas fazendo o mesmo.
+ * 2. **Com `?grupo=`** — a página pessoal que a prancha F2 desenha: quantos
+ *    lugares reservaram, o que ele já respondeu, e onde e quando é.
  *
- * O problema do convidado é que a mensagem sumiu na conversa. Mandar ele
- * escrever para o casal transfere trabalho para quem está casando — no mês do
- * casamento, com dezenas de convidados fazendo o mesmo. Digitar o próprio nome
- * e cair no convite resolve sozinho.
+ * Antes, a busca levava direto para `/rsvp/<slug>` — e o convidado caía no
+ * formulário sem saber quantos lugares eram dele nem o que já tinha
+ * respondido. As duas informações que ele mais quer estavam justamente na tela
+ * que não existia.
  *
- * A busca é por NOME COMPLETO E EXATO e devolve no máximo um link. O porquê
- * está em `findGroupByGuestName`: busca parcial com lista de resultados
+ * ── Por que `?grupo=` na URL não é vazamento ───────────────────────────────
+ *
+ * É o mesmo slug que já está no WhatsApp dele, em `/rsvp/<slug>`. O que a
+ * rota NÃO faz é aceitar slug de outro casamento: `Conteudo` confere se o
+ * grupo pertence a este site antes de mostrar qualquer coisa.
+ *
+ * ── Por que a busca é por nome COMPLETO e exato ────────────────────────────
+ *
+ * Ver `findGroupByGuestName`: busca parcial com lista de resultados
  * transformaria esta página na lista de convidados do casamento.
  *
- * ── Por que o formulário mora num componente separado ──────────────────────
+ * ── Por que quase tudo mora dentro de `<Suspense>` ─────────────────────────
  *
  * `searchParams` é dado não cacheado, e com Cache Components lê-lo no corpo da
  * página trava a rota inteira: o `next build` reprova com "Uncached data was
  * accessed outside of <Suspense>". O `next dev` deixa passar — foi só no build
- * que apareceu. Então a casca (nomes do casal, cores) é estática e cacheável, e
- * só o pedaço que depende da busca fica dentro do <Suspense>.
+ * que apareceu. Então a casca (cores do tema) é estática, e o conteúdo entra
+ * por streaming.
  */
 
 export async function generateStaticParams() {
@@ -46,24 +58,116 @@ export async function generateStaticParams() {
 }
 
 export const metadata: Metadata = {
-  title: "Encontrar meu convite",
+  title: "Meu convite",
   robots: { index: false, follow: false },
 };
 
 type Cores = { paper: string; ink: string; accent: string };
 
-async function Busca({
+export default async function MeuConvitePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ nome?: string; erro?: string; grupo?: string }>;
+}) {
+  const { slug } = await params;
+
+  const view = await getSiteViewBySlug(slug);
+  if (!view) notFound();
+
+  const tema: ThemeSpec =
+    (view.site.theme as ThemeSpec | null) ??
+    resolveTheme(themePresetFor(view.site.templateId));
+  const cores: Cores = {
+    paper: tema.palette.paper,
+    ink: tema.palette.ink,
+    accent: tema.palette.accent,
+  };
+
+  return (
+    <main
+      className="flex min-h-screen flex-col items-center px-6 py-16"
+      style={{ background: cores.paper, color: cores.ink }}
+    >
+      <Suspense
+        fallback={
+          <div
+            className="mt-24 min-h-[180px] w-full max-w-[440px]"
+            aria-hidden
+            style={{
+              background: `color-mix(in srgb, ${cores.ink} 6%, transparent)`,
+            }}
+          />
+        }
+      >
+        <Conteudo
+          slug={slug}
+          siteId={view.site.id}
+          cores={cores}
+          nomesDoCasal={view.content?.coupleNames ?? null}
+          ceremonia={{
+            local: view.content?.ceremonyVenue ?? null,
+            mapa: view.content?.ceremonyMapUrl ?? null,
+          }}
+          festa={{ local: view.content?.receptionVenue ?? null }}
+          weddingDate={view.content?.weddingDate ?? null}
+          searchParams={searchParams}
+        />
+      </Suspense>
+    </main>
+  );
+}
+
+/**
+ * Decide entre a BUSCA e a PÁGINA PESSOAL.
+ *
+ * Um componente só porque os dois estados dependem de `searchParams`, e o
+ * limite de `<Suspense>` precisa envolver o conjunto — inclusive o título, que
+ * muda de "Encontrar meu convite" para "Olá, Família Costa".
+ */
+async function Conteudo({
   slug,
   siteId,
   cores,
+  nomesDoCasal,
+  ceremonia,
+  festa,
+  weddingDate,
   searchParams,
 }: {
   slug: string;
   siteId: string;
   cores: Cores;
-  searchParams: Promise<{ nome?: string; erro?: string }>;
+  nomesDoCasal: string | null;
+  ceremonia: { local: string | null; mapa: string | null };
+  festa: { local: string | null };
+  weddingDate: Date | null;
+  searchParams: Promise<{ nome?: string; erro?: string; grupo?: string }>;
 }) {
-  const { nome, erro } = await searchParams;
+  const { nome, erro, grupo } = await searchParams;
+
+  if (grupo) {
+    const convite = await getRsvpViewBySlug(grupo);
+
+    /* O GRUPO TEM QUE SER DESTE CASAMENTO.
+       Sem esta checagem, um `?grupo=` de outro site mostraria o convite de um
+       convidado alheio dentro da moldura deste casal — vazamento por
+       parâmetro de URL. Não vale mostrar erro: quem chega com slug de outro
+       casamento provavelmente errou o link, e a busca é a saída certa. */
+    if (convite && convite.siteId === siteId) {
+      return (
+        <PaginaPessoal
+          slug={slug}
+          cores={cores}
+          convite={convite}
+          ceremonia={ceremonia}
+          festa={festa}
+          weddingDate={weddingDate}
+        />
+      );
+    }
+  }
 
   async function procurar(formData: FormData) {
     "use server";
@@ -71,17 +175,33 @@ async function Busca({
     const achado = await findGroupByGuestName(siteId, digitado);
 
     // Sem resultado, volta com o nome preenchido: reescrever tudo é o que faz
-    // a pessoa desistir. Com resultado, vai direto para o convite dela.
+    // a pessoa desistir.
     if (!achado) {
       redirect(
         `/s/${slug}/meu-convite?erro=1&nome=${encodeURIComponent(digitado)}`
       );
     }
-    redirect(`/rsvp/${achado.slug}`);
+    redirect(`/s/${slug}/meu-convite?grupo=${achado.slug}`);
   }
 
   return (
-    <>
+    <div className="w-full max-w-[440px] text-center">
+      <p
+        className="text-[11px] uppercase tracking-[0.26em]"
+        style={{ color: cores.accent }}
+      >
+        Encontrar meu convite
+      </p>
+
+      <h1 className="mt-5 text-[26px] leading-tight">
+        {nomesDoCasal ? `Casamento de ${nomesDoCasal}` : "Seu convite"}
+      </h1>
+
+      <p className="mt-4 text-[15px] leading-relaxed opacity-80">
+        Escreva seu nome completo, como você acha que os noivos cadastraram. A
+        gente te leva direto para o seu convite.
+      </p>
+
       <form action={procurar} className="mt-8 flex flex-col gap-3">
         <input
           type="text"
@@ -117,81 +237,183 @@ async function Busca({
           jeito que os noivos devem ter escrito — ou peça o link para eles.
         </p>
       )}
-    </>
+
+      <Link
+        href={`/s/${slug}`}
+        className="mt-10 inline-block text-[13px] underline underline-offset-4 opacity-70 transition-opacity hover:opacity-100"
+      >
+        Voltar para o site do casamento
+      </Link>
+    </div>
   );
 }
 
-export default async function MeuConvitePage({
-  params,
-  searchParams,
+/**
+ * A página pessoal — o desenho F2.
+ *
+ * ── Por que ela usa o tema do CASAL, e não a Prensa ────────────────────────
+ *
+ * É uma página do site do casamento, e ali a Enlace desaparece (Voz e
+ * Microcopy V2). Cor e tipografia vêm do `ThemeSpec` do casal, como no resto
+ * de `/s/<slug>`. O desenho mostra a coluna da direita em oliva porque oliva é
+ * a cor daquele artboard; aqui ela é a tinta do casal, que é o equivalente
+ * certo — um oliva fixo apareceria igual em seis estilos diferentes.
+ */
+function PaginaPessoal({
+  slug,
+  cores,
+  convite,
+  ceremonia,
+  festa,
+  weddingDate,
 }: {
-  params: Promise<{ slug: string }>;
-  searchParams: Promise<{ nome?: string; erro?: string }>;
+  slug: string;
+  cores: Cores;
+  convite: NonNullable<Awaited<ReturnType<typeof getRsvpViewBySlug>>>;
+  ceremonia: { local: string | null; mapa: string | null };
+  festa: { local: string | null };
+  weddingDate: Date | null;
 }) {
-  const { slug } = await params;
-
-  const view = await getSiteViewBySlug(slug);
-  if (!view) notFound();
-
-  const tema: ThemeSpec =
-    (view.site.theme as ThemeSpec | null) ??
-    resolveTheme(themePresetFor(view.site.templateId));
-  const cores: Cores = {
-    paper: tema.palette.paper,
-    ink: tema.palette.ink,
-    accent: tema.palette.accent,
-  };
-
-  const nomes = view.content?.coupleNames ?? null;
+  const respondeu = convite.seatsConfirmed !== null;
+  const vai = (convite.seatsConfirmed ?? 0) > 0;
+  const lugares = Math.max(convite.seats, 1);
+  const data = weddingDate
+    ? dataPorExtenso(weddingDate.toISOString().slice(0, 10))
+    : null;
 
   return (
-    <main
-      className="flex min-h-screen flex-col items-center justify-center px-6 py-16"
-      style={{ background: cores.paper, color: cores.ink }}
-    >
-      <div className="w-full max-w-[440px] text-center">
-        <p
-          className="text-[11px] uppercase tracking-[0.26em]"
-          style={{ color: cores.accent }}
+    <div className="w-full max-w-[900px]">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px] lg:items-start">
+        <div>
+          <p
+            className="text-[11px] uppercase tracking-[0.26em]"
+            style={{ color: cores.accent }}
+          >
+            Seu convite pessoal
+          </p>
+
+          <h1 className="mt-4 text-[32px] leading-tight lg:text-[42px]">
+            {convite.label ? `Olá, ${convite.label}` : "Olá!"}
+          </h1>
+
+          <p className="mt-4 max-w-[52ch] text-[15px] leading-relaxed opacity-80">
+            Que alegria ter você com a gente. Reservamos{" "}
+            <strong className="font-semibold opacity-100">
+              {lugares} {lugares === 1 ? "lugar" : "lugares"}
+            </strong>{" "}
+            no seu nome.
+          </p>
+
+          <div
+            className="mt-7 border p-6"
+            style={{
+              borderColor: `color-mix(in srgb, ${cores.ink} 18%, transparent)`,
+              background: `color-mix(in srgb, ${cores.paper} 85%, white)`,
+            }}
+          >
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <span className="text-[11px] uppercase tracking-[0.2em] opacity-70">
+                Sua resposta
+              </span>
+              <span
+                className="px-2.5 py-1 text-[10.5px] uppercase tracking-[0.08em]"
+                style={
+                  respondeu && vai
+                    ? { background: cores.accent, color: cores.paper }
+                    : {
+                        border: `1px solid color-mix(in srgb, ${cores.ink} 30%, transparent)`,
+                      }
+                }
+              >
+                {!respondeu ? "Aguardando" : vai ? "Confirmado" : "Não vai"}
+              </span>
+            </div>
+
+            {respondeu ? (
+              <div className="mt-5 flex flex-wrap items-end gap-8">
+                <div>
+                  <p className="text-[34px] leading-none">
+                    {convite.seatsConfirmed}
+                  </p>
+                  <p className="mt-1 text-[11px] uppercase tracking-[0.16em] opacity-70">
+                    {convite.seatsConfirmed === 1
+                      ? "lugar confirmado"
+                      : "lugares confirmados"}
+                  </p>
+                </div>
+                {convite.attendingNames && (
+                  <p className="max-w-[26ch] text-[14px] leading-relaxed opacity-80">
+                    {convite.attendingNames}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <p className="mt-4 text-[14px] leading-relaxed opacity-80">
+                Vocês ainda não responderam. É rapidinho.
+              </p>
+            )}
+
+            <Link
+              href={`/rsvp/${convite.slug}`}
+              className="mt-5 inline-block text-[13px] underline underline-offset-4 opacity-80 transition-opacity hover:opacity-100"
+            >
+              {respondeu ? "Alterar minha resposta" : "Confirmar presença"}
+            </Link>
+          </div>
+        </div>
+
+        {/* O DIA — a coluna escura do desenho, na tinta do casal. */}
+        <aside
+          className="p-6"
+          style={{ background: cores.ink, color: cores.paper }}
         >
-          Encontrar meu convite
-        </p>
+          <p className="text-[11px] uppercase tracking-[0.2em] opacity-60">
+            O dia
+          </p>
+          {data && <p className="mt-2 text-[22px] leading-tight">{data}</p>}
 
-        <h1 className="mt-5 text-[26px] leading-tight">
-          {nomes ? `Casamento de ${nomes}` : "Seu convite"}
-        </h1>
+          <div className="mt-5 flex flex-col gap-4 text-[13.5px]">
+            {ceremonia.local && (
+              <div
+                className="flex flex-col gap-1 border-b pb-4"
+                style={{
+                  borderColor: `color-mix(in srgb, ${cores.paper} 18%, transparent)`,
+                }}
+              >
+                <span className="opacity-60">Cerimônia</span>
+                <span>{ceremonia.local}</span>
+              </div>
+            )}
+            {festa.local && (
+              <div className="flex flex-col gap-1">
+                <span className="opacity-60">Festa</span>
+                <span>{festa.local}</span>
+              </div>
+            )}
+          </div>
 
-        <p className="mt-4 text-[15px] leading-relaxed opacity-80">
-          Escreva seu nome completo, como você acha que os noivos cadastraram.
-          A gente te leva direto para a sua confirmação.
-        </p>
-
-        <Suspense
-          fallback={
-            <div
-              className="mt-8 min-h-[104px] w-full"
-              aria-hidden
-              style={{
-                background: `color-mix(in srgb, ${cores.ink} 6%, transparent)`,
-              }}
-            />
-          }
-        >
-          <Busca
-            slug={slug}
-            siteId={view.site.id}
-            cores={cores}
-            searchParams={searchParams}
-          />
-        </Suspense>
-
-        <Link
-          href={`/s/${slug}`}
-          className="mt-10 inline-block text-[13px] underline underline-offset-4 opacity-70 transition-opacity hover:opacity-100"
-        >
-          Voltar para o site do casamento
-        </Link>
+          {/* O botão do mapa só existe quando HÁ mapa. Um "Ver no mapa" que
+              não abre nada é o beco que a prancha H proíbe. */}
+          {ceremonia.mapa && (
+            <a
+              href={ceremonia.mapa}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-6 block w-full py-3 text-center text-[11.5px] uppercase tracking-[0.2em] transition-opacity hover:opacity-85"
+              style={{ background: cores.paper, color: cores.ink }}
+            >
+              Ver no mapa
+            </a>
+          )}
+        </aside>
       </div>
-    </main>
+
+      <Link
+        href={`/s/${slug}`}
+        className="mt-10 inline-block text-[13px] underline underline-offset-4 opacity-70 transition-opacity hover:opacity-100"
+      >
+        Voltar para o site do casamento
+      </Link>
+    </div>
   );
 }

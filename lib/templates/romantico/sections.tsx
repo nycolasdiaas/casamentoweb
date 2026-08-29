@@ -7,6 +7,7 @@ import GiftGrid from "@/components/site/GiftGrid";
 import { loadGiftSection } from "@/lib/site/giftSection";
 import { listSitePhotos, photoAt, SLOT_CAPACITY } from "@/lib/repositories/sitePhotos";
 import type { SectionProps } from "@/lib/templates/contract";
+import Mural from "@/components/site/Mural";
 
 // Seções do molde Romântico — jardim ao entardecer.
 //
@@ -113,20 +114,30 @@ export async function Cover({ content, siteId }: SectionProps) {
         <circle cx="96" cy="42" r="5" fill={BORDA} />
       </svg>
 
-      <div className="relative text-center">
+      {/* A 1920 a capa e DUAS COLUNAS: o texto a esquerda, o oval da foto
+          ancorando a direita — a composicao do desenho. Ate 1279 ela
+          continua sendo a coluna centrada de sempre.
+
+          Cada filho de texto leva `xl:col-start-1` escrito na propria
+          marcacao, e o oval leva `xl:col-start-2`. Poderia ser uma regra
+          so no contentor (`xl:[&>*]:col-start-1`), mas ela e o oval
+          gerariam a MESMA propriedade com a mesma especificidade, e quem
+          ganharia dependeria da ordem em que o Tailwind emite as duas
+          classes — que nao e uma coisa para se depender. */}
+      <div className="relative text-center xl:grid xl:grid-cols-2 xl:items-center xl:gap-x-16 xl:text-left">
         <div
-          className="text-[11px] tracking-[0.34em] uppercase lg:text-[12.1px]"
+          className="text-[11px] tracking-[0.34em] uppercase lg:text-[12.1px] xl:col-start-1"
           style={{ color: FLOR_FUNDA }}
         >
           Com a bênção de suas famílias
         </div>
 
-        <h1 style={{ "--motion-delay": "260ms" } as React.CSSProperties} className="motion-word mt-4.5 font-[family-name:var(--font-script)] font-normal text-[56px] sm:text-[64px] leading-[1.02] lg:text-[89.6px]">
+        <h1 style={{ "--motion-delay": "260ms" } as React.CSSProperties} className="motion-word mt-4.5 font-[family-name:var(--font-script)] font-normal text-[56px] sm:text-[64px] leading-[1.02] lg:text-[89.6px] xl:col-start-1 xl:text-[128px] xl:leading-[1.06]">
           {a && b ? (
             <>
               {a}
               <span
-                className="block text-[30px] sm:text-[34px] leading-none lg:text-[48px]"
+                className="block text-[30px] sm:text-[34px] leading-none lg:text-[48px] xl:text-[68px]"
                 style={{ color: "var(--accent)" }}
               >
                 e
@@ -138,14 +149,16 @@ export async function Cover({ content, siteId }: SectionProps) {
           )}
         </h1>
 
-        <DotDivider />
+        <div className="xl:col-start-1">
+          <DotDivider />
+        </div>
 
-        <p className="mt-4.5 italic text-[15px] leading-relaxed lg:text-[18px]" style={{ color: tinta(85) }}>
+        <p className="mt-4.5 italic text-[15px] leading-relaxed lg:text-[18px] xl:col-start-1 xl:text-[21px]" style={{ color: tinta(85) }}>
           convidam você para celebrar
           <br />o dia do seu &ldquo;sim&rdquo;
         </p>
 
-        <OvalFrame className="mt-6.5 mx-auto w-[220px] sm:w-[236px] lg:w-[430px]">
+        <OvalFrame className="mt-6.5 mx-auto w-[220px] sm:w-[236px] lg:w-[430px] xl:col-start-2 xl:row-start-1 xl:row-span-7 xl:mt-0 xl:w-[560px] xl:justify-self-center xl:self-center">
           <SitePhoto
             photo={capa}
             label="Foto do casal"
@@ -156,7 +169,7 @@ export async function Cover({ content, siteId }: SectionProps) {
 
         {(content.weekdayLabel || content.weddingTimeLabel) && (
           <div
-            className="mt-7 text-[11px] tracking-[0.3em] uppercase lg:text-[12.1px]"
+            className="mt-7 text-[11px] tracking-[0.3em] uppercase lg:text-[12.1px] xl:col-start-1"
             style={{ color: tinta(70) }}
           >
             {[content.weekdayLabel, content.weddingTimeLabel].filter(Boolean).join(" · ")}
@@ -164,13 +177,13 @@ export async function Cover({ content, siteId }: SectionProps) {
         )}
 
         {content.weddingDateLabel && (
-          <div className="mt-2 font-[family-name:var(--font-script)] text-[34px] sm:text-[37px] leading-tight lg:text-[54.4px]">
+          <div className="mt-2 font-[family-name:var(--font-script)] text-[34px] sm:text-[37px] leading-tight lg:text-[54.4px] xl:col-start-1 xl:text-[68px]">
             {content.weddingDateLabel}
           </div>
         )}
 
         {content.ceremonyVenue && (
-          <div className="mt-2.5 text-sm italic" style={{ color: tinta(85) }}>
+          <div className="mt-2.5 text-sm italic xl:col-start-1 xl:text-[19px]" style={{ color: tinta(85) }}>
             {[content.ceremonyVenue, content.ceremonyAddress].filter(Boolean).join(" · ")}
           </div>
         )}
@@ -486,6 +499,28 @@ export async function Gifts({ siteId, content }: SectionProps) {
           "Ter você conosco já é presente. Mas, se o coração pedir, cada mimo abaixo vira uma lembrança da nossa lua de mel."}
       </p>
       <GiftGrid gifts={gifts} pix={pix} siteId={siteId}
+      />
+    </section>
+  );
+}
+
+/**
+ * Mural de recados (pacote Para Sempre).
+ *
+ * A lista e o formulário são os mesmos dos seis moldes — ver
+ * `components/site/Mural.tsx`. Aqui entra só o enquadramento deste molde.
+ */
+export async function Guestbook({ siteId, slug }: SectionProps) {
+  return (
+    <section className="px-6.5 py-14">
+      <div className="text-center mb-6">
+        <ScriptTitle>Mural de recados</ScriptTitle>
+        <DotDivider />
+      </div>
+      <Mural
+        siteId={siteId}
+        slug={slug}
+        convite="Deixe um carinho para os noivos lerem depois."
       />
     </section>
   );

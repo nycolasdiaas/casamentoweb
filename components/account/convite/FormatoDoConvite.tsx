@@ -66,8 +66,8 @@ export default function FormatoDoConvite({
             onClick={() => aoTrocar(p.largura, p.altura)}
             className={`min-h-9 rounded-[2px] border px-2.5 text-[12px] transition-colors ${
               ativo
-                ? "border-(--c-ink) bg-(--c-ink) text-white"
-                : "border-(--c-rule) bg-white text-(--c-ink) hover:bg-(--c-sunken)"
+                ? "border-(--c-ink) bg-(--c-ink) text-(--c-surface)"
+                : "border-(--c-rule) bg-(--c-surface) text-(--c-ink) hover:bg-(--c-sunken)"
             }`}
           >
             {p.rotulo}
@@ -83,8 +83,8 @@ export default function FormatoDoConvite({
         onClick={() => aoTrocar(largura, altura + 1)}
         className={`min-h-9 rounded-[2px] border px-2.5 text-[12px] transition-colors ${
           pronto
-            ? "border-(--c-rule) bg-white text-(--c-ink) hover:bg-(--c-sunken)"
-            : "border-(--c-ink) bg-(--c-ink) text-white"
+            ? "border-(--c-rule) bg-(--c-surface) text-(--c-ink) hover:bg-(--c-sunken)"
+            : "border-(--c-ink) bg-(--c-ink) text-(--c-surface)"
         }`}
       >
         Personalizado

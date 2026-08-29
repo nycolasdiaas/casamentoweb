@@ -30,6 +30,8 @@ export default function PublicarConvite({
   noAr,
   temMudancaNaoSalva,
   siteNoAr,
+  temSaida,
+  aoAcrescentarBotao,
 }: {
   siteId: string;
   inviteId: string;
@@ -37,6 +39,10 @@ export default function PublicarConvite({
   noAr: boolean;
   temMudancaNaoSalva: boolean;
   siteNoAr: boolean;
+  /** O convite tem botão ou texto com link? Sem isso, publicar é recusado. */
+  temSaida: boolean;
+  /** Põe o botão de confirmar presença de volta, no rodapé do convite. */
+  aoAcrescentarBotao: () => void;
 }) {
   const [url, setUrl] = useState(urlInicial);
   const [publicado, setPublicado] = useState(noAr);
@@ -49,7 +55,14 @@ export default function PublicarConvite({
     iniciar(async () => {
       const r = await publicarConviteAction(siteId, inviteId);
       if ("error" in r) {
-        setErro(r.error);
+        /* A action devolve um erro NOMEADO, não uma frase: quem escreve o
+           texto é a tela, que sabe onde ele vai aparecer e que tem o botão
+           para consertar do lado. */
+        setErro(
+          r.error === "sem-saida"
+            ? "Este convite não tem para onde levar."
+            : r.error
+        );
         return;
       }
       setUrl(r.url);
@@ -98,6 +111,28 @@ export default function PublicarConvite({
         </p>
       )}
 
+      {/* Beco sem saída é bug — a regra da prancha H. Um convite publicado sem
+          botão é uma página que o convidado abre, lê e fecha, sem ter para
+          onde ir; e o casal só descobre quando alguém avisa.
+          
+          O aviso vem com o conserto do lado: apontar o defeito e deixar a
+          pessoa procurar sozinha onde arrumar é meio aviso. */}
+      {!temSaida && (
+        <div className="aviso text-(--c-warn) flex-col items-start gap-2">
+          <span className="aviso-texto">
+            Este convite não tem para onde levar. Acrescente o botão de
+            confirmar presença antes de publicar.
+          </span>
+          <button
+            type="button"
+            onClick={aoAcrescentarBotao}
+            className="btn btn-quiet btn-sm"
+          >
+            Acrescentar o botão
+          </button>
+        </div>
+      )}
+
       {publicado && url ? (
         <>
           <p className="text-[12px] leading-snug text-(--c-ink-2)">
@@ -116,7 +151,7 @@ export default function PublicarConvite({
             <button
               type="button"
               onClick={copiar}
-              className="min-h-11 shrink-0 border border-(--c-ink) bg-(--c-ink) px-3 text-[12px] text-white transition-opacity hover:opacity-90"
+              className="btn btn-ink btn-sm min-h-11 shrink-0"
             >
               {copiado ? "Copiado!" : "Copiar"}
             </button>
@@ -161,7 +196,7 @@ export default function PublicarConvite({
             type="button"
             onClick={publicar}
             disabled={ocupado}
-            className="min-h-11 w-full border border-(--c-ink) bg-(--c-ink) text-[13px] text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+            className="btn btn-ink btn-sm min-h-11 w-full"
           >
             {ocupado ? "Publicando…" : "Publicar convite"}
           </button>

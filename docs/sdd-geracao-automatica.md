@@ -1,8 +1,15 @@
 # SDD — Geração automática de sites de casamento
 
-**Status:** proposta (não implementado)
+**Status:** em execução — Fases 0 a 3 entregues, Fase 4 quase, Fases 5 e 6 abertas (§10)
 **Autor:** levantamento técnico sobre o código em `main` (commit `3c09cac`)
-**Data:** 2026-07-27
+**Data:** 2026-07-27 · **Conferido contra o código em:** 2026-08-25
+
+> **Como ler isto.** Nasceu proposta e virou registro. Cada seção descreve a
+> decisão **e** o que de fato foi construído; onde as duas divergem, quem manda
+> é o código, e a divergência está anotada no lugar em vez de escondida. O que
+> foi construído **depois** da proposta e nunca teve seção própria está na
+> **§15** — leia-a antes de assumir que este documento descreve o produto
+> inteiro.
 
 ---
 
@@ -223,8 +230,49 @@ Film tinham cor fixa na prévia. No molde eles derivam de `var(--accent)` e de
 `color-mix` com a tinta — um ramo rosa num site azul-marinho seria o detalhe
 que denuncia molde mal portado.
 
-**O mural (`guestbook`) fica de fora dos seis**: é a única seção do contrato
-sem implementação, e nenhum molde a declara em `order`.
+**O mural (`guestbook`) entrou depois.** Quando isto foi escrito, era a única
+seção do contrato sem implementação e nenhum molde a declarava em `order`.
+Hoje `guestbook_messages` existe (migração 0015) e **os seis moldes declaram a
+seção**.
+
+Uma diferença que importa em relação ao que a §5.1 propunha: **não existe fila
+de aprovação**. O `approved boolean default false` do esboço não foi
+implementado — o recado do convidado aparece no site assim que é enviado. A
+moderação que a §11 pede continua pendente, e mudou de natureza no caminho:
+deixou de ser risco previsto e virou **escrita pública anônima já no ar**.
+
+**Widescreen — os moldes cresceram para 1920 (28/08/2026).**
+
+O cartão centralizado de 1120px acabou. `specs/site-publico/002` foi reaberta
+e fechada na **Opção B**: `.site-canvas` vai a `lg:max-w-[1920px]`, e cada
+seção decide entre sangrar e ficar no trilho, na própria marcação.
+
+O que destravou foi o que a spec dizia que destravaria — **os cinco desenhos
+que faltavam**. `Enlace - Estilos Completos.dc.html` traz os seis moldes
+inteiros a 1920, e `Enlace - Estilos 1920.dc.html` as seis capas mais o
+cabeçalho de vitrine.
+
+Três coisas dessa passagem valem como regra, e não como história:
+
+1. **O corte da composição larga é `xl` (1280), não `lg` (1024).** Uma capa de
+   duas colunas em `lg` dá 512px por coluna, e o Editorial estourava a página
+   na horizontal com a data em `whitespace-nowrap`. A faixa de 1024 a 1279
+   fica com o desenho de cartão, que é o desenho para o qual ela foi medida.
+2. **O celular é intocável, e `max-xl:` é a ferramenta.** Onde os dois lados
+   pedem alinhamentos diferentes, usa-se `max-xl:` em vez de trocar a classe
+   base — inclusive para escapar de
+   `.site-canvas p[class~="text-center"] { margin-inline: auto }`, que tem
+   especificidade maior que a utilitária e recentralizaria o parágrafo.
+3. **A regra global de `74vh` casa pelo TEXTO da classe.** `xl:aspect-auto`
+   desliga a proporção mas não apaga `aspect-[3/4]` da string, e o seletor
+   `[class*="aspect-"]` continua casando. Foto que deve preencher uma coluna
+   de `100svh` precisa de `xl:max-h-none!` — sem o `!` a utilitária perde.
+
+**O que os desenhos pedem e o banco não tem** segue a mesma regra desta seção:
+a história em duas duplas datadas ("2019 — o encontro", "2025 — o pedido", com
+citação própria em cada) precisaria de um modelo de linha do tempo.
+`site_content.story` é **um** campo de texto livre. Não foi inventado; ficou
+registrado como migração aditiva pendente (§13.1).
 
 ### 4.5 Gating por pacote
 
@@ -340,9 +388,19 @@ create table site_daily_stats (
 );
 ```
 
+> **O que foi construído divergiu deste esboço em quatro pontos**, todos
+> deliberados e explicados adiante:
+>
+> | No esboço acima | No banco hoje | Onde está o porquê |
+> |---|---|---|
+> | `photos` (por site) | `site_photos` | §8 |
+> | `guestbook_messages.approved` (moderação) | coluna não implementada; recado entra direto | §4.4.1, §11 |
+> | `sites` sem controle de acesso | `access_mode` + `access_password_hash` (0016) | §15 |
+> | — | `site_invites` (0013/0014), `groups.seats`/`seats_confirmed` (0016), `gifts.quantity` (0017) | §15, §6.2 |
+
 ### 5.2 Migração das tabelas existentes (crítico)
 
-**Regra desta migração: só adiciona, nunca remove.** Nada de `DROP`, `DELETE` ou reescrita de valor existente (§15).
+**Regra desta migração: só adiciona, nunca remove.** Nada de `DROP`, `DELETE` ou reescrita de valor existente — as regras completas estão na §13.1.
 
 ```sql
 -- PASSO 1 — expandir (aditivo, reversível, sem NOT NULL ainda).
@@ -463,9 +521,34 @@ Roll-up diário em `pg_cron` agregando `site_events` → `site_daily_stats`. Os 
 
 O banco de produção **não é um ambiente de testes**:
 
-- **23 grupos, 31 convidados, 22 já confirmaram presença.**
+- **23 grupos, 31 convidados, 23 confirmações** (ver o quadro abaixo: o número
+  depende de qual das duas fontes se lê).
 - 21 presentes cadastrados, 1 contribuição registrada.
-- Casamento em **16/10/2026** — daqui a ~3 meses.
+- Casamento em **16/10/2026** — daqui a menos de dois meses (em 25/08/2026).
+
+#### A confirmação vive em dois lugares, e os dois são verdade
+
+Este documento disse "22" por meses enquanto o `AGENTS.md` dizia "23". Não era
+erro de contagem: são **duas fontes**, criadas em momentos diferentes, e
+nenhuma delas está errada.
+
+| Fonte | O que guarda | Quem escreve hoje |
+|---|---|---|
+| `guests.rsvp_status` | um convidado por linha — o modelo original, onde as confirmações nasceram | **ninguém** |
+| `groups.seats_confirmed` (migração 0016) | quantos lugares do grupo vão | `/rsvp/<slug>`, a tela que o convidado usa |
+
+`responderRsvpAction` — a única action ligada à tela real
+([ConfirmacaoDePresenca.tsx](../components/site/ConfirmacaoDePresenca.tsx)) —
+grava lugares no grupo e **não toca em `guests`**; ela diz isso no próprio
+comentário. A action que escreveria `guests.rsvp_status`
+([`submitRsvpAction`](../app/actions/rsvp-actions.ts#L120)) continua exportada
+e **não é importada por componente nenhum**. O painel e as métricas
+(`lib/repositories/siteMetrics.ts`) leem `seats_confirmed`.
+
+**Não unifique as duas sem decisão do dono.** O backfill igualou os números uma
+vez; refazer isso na direção errada apagaria confirmação de gente real que
+ninguém reconstrói — e cai direto na proibição de `UPDATE` em coluna
+preexistente (§13.1).
 
 Os links `/rsvp/<slug>` (`O5gigPXj`, `2dmSwt1n`, …) **já estão no WhatsApp dos convidados**. Portanto:
 
@@ -666,7 +749,7 @@ Resposta honesta: **muito menos do que parece, mas em pontos específicos e ineg
 **Necessário agora (não é over-engineering):**
 
 1. Isolamento multi-tenant (§5.2) — é vazamento de dados.
-2. Rate limit + moderação nas escritas públicas (RSVP, presentes, mural são **anônimos**) — hoje `lib/rateLimit.ts` só cobre login.
+2. Rate limit + moderação nas escritas públicas (RSVP, presentes, mural são **anônimos**). **Metade feito:** `lib/rateLimit.ts` deixou de ser só do login e hoje protege RSVP, presentes e mural (`checkRateLimit` + `getClientIp` nas actions). O que falta é **moderação** — não há fila de aprovação em lugar nenhum — e Turnstile.
 3. Idempotência e verificação de assinatura no webhook de pagamento — **`ABACATEPAY_WEBHOOK_SECRET` está vazio no `.env`**.
 4. Backup automático (vem com Supabase Pro) — são dados de casamento, não dá para perder.
 5. Observabilidade mínima: Sentry + log estruturado. Sem isso, ninguém descobre que o provisionamento falhou.
@@ -681,15 +764,26 @@ Resposta honesta: **muito menos do que parece, mas em pontos específicos e ineg
 
 | Fase | Entrega | Esforço |
 |---|---|---|
-| **0. Fundação** | Dump + ensaio da migração em cópia local; `sites`/`site_content`/`site_sections`; **métricas (`site_events`, `site_daily_stats`) + beacon já no site que está no ar**; backfill aditivo **preservando os slugs de RSVP já distribuídos**; `siteId` em todos os repositories + teste de isolamento; slugs reservados; down migrations escritas | 5–7 d |
-| **1. Fatia vertical** | `cacheComponents: true` + revisão das rotas atuais; `ThemeSpec`+Zod; registry de fontes; **1 template (Clássico)** portado ponta a ponta; rota `/[slug]` cacheada | 5–7 d |
+| **0. Fundação** ✅ | Dump + ensaio da migração em cópia local; `sites`/`site_content`/`site_sections`; **métricas (`site_events`, `site_daily_stats`) + beacon já no site que está no ar**; backfill aditivo **preservando os slugs de RSVP já distribuídos**; `siteId` em todos os repositories + teste de isolamento; slugs reservados; down migrations escritas | 5–7 d |
+| **1. Fatia vertical** ✅ | `cacheComponents: true` (ligado em [next.config.ts](../next.config.ts)) + revisão das rotas atuais; `ThemeSpec`+Zod; registry de fontes; **1 template (Clássico)** portado ponta a ponta; rota `/[slug]` cacheada | 5–7 d |
 | **2. Moldes** ✅ | Portar os 5 templates restantes para o contrato de seções — ver §4.4.1 | 5–8 d |
-| **3. Provisionamento** | `submitOrderAction` cria o site; upload de fotos; prévia por token; e-mail automático | 4–6 d |
-| **4. Autonomia do casal** 🟡 | Editor de conteúdo em `/conta` ✅ + `updateTag` ✅; falta publicar/despublicar pelo casal e RSVP/presentes multi-tenant na tela dele | 4–6 d |
+| **3. Provisionamento** ✅ | `submitOrderAction` cria o site; upload de fotos; prévia por token; e-mail automático | 4–6 d |
+| **4. Autonomia do casal** 🟡 | Editor de conteúdo ✅ · `updateTag` ✅ · **publicar/despublicar/arquivar pelo casal ✅** (`setSiteVisibilityAction` + `SiteControls`) · ligar/desligar/reordenar seção ✅ (aba **Páginas**) · fotos, presentes, convites, recados e compartilhamento, cada um em sua aba ✅. Falta: **moderação do mural** | 4–6 d |
 | **5. Robustez** | Rate limit público + moderação; webhook idempotente + assinatura; Sentry; subdomínio | 4–6 d |
 | **6. Opcional** | Domínio próprio; IA de estilo/copy | 3–5 d |
 
-**Total: ~28–43 dias** de trabalho focado. A Fase 1 é a que decide tudo — ela prova (ou derruba) o contrato de template antes de investir nas outras cinco.
+**Total: ~28–43 dias** de trabalho focado. A Fase 1 era a que decidia tudo — ela
+provou o contrato de template antes de investir nas outras cinco, e o contrato
+se sustentou: os seis moldes entraram sem mudá-lo, e o mural entrou depois como
+sétima seção sem quebrar nenhum.
+
+**Onde a execução realmente está (25/08/2026).** As fases 0 a 3 estão de pé e
+a 4 está quase. A **Fase 5 foi entregue pela metade e fora de ordem**: o rate
+limit acompanhou as escritas públicas quando elas nasceram (bom), mas a
+**moderação não** — o mural, que é recado anônimo de convidado, publica direto,
+sem fila de aprovação, e já está no ar. É a dívida mais concreta do projeto
+hoje. Além disso, foi construída uma frente inteira que não estava em nenhuma
+das sete fases: o editor de convites (§15).
 
 ---
 
@@ -698,8 +792,8 @@ Resposta honesta: **muito menos do que parece, mas em pontos específicos e ineg
 | Item | Situação | Ação |
 |---|---|---|
 | Isolamento entre casais | ❌ inexistente | §5.2 — bloqueador |
-| Escritas públicas anônimas | ❌ sem limite | Rate limit por IP+site, Turnstile, moderação no mural |
-| Webhook AbacatePay | ⚠️ `WEBHOOK_SECRET` vazio | Verificar assinatura + idempotência por `paymentId` |
+| Escritas públicas anônimas | 🟡 com limite, **sem moderação** | O rate limit por IP já vale para RSVP, presentes e mural — a linha antiga ("sem limite") ficou velha. O buraco que sobrou é a **moderação**: o mural publica o recado do convidado direto, sem fila de aprovação, e já está no ar (§4.4.1). Falta também Turnstile |
+| Webhook AbacatePay | ⚠️ **desligado**, não inseguro | Correção de uma afirmação errada deste documento: o código **já** compara o segredo em tempo constante (`crypto.timingSafeEqual`) e **reconfirma a cobrança com a API do AbacatePay** antes de liberar qualquer coisa; `publishSiteForOrder` é idempotente (§7.2). Sem `ABACATEPAY_WEBHOOK_SECRET` a rota responde **503** e não processa nada — que é o estado de hoje. Ação: preencher o segredo, não escrever código |
 | Domínio próprio | ✅ eliminado | Subdomínio nosso (§6) — sem risco de takeover, sem SSL por casal |
 | Rota `/rsvp/[slug]` legada | ⚠️ links já distribuídos | Alias permanente (§6.2) — quebrar é perder confirmações reais |
 | `DATABASE_URL_TEST` | ⚠️ aponta para o **mesmo banco** de produção | Isolado por schema `test`, mas um erro de config apaga dados reais. Separar instância. |
@@ -799,10 +893,33 @@ Migrar fora do horário de pico e **nunca na véspera/semana do casamento** (16/
 | 1 | Endereço do casal | **Subdomínio nosso** (`ana-e-pedro.enlace.com.br`). Sem domínio próprio, sem custo por casal. Fase 1 entrega por caminho (`/slug`), mesma coluna. |
 | 2 | "Para Sempre" | **Sem hibernação — o site fica no ar, direto.** Em vez de política, coleta de métricas de acesso para decidir com dado depois. §6.1 |
 | 3 | `sites.order_id` | **Nullable** — o casamento real do banco nasceu antes do fluxo de pedidos. |
-| 4 | Agendador | **`pg_cron`** (já instalado no banco), agora só para o roll-up diário de métricas. |
+| 4 | Agendador | ~~**`pg_cron`**~~ → **Vercel Cron**, reaberta em 27/08/2026. Ver a nota abaixo. `pg_cron` continua disponível e continua sem uso. |
 | 5 | O que conta como acesso | **Visita ao site.** Login do casal não conta. |
 | 6 | Integridade dos dados | **Nada é apagado ou reescrito.** Toda migração é aditiva, com backup e rollback. §13.1 |
 | 7 | `groups_slug_unique` | **Mantido global** — não-destrutivo e faz a rota legada seguir funcionando. §5.2 |
+
+#### Decisão 4 reaberta — 27/08/2026
+
+**O agendador passa a ser o Vercel Cron.** Reabertura explícita, e não
+contorno: a `specs/painel-casal/010-resumo-semanal` exigia que fosse assim.
+
+**Por que a decisão original não se sustentou.** Ela escolheu `pg_cron` porque
+ele já está instalado e custa zero. Só que o trabalho que apareceu não é de
+banco: o resumo semanal precisa **ler métricas, montar um e-mail e enviá-lo**, e
+SQL puro não fala SMTP. Com `pg_cron` a arquitetura seria uma tabela de fila
+mais um consumidor — ou seja, o agendador que se queria evitar, mais uma tabela.
+
+A §15.5 já registrava que `pg_cron` **nunca foi usado**: não há `cron.schedule`
+em migração nenhuma, e a `site_daily_stats` da migração 0008 segue sem escritor.
+A decisão não estava sendo abandonada agora; ela nunca chegou a ser exercida.
+
+**O que muda:** o Vercel Cron chama uma rota do próprio app, com todo o
+TypeScript disponível. Exige o plano Pro, que a §9.2 já lista como obrigatório
+("Hobby proíbe uso comercial") — então não acrescenta custo novo.
+
+**O que NÃO muda:** o roll-up diário de métricas continua sem existir, e
+continua podendo ser `pg_cron` no dia em que for feito. Esta reabertura é sobre
+o trabalho que precisa de aplicação, não sobre todo agendamento do produto.
 
 ### Assumidas por padrão (avise se discordar — nenhuma bloqueia a Fase 0)
 
@@ -815,3 +932,95 @@ Migrar fora do horário de pico e **nunca na véspera/semana do casamento** (16/
 | 12 | Upgrade de pacote | Altera `tier` no mesmo pedido e no mesmo site — não cria site novo. |
 | 13 | Retenção de `site_events` bruto | Agregados (`site_daily_stats`) para sempre. Bruto: manter **12 meses** e revisitar — o volume é pequeno (uma rajada de casamento ≈ 2.000 eventos). |
 | 14 | Instrumentar o site que já está no ar | **Sim, na Fase 0** — começa a coletar meses antes do renderer existir. §6.1 |
+
+---
+
+## 15. O que mudou desde a proposta
+
+Esta seção existe porque o resto do documento descreve um plano de julho, e o
+produto de hoje é maior que ele. **Nada aqui contradiz as decisões fechadas da
+§14** — é o que foi construído por cima delas, e que não tinha onde morar.
+
+Conferido contra a `main` em **25/08/2026**.
+
+### 15.1 O editor de convites — uma frente inteira fora do plano
+
+Não estava em nenhuma das sete fases. É a maior adição desde a proposta.
+
+| Peça | Onde |
+|---|---|
+| Tabela `site_invites` (`doc` em `jsonb`, `slug`, `published_at`) | migrações 0013 e 0014 |
+| Repositório e tag de cache `convite:<slug>` | [lib/repositories/siteInvites.ts](../lib/repositories/siteInvites.ts) |
+| Editor visual (blocos, camadas, formato, alças) | [components/account/convite/](../components/account/convite/) |
+| Ações: criar, salvar, apagar, publicar, despublicar | [app/actions/invite-actions.ts](../app/actions/invite-actions.ts) |
+| Convite publicado, endereço próprio | `app/c/[slug]/` |
+| Imagem do convite (para mandar no WhatsApp) | `app/api/convite/[siteId]/[inviteId]/` |
+| A página pessoal do convidado, com busca por nome | `app/s/[slug]/meu-convite/` |
+
+Duas decisões embutidas aí que valem tanto quanto as da §14:
+
+1. **O convite é uma página, não um arquivo.** O casal manda um link
+   (`/c/<slug>`), não um PNG — o que mantém o convite corrigível depois de
+   enviado, pela mesma razão que a §3 escolheu renderizar em vez de gerar.
+2. **`/s/<slug>/meu-convite` resolve um problema que o RSVP não resolvia:** o
+   convidado que perdeu a mensagem no meio da conversa. Sem essa tela, ele
+   escreve para o casal — no mês do casamento, junto com dezenas de outros.
+   Isso é a promessa "o casal não trabalha" aplicada ao pós-envio.
+
+O `doc` em `jsonb` é a única estrutura do projeto que guarda **desenho** em vez
+de conteúdo. É uma exceção consciente ao modelo de tokens da §4: o convite é
+peça avulsa, não molde reaproveitado entre casais.
+
+### 15.2 Site com senha
+
+`sites.access_mode` (`public` | `password`) + `access_password_hash`, migração
+0016. Não estava previsto — a §6 só tratava de prévia por token e site
+publicado. O casal pode deixar o site no ar e ainda assim fechado, o que cobre
+o caso de quem publica cedo e só quer mostrar para a família.
+
+### 15.3 O painel do casal virou abas
+
+A §7 previa "o casal edita o conteúdo". O que existe é maior:
+`conteudo`, `visual`, `fotos`, `presentes`, `convites`, `recados`, `paginas`
+e `compartilhar` — cada uma uma tela em `/conta/pedidos/<id>/`.
+
+Duas merecem nota porque não derivam de nada escrito antes:
+
+- **`paginas`** é o controle de seções (ligar, desligar, reordenar) que a §5.1
+  previu no schema (`site_sections`) mas nunca descreveu como tela.
+- **`compartilhar`** só aparece depois de publicar, e junta link, QR e cartão —
+  é a tradução da §6.1 ("o link circula no WhatsApp") em ferramenta.
+
+### 15.4 Mapa das migrações posteriores ao documento
+
+| # | O que |
+|---|---|
+| 0013, 0014 | `site_invites`; depois `slug` + `published_at` (o convite virou página) |
+| 0015 | `guestbook_messages` — o mural (§4.4.1) |
+| 0016 | `groups.seats` / `seats_confirmed`, `attending_names`, `message`, `responded_at`; `site_access_mode` + hash de senha |
+| 0017 | `gifts.quantity` — presente com mais de uma cota |
+
+A 0016 é a que carrega o assunto mais delicado do banco: ela criou a segunda
+fonte de verdade do RSVP. Ver §6.2.
+
+### 15.5 O que ainda não existe
+
+Sem duplicar o `AGENTS.md`, que é a lista curta e sempre carregada — as
+pendências que este documento **prometeu** e não entregou:
+
+- **Moderação do mural** (§4.4.1, §11). É a única coisa entre a Fase 4 e o fim
+  dela, e é escrita pública anônima que já está no ar.
+- **Turnstile nas escritas públicas** (§9.3, item 2). O rate limit por IP já
+  existe nelas; o desafio anti-bot, não.
+- **Sentry / observabilidade mínima** (§9.3, item 5).
+- **Subdomínio** (§6, Fase 2 do roteamento) — depende de registrar o domínio,
+  o único item com prazo externo.
+- **Roll-up diário em `pg_cron`** (§6.1) — **não existe.** A tabela
+  `site_daily_stats` foi criada na migração 0008 e continua sem escritor: não
+  há `cron.schedule` em migração nenhuma, e nenhum arquivo em `lib/`, `app/`
+  ou `scripts/` referencia `siteDailyStats` fora do schema. `site_events`
+  coleta normalmente; o agregado que a §6.1 chama de "o que responde as
+  perguntas de produto" está vazio. Quem for responder a pergunta da
+  hibernação (§12.1) precisa varrer a tabela bruta ou escrever o roll-up
+  antes.
+- **IA de estilo/copy** (§7.1) — opcional, nunca começou.

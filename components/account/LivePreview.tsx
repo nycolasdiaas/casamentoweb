@@ -33,12 +33,21 @@ export default function LivePreview({
   titulo = "Como está ficando",
   descricao,
   fullBleed = true,
+  marcaDePrevia = false,
 }: {
   src: string;
   titulo?: string;
   descricao?: string;
   /** Escapa da coluna estreita do painel e ocupa a largura da janela. */
   fullBleed?: boolean;
+  /**
+   * Carimba `PRÉVIA · PRÉVIA` sobre a miniatura enquanto o site não está no ar.
+   *
+   * Existe porque a prévia é boa demais: o casal olha o quadro, vê o site
+   * pronto e conclui que já publicou. A faixa acima diz isso em texto, e a
+   * marca d'água diz de novo no lugar onde o olho está.
+   */
+  marcaDePrevia?: boolean;
 }) {
   const [dispositivo, setDispositivo] = useState<Dispositivo>("desktop");
   const [recarga, setRecarga] = useState(0);
@@ -136,12 +145,35 @@ export default function LivePreview({
         className="mx-auto w-full max-w-[1400px] overflow-hidden rounded-xl bg-[#1c1c1c] p-3 sm:p-5"
       >
         <div
-          className="mx-auto overflow-hidden rounded-lg bg-white shadow-2xl"
+          className="relative mx-auto overflow-hidden rounded-lg bg-white shadow-2xl"
           style={{
             width: larguraVirtual * escala,
             height: alturaVirtual * escala,
           }}
         >
+          {/* IRMÃ do iframe, nunca injetada dentro dele: o quadro carrega
+              `/preview/<token>`, que é outra origem lógica e já tem a própria
+              faixa de prévia. Escrever por dentro exigiria falar com o
+              documento do iframe — e passaria a existir uma segunda marca
+              d'água para manter.
+
+              `aria-hidden` porque ela repete o que a faixa acima já diz em
+              texto, e um leitor de tela anunciando "PRÉVIA PRÉVIA" no meio da
+              página é ruído. */}
+          {marcaDePrevia && (
+            <span
+              data-marca-previa
+              aria-hidden="true"
+              className="t-data pointer-events-none absolute inset-0 z-10 flex items-center justify-center whitespace-nowrap text-[clamp(18px,4vw,34px)] uppercase"
+              style={{
+                letterSpacing: "0.4em",
+                color: "color-mix(in srgb, var(--c-mark) 16%, transparent)",
+                transform: "rotate(-18deg)",
+              }}
+            >
+              Prévia · Prévia
+            </span>
+          )}
           <iframe
             key={`${dispositivo}-${recarga}`}
             src={src}

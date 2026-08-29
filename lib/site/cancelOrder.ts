@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { sites, sitePhotos, gifts, groups } from "@/lib/db/schema";
 import { deleteObject } from "@/lib/storage/supabase";
-import { deleteOrder } from "@/lib/repositories/orders";
+import { cancelarOrder } from "@/lib/repositories/orders";
 
 /**
  * Cancela um pedido e leva junto o site que ele criou.
@@ -58,9 +58,19 @@ export async function cancelarPedidoComSite(orderId: string): Promise<void> {
     ).map((f) => f.storagePath);
   }
 
-  // O pedido primeiro: é o que o casal pediu para sumir. Se algo abaixo
-  // falhar, ele ao menos não vê mais o pedido cancelado na lista.
-  await deleteOrder(orderId);
+  /* O pedido primeiro: é o que o casal pediu para sumir. Se algo abaixo
+     falhar, ele ao menos não vê mais o pedido na lista.
+
+     MARCA, não apaga. Apagar a linha era a única exceção viva à regra 6 da §14
+     do SDD ("nada é apagado ou reescrito"), e custava duas coisas que ninguém
+     escolheu: a operação não conseguia ver um cancelamento nem contar quantos
+     foram, e o site que NÃO pode ser apagado junto — publicado, ou com
+     convidados, os dois casos protegidos logo acima — ficava órfão, com
+     `sites.order_id` em null, acumulando invisível.
+
+     Sumir da vista do casal continua sendo verdade: quem filtra é
+     `/conta/pedidos`. Ver `specs/painel-casal/013-cancelar-vira-estado`. */
+  await cancelarOrder(orderId);
 
   if (podeApagarSite && site) {
     // A lista de presentes sai ANTES do site, à mão.

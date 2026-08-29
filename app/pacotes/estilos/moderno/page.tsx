@@ -9,6 +9,7 @@ import { useWeddingDemoState } from "@/components/templates/useWeddingDemoState"
 import { usePackageTier } from "@/components/templates/usePackageTier";
 import { buildDemoPixCode } from "@/lib/demoPix";
 import { DEMO_COUPLE, tierIncludes } from "@/lib/packages";
+import { Icone } from "@/components/ui/prensa";
 
 const display = Archivo({
   subsets: ["latin"],
@@ -126,7 +127,10 @@ function ModernoTemplateInner() {
 
             <div className="flex justify-between px-5 lg:px-[8vw] py-3 border-b border-[#1c1c1c] font-[family-name:var(--font-mono)] text-[10px] lg:text-[12px] tracking-[0.16em]">
               <span>SAVE THE DATE</span>
-              <span style={{ color: ACCENT }}>↓ ROLE</span>
+              <span className="inline-flex items-center gap-1" style={{ color: ACCENT }}>
+                <Icone nome="chevronBaixo" tamanho={16} />
+                ROLE
+              </span>
             </div>
           </section>
 
@@ -261,7 +265,7 @@ function ModernoTemplateInner() {
                 label: "CERIMÔNIA",
                 title: DEMO_COUPLE.venue,
                 text: "Rua das Oliveiras, 120 · Eusébio, Fortaleza — CE. Portões abertos a partir das 15h15.",
-                cta: "VER NO MAPA →",
+                cta: "VER NO MAPA",
                 border: "border-b border-[#1c1c1c]/25",
               },
               {
@@ -269,7 +273,7 @@ function ModernoTemplateInner() {
                 label: "FESTA",
                 title: "No mesmo lugar, sem pressa",
                 text: "Jantar, brindes e forró depois das 22h — traga sapato confortável.",
-                cta: "COMO CHEGAR →",
+                cta: "COMO CHEGAR",
                 border: "border-b border-[#1c1c1c]/25",
               },
               {
@@ -306,9 +310,12 @@ function ModernoTemplateInner() {
                       href="https://maps.google.com/?q=Espa%C3%A7o+Jardim+das+Oliveiras,+Fortaleza"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-block mt-2.5 font-[family-name:var(--font-mono)] text-[10.5px] tracking-[0.16em] text-[#1c1c1c] underline underline-offset-4 hover:text-[#bd5b32] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#bd5b32]"
+                      className="mt-2.5 inline-flex items-center gap-1.5 font-[family-name:var(--font-mono)] text-[10.5px] tracking-[0.16em] text-[#1c1c1c] hover:text-[#bd5b32] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#bd5b32]"
                     >
-                      {row.cta}
+                      <span className="underline underline-offset-4">
+                        {row.cta}
+                      </span>
+                      <Icone nome="setaDireita" tamanho={16} />
                     </a>
                   )}
                 </div>
@@ -399,7 +406,10 @@ function ModernoTemplateInner() {
                     disabled={!s.canConfirm}
                     className="w-full font-[family-name:var(--font-mono)] bg-[#1c1c1c] text-[#fafafa] text-[11px] lg:text-[13px] tracking-[0.22em] py-4 border border-[#1c1c1c] transition-colors hover:bg-[#bd5b32] hover:border-[#bd5b32] disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#bd5b32]"
                   >
-                    CONFIRMAR →
+                    <span className="inline-flex items-center justify-center gap-1.5">
+                      CONFIRMAR
+                      <Icone nome="setaDireita" tamanho={16} />
+                    </span>
                   </button>
                 </div>
               </div>
@@ -556,7 +566,10 @@ function ModernoTemplateInner() {
                     onClick={s.sendMessage}
                     className="font-[family-name:var(--font-mono)] bg-[#1c1c1c] text-[#fafafa] text-[10.5px] tracking-[0.2em] px-6 py-3.5 border border-[#1c1c1c] transition-colors hover:bg-[#bd5b32] hover:border-[#bd5b32] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#bd5b32]"
                   >
-                    PUBLICAR →
+                    <span className="inline-flex items-center gap-1.5">
+                      PUBLICAR
+                      <Icone nome="setaDireita" tamanho={16} />
+                    </span>
                   </button>
                 </div>
               </div>
@@ -605,7 +618,12 @@ function ModernoTemplateInner() {
                   onClick={() => s.setAlbumPreview(true)}
                   className="mt-6 font-[family-name:var(--font-mono)] text-[10.5px] tracking-[0.16em] text-[#fafafa] underline underline-offset-4 hover:text-[#bd5b32] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#bd5b32]"
                 >
-                  VER PRÉVIA (DEMONSTRAÇÃO) →
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="underline underline-offset-4">
+                      VER PRÉVIA (DEMONSTRAÇÃO)
+                    </span>
+                    <Icone nome="setaDireita" tamanho={16} />
+                  </span>
                 </button>
               </div>
             ) : (
@@ -623,7 +641,10 @@ function ModernoTemplateInner() {
                   )}
                 </div>
                 <div className="mt-3 px-5 lg:px-[8vw] font-[family-name:var(--font-mono)] text-[10px] lg:text-[12px] tracking-[0.16em] text-[#1c1c1c]/55">
-                  ARRASTE AS MELHORES PRA CÁ →
+                  <span className="inline-flex items-center gap-1.5">
+                    ARRASTE AS MELHORES PRA CÁ
+                    <Icone nome="setaDireita" tamanho={16} />
+                  </span>
                 </div>
                 {s.albumPreview && (
                   <div className="mt-3 px-5 lg:px-[8vw]">

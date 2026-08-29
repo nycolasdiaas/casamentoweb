@@ -61,13 +61,46 @@ export default function GiftPixModal({
     siteId
   )}&gift=${encodeURIComponent(gift.id)}`;
 
+  /* H5 · a saída honesta.
+
+     O convidado abre o QR, vai ao banco, e volta — ou não volta. Quem fecha
+     sem avisar fica sem saber o que aconteceu, e a dúvida dele vira mensagem
+     para o casal na semana do casamento.
+
+     O artboard original dizia "pagamento não confirmado", e isso é mentira: o
+     Pix vai direto para a conta do casal e a Enlace não observa nada. Esta
+     tela diz o que é verdade, sem acusar ninguém — a maioria fecha porque
+     desistiu, e desistir é legítimo.
+
+     O × continua fechando direto, sem gravar nada. Uma tela com duas saídas
+     que exigem ato viraria a cobrança que ela existe para evitar. */
+  const [saindo, setSaindo] = useState(false);
+
+  /** Fecha de vez — o × e o scrim. Nada é gravado. */
+  const fecharDeVez = onClose;
+
+  /** Pede confirmação de saída, uma vez, para quem viu o QR e não avisou. */
+  const tentarSair = () => {
+    if (done || !pix || !brCode || saindo) {
+      onClose();
+      return;
+    }
+    setSaindo(true);
+  };
+
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose();
+      // Escape e o clique fora passam pela saída honesta; o × sai direto.
+      // Assim sempre existe um caminho de uma tecla para fora, e a tela ainda
+      // alcança quem fecha por reflexo depois de ver o QR.
+      if (event.key === "Escape") tentarSair();
     }
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [onClose]);
+    // `tentarSair` fecha sobre estado que muda a cada render; a lista abaixo é
+    // o que de fato decide o comportamento dela.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onClose, done, saindo, pix, brCode]);
 
   async function handleConfirm() {
     setSubmitting(true);
@@ -82,7 +115,7 @@ export default function GiftPixModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 motion-fade-in"
-      onClick={onClose}
+      onClick={tentarSair}
     >
       <div
         role="dialog"
@@ -102,7 +135,7 @@ export default function GiftPixModal({
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={fecharDeVez}
             aria-label="Fechar"
             className="font-serif text-xl text-(--color-muted) leading-none transition-opacity hover:opacity-60"
           >
@@ -110,7 +143,39 @@ export default function GiftPixModal({
           </button>
         </div>
 
-        {done ? (
+        {saindo && !done ? (
+          <div data-saida-pix className="flex flex-col gap-4 py-2">
+            <h3 className="font-serif text-base text-(--color-olive) leading-snug">
+              O Pix vai direto para os noivos
+            </h3>
+            <p className="font-serif text-sm text-(--color-olive) leading-relaxed">
+              A Enlace não fica no meio, então não temos como ver se o seu Pix
+              caiu — quem vê é o casal, na conta deles. Se você já fez, avise
+              aqui para eles saberem. Se mudou de ideia, tudo bem: nada ficou
+              reservado no seu nome e o presente continua na lista.
+            </p>
+
+            <button
+              type="button"
+              onClick={handleConfirm}
+              disabled={submitting}
+              className="bg-(--color-olive) text-white py-2 font-serif text-xs tracking-[0.1em] transition-opacity hover:opacity-85 disabled:opacity-60"
+            >
+              {submitting ? "Enviando…" : "Já fiz o Pix"}
+            </button>
+            <button
+              type="button"
+              onClick={fecharDeVez}
+              className="border border-(--color-olive) py-2 font-serif text-xs tracking-[0.1em] text-(--color-olive) transition-colors hover:bg-(--color-olive) hover:text-white"
+            >
+              Ver outros presentes
+            </button>
+
+            <p className="font-serif text-xs text-(--color-muted) leading-relaxed">
+              Dúvida sobre o presente? Fale com os noivos — a conta é deles.
+            </p>
+          </div>
+        ) : done ? (
           <div className="flex flex-col items-center gap-3 py-6 text-center motion-fade-in">
             <p className="font-script text-2xl text-(--color-olive)">
               Muito obrigado!
@@ -177,7 +242,7 @@ export default function GiftPixModal({
                 disabled={submitting}
                 className="bg-(--color-olive) text-white py-2 font-serif text-xs tracking-[0.1em] transition-opacity hover:opacity-85 disabled:opacity-60"
               >
-                {submitting ? "Enviando..." : "Já fiz o Pix 💚"}
+                {submitting ? "Enviando…" : "Já fiz o Pix"}
               </button>
             </div>
           </>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import BrandLoader from "@/components/ui/BrandLoader";
 import MotionProvider from "@/components/ui/MotionProvider";
 import SiteSkeleton from "@/components/ui/SiteSkeleton";
+import { uiPrensa } from "@/lib/fonts/ui";
 
 /** Marca que a próxima espera dentro de /conta é a continuação de um envio. */
 export const CHAVE_CRIANDO = "enlace:criando-site";
@@ -59,17 +60,17 @@ export default function EsperaDoPainel() {
   }
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-8 px-6 py-16">
+    <div className={`${uiPrensa} flex flex-1 flex-col items-center justify-center gap-8 px-6 py-16`}>
       <div className="w-full max-w-[300px] sm:max-w-[360px]">
         <MotionProvider>
           <SiteSkeleton className="shadow-2xl" />
         </MotionProvider>
       </div>
       <div className="flex flex-col items-center gap-1.5 text-center">
-        <p className="text-base font-semibold text-(--color-olive)">
+        <p className="text-base font-semibold text-(--c-ink)">
           Site criado!
         </p>
-        <p className="text-sm text-(--color-olive)/70">
+        <p className="text-sm text-(--c-ink-2)">
           Abrindo o painel de vocês.
         </p>
       </div>

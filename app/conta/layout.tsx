@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import BrandLoader from "@/components/ui/BrandLoader";
+import { BrindeProvider } from "@/components/ui/prensa";
 
 /**
  * Área do casal: mesma razão do /admin/layout.tsx — todas as telas dependem
@@ -12,7 +13,15 @@ export default function ContaLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <Suspense fallback={<ContaCarregando />}>{children}</Suspense>;
+  /* O provider do brinde mora AQUI, uma vez só. Montado por tela, cada aba
+     teria a própria fila: o "Conteúdo salvo." disparado na aba de conteúdo
+     sumiria ao navegar, e duas filas empilhariam contadores separados na
+     mesma tela. */
+  return (
+    <BrindeProvider>
+      <Suspense fallback={<ContaCarregando />}>{children}</Suspense>
+    </BrindeProvider>
+  );
 }
 
 /**

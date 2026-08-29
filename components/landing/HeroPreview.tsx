@@ -2,22 +2,22 @@
 // navegador, usada no hero da landing. Puro CSS — sem screenshot.
 export default function HeroPreview() {
   return (
-    <div className="w-full max-w-md rounded-xl border border-(--color-gold)/40 bg-white shadow-xl overflow-hidden">
-      <div className="flex items-center gap-1.5 bg-(--color-paper) px-3 py-2 border-b border-(--color-gold)/30">
-        <span className="size-2 rounded-full bg-(--color-gold)/50" />
-        <span className="size-2 rounded-full bg-(--color-gold)/50" />
-        <span className="size-2 rounded-full bg-(--color-gold)/50" />
-        <span className="ml-2 flex-1 rounded bg-white/80 px-2 py-0.5 text-[10px] text-(--color-olive) truncate">
+    <div className="w-full max-w-md rounded-[3px] border border-(--c-rule) bg-white shadow-xl overflow-hidden">
+      <div className="flex items-center gap-1.5 bg-(--c-base) px-3 py-2 border-b border-(--c-rule)">
+        <span className="size-2 rounded-full bg-(--c-rule)" />
+        <span className="size-2 rounded-full bg-(--c-rule)" />
+        <span className="size-2 rounded-full bg-(--c-rule)" />
+        <span className="ml-2 flex-1 rounded bg-white/80 px-2 py-0.5 text-[10px] text-(--c-ink) truncate">
           anaepedro.com.br
         </span>
       </div>
 
-      <div className="flex flex-col items-center gap-3 bg-(--color-paper) px-6 py-8 text-center">
-        <p className="text-[9px] tracking-[0.3em] uppercase text-(--color-olive)">
+      <div className="flex flex-col items-center gap-3 bg-(--c-base) px-6 py-8 text-center">
+        <p className="text-[9px] tracking-[0.3em] uppercase text-(--c-ink)">
           Save the Date
         </p>
-        <p className="font-script text-4xl text-(--color-olive)">Ana & Pedro</p>
-        <p className="text-[10px] tracking-[0.2em] uppercase text-(--color-olive)">
+        <p className="font-script text-4xl text-(--c-ink)">Ana & Pedro</p>
+        <p className="text-[10px] tracking-[0.2em] uppercase text-(--c-ink)">
           19 de setembro de 2026
         </p>
 
@@ -29,12 +29,12 @@ export default function HeroPreview() {
           ].map(([value, label]) => (
             <span
               key={label}
-              className="flex flex-col items-center border border-(--color-gold)/50 bg-white px-3 py-1.5"
+              className="flex flex-col items-center border border-(--c-rule) bg-white px-3 py-1.5"
             >
-              <span className="text-sm font-semibold text-(--color-olive) tabular-nums">
+              <span className="text-sm font-semibold text-(--c-ink) tabular-nums">
                 {value}
               </span>
-              <span className="text-[8px] tracking-[0.2em] uppercase text-(--color-olive)">
+              <span className="text-[8px] tracking-[0.2em] uppercase text-(--c-ink)">
                 {label}
               </span>
             </span>
@@ -42,10 +42,10 @@ export default function HeroPreview() {
         </div>
 
         <div className="grid grid-cols-2 gap-2 w-full pt-2">
-          <span className="flex items-center justify-center gap-1 bg-(--color-olive) text-white text-[10px] px-2 py-2">
+          <span className="flex items-center justify-center gap-1 bg-(--c-ink) text-white text-[10px] px-2 py-2">
             Confirmar presença
           </span>
-          <span className="flex items-center justify-center gap-1 border border-(--color-gold) text-(--color-olive) text-[10px] px-2 py-2 bg-white">
+          <span className="flex items-center justify-center gap-1 border border-(--c-mark) text-(--c-ink) text-[10px] px-2 py-2 bg-white">
             Lista de presentes
           </span>
         </div>

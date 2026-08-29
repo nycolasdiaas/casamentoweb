@@ -8,6 +8,7 @@ import TrackView from "@/components/TrackView";
 import RevealOnScroll from "@/components/ui/RevealOnScroll";
 import PhotoLightbox from "@/components/site/PhotoLightbox";
 import { ANCORA_DA_SECAO } from "@/lib/site/ancoras";
+import BarraDoSite from "@/components/site/BarraDoSite";
 
 /**
  * Renderiza o site de um casal: molde + tokens + conteúdo.
@@ -55,7 +56,7 @@ export default function SiteRenderer({
       style={{ ...themeToCssVars(theme), background: "var(--outer)" }}
     >
       {/*
-        `site-canvas`: 480px no celular, largura de verdade no desktop.
+        `site-canvas`: 480px no celular, a JANELA INTEIRA no desktop.
 
         O cartão estreito era mobile-first de propósito — o convidado abre pelo
         WhatsApp — mas num monitor virava um telefone encalhado no meio da
@@ -66,6 +67,40 @@ export default function SiteRenderer({
         lê melhor em coluna. As seções acompanham por `lg:` na própria
         marcação de cada molde — não por CSS global sobrescrevendo o Tailwind,
         que viraria uma guerra de especificidade a cada seção nova.
+
+        ── Por que `lg:max-w-none` e não um número ───────────────────────────
+
+        Até 27/08/2026 isto era `lg:max-w-[1120px]`: um cartão centralizado
+        sobre `--outer`. A `specs/site-publico/002` mediu a alternativa e
+        REJEITOU trocar o número, com razão — afastar o teto não redesenha
+        nada, só afasta o que é centralizado e estica o que sangra. A saída
+        que ela desenhava (Opção B, "o cartão vira largura cheia e cada seção
+        decide o que sangra") ficou bloqueada por uma coisa só: o protótipo
+        desenhava UM molde a 1440, e levar isso aos seis exigia cinco desenhos
+        que não existiam.
+
+        Eles existem desde 28/08/2026 (`Enlace - Estilos Completos.dc.html`,
+        os seis moldes inteiros a 1920). A spec foi reaberta e fechada na
+        Opção B. Daí este teto: a moldura morta de `--outer` some, e quem
+        decide entre sangrar e ficar no trilho passa a ser cada seção, na
+        própria marcação — o fundo da seção ocupa a largura toda, e o que
+        precisa de trilho ganha `lg:px-*` e teto de medida no elemento, como
+        o desenho faz.
+
+        ── Por que 1920 e não `none` ─────────────────────────────────────────
+
+        Porque 1920 é a prancha. É a largura em que os seis moldes foram
+        desenhados, e é até ela que existe decisão de desenho: a capa do
+        Editorial em duas colunas com fio no meio, o nome de 138px, a grade
+        de galeria em `2fr 1fr 1fr`. Sem teto, num monitor de 2560 essas
+        medidas esticariam para uma largura que ninguém compôs — que é o
+        mesmo defeito que a spec 002 apontou na Opção A, só que do outro
+        lado. Num monitor de 1920, que é o caso que o desenho mira, não sobra
+        um pixel de `--outer`.
+
+        O celular NÃO mudou: abaixo de `lg` continua o cartão de 480px, e as
+        capturas de 390px são idênticas às de antes — é o requisito FR-008 da
+        própria spec.
       */}
       {/*
         `@container` e não media query: o site renderiza DENTRO de um <iframe>
@@ -73,14 +108,19 @@ export default function SiteRenderer({
         390px. Media query leria a janela e mostraria o desenho de desktop
         dentro do "modo celular" — container query lê a largura do cartão, que
         é o que de fato manda no desenho.
-
-        A largura vai de 480px (celular, o desenho base — o convidado abre
-        pelo WhatsApp) a 1120px no desktop.
       */}
       <div
-        className="site-canvas @container w-full max-w-[480px] lg:max-w-[1120px] flex flex-col shadow-2xl font-[family-name:var(--font-body)]"
+        className="site-canvas @container w-full max-w-[480px] lg:max-w-[1920px] flex flex-col shadow-2xl font-[family-name:var(--font-body)]"
         style={{ background: "var(--paper)", color: "var(--ink)" }}
       >
+        {/* F1 · a barra fixa. Primeiro filho do cartão porque é `sticky`:
+            um irmão acima dela dentro do mesmo contexto de rolagem a
+            empurraria para fora antes de ela grudar.
+
+            Recebe as chaves JÁ filtradas por pacote e pela escolha do casal —
+            a barra nunca inventa um destino que a página não tem. */}
+        <BarraDoSite nomes={content.coupleNames} chaves={chaves} />
+
         <TrackView siteSlug={slug} />
 
         {/* A coreografia de rolagem mora aqui, num componente só, e alcança
@@ -107,7 +147,14 @@ export default function SiteRenderer({
         {chaves.map((key) => {
           const Section = template.sections[key]!;
           return (
-            <div key={key} id={ANCORA_DA_SECAO[key] ?? key} className="scroll-mt-4">
+            <div
+              key={key}
+              id={ANCORA_DA_SECAO[key] ?? key}
+              /* A barra cobre 52px no celular e 60px no desktop; o respiro de
+                 8px separa o título do fio de baixo. Sem isto, clicar numa
+                 âncora esconde justamente o título da seção que se pediu. */
+              className="scroll-mt-[60px] @[700px]:scroll-mt-[68px]"
+            >
               <Section {...props} />
             </div>
           );

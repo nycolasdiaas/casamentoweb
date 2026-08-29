@@ -1,15 +1,32 @@
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db/client";
-import { gifts, giftContributions } from "@/lib/db/schema";
+import {
+  gifts,
+  giftContributions,
+  siteContent,
+  sites,
+} from "@/lib/db/schema";
 
 // TODA consulta aqui é escopada por siteId. Sem isso, a lista de presentes
 // de um casal apareceria no site de outro — ver docs/sdd-geracao-automatica.md §1.2.
+//
+// A ÚNICA exceção é `listContributionsParaAdmin`, no fim do arquivo, e o nome
+// dela carrega o aviso.
 
 export type GiftInput = {
   category: string;
   name: string;
   priceCents: number | null;
+  /**
+   * null ou ausente = sem teto de cotas. Ver `gifts.quantity` no schema.
+   *
+   * OPCIONAL de propósito: as ações do admin (`gift-actions.ts`) e os testes
+   * anteriores à 0017 criam cota sem falar em quantidade, e o significado
+   * deles é exatamente "sem teto". Tornar o campo obrigatório forçaria a
+   * escrever `quantity: null` em cada um só para dizer o que o padrão já diz.
+   */
+  quantity?: number | null;
 };
 
 export async function createGift(siteId: string, input: GiftInput) {
@@ -122,4 +139,78 @@ export function groupGiftsByCategory<
     }
   }
   return grouped;
+}
+
+/**
+ * Quantas contribuições cada cota já recebeu — para a barra de progresso da
+ * prancha E6.
+ *
+ * Uma consulta agregada em vez de contar em memória: `listContributions`
+ * devolve a linha inteira de cada contribuição, e a tela só precisa do número.
+ * Num casamento com 300 presentes isso é a diferença entre trazer 300 linhas e
+ * trazer 20.
+ *
+ * A contagem é por `gift_id`. Contribuição de cota apagada tem `gift_id` nulo
+ * (a FK é `set null`, para o registro sobreviver à exclusão) e simplesmente
+ * não entra em nenhum grupo — que é o certo: ela não pertence mais a cota
+ * nenhuma.
+ */
+export async function contribuicoesPorCota(
+  siteId: string
+): Promise<Map<string, number>> {
+  const linhas = await db
+    .select({
+      giftId: giftContributions.giftId,
+      total: sql<number>`count(*)::int`,
+    })
+    .from(giftContributions)
+    .innerJoin(gifts, eq(giftContributions.giftId, gifts.id))
+    .where(eq(gifts.siteId, siteId))
+    .groupBy(giftContributions.giftId);
+
+  return new Map(
+    linhas
+      .filter((l): l is { giftId: string; total: number } => l.giftId !== null)
+      .map((l) => [l.giftId, l.total])
+  );
+}
+
+/**
+ * As contribuições de TODOS os sites — só para o `/admin/presentes`.
+ *
+ * ⚠ **Esta é a única consulta de presente sem `siteId`, e ela não pode ser
+ * chamada de rota pública.** O isolamento por `siteId` é o corte de segurança
+ * entre clientes (SDD §5.2): uma função global solta no repositório é o
+ * caminho mais curto para ele vazar — basta alguém importá-la por engano numa
+ * tela do casal e a lista de presentes de um casamento aparecer no de outro.
+ *
+ * O nome carrega o aviso de propósito. Quem for chamar de fora de
+ * `app/admin/presentes/page.tsx` está errado, e o nome diz isso antes de o
+ * código rodar.
+ *
+ * O que ela NÃO tem, e não pode ganhar: valor recebido, estado de repasse,
+ * "pendente". O Pix vai direto para a conta de cada casal e nunca passa pela
+ * Enlace (§2.4); um campo desses seria a operação que as regras recusam.
+ */
+export async function listContributionsParaAdmin(limite = 200) {
+  return db
+    .select({
+      id: giftContributions.id,
+      giftName: giftContributions.giftName,
+      guestName: giftContributions.guestName,
+      createdAt: giftContributions.createdAt,
+      /* `null` = cota de valor livre, em que o convidado escolheu quanto dar.
+         A Enlace não observa o Pix, então esse valor não existe em lugar
+         nenhum — e é por isso que a coluna mostra um traço em vez de um
+         número estimado. */
+      priceCents: gifts.priceCents,
+      siteSlug: sites.slug,
+      coupleNames: siteContent.coupleNames,
+    })
+    .from(giftContributions)
+    .innerJoin(gifts, eq(giftContributions.giftId, gifts.id))
+    .innerJoin(sites, eq(gifts.siteId, sites.id))
+    .leftJoin(siteContent, eq(siteContent.siteId, sites.id))
+    .orderBy(desc(giftContributions.createdAt))
+    .limit(limite);
 }

@@ -7,6 +7,8 @@ import GiftGrid from "@/components/site/GiftGrid";
 import { loadGiftSection } from "@/lib/site/giftSection";
 import { listSitePhotos, photoAt, SLOT_CAPACITY } from "@/lib/repositories/sitePhotos";
 import type { SectionProps } from "@/lib/templates/contract";
+import Mural from "@/components/site/Mural";
+import { Icone } from "@/components/ui/prensa";
 
 // Seções do molde Moderno — editorial brutalista.
 //
@@ -63,12 +65,12 @@ export async function Cover({ content, siteId }: SectionProps) {
   return (
     <section className="pt-8">
       <div className="flex items-start justify-between gap-2 px-5 lg:px-14">
-        <h1 style={{ "--motion-delay": "260ms" } as React.CSSProperties} className="motion-word font-[family-name:var(--font-display)] font-black text-[clamp(44px,15vw,72px)] leading-[0.88] tracking-[-0.04em] uppercase">
+        <h1 style={{ "--motion-delay": "260ms" } as React.CSSProperties} className="motion-word font-[family-name:var(--font-display)] font-black text-[clamp(44px,15vw,72px)] leading-[0.88] tracking-[-0.04em] uppercase xl:text-[136px] xl:leading-[0.82]">
           {content.partnerA && content.partnerB ? (
             <>
               {content.partnerA}
               <span
-                className="block text-[clamp(38px,12.5vw,60px)] leading-[0.95]"
+                className="block text-[clamp(38px,12.5vw,60px)] leading-[0.95] xl:text-[80px] xl:leading-[0.9]"
                 style={{ color: "var(--accent)" }}
               >
                 &amp;
@@ -83,7 +85,7 @@ export async function Cover({ content, siteId }: SectionProps) {
 
       <div className="flex justify-between items-baseline gap-3 px-5 pt-5 pb-4 lg:px-14 lg:pt-8">
         {data && (
-          <div className="font-[family-name:var(--font-display)] font-extrabold text-3xl tracking-[-0.02em] tabular-nums">
+          <div className="font-[family-name:var(--font-display)] font-extrabold text-3xl tracking-[-0.02em] tabular-nums xl:text-[38px]">
             {data.day}.{data.month}.{content.weddingDate?.getFullYear()}
           </div>
         )}
@@ -101,7 +103,10 @@ export async function Cover({ content, siteId }: SectionProps) {
       <SitePhoto
         photo={capa}
         label="Foto do casal"
-        className="aspect-[4/5] w-full"
+        /* 4/5 é o enquadramento do celular. A 1920 ele pediria 2400px de
+           altura — a foto viraria uma tela inteira de rolagem. O desenho
+           deita a capa: ela ocupa a faixa que sobra sob o nome. */
+        className="aspect-[4/5] w-full xl:aspect-[16/7]"
         priority
       />
 
@@ -110,7 +115,13 @@ export async function Cover({ content, siteId }: SectionProps) {
         style={{ borderBottom: `1px solid var(--ink)` }}
       >
         <span>Save the date</span>
-        <span style={{ color: "var(--accent)" }}>↓ role</span>
+        <span
+          className="inline-flex items-center gap-1"
+          style={{ color: "var(--accent)" }}
+        >
+          <Icone nome="chevronBaixo" tamanho={16} />
+          role
+        </span>
       </div>
     </section>
   );
@@ -186,7 +197,7 @@ export function Details({ content }: SectionProps) {
       title: content.ceremonyVenue,
       text: content.ceremonyAddress,
       href: content.ceremonyMapUrl,
-      cta: "Ver no mapa →",
+      cta: "Ver no mapa",
     },
     content.receptionVenue && {
       time: "Festa",
@@ -258,7 +269,10 @@ export function Details({ content }: SectionProps) {
                 className="inline-block mt-2.5 font-[family-name:var(--font-script)] text-[10px] tracking-[0.2em] uppercase lg:text-[11px]"
                 style={{ color: "var(--accent)" }}
               >
-                {item.cta}
+                <span className="inline-flex items-center gap-1.5">
+                  {item.cta}
+                  <Icone nome="setaDireita" tamanho={16} />
+                </span>
               </a>
             )}
           </div>
@@ -325,7 +339,10 @@ export function Rsvp({ slug }: SectionProps) {
         className="inline-block mt-6 font-[family-name:var(--font-script)] text-[10.5px] tracking-[0.22em] uppercase px-7 py-4 transition-opacity hover:opacity-85 lg:text-[11.6px] lg:px-24"
         style={{ background: "var(--ink)", color: "var(--paper)" }}
       >
-        Não recebi meu link →
+        <span className="inline-flex items-center gap-1.5">
+          Não recebi meu link
+          <Icone nome="setaDireita" tamanho={16} />
+        </span>
       </Link>
     </section>
   );
@@ -351,6 +368,25 @@ export async function Gifts({ siteId, content }: SectionProps) {
   );
 }
 
+/**
+ * Mural de recados (pacote Para Sempre).
+ *
+ * A lista e o formulário são os mesmos dos seis moldes — ver
+ * `components/site/Mural.tsx`. Aqui entra só o enquadramento deste molde.
+ */
+export async function Guestbook({ siteId, slug }: SectionProps) {
+  return (
+    <section className="px-5 py-14 lg:px-14">
+      <NumberedHead n="08" label="Recados" />
+      <Mural
+        siteId={siteId}
+        slug={slug}
+        convite="Escreva um recado para os noivos."
+      />
+    </section>
+  );
+}
+
 export async function Album({ content, siteId }: SectionProps) {
   // O placeholder que este molde já desenhava vira o estado VAZIO: sem foto
   // da festa, nada muda para quem visita hoje. Com foto, o álbum aparece
@@ -362,7 +398,7 @@ export async function Album({ content, siteId }: SectionProps) {
 function Vazio({ content }: { content: SectionProps["content"] }) {
   return (
     <section className="px-5 pt-2 pb-14 lg:px-14">
-      <NumberedHead n="08" label="Álbum" />
+      <NumberedHead n="09" label="Álbum" />
 
       <div className="pl-4" style={{ borderLeft: `3px solid var(--accent)` }}>
         <div className="font-[family-name:var(--font-display)] font-black text-[30px] leading-[0.98] tracking-[-0.03em] uppercase lg:text-[48px]">

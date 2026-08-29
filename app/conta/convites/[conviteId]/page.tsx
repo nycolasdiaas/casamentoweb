@@ -7,8 +7,13 @@ import { listSitePhotosFresh } from "@/lib/repositories/sitePhotos";
 import EditorDeConvite from "@/components/account/convite/EditorDeConvite";
 import ApagarConvite from "@/components/account/convite/ApagarConvite";
 import { getBaseUrl } from "@/lib/baseUrl";
+import { themePresetFor } from "@/lib/theme/presets";
+import type { ThemeSpec } from "@/lib/theme/spec";
+import type { TemplateStyleId } from "@/lib/templates";
+import { modelosDeConvite } from "@/lib/templates/modelos";
 import { SITE_NAME } from "@/lib/site";
 import { uiPrensa } from "@/lib/fonts/ui";
+import { Icone } from "@/components/ui/prensa";
 
 /**
  * O editor de convites, em tela cheia.
@@ -46,6 +51,13 @@ export default async function EditarConvitePage({
   if (!achado) notFound();
 
   const { convite, siteId, slug, statusDoSite, orderId } = achado;
+
+  /* A paleta de onde as cores deste convite vieram — a mesma que
+     `conviteInicial` usou ao semear. É contra ela que o painel Modelos compara
+     para saber qual cor ainda é "do tema" e qual o casal escolheu à mão. */
+  const tema =
+    (achado.temaDoSite as ThemeSpec | null) ??
+    themePresetFor(achado.templateId);
   const [fotos, baseUrl] = await Promise.all([
     listSitePhotosFresh(siteId),
     getBaseUrl(),
@@ -58,15 +70,18 @@ export default async function EditarConvitePage({
     // que rola. É o que permite a moldura do convite e o painel ocuparem toda
     // a altura sem que nada fique abaixo da dobra.
     <div
-      className={`${uiPrensa} flex h-screen flex-col overflow-hidden bg-(--c-base) text-(--c-ink)`}
+      className={`${uiPrensa} tema-escuro flex h-screen flex-col overflow-hidden bg-(--c-base) text-(--c-ink)`}
     >
       <header className="flex flex-wrap items-center justify-between gap-3 px-5 py-3">
         <div className="flex items-baseline gap-4">
           <Link
             href={voltar}
-            className="text-[13px] text-(--c-ink-2) underline underline-offset-4 transition-colors hover:text-(--c-ink)"
+            className="inline-flex items-center gap-1.5 text-[13px] text-(--c-ink-2) transition-colors hover:text-(--c-ink)"
           >
-            ← Todos os convites
+            <Icone nome="setaEsquerda" tamanho={16} />
+            <span className="underline underline-offset-4">
+              Todos os convites
+            </span>
           </Link>
           <span className="t-display text-[20px] leading-none">
             {convite.name}
@@ -97,6 +112,10 @@ export default async function EditarConvitePage({
               : null
           }
           noAr={convite.publishedAt !== null}
+          atualizadoEm={convite.updatedAt.getTime()}
+          paletaDoSite={tema.palette}
+          estiloDoSite={achado.templateId as TemplateStyleId | null}
+          modelos={modelosDeConvite()}
           siteNoAr={statusDoSite === "published"}
         />
       </main>

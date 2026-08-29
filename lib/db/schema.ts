@@ -34,6 +34,10 @@ export const orderStatusEnum = pgEnum("order_status", [
   "preview_ready", // prévia pronta pro casal ver
   "paid", // pagamento confirmado
   "published", // site no ar, pedido finalizado
+  // Cancelado pelo casal antes de pagar. No FIM do enum de propósito: não é
+  // etapa do fluxo, e `ADD VALUE` do Postgres acrescenta no fim de qualquer
+  // jeito. Ver `specs/painel-casal/013-cancelar-vira-estado`.
+  "cancelled",
 ]);
 
 // Contas de administrador da plataforma (uma por pessoa — substitui a
@@ -97,6 +101,20 @@ export const users = pgTable("users", {
   // formato "salt:hash" (scrypt), ver lib/auth/password.ts
   passwordHash: text("password_hash").notNull(),
   whatsapp: text("whatsapp"),
+  /**
+   * Quando o casal pediu para parar de receber o resumo semanal.
+   *
+   * `null` = recebe. Um timestamp em vez de um booleano porque a pergunta
+   * "desde quando?" aparece sempre que alguém reclama de ter recebido — e
+   * `false` não responde nada.
+   *
+   * Nullable e sem default de propósito: os 5 usuários de hoje continuam
+   * recebendo, que é o comportamento de antes desta coluna existir. Ver
+   * `specs/painel-casal/010-resumo-semanal`.
+   */
+  weeklyDigestOptOut: timestamp("weekly_digest_opt_out", {
+    withTimezone: true,
+  }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -157,6 +175,17 @@ export const orders = pgTable(
     paymentId: text("payment_id"),
     paymentUrl: text("payment_url"),
     paymentStatus: text("payment_status"), // PENDING/PAID/... (espelho do AbacatePay)
+    /* A HORA do pagamento, escrita uma vez por `markOrderPaid`.
+     *
+     * Antes desta coluna, o recibo usava `updated_at` — e só funcionava por um
+     * acidente de ordem: ele é montado ANTES da transação que publica.
+     * Bastaria alguém acrescentar uma escrita em `orders` entre a confirmação
+     * e o envio, ou reenviar um recibo depois, para o comprovante do casal
+     * sair com a hora errada.
+     *
+     * `null` nos pedidos anteriores à coluna: o recibo cai em `updated_at`,
+     * como antes. Nenhum backfill — a hora real deles não é reconstituível. */
+    paidAt: timestamp("paid_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -171,6 +200,26 @@ export const orders = pgTable(
 // Plataforma multi-site. Um `site` é o tenant: tudo que pertence ao
 // casamento de um casal pendura aqui. Ver docs/sdd-geracao-automatica.md.
 // ─────────────────────────────────────────────────────────────────────────
+
+/**
+ * Como o site responde a quem abre o endereço.
+ *
+ * NÃO é o mesmo eixo de `siteStatusEnum`. Status diz se o site EXISTE no ar
+ * (`published` / `archived`); modo de acesso diz quem consegue entrar quando
+ * ele está no ar. As três opções da prancha E2 são a combinação dos dois:
+ *
+ *   Público      → status published + access_mode public
+ *   Só com senha → status published + access_mode password
+ *   Oculto       → status archived  (o modo de acesso não importa)
+ *
+ * Modelar "oculto" como um terceiro modo criaria dois lugares dizendo a mesma
+ * coisa, e um deles ficaria errado na primeira vez que alguém arquivasse um
+ * site por outro caminho.
+ */
+export const siteAccessModeEnum = pgEnum("site_access_mode", [
+  "public",
+  "password",
+]);
 
 export const siteStatusEnum = pgEnum("site_status", [
   "provisioning", // criado, ainda montando
@@ -196,7 +245,25 @@ export const sites = pgTable("sites", {
   tier: packageTierEnum("tier").notNull(),
   status: siteStatusEnum("status").notNull().default("provisioning"),
   previewToken: text("preview_token").notNull().unique(),
+  // Prancha E2 · visibilidade. `public` é o padrão e é o que todo site
+  // existente passa a ter — a migração não muda o comportamento de nenhum
+  // casamento que já está no ar.
+  accessMode: siteAccessModeEnum("access_mode").notNull().default("public"),
+  // scrypt, formato "salt:hash" — o MESMO de lib/auth/password.ts. Guardar a
+  // senha em claro num campo que o casal digita seria repetir, com o convidado
+  // no meio, o erro da chave Pix chumbada: dado sensível com destino errado.
+  accessPasswordHash: text("access_password_hash"),
   publishedAt: timestamp("published_at", { withTimezone: true }),
+  /* Quando o site sai do ar — spec `site-publico/008`.
+   *
+   * `null` significa NUNCA EXPIRA, e é o que todo site existente recebe: a
+   * migração não muda o comportamento de nenhum casamento que já está no ar.
+   * O `para-sempre` fica `null` para sempre, que é o que o nome dele vende.
+   *
+   * Preenchido na PUBLICAÇÃO (data do casamento + 12 meses), não na compra:
+   * um site comprado em janeiro e publicado em agosto não pode ter queimado
+   * sete meses de prazo na gaveta. Ver `lib/site/expiracao.ts`. */
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
   // última visita registrada pelo beacon (§6.1 do SDD)
   lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
@@ -387,6 +454,36 @@ export const groups = pgTable(
     siteId: uuid("site_id").references(() => sites.id, {
       onDelete: "restrict",
     }),
+
+    /* ------------------------------------------------------------------
+       Prancha F4 · a resposta do grupo.
+
+       O modelo anterior — e ele CONTINUA existindo, na tabela `guests` — é
+       um convidado por linha, cada um com o próprio `rsvp_status`. Ele não
+       some: as 23 confirmações reais moram lá, o painel do casal lê de lá, e
+       `/rsvp/<slug>` nunca pode perder o que já foi respondido.
+
+       O que entra aqui é a resposta NO NÍVEL DO GRUPO, que é o que a prancha
+       desenha: "quantos dos 2 lugares vão" + os nomes de quem vai, escritos
+       pelo próprio convidado. É outra pergunta, não a mesma em outro formato:
+       o casal reservou lugares para uma família e quem sabe quem vem é ela.
+
+       As colunas são nullable de propósito. `null` em `seatsConfirmed`
+       significa "ainda não respondeu" — diferente de `0`, que é "respondeu
+       que não vai ninguém". Um default numérico apagaria essa diferença, e é
+       ela que o casal usa para saber a quem cobrar.
+       ------------------------------------------------------------------ */
+
+    /** Lugares reservados para o grupo. Backfill = quantos convidados havia. */
+    seats: smallint("seats").notNull().default(0),
+    /** Quantos vão. null = sem resposta; 0 = respondeu que não vai. */
+    seatsConfirmed: smallint("seats_confirmed"),
+    /** Nomes de quem vai, como o convidado escreveu. Texto livre de propósito. */
+    attendingNames: text("attending_names"),
+    /** "Deixe um carinho…" — opcional, e o casal lê no painel. */
+    message: text("message"),
+    respondedAt: timestamp("responded_at", { withTimezone: true }),
+
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -420,6 +517,19 @@ export const gifts = pgTable(
     name: text("name").notNull(),
     // null = convidado escolhe o valor ("presente livre")
     priceCents: integer("price_cents"),
+    /**
+     * Quantas cotas existem desta peça. `null` = sem teto.
+     *
+     * É o que a prancha E6 desenha como "12 de 20 compradas" com a barra de
+     * progresso: "lua de mel" não é um presente, são vinte cotas de R$ 250 que
+     * vários convidados dividem.
+     *
+     * Nullable de propósito, e sem backfill: toda cota que já existe continua
+     * sem teto, que é exatamente como ela se comportava antes desta coluna. O
+     * casal define o número quando quiser — e "quantas faltam" só aparece na
+     * tela para quem definiu.
+     */
+    quantity: smallint("quantity"),
     position: smallint("position").notNull().default(0),
     // nullable nesta fase — mesma razão de groups.siteId acima.
     siteId: uuid("site_id").references(() => sites.id, {
@@ -622,6 +732,45 @@ export const siteInvites = pgTable(
   (table) => [index("site_invites_site_id_idx").on(table.siteId)]
 );
 
+/**
+ * Mural de recados — a última seção do contrato que não tinha implementação
+ * (regras de negócio §9). Liberada só no pacote Para Sempre, como manda
+ * `TIER_SECTIONS`.
+ *
+ * Três decisões que moram no formato da tabela:
+ *
+ * 1. **Nada identifica o convidado além do que ele escreve.** Sem IP, sem
+ *    hash, sem cookie. O convidado é terceiro (§2.5) e não tem conta; o nome
+ *    é o que ele digitou e é só isso que o casal precisa para agradecer.
+ * 2. **O casal ESCONDE, não apaga.** `hidden` em vez de `DELETE`: apagar
+ *    recado de convidado é decisão que não volta, e um clique errado no
+ *    celular custaria a mensagem da avó. Esconder tira do site na hora e
+ *    continua reversível.
+ * 3. **Não existe fila de aprovação.** O recado aparece assim que é enviado.
+ *    Moderar antes seria trabalho por convidado, e a promessa é que o casal
+ *    não trabalha (§2.3) — o controle é retroativo, não prévio.
+ *
+ * `NOT NULL` nas colunas é seguro aqui, apesar da regra aditiva do AGENTS.md:
+ * ela existe para tabela que JÁ TEM linhas, onde a coluna nova não teria o
+ * que preencher. Esta nasce vazia.
+ */
+export const guestbookMessages = pgTable(
+  "guestbook_messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    siteId: uuid("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    guestName: text("guest_name").notNull(),
+    message: text("message").notNull(),
+    hidden: boolean("hidden").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index("idx_guestbook_messages_site_id").on(table.siteId)]
+);
+
 export const giftContributionsRelations = relations(
   giftContributions,
   ({ one }) => ({
@@ -656,6 +805,66 @@ export const orderAuditLogRelations = relations(orderAuditLog, ({ one }) => ({
   }),
   admin: one(admins, {
     fields: [orderAuditLog.adminId],
+    references: [admins.id],
+  }),
+}));
+
+/* --------------------------------------------------------------------------
+   Recado do time para o casal.
+
+   O que existia era `orders.admin_message`: UM campo de texto, sobrescrito a
+   cada envio. Ele resolve "qual o último recado" e não resolve nada mais —
+   não guarda histórico, não sabe se o casal leu, e o segundo recado apaga o
+   primeiro sem deixar rastro. Numa venda com acompanhamento, o rastro é
+   metade do produto.
+
+   Esta tabela é o mesmo assunto feito direito: uma linha por recado, com
+   quem mandou, quando, se o casal já leu e se o e-mail de aviso saiu.
+
+   `admin_message` NÃO foi removida junto, de propósito. Ela tem dado vivo em
+   13 pedidos e aparece na tela de acompanhamento; apagá-la na mesma mudança
+   que cria a substituta seria destrutivo e irreversível. A aposentadoria dela
+   é um passo posterior — migrar o conteúdo, trocar a tela, e só então dropar
+   a coluna, na ordem expandir → migrar → verificar → restringir (§13.1).
+
+   `on delete cascade` no pedido: o recado vive no acompanhamento DELE. Sem
+   pedido não há tela onde ele apareça, e uma linha órfã só acumularia.
+   -------------------------------------------------------------------------- */
+export const adminNotices = pgTable(
+  "admin_notices",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orderId: uuid("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    /** Quem mandou. `set null` porque apagar um admin não pode apagar o
+     *  histórico do casal — o recado continua tendo existido. */
+    adminId: uuid("admin_id").references(() => admins.id, {
+      onDelete: "set null",
+    }),
+    /** Copiado no envio: se o admin sair, o casal ainda vê de quem veio. */
+    adminName: text("admin_name").notNull(),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    /** null = ainda não lido. Não é boolean: quando importa mais que se. */
+    readAt: timestamp("read_at", { withTimezone: true }),
+    /** null = e-mail não saiu (desligado, ou falhou). O recado vale mesmo
+     *  assim — o aviso por e-mail é conveniência, não o canal. */
+    emailSentAt: timestamp("email_sent_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index("idx_admin_notices_order_id").on(table.orderId)]
+);
+
+export const adminNoticesRelations = relations(adminNotices, ({ one }) => ({
+  order: one(orders, {
+    fields: [adminNotices.orderId],
+    references: [orders.id],
+  }),
+  admin: one(admins, {
+    fields: [adminNotices.adminId],
     references: [admins.id],
   }),
 }));

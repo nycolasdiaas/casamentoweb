@@ -1,6 +1,9 @@
+import { after } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { sites, orders } from "@/lib/db/schema";
+import { sites, orders, siteContent } from "@/lib/db/schema";
+import { avisarPublicacao } from "./avisarPublicacao";
+import { calcularExpiracao } from "./expiracao";
 
 // Publicação: o site sai da prévia e vai ao ar.
 //
@@ -62,6 +65,29 @@ export async function publishSiteForOrder(
   }
 
   const alreadyPublished = site.status === "published";
+
+  /* A data em que este site sai do ar — spec `site-publico/008`.
+  
+     Calculada AQUI, na publicação, e não na compra: é a publicação que põe o
+     site diante de convidado, e é dela que o casal conta o tempo. Um site
+     comprado em janeiro e publicado em agosto não pode ter queimado sete
+     meses de prazo na gaveta.
+  
+     `null` para o `para-sempre`, para quem não tem data de casamento, e —
+     hoje — para TODO MUNDO: enquanto a vitrine não disser o prazo,
+     `PRAZO_ANUNCIADO_EM` é `null` e ninguém expira. Quem comprou lendo uma
+     tela que não prometia prazo não pode receber um. Por isso a data do
+     PEDIDO entra na conta. Ver `lib/site/expiracao.ts`. */
+  const [conteudo] = await db
+    .select({ weddingDate: siteContent.weddingDate })
+    .from(siteContent)
+    .where(eq(siteContent.siteId, site.id));
+
+  const expiresAt = calcularExpiracao(
+    site.tier,
+    conteudo?.weddingDate ?? null,
+    order.createdAt
+  );
   // Um siteUrl já preenchido NUNCA é sobrescrito: pode ser o domínio próprio
   // do casal (promessa do pacote "para sempre"), posto à mão pelo admin.
   // Publicar só preenche o que está vazio.
@@ -79,6 +105,10 @@ export async function publishSiteForOrder(
           status: "published",
           // publishedAt guarda a PRIMEIRA vez que foi ao ar.
           ...(site.publishedAt ? {} : { publishedAt: agora }),
+          /* Só escreve quando há data a escrever. Um `expiresAt: null` aqui
+             apagaria a data que um admin estendeu à mão (FR-010) toda vez que
+             o site fosse republicado. */
+          ...(expiresAt ? { expiresAt } : {}),
           updatedAt: agora,
         })
         .where(eq(sites.id, site.id));
@@ -97,6 +127,27 @@ export async function publishSiteForOrder(
         .where(eq(orders.id, orderId));
     }
   });
+
+  /* Os dois e-mails do casal (recibo e "está no ar"), e só quando ESTA chamada
+     foi a que publicou.
+
+     A idempotência já existia aqui e agora carrega um peso novo: webhook
+     reenviado e tela recarregada chamam esta função de novo, e sem a guarda o
+     casal receberia o mesmo recibo três vezes. `alreadyPublished` é o mesmo
+     sinal que a transição #6 usa para não repetir a comemoração.
+
+     `after()` porque falar com SMTP é lento e pode falhar, e o site no ar é o
+     produto — o aviso é cortesia. O `try/catch` em volta não é zelo excessivo:
+     `after` exige uma requisição em volta, e esta função também roda em teste
+     e em script, onde ela lançaria. Fora de requisição, publica-se sem avisar,
+     que é exatamente o certo. */
+  if (!alreadyPublished) {
+    try {
+      after(() => avisarPublicacao(orderId));
+    } catch {
+      // Sem requisição em volta (teste, script): publicar continua valendo.
+    }
+  }
 
   return {
     ok: true,

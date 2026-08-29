@@ -41,7 +41,7 @@ export async function requestPasswordResetAction(
   ]);
   if (!ipOk.allowed || !emailOk.allowed) return { error: RATE_LIMIT_MESSAGE };
 
-  if (!EMAIL_PATTERN.test(email)) return { error: "E-mail inválido." };
+  if (!EMAIL_PATTERN.test(email)) return { error: "Confira o e-mail — falta o @ ou o domínio." };
 
   // Sem provedor de e-mail configurado: mesma mensagem para todos (não
   // revela existência) apontando para o WhatsApp.
@@ -89,12 +89,12 @@ export async function resetPasswordAction(
     return { error: "As senhas não conferem." };
   }
   if (!token) {
-    return { error: "Link inválido. Peça um novo." };
+    return { error: "Este link não abre mais. Peça outro." };
   }
 
   const record = await findValidResetToken(sha256(token));
   if (!record) {
-    return { error: "Link inválido ou expirado. Peça um novo." };
+    return { error: "Este link já foi usado ou passou de 1 hora. Peça outro." };
   }
 
   await updateUserPassword(record.userId, await hashPassword(password));

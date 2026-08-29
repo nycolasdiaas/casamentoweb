@@ -83,5 +83,16 @@ export async function GET(request: Request) {
   revalidatePath("/conta/pedidos");
   revalidatePath("/admin/pedidos");
 
-  redirect(destino);
+  /* `?publicado=1` é o sinal da transição #6 — e só sai quando ESTA chamada
+     foi a que mudou o status. `publishSiteForOrder` é idempotente e diz isso
+     em `alreadyPublished`: sem essa guarda, todo recarregar da tela de volta
+     do checkout repetiria a comemoração, e comemoração que se repete vira
+     tique nervoso.
+
+     O caminho do admin (`admin-order-actions.ts`) NÃO emite o sinal, e não
+     tem como: ele roda no navegador da equipe, não no do casal. Quem publica
+     pelo admin faz o casal encontrar o site já no ar da próxima vez que
+     abrir o painel — sem a batida, que é o certo, porque o momento não é
+     dele. */
+  redirect(resultado.alreadyPublished ? destino : `${destino}?publicado=1`);
 }

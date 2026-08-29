@@ -111,5 +111,5 @@ export async function generateSiteSlug(
     }
   }
 
-  throw new Error(`Não foi possível gerar um slug livre para "${coupleNames}"`);
+  throw new Error(`Não foi possível gerar um endereço livre para "${coupleNames}"`);
 }

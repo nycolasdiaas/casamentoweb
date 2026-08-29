@@ -8,7 +8,12 @@ import type { SectionKey } from "@/lib/templates/contract";
 import SiteRenderer from "./SiteRenderer";
 import type { sites, siteContent, siteSections } from "@/lib/db/schema";
 
-type SiteRow = typeof sites.$inferSelect;
+/* O hash da senha é OMITIDO do tipo, não só da consulta.
+   `getSiteViewBySlug` já o remove em tempo de execução; tirá-lo também daqui é
+   o que faz o compilador reprovar qualquer caminho novo que tente passar a
+   linha crua de `sites` para esta árvore — que é como um segredo volta ao
+   payload seis meses depois, sem ninguém notar. */
+type SiteRow = Omit<typeof sites.$inferSelect, "accessPasswordHash">;
 type ContentRow = typeof siteContent.$inferSelect;
 type SectionRow = typeof siteSections.$inferSelect;
 
@@ -28,9 +33,20 @@ export type SiteView = {
 export default function SiteFromView({
   view,
   slug,
+  previa = false,
 }: {
   view: SiteView;
   slug: string;
+  /**
+   * Renderizando dentro de `/preview/<token>`?
+   *
+   * Carimba o selo de prévia sobre o site. **Nunca pode chegar `true` a partir
+   * de `/s/<slug>`** — o site publicado não tem carimbo, e é por isso que o
+   * padrão é `false` em vez de derivar de `view.site.status`: derivar deixaria
+   * um site em `preview` publicado por outro caminho aparecer carimbado para
+   * o convidado.
+   */
+  previa?: boolean;
 }) {
   const template = getTemplate(view.site.templateId);
 
@@ -71,15 +87,50 @@ export default function SiteFromView({
     : undefined;
 
   return (
-    <SiteRenderer
-      template={template}
-      theme={theme}
-      content={content}
-      tier={view.site.tier}
-      slug={slug}
-      siteId={view.site.id}
-      enabledSections={habilitadas}
-    />
+    <>
+      {previa && <SeloDePrevia />}
+      <SiteRenderer
+        template={template}
+        theme={theme}
+        content={content}
+        tier={view.site.tier}
+        slug={slug}
+        siteId={view.site.id}
+        enabledSections={habilitadas}
+      />
+    </>
+  );
+}
+
+/**
+ * F5 · o carimbo de prévia sobre o hero.
+ *
+ * ── Por que ele existe, além da faixa preta do topo ────────────────────────
+ *
+ * A faixa de `/preview/<token>` diz tudo o que precisa — e rola para fora da
+ * tela no primeiro gesto. A partir daí a prévia é indistinguível do site
+ * publicado, e o casal conclui que já publicou. É o mesmo defeito que a faixa
+ * foi criada para consertar, um scroll depois.
+ *
+ * `fixed`, e não `absolute`: ele acompanha a tela. `pointer-events: none` para
+ * não roubar clique de nada abaixo, e `aria-hidden` porque a informação já
+ * está escrita na faixa — anunciá-la duas vezes é ruído para quem usa leitor.
+ *
+ * A cor é branca com fio translúcido porque o hero de todo molde é foto escura
+ * ou tinta. Sobre um hero claro ele perde contraste; a saída certa nesse caso é
+ * `mix-blend-mode`, que ainda não está resolvida para todos os moldes.
+ */
+function SeloDePrevia() {
+  return (
+    <span
+      aria-hidden="true"
+      className="pointer-events-none fixed right-4 top-16 z-40 flex size-16 flex-col items-center justify-center rounded-full border-[1.5px] border-white/80 text-white mix-blend-difference lg:right-7 lg:top-24 lg:size-[92px]"
+      style={{ transform: "rotate(-8deg)" }}
+    >
+      <span className="font-mono text-[9px] tracking-[0.14em] lg:text-[11px]">
+        PRÉVIA
+      </span>
+    </span>
   );
 }
 
@@ -97,7 +148,7 @@ function EmPreparacao({ view }: { view: SiteView }) {
           abrir o link cedo, e um cartão de 480px encalhado num monitor entrega
           que é estado provisório mal-acabado. */}
       <div
-        className="site-canvas w-full max-w-[480px] lg:max-w-[1120px] flex flex-col items-center justify-center gap-5 px-8 py-20 lg:px-24 lg:py-32 text-center shadow-2xl"
+        className="site-canvas w-full max-w-[480px] lg:max-w-[1920px] flex flex-col items-center justify-center gap-5 px-8 py-20 lg:px-24 lg:py-32 text-center shadow-2xl"
         style={{ background: "var(--paper)", color: "var(--ink)" }}
       >
         <div

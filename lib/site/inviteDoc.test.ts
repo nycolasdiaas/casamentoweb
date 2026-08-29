@@ -5,6 +5,7 @@ import {
   ladoValido,
   parseInviteDoc,
   prenderNaTela,
+  temSaida,
 } from "./inviteDoc";
 import { quebrarLinhas } from "./inviteRender";
 import { clipPathDe, pontos } from "./inviteShapes";
@@ -225,5 +226,154 @@ describe("quebrarLinhas", () => {
       "Ana",
       "e Pedro",
     ]);
+  });
+});
+
+/* ==========================================================================
+   O botão do convite — spec `painel-casal/003`.
+
+   O que ele conserta: o convite terminava num bloco de TEXTO com link para a
+   capa do site. O convidado clicava em "confirmar presença" e caía na primeira
+   tela, de onde ainda precisava rolar até achar a confirmação. O SDD §15.1 é a
+   razão de o convite ter virado página — *"numa imagem, o botão 'Lista de
+   presentes' é desenho; aqui ele leva à lista"*.
+   ========================================================================== */
+
+describe("BlocoBotao", () => {
+  const botao = (extra: Record<string, unknown> = {}) =>
+    parseInviteDoc({
+      blocos: [
+        {
+          id: "b1",
+          tipo: "botao",
+          x: 0.2,
+          y: 0.8,
+          w: 0.6,
+          rotacao: 0,
+          destino: "rsvp",
+          rotulo: "Confirmar presença",
+          fundo: "#1a1d21",
+          cor: "#f2efe7",
+          raio: 2,
+          fonte: "sans",
+          tamanho: 0.028,
+          ...extra,
+        },
+      ],
+    }).blocos[0];
+
+  it("SC-011: `Bloco` aceita o quinto tipo", () => {
+    const b = botao();
+    expect(b.tipo).toBe("botao");
+    expect(b).toMatchObject({
+      destino: "rsvp",
+      rotulo: "Confirmar presença",
+      raio: 2,
+      fonte: "sans",
+    });
+  });
+
+  it("SC-012: endereço livre NÃO é aceito — cai no padrão", () => {
+    /* O handoff §6 é literal: o botão *"sempre leva ao RSVP, não editável como
+       link"*. Endereço digitado à mão num botão de confirmar presença só serve
+       para mandar o convidado para o lugar errado. */
+    expect(botao({ destino: "http://exemplo.com" })).toMatchObject({
+      destino: "site",
+    });
+    expect(botao({ destino: "javascript:alert(1)" })).toMatchObject({
+      destino: "site",
+    });
+  });
+
+  it("destino desconhecido cai em `site`, nunca em `rsvp`", () => {
+    // Um convite antigo apontando para a capa é inofensivo; apontando para uma
+    // confirmação que o pacote não inclui, não.
+    expect(botao({ destino: "qualquer" })).toMatchObject({ destino: "site" });
+    expect(botao({ destino: undefined })).toMatchObject({ destino: "site" });
+  });
+
+  it("os cinco destinos de `LINKS_DO_CONVITE` passam", () => {
+    for (const d of ["rsvp", "gifts", "details", "gallery", "story"]) {
+      expect(botao({ destino: d })).toMatchObject({ destino: d });
+    }
+  });
+
+  it("campo faltando cai em padrão seguro, sem derrubar o bloco", () => {
+    const b = parseInviteDoc({
+      blocos: [{ id: "b1", tipo: "botao" }],
+    }).blocos[0];
+    expect(b).toMatchObject({
+      tipo: "botao",
+      destino: "site",
+      rotulo: "Confirmar presença",
+      fundo: "#1a1d21",
+      cor: "#f2efe7",
+    });
+  });
+
+  it("SC-001: `doc` gravado antes desta spec continua carregando inteiro", () => {
+    const antigo = {
+      versao: 1,
+      fundo: "#f2efe7",
+      blocos: [
+        {
+          id: "t1",
+          tipo: "texto",
+          x: 0.1,
+          y: 0.1,
+          w: 0.8,
+          rotacao: 0,
+          texto: "Ana & Pedro",
+          tamanho: 0.06,
+          cor: "#1a1d21",
+          fonte: "serif",
+          peso: "normal",
+          alinhamento: "center",
+          espacamento: 0,
+          link: "",
+        },
+        { id: "l1", tipo: "linha", x: 0.3, y: 0.3, w: 0.4, rotacao: 0 },
+      ],
+    };
+    const d = parseInviteDoc(antigo);
+    expect(d.blocos).toHaveLength(2);
+    expect(d.blocos.map((b) => b.tipo)).toEqual(["texto", "linha"]);
+  });
+});
+
+describe("temSaida — beco sem saída é bug", () => {
+  const doc = (blocos: unknown[]) => parseInviteDoc({ blocos });
+
+  it("botão conta como saída", () => {
+    expect(temSaida(doc([{ id: "b", tipo: "botao", destino: "rsvp" }]))).toBe(
+      true
+    );
+  });
+
+  it("texto com link também conta", () => {
+    // Quem apagou o botão e pôs o próprio endereço num texto resolveu do jeito
+    // dele. Recusar seria a ferramenta discutindo com quem já acertou.
+    const d = doc([
+      { id: "t", tipo: "texto", texto: "abra aqui", link: "https://x.test" },
+    ]);
+    expect(temSaida(d)).toBe(true);
+  });
+
+  it("só desenho não conta", () => {
+    const d = doc([
+      { id: "t", tipo: "texto", texto: "Ana & Pedro", link: "" },
+      { id: "l", tipo: "linha" },
+      { id: "f", tipo: "forma", forma: "circulo" },
+    ]);
+    expect(temSaida(d)).toBe(false);
+  });
+
+  it("link só de espaço em branco não conta", () => {
+    const d = doc([{ id: "t", tipo: "texto", texto: "x", link: "   " }]);
+    expect(temSaida(d)).toBe(false);
+  });
+
+  it("convite vazio não tem saída", () => {
+    expect(temSaida(doc([]))).toBe(false);
   });
 });

@@ -2,6 +2,9 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getSiteViewByPreviewToken } from "@/lib/repositories/siteView";
 import SiteFromView from "@/components/site/SiteFromView";
+import Link from "next/link";
+import { uiPrensa } from "@/lib/fonts/ui";
+import { Icone } from "@/components/ui/prensa";
 
 /**
  * Prévia privada do site, antes de publicar.
@@ -48,13 +51,40 @@ export default async function PreviewPage({
 
   return (
     <>
-      <div
-        className="w-full px-4 py-2.5 text-center text-[11px] tracking-[0.18em] uppercase"
-        style={{ background: "#1c1c1c", color: "#fafafa" }}
-      >
-        Prévia · só quem tem este link consegue ver
+      {/* F5 · a faixa da prévia.
+          Ela é da PLATAFORMA, não do casal — é o único pedaço de Enlace que
+          aparece por cima do site, e por isso fala a língua da Prensa (mono,
+          caixa alta, tinta) em vez do tema do molde. O alvo de registro à
+          esquerda é a mesma marca que carimba a prévia no painel.
+
+          Diz duas coisas, e a segunda é a que faltava: além de "só quem tem o
+          link vê", ela avisa que o site AINDA NÃO ESTÁ NO AR. Sem isso o casal
+          abre a prévia, vê tudo pronto e conclui que já publicou. */}
+      <div className={`${uiPrensa} w-full bg-(--c-ink) text-white`}>
+        <div className="trilho py-2.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+          <span className="flex items-center gap-2.5">
+            <span
+              className="size-3 rounded-full border-[1.5px] border-(--c-mark) flex items-center justify-center shrink-0"
+              aria-hidden="true"
+            >
+              <span className="size-[3px] rounded-full bg-(--c-mark)" />
+            </span>
+            <span className="meta text-[11px] text-white/85">
+              Prévia · só quem tem este link vê · o site ainda não está no ar
+            </span>
+          </span>
+          <Link
+            href="/conta/pedidos"
+            className="inline-flex shrink-0 items-center gap-1.5 text-[12.5px] text-white"
+          >
+            <span className="underline underline-offset-4">
+              Abrir o painel
+            </span>
+            <Icone nome="setaDireita" tamanho={16} />
+          </Link>
+        </div>
       </div>
-      <SiteFromView view={view} slug={view.site.slug} />
+      <SiteFromView view={view} slug={view.site.slug} previa />
     </>
   );
 }

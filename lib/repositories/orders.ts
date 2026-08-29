@@ -1,6 +1,6 @@
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and, inArray, sql, type SQL, type AnyColumn } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { orders } from "@/lib/db/schema";
+import { orders, users } from "@/lib/db/schema";
 import type { PackageTier } from "@/lib/packages";
 import type { OrderStatus } from "@/lib/orderStatus";
 
@@ -55,8 +55,30 @@ export async function submitOrderById(orderId: string) {
 }
 
 /** Cancela = remove o pedido (só permitido antes da produção). */
-export async function deleteOrder(orderId: string) {
-  await db.delete(orders).where(eq(orders.id, orderId));
+/**
+ * Cancelar é MARCAR, não apagar.
+ *
+ * A função que existia aqui, `deleteOrder`, fazia `DELETE FROM orders` — a
+ * única exceção viva à regra 6 da §14 do SDD, *"nada é apagado ou
+ * reescrito"*. Ela saiu, e não ficou exportada sem uso: uma função que apaga
+ * pedido viva no repositório é um convite para alguém chamá-la.
+ *
+ * O que se ganhou apagando o `DELETE`:
+ *
+ * - a operação passa a **ver** o cancelamento (a pílula `Cancelados` de
+ *   `/admin/pedidos` existia no desenho e não tinha o que mostrar);
+ * - o **site órfão some**. Quando o site não pode ser apagado junto —
+ *   publicado, ou com convidados, os dois protegidos por
+ *   `cancelarPedidoComSite` — o `sites.order_id` virava null e o site ficava
+ *   acumulando invisível, como o `AGENTS.md` registrava.
+ *
+ * O casal continua sem ver o pedido: quem filtra é a tela.
+ */
+export async function cancelarOrder(orderId: string) {
+  await db
+    .update(orders)
+    .set({ status: "cancelled", updatedAt: new Date() })
+    .where(eq(orders.id, orderId));
 }
 
 /** Acha o pedido dono de uma cobrança AbacatePay (usado no webhook). */
@@ -77,11 +99,74 @@ export async function getOrderById(orderId: string) {
 }
 
 /** Para o admin acompanhar os pedidos que chegam. */
-export async function listOrdersWithUsers() {
-  return db.query.orders.findMany({
-    with: { user: true },
-    orderBy: [desc(orders.updatedAt)],
-  });
+/**
+ * Achata acento em SQL, sem depender de extensão.
+ *
+ * `unaccent()` resolveria em uma chamada, mas é extensão do Postgres e pode
+ * não estar instalada — descobrir isso em produção, na tela que o dono usa
+ * para socorrer um casal, é o pior lugar possível. `translate` é função de
+ * base e funciona em qualquer instalação.
+ *
+ * Por que achatar: o operador digita "ana" com o casal cadastrado como "Aná",
+ * ou o contrário. Busca que erra por causa de um til é busca que não serve.
+ */
+function semAcento(expr: SQL | AnyColumn) {
+  return sql`translate(lower(${expr}),
+    'áàâãäéèêëíìîïóòôõöúùûüçñ',
+    'aaaaaeeeeiiiiooooouuuucn')`;
+}
+
+export type FiltroDePedidos = {
+  /** Estados a incluir. Ausente = todos. */
+  estados?: readonly OrderStatus[];
+  /** Texto livre: nome do casal, e-mail ou início do id. */
+  busca?: string;
+};
+
+/**
+ * Os pedidos para o `/admin/pedidos`, já filtrados NO BANCO.
+ *
+ * Filtrar em memória funciona com os 312 pedidos de hoje e deixa de funcionar
+ * bem antes de virar problema visível — e `/admin` é a tela de socorro, onde
+ * lentidão custa o atendimento de um casal esperando.
+ */
+export async function listOrdersWithUsers(filtro: FiltroDePedidos = {}) {
+  const termo = filtro.busca?.trim().replace(/^#/, "") ?? "";
+
+  const condicoes: SQL[] = [];
+
+  if (filtro.estados && filtro.estados.length > 0) {
+    condicoes.push(inArray(orders.status, [...filtro.estados]));
+  }
+
+  if (termo) {
+    const achatado = termo
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "");
+    const como = `%${achatado}%`;
+
+    condicoes.push(
+      sql`(
+        ${semAcento(orders.coupleNames)} like ${como}
+        or ${semAcento(users.email)} like ${como}
+        or ${orders.id}::text like ${`${achatado}%`}
+      )`
+    );
+  }
+
+  /* `innerJoin` e não `query.findMany({ with })`: a busca precisa alcançar
+     `users.email`, e o `with` do relacional não deixa filtrar pela tabela
+     ligada. O formato de saída é remontado igual ao de antes para OrderCard
+     e a página não notarem a troca. */
+  const linhas = await db
+    .select({ pedido: orders, usuario: users })
+    .from(orders)
+    .innerJoin(users, eq(orders.userId, users.id))
+    .where(condicoes.length ? and(...condicoes) : undefined)
+    .orderBy(desc(orders.updatedAt));
+
+  return linhas.map((l) => ({ ...l.pedido, user: l.usuario }));
 }
 
 /** Admin move o pedido pela esteira de produção. */
@@ -146,9 +231,23 @@ export async function markOrderPaid(orderId: string) {
       ? "paid"
       : existing.status;
 
+  const agora = new Date();
+
   const [updated] = await db
     .update(orders)
-    .set({ paymentStatus: "PAID", status: nextStatus, updatedAt: new Date() })
+    .set({
+      paymentStatus: "PAID",
+      status: nextStatus,
+      /* A hora do pagamento, escrita UMA vez.
+      
+         `existing.paidAt ?? agora` e não `agora` direto: esta função é chamada
+         pelos dois caminhos de confirmação (o webhook e a volta do casal do
+         checkout), e o segundo costuma acontecer depois. Sobrescrever moveria
+         a hora do recibo para a segunda chamada, que não é quando o dinheiro
+         entrou. */
+      paidAt: existing.paidAt ?? agora,
+      updatedAt: agora,
+    })
     .where(eq(orders.id, orderId))
     .returning();
   return updated ?? null;

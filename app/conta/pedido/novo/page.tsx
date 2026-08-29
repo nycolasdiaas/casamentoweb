@@ -46,11 +46,13 @@ export default async function NewOrderPage() {
 
   return (
     <AccountShell active="inicio">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-bold tracking-tight">Montar meu pedido</h1>
-        <p className="text-sm text-(--color-olive)/70 max-w-lg">
-          Escolham o pacote, o estilo e mandem o material. Podem salvar como
-          rascunho e voltar quando quiserem — nada é cobrado nesta etapa.
+      <div className="flex flex-col gap-3">
+        <span className="meta text-(--c-mark)">Novo site</span>
+        <h1 className="t-d2 text-(--c-ink)">Vamos criar o site de vocês</h1>
+        <p className="t-corpo text-(--c-ink-2) medida">
+          A gente pergunta o essencial — nomes, data, local, a história — e
+          monta tudo. Dá para salvar e voltar quando quiserem, e nada é cobrado
+          antes de vocês verem a prévia pronta.
         </p>
       </div>
 

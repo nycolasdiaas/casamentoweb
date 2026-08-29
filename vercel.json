@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/resumo-semanal",
+      "schedule": "0 11 * * 1"
+    },
+    {
+      "path": "/api/cron/expirar-sites",
+      "schedule": "0 6 * * *"
+    }
+  ]
+}

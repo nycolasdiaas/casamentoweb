@@ -26,13 +26,12 @@ export default async function EditOrderPage({
 
   return (
     <AccountShell active="inicio">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-bold tracking-tight">
-          Continuar meu pedido
-        </h1>
-        <p className="text-sm text-(--color-olive)/70 max-w-lg">
-          Terminem de montar e enviem quando estiver do jeito de vocês. Podem
-          salvar como rascunho a qualquer momento.
+      <div className="flex flex-col gap-3">
+        <span className="meta text-(--c-mark)">Rascunho</span>
+        <h1 className="t-d2 text-(--c-ink)">Continuar o pedido de vocês</h1>
+        <p className="t-corpo text-(--c-ink-2) medida">
+          Terminem de montar e enviem quando estiver do jeito de vocês. Dá para
+          salvar e sair a qualquer momento.
         </p>
       </div>
 

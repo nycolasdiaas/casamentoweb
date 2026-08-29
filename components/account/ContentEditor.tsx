@@ -23,11 +23,14 @@ export type ContentEditorValues = {
   pixInstitution: string;
 };
 
-const campo =
-  "rounded-xl border border-(--color-gold)/40 bg-white px-4 py-3 text-sm text-(--color-olive) focus:border-(--color-gold) focus:outline-none";
-const rotulo = "flex flex-col gap-1.5";
-const titulo = "text-sm font-medium";
-const ajuda = "text-xs text-(--color-muted) leading-relaxed";
+// A pele vem do sistema (`.campo` e `.rotulo` em globals.css), não de uma
+// combinação de utilitários montada aqui: era um campo branco de fio fino,
+// igual ao de qualquer serviço. Na Prensa o campo afunda e o botão sobe — é
+// essa oposição que faz o formulário parecer desenhado.
+const campo = "campo";
+const rotulo = "flex flex-col gap-[7px]";
+const titulo = "rotulo text-(--c-ink-2)";
+const ajuda = "t-corpo-p text-(--c-ink-2)";
 
 function Campo({
   name,
@@ -117,12 +120,11 @@ export default function ContentEditor({
   );
 
   return (
-    <section className="flex flex-col gap-5 rounded-2xl border border-(--color-gold)/40 bg-white p-6">
+    <section className="flex flex-col gap-5">
       <div className="flex flex-col gap-1.5">
-        <h2 className="text-lg font-semibold">O conteúdo do site</h2>
-        <p className="text-sm text-(--color-olive)/70 leading-relaxed">
+        <p className="text-sm text-(--c-ink-2) leading-relaxed">
           Editem quando quiserem — a mudança aparece no site na hora. O que
-          ficar em branco simplesmente não aparece, então dá para preencher aos
+          ficar em branco não aparece, então dá para preencher aos
           poucos.
         </p>
       </div>
@@ -172,8 +174,8 @@ export default function ContentEditor({
           />
         </div>
 
-        <div className="flex flex-col gap-4 border-t border-(--color-gold)/30 pt-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.1em] text-(--color-gold)">
+        <div className="flex flex-col gap-4 border-t border-(--c-rule) pt-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.1em] text-(--c-mark)">
             Cerimônia
           </p>
           <Campo
@@ -195,14 +197,14 @@ export default function ContentEditor({
             label="Link do mapa"
             type="url"
             hint="Cole o link do Google Maps. O convidado abre a rota num toque."
-            placeholder="https://maps.google.com/..."
+            placeholder="https://maps.google.com/…"
             defaultValue={values.ceremonyMapUrl}
             maxLength={600}
           />
         </div>
 
-        <div className="flex flex-col gap-4 border-t border-(--color-gold)/30 pt-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.1em] text-(--color-gold)">
+        <div className="flex flex-col gap-4 border-t border-(--c-rule) pt-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.1em] text-(--c-mark)">
             Festa
           </p>
           <Campo
@@ -228,15 +230,15 @@ export default function ContentEditor({
           />
         </div>
 
-        <div className="flex flex-col gap-4 border-t border-(--color-gold)/30 pt-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.1em] text-(--color-gold)">
+        <div className="flex flex-col gap-4 border-t border-(--c-rule) pt-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.1em] text-(--c-mark)">
             Textos
           </p>
           <Area
             name="story"
             label="A história de vocês"
             hint="Vira a seção “Nossa história”, aquele trecho que os convidados leem entre as fotos. Escrevam com as palavras de vocês."
-            placeholder="A gente se conheceu em 2019, num churrasco de amigos..."
+            placeholder="A gente se conheceu em 2019, num churrasco de amigos…"
             defaultValue={values.story}
             rows={7}
             maxLength={5000}
@@ -251,15 +253,15 @@ export default function ContentEditor({
           />
         </div>
 
-        <div className="flex flex-col gap-4 border-t border-(--color-gold)/30 pt-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.1em] text-(--color-gold)">
+        <div className="flex flex-col gap-4 border-t border-(--c-rule) pt-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.1em] text-(--c-mark)">
             Pix dos presentes
           </p>
 
           {/* O aviso não é rodapé nem tooltip: é a primeira coisa da seção.
               O casal está prestes a publicar um dado que qualquer convidado
               com o link vai ver, e descobrir isso depois não tem desfazer. */}
-          <p className="rounded-xl border border-(--color-gold)/50 bg-(--color-blush) px-4 py-3 text-xs leading-relaxed text-(--color-olive)">
+          <p className="rounded-[3px] border border-(--c-rule) bg-(--c-sunken) px-4 py-3 text-xs leading-relaxed text-(--c-ink)">
             <strong className="font-semibold">
               Esta chave fica visível para quem abrir o site.
             </strong>{" "}
@@ -305,16 +307,16 @@ export default function ContentEditor({
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 border-t border-(--color-gold)/30 pt-5">
-          <button type="submit" disabled={pending} className="btn btn-primary">
-            {pending ? "Salvando..." : "Salvar e atualizar o site"}
+        <div className="flex flex-wrap items-center gap-3 border-t border-(--c-rule) pt-5">
+          <button type="submit" disabled={pending} className="btn btn-ink">
+            {pending ? "Salvando…" : "Salvar e atualizar o site"}
           </button>
           {previewUrl && (
             <a
               href={previewUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn btn-secondary"
+              className="btn btn-quiet"
             >
               Ver o site
             </a>
@@ -323,12 +325,12 @@ export default function ContentEditor({
 
         <div aria-live="polite" className="min-h-5">
           {state && "saved" in state && (
-            <p className="text-sm text-(--color-olive)">
+            <p className="text-sm text-(--c-ink)">
               Salvo ✓ — o site já está com o conteúdo novo.
             </p>
           )}
           {state && "error" in state && (
-            <p className="text-sm text-red-700">{state.error}</p>
+            <p className="text-sm text-(--c-danger)">{state.error}</p>
           )}
         </div>
       </form>

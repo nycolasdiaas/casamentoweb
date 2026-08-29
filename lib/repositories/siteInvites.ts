@@ -1,6 +1,6 @@
 import { and, asc, eq, isNotNull, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { siteInvites, sites } from "@/lib/db/schema";
+import { siteContent, siteInvites, sites } from "@/lib/db/schema";
 import { generateUniqueSlug } from "@/lib/slug";
 import { cacheLife, cacheTag } from "next/cache";
 
@@ -95,7 +95,9 @@ export async function saveInvite(
   siteId: string,
   inviteId: string,
   campos: { name?: string; doc?: InviteDoc }
-): Promise<boolean> {
+  /** O `updatedAt` gravado, ou `null` se o convite não existe. É ele que o
+      editor guarda para a próxima gravação declarar de que versão partiu. */
+): Promise<Date | null> {
   const linhas = await db
     .update(siteInvites)
     .set({
@@ -106,9 +108,9 @@ export async function saveInvite(
     // O `siteId` no WHERE é o que impede um id de convite alheio ser gravado
     // com o site de quem pediu.
     .where(and(eq(siteInvites.siteId, siteId), eq(siteInvites.id, inviteId)))
-    .returning({ id: siteInvites.id });
+    .returning({ updatedAt: siteInvites.updatedAt });
 
-  return linhas.length > 0;
+  return linhas[0]?.updatedAt ?? null;
 }
 
 export async function deleteInvite(
@@ -144,6 +146,9 @@ export async function getInviteDoDono(
   /** `preview` = o site ainda não está no ar, e os links do convite dão 404. */
   statusDoSite: string;
   orderId: string | null;
+  /** Tema e estilo do SITE — o ponto de partida das cores do convite. */
+  temaDoSite: unknown;
+  templateId: string | null;
 } | null> {
   const [l] = await db
     .select({
@@ -158,6 +163,8 @@ export async function getInviteDoDono(
       slugDoSite: sites.slug,
       statusDoSite: sites.status,
       orderId: sites.orderId,
+      temaDoSite: sites.theme,
+      templateId: sites.templateId,
     })
     .from(siteInvites)
     .innerJoin(sites, eq(sites.id, siteInvites.siteId))
@@ -177,6 +184,8 @@ export async function getInviteDoDono(
     slug: l.slugDoSite,
     statusDoSite: l.statusDoSite,
     orderId: l.orderId,
+    temaDoSite: l.temaDoSite,
+    templateId: l.templateId,
   };
 }
 
@@ -280,6 +289,56 @@ export async function getConvitePublicado(slug: string): Promise<{
     },
     siteSlug: l.slugDoSite,
     siteId: l.siteId,
+  };
+}
+
+/**
+ * O convite EXISTIU e saiu do ar? — a diferença entre H1 e H2.
+ *
+ * `getConvitePublicado` devolve `null` nos dois casos: slug que nunca existiu
+ * e convite despublicado. Para o convidado eles são situações opostas.
+ *
+ * - Slug inventado → 404, "não achamos".
+ * - Convite despublicado → **410**, e o casamento provavelmente continua de
+ *   pé. A prancha H2 manda oferecer o site do casamento como alternativa, e
+ *   para isso é preciso saber QUAL casamento é.
+ *
+ * Sem esta consulta, o `not-found.tsx` não tem como montar o cartão do
+ * casamento — ele não recebe os parâmetros da rota que o disparou.
+ */
+export async function getConviteDespublicado(slug: string): Promise<{
+  siteSlug: string;
+  siteNoAr: boolean;
+  nomesDoCasal: string | null;
+  weddingDate: Date | null;
+  cidade: string | null;
+} | null> {
+  "use cache";
+  cacheTag(conviteTag(slug));
+  cacheLife("days");
+
+  const [l] = await db
+    .select({
+      slugDoSite: sites.slug,
+      statusDoSite: sites.status,
+      coupleNames: siteContent.coupleNames,
+      weddingDate: siteContent.weddingDate,
+      cidade: siteContent.ceremonyVenue,
+    })
+    .from(siteInvites)
+    .innerJoin(sites, eq(sites.id, siteInvites.siteId))
+    .leftJoin(siteContent, eq(siteContent.siteId, sites.id))
+    .where(eq(siteInvites.slug, slug))
+    .limit(1);
+
+  if (!l) return null;
+
+  return {
+    siteSlug: l.slugDoSite,
+    siteNoAr: l.statusDoSite === "published",
+    nomesDoCasal: l.coupleNames,
+    weddingDate: l.weddingDate,
+    cidade: l.cidade,
   };
 }
 

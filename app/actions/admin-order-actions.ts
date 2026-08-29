@@ -12,6 +12,8 @@ import {
   updateOrderAdminFields,
 } from "@/lib/repositories/orders";
 import { logOrderChanges, type AuditChange } from "@/lib/repositories/orderAudit";
+import { criarRecado, marcarEmailEnviado } from "@/lib/repositories/adminNotices";
+import { sendRecadoDoTimeEmail } from "@/lib/email";
 
 async function ensureAdmin() {
   const adminId = await getSessionAdminId();
@@ -83,28 +85,49 @@ export async function saveOrderAdminAction(formData: FormData) {
   // com o valor (possivelmente vazio) do formulário.
   const deveOPublicar = isOrderStatus(status) && status === "published";
 
-  const previewUrl = sanitizeUrl(formData.get("previewUrl")?.toString() ?? "");
-  const siteUrl = sanitizeUrl(formData.get("siteUrl")?.toString() ?? "");
-  const adminMessage = formData.get("adminMessage")?.toString().trim() || null;
+  /* CAMPO AUSENTE NÃO É CAMPO VAZIO.
+
+     Antes esta função lia `formData.get(...) ?? ""` para os três campos de
+     texto e gravava o resultado sempre. Funcionava porque o formulário
+     mandava os três — e passou a ser uma armadilha no instante em que a tela
+     parou de mandar: `get` devolve `null` para campo que não existe, `?? ""`
+     vira string vazia, e a gravação APAGA o link da prévia de um pedido que
+     ninguém quis editar.
+
+     Com `has`, o formulário decide o que edita. O que ele não manda fica como
+     está — que é o que "não editei isso" tem que significar. */
+  const mexeuNaPrevia = formData.has("previewUrl");
+  const mexeuNoSite = formData.has("siteUrl");
+  const mexeuNoRecado = formData.has("adminMessage");
+
+  const previewUrl = mexeuNaPrevia
+    ? sanitizeUrl(formData.get("previewUrl")?.toString() ?? "")
+    : existing.previewUrl;
+  const siteUrl = mexeuNoSite
+    ? sanitizeUrl(formData.get("siteUrl")?.toString() ?? "")
+    : existing.siteUrl;
+  const adminMessage = mexeuNoRecado
+    ? formData.get("adminMessage")?.toString().trim() || null
+    : existing.adminMessage;
   const priceCents = parsePriceToCents(
     formData.get("priceReais")?.toString() ?? ""
   );
 
-  if (previewUrl !== existing.previewUrl) {
+  if (mexeuNaPrevia && previewUrl !== existing.previewUrl) {
     changes.push({
       field: "Link da prévia",
       oldValue: existing.previewUrl,
       newValue: previewUrl,
     });
   }
-  if (siteUrl !== existing.siteUrl) {
+  if (mexeuNoSite && siteUrl !== existing.siteUrl) {
     changes.push({
       field: "Link do site",
       oldValue: existing.siteUrl,
       newValue: siteUrl,
     });
   }
-  if (adminMessage !== existing.adminMessage) {
+  if (mexeuNoRecado && adminMessage !== existing.adminMessage) {
     changes.push({
       field: "Recado ao casal",
       oldValue: existing.adminMessage,
@@ -155,4 +178,67 @@ export async function saveOrderAdminAction(formData: FormData) {
 
   revalidatePath("/admin/pedidos");
   revalidatePath("/conta/pedidos");
+}
+
+/**
+ * Manda um recado do time para o casal — migração 0022.
+ *
+ * ── O e-mail não pode derrubar o recado ────────────────────────────────────
+ *
+ * O recado é gravado PRIMEIRO e o e-mail sai depois, fora da transação. Se o
+ * provedor estiver fora do ar, o casal ainda tem o recado no painel e o
+ * `email_sent_at` fica `null` dizendo a verdade — o contrário (mandar o
+ * e-mail e falhar ao gravar) avisaria sobre um recado que não existe, que é o
+ * único dos dois erros que não tem conserto.
+ *
+ * Por isso o `catch` engole a falha de envio em vez de propagá-la: a ação já
+ * cumpriu o que prometeu quando a linha entrou.
+ */
+export type EstadoDoRecado = { error?: string; ok?: true } | undefined;
+
+export async function enviarRecadoAction(
+  _anterior: EstadoDoRecado,
+  formData: FormData
+): Promise<EstadoDoRecado> {
+  const admin = await ensureAdmin();
+
+  const orderId = formData.get("orderId")?.toString() ?? "";
+  const titulo = formData.get("titulo")?.toString().trim() ?? "";
+  const corpo = formData.get("corpo")?.toString().trim() ?? "";
+
+  if (!orderId) return { error: "Pedido não informado." };
+  if (!titulo) return { error: "Escreva um título para o recado." };
+  if (!corpo) return { error: "Escreva o recado." };
+
+  const order = await getOrderById(orderId);
+  if (!order) return { error: "Pedido não encontrado." };
+
+  const recado = await criarRecado({
+    orderId,
+    adminId: admin.id,
+    adminName: admin.name ?? admin.email,
+    title: titulo,
+    body: corpo,
+  });
+
+  /* O aviso por e-mail. Melhor esforço, e o motivo está no cabeçalho acima. */
+  const destino = order.user?.email;
+  if (destino) {
+    try {
+      const base = await getBaseUrl();
+      await sendRecadoDoTimeEmail(destino, {
+        nomes: order.coupleNames?.trim() || "vocês",
+        titulo,
+        painelUrl: `${base}/conta/pedidos/${orderId}`,
+      });
+      await marcarEmailEnviado(recado.id);
+    } catch {
+      /* `email_sent_at` fica null — é o registro honesto de que não saiu. */
+    }
+  }
+
+  revalidatePath("/admin/pedidos");
+  revalidatePath(`/conta/pedidos/${orderId}`);
+
+  return { ok: true as const };
 }

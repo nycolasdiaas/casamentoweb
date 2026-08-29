@@ -13,7 +13,6 @@ export type WeddingPackage = {
   description: string;
   features: string[];
   highlight: boolean;
-  deliveryTime: string;
 };
 
 export const PACKAGES: WeddingPackage[] = [
@@ -33,7 +32,6 @@ export const PACKAGES: WeddingPackage[] = [
       "Link pronto para compartilhar no WhatsApp",
     ],
     highlight: false,
-    deliveryTime: "Entrega em até 3 dias",
   },
   {
     tier: "site",
@@ -46,12 +44,11 @@ export const PACKAGES: WeddingPackage[] = [
     features: [
       "Tudo do pacote Convite",
       "Save the Date personalizado",
-      "Confirmação de presença (RSVP) por convidado",
+      "Confirmação de presença por convidado",
       "Link individual por família ou grupo",
       "Painel do casal para acompanhar confirmações",
     ],
     highlight: false,
-    deliveryTime: "Entrega em até 5 dias",
   },
   {
     tier: "para-sempre",
@@ -61,7 +58,7 @@ export const PACKAGES: WeddingPackage[] = [
     priceCents: 9990,
     priceNote: "o mais escolhido",
     description:
-      "A experiência completa: lista de presentes com Pix sem nenhuma taxa, endereço personalizado e um álbum que se abre depois da festa — o registro do casamento para sempre.",
+      "O site completo: lista de presentes com Pix sem nenhuma taxa, endereço personalizado e um álbum que se abre depois da festa — o registro do casamento para sempre.",
     features: [
       "Tudo do pacote Site do Casamento",
       "Lista de presentes com preços personalizados",
@@ -71,7 +68,6 @@ export const PACKAGES: WeddingPackage[] = [
       "Álbum pós-casamento: fotos reais da festa, online para sempre",
     ],
     highlight: true,
-    deliveryTime: "Entrega em até 7 dias",
   },
 ];
 

@@ -5,6 +5,7 @@ import {
   FORMAS,
   ladoValido,
   novoId,
+  parseInviteDoc,
   prenderNaTela,
   type Bloco,
   type FormaId,
@@ -12,6 +13,28 @@ import {
 } from "@/lib/site/inviteDoc";
 import { clipPathDe, NOME_DA_FORMA } from "@/lib/site/inviteShapes";
 import { salvarConviteAction } from "@/app/actions/invite-actions";
+import { useBrinde } from "@/components/ui/prensa";
+import { useAgora } from "@/components/ui/useAgora";
+import {
+  apagarRascunho,
+  guardarRascunho,
+  useRascunhoLocal,
+} from "@/components/ui/useRascunhoLocal";
+import { quando } from "@/lib/site/tempoRelativo";
+import { temSaida } from "@/lib/site/inviteDoc";
+import { retematizarConvite } from "@/lib/site/inviteTema";
+import type { ThemePalette } from "@/lib/theme/spec";
+import type { TemplateStyleId } from "@/lib/templates";
+import PainelDeModelos from "./PainelDeModelos";
+import type { ModeloDeConvite } from "@/lib/templates/modelos";
+import {
+  encaixarAoMover,
+  encaixarLargura,
+  toleranciaEmFracao,
+  type Caixa,
+  type Guia,
+} from "@/lib/site/inviteSnap";
+import { alturaAproximada } from "@/lib/site/inviteRender";
 import {
   confirmPhotoUploadAction,
   requestPhotoUploadAction,
@@ -22,6 +45,7 @@ import BlocoNaTela from "./BlocoNaTela";
 import BarraDoBloco from "./BarraDoBloco";
 import Camadas from "./Camadas";
 import PublicarConvite from "./PublicarConvite";
+import LegendaDeAtalhos from "./LegendaDeAtalhos";
 import FormatoDoConvite from "./FormatoDoConvite";
 import { LINKS_DO_CONVITE, linkDaSecao } from "@/lib/site/ancoras";
 import { FONTES, Numero } from "./controles";
@@ -72,6 +96,14 @@ type Props = {
   noAr: boolean;
   /** O SITE do casal já está publicado? Os links do convite dependem disso. */
   siteNoAr: boolean;
+  /** Quando o convite foi gravado pela última vez, em ms. Guarda de conflito. */
+  atualizadoEm: number;
+  /** A paleta do tema do SITE — o ponto de partida das cores deste convite. */
+  paletaDoSite: ThemePalette;
+  /** O estilo do site, só para marcar a miniatura em uso no painel Modelos. */
+  estiloDoSite: TemplateStyleId | null;
+  /** Os seis modelos, extraídos no servidor — ver `lib/templates/modelos.ts`. */
+  modelos: ModeloDeConvite[];
 };
 
 export default function EditorDeConvite({
@@ -86,6 +118,10 @@ export default function EditorDeConvite({
   urlDoConvite,
   noAr,
   siteNoAr,
+  atualizadoEm,
+  paletaDoSite,
+  estiloDoSite,
+  modelos,
 }: Props) {
   const {
     presente: doc,
@@ -121,6 +157,64 @@ export default function EditorDeConvite({
   // documento. Por isso não entra no histórico nem marca "não salvo" — dar
   // desfazer depois de aproximar seria desfazer a coisa errada.
   const [zoom, setZoom] = useState(1);
+
+  /* As guias do encaixe. Vivem em estado e não em ref porque precisam
+     redesenhar; somem no `pointerup` e nunca sobrevivem ao gesto. */
+  const [guias, setGuias] = useState<Guia[]>([]);
+
+  /* Área de transferência INTERNA, não a do sistema.
+     
+     Copiar um bloco não é copiar texto: o que se guarda é um objeto com
+     posição, cor e fonte. Passar isso pela área do sistema exigiria serializar
+     para o `clipboard` e reconhecer o formato na volta — e roubaria o
+     `Ctrl+C` de quem só queria copiar uma frase do próprio convite. */
+  const areaDeTransferencia = useRef<Bloco | null>(null);
+
+  /* As setas empurram o bloco de 1px por vez, e uma rajada é UM gesto.
+     
+     Sem isto, ajustar a posição em dez toques deixaria dez passos de desfazer
+     — e desfazer teria que ser apertado dez vezes para voltar ao ponto de
+     partida, que é o oposto do que a pessoa quer. O gesto fecha 500ms depois
+     da última tecla. */
+  const gestoDeSeta = useRef<{ antes: InviteDoc; timer: number } | null>(null);
+
+  /* Espaço + arrasto move a tela mesmo com um bloco sob o cursor — o arrasto
+     do fundo, que já existia, não alcança esse caso. */
+  const [espacoPressionado, setEspacoPressionado] = useState(false);
+
+  /* A legenda de atalhos. Atalho que ninguém descobre é atalho que não
+     existe — sem esta lista, os doze do editor seriam funcionalidade que só
+     quem escreveu o código sabe usar. */
+  const [atalhosAbertos, setAtalhosAbertos] = useState(false);
+
+  /* ── Autosave ────────────────────────────────────────────────────────────
+
+     O que ele conserta: fechar a aba perdia o trabalho. O botão Salvar
+     existia, mas ninguém aperta botão a cada bloco movido — e o casal mexe no
+     convite durante semanas, em sessões de cinco minutos.
+
+     `versao` é o `updatedAt` de onde esta aba partiu. Vai junto em cada
+     gravação, e é o que deixa o servidor recusar a escrita de uma aba que
+     ficou aberta desde a manhã. */
+  const versao = useRef(atualizadoEm);
+  const debounce = useRef(0);
+  const [salvoEm, setSalvoEm] = useState<number | null>(atualizadoEm);
+  const [conflito, setConflito] = useState(false);
+  /* O rascunho local mais novo que o servidor, esperando decisão do casal.
+     Vem do próprio `localStorage`, não de um estado copiado dele: cópia
+     precisa de um efeito para nascer, e o primeiro render mostraria a tela sem
+     o aviso que ela deveria estar mostrando. */
+  const [rascunhoDescartado, setRascunhoDescartado] = useState(false);
+
+  const brinde = useBrinde();
+  const chaveDoRascunho = `invite:${inviteId}`;
+  const agora = useAgora();
+  const { rascunho: rascunhoGuardado } = useRascunhoLocal(
+    chaveDoRascunho,
+    atualizadoEm,
+    parseInviteDoc
+  );
+  const rascunho = rascunhoDescartado ? null : rascunhoGuardado;
 
   // Deslocamento da tela dentro da moldura, em px. Existe porque com zoom o
   // convite passa do tamanho da janela e é preciso ALCANÇAR o canto de baixo.
@@ -184,6 +278,23 @@ export default function EditorDeConvite({
     };
   }
 
+  /**
+   * A caixa de um bloco em fração dos DOIS eixos.
+   *
+   * `w` já é fração da largura; a altura não é campo — sai de `proporcao` no
+   * que tem proporção, e do texto quebrado no resto. `alturaAproximada` é a
+   * mesma conta do export em SVG, de propósito: encaixar por uma altura e
+   * exportar por outra alinharia na tela e sairia torto no arquivo.
+   */
+  function caixaDe(b: Bloco): Caixa {
+    return {
+      x: b.x,
+      y: b.y,
+      w: b.w,
+      h: alturaAproximada(b, doc.largura) / doc.altura,
+    };
+  }
+
   function medidas(): DOMRect {
     return telaRef.current?.getBoundingClientRect() ?? new DOMRect(0, 0, 1, 1);
   }
@@ -196,6 +307,22 @@ export default function EditorDeConvite({
     e.preventDefault();
     e.stopPropagation();
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
+
+    /* Espaço segurado transforma qualquer arrasto em movimento da TELA.
+       O arrasto do fundo já fazia isso, mas não alcança o caso em que há um
+       bloco debaixo do cursor — e é justamente aí que a pessoa precisa, porque
+       com zoom o convite ocupa a moldura inteira. */
+    if (espacoPressionado) {
+      gesto.current = {
+        tipo: "pan",
+        x0: e.clientX,
+        y0: e.clientY,
+        px: pan.x,
+        py: pan.y,
+      };
+      return;
+    }
+
     const r = medidas();
     antesDoGesto.current = doc;
     setSelecionado(alvo.id);
@@ -286,15 +413,57 @@ export default function EditorDeConvite({
     const px = (e.clientX - r.left) / r.width;
     const py = (e.clientY - r.top) / r.height;
 
+    /* Alt suspende o encaixe. É o escape que todo editor precisa: às vezes o
+       casal quer 2px fora do alinhamento de propósito, e uma ferramenta que
+       não deixa desobedecer vira uma ferramenta que se discute. */
+    const semEncaixe = e.altKey;
+    const tol = toleranciaEmFracao(
+      { largura: r.width, altura: r.height },
+      // `getBoundingClientRect` já mede COM zoom: contar de novo dobraria.
+      1,
+      e.pointerType === "touch"
+    );
+
+    const doGesto = doc.blocos.find((b) => b.id === g.id);
+    const vizinhos = doc.blocos
+      .filter((b) => b.id !== g.id)
+      .map(caixaDe);
+
+    const guiasDoQuadro: Guia[] = [];
+
     mudar((d) => ({
       ...d,
       blocos: d.blocos.map((b) => {
         if (b.id !== g.id) return b;
         if (g.tipo === "mover") {
-          return prenderNaTela({ ...b, x: px - g.dx, y: py - g.dy });
+          const solto = prenderNaTela({ ...b, x: px - g.dx, y: py - g.dy });
+          if (semEncaixe || !doGesto) return solto;
+
+          const e2 = encaixarAoMover(
+            { ...caixaDe(doGesto), x: solto.x, y: solto.y },
+            vizinhos,
+            tol
+          );
+          guiasDoQuadro.push(...e2.guias);
+          return prenderNaTela({
+            ...solto,
+            x: e2.x ?? solto.x,
+            y: e2.y ?? solto.y,
+          });
         }
         if (g.tipo === "largura") {
-          return prenderNaTela({ ...b, w: g.w0 + (px - g.x0) });
+          const solto = prenderNaTela({ ...b, w: g.w0 + (px - g.x0) });
+          if (semEncaixe || !doGesto) return solto;
+
+          const e2 = encaixarLargura(
+            { ...caixaDe(doGesto), w: solto.w },
+            vizinhos,
+            tol.x
+          );
+          guiasDoQuadro.push(...e2.guias);
+          return e2.w !== undefined
+            ? prenderNaTela({ ...solto, w: e2.w })
+            : solto;
         }
 
         if (g.tipo === "altura") {
@@ -316,12 +485,17 @@ export default function EditorDeConvite({
         return prenderNaTela({ ...b, w, proporcao: w / h });
       }),
     }));
+
+    setGuias(guiasDoQuadro);
   }
 
   function aoSoltar() {
     const g = gesto.current;
     if (!g) return;
     gesto.current = null;
+    // A guia é do GESTO. Deixá-la na tela depois de soltar transformaria uma
+    // ajuda momentânea num traço que o casal tentaria apagar.
+    setGuias([]);
     // Mover a tela não é edição: não vira passo de desfazer.
     if (g.tipo !== "pan") registrar(antesDoGesto.current);
   }
@@ -334,6 +508,51 @@ export default function EditorDeConvite({
     registrar(antes);
     setSelecionado(novo.id);
   }
+
+  /**
+   * Põe de volta o botão que leva à confirmação de presença.
+   *
+   * No rodapé, na mesma posição em que a semente o cria: é onde o convite
+   * termina, e é onde o convidado já está olhando quando acaba de ler.
+   */
+  function acrescentarBotao() {
+    acrescentar({
+      tipo: "botao",
+      id: crypto.randomUUID(),
+      rotacao: 0,
+      x: 0.22,
+      y: 0.82,
+      w: 0.56,
+      destino: "rsvp",
+      rotulo: "Confirmar presença",
+      fundo: doc.fundo === "#1a1d21" ? "#f2efe7" : "#1a1d21",
+      cor: doc.fundo === "#1a1d21" ? "#1a1d21" : "#f2efe7",
+      raio: 2,
+      fonte: "sans",
+      tamanho: 0.028,
+    });
+  }
+
+  /* A paleta de onde as cores deste convite vieram. Muda a cada troca de
+     modelo, porque a próxima troca precisa saber comparar contra a ATUAL — não
+     contra a do site, que ficou para trás na primeira troca. */
+  const paletaAtual = useRef<ThemePalette>(paletaDoSite);
+
+  /**
+   * Troca o modelo: cor e fonte, nunca o desenho.
+   *
+   * Uma entrada de desfazer só, como qualquer gesto — `registrar` depois de
+   * `mudar`, o mesmo par que o arrasto usa.
+   */
+  const trocarModelo = useCallback(
+    (nova: ThemePalette) => {
+      const antes = doc;
+      mudar((d) => retematizarConvite(d, paletaAtual.current, nova));
+      registrar(antes);
+      paletaAtual.current = nova;
+    },
+    [doc, mudar, registrar]
+  );
 
   /**
    * Reordena a pilha. `de` e `para` são índices do DOCUMENTO, onde o último
@@ -369,8 +588,43 @@ export default function EditorDeConvite({
     setSelecionado(null);
   }, [doc, mudar, registrar, selecionado]);
 
-  // Delete apaga o bloco escolhido — nunca enquanto a pessoa digita, senão
-  // apagar uma letra apagaria o bloco inteiro.
+  /** Põe um bloco na tela com id novo, deslocado, e o deixa escolhido. */
+  const duplicarNaTela = useCallback(
+    (base: Bloco) => {
+      // 12px do convite: perto o bastante para o casal ver que é a cópia
+      // daquele bloco, longe o bastante para conseguir pegar o de baixo.
+      const dx = 12 / doc.largura;
+      const dy = 12 / doc.altura;
+      const novo = {
+        ...base,
+        id: crypto.randomUUID(),
+        x: base.x + dx,
+        y: base.y + dy,
+      } as Bloco;
+      acrescentar(prenderNaTela(novo));
+    },
+    // `acrescentar` e `prenderNaTela` não mudam entre renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [doc.largura, doc.altura, doc]
+  );
+
+  /**
+   * Os atalhos do editor.
+   *
+   * ── A guarda vem primeiro, e não é detalhe ──────────────────────────────
+   *
+   * Enquanto o casal digita dentro de um bloco de texto, NENHUM atalho vale.
+   * Sem isso, apagar uma letra apagaria o bloco inteiro, e escrever "[" no
+   * texto mandaria o bloco para trás. A única exceção é `Escape`, que serve
+   * justamente para sair da digitação.
+   *
+   * ── Nenhuma letra solta ─────────────────────────────────────────────────
+   *
+   * Só teclas que ninguém digita dentro de um texto: setas, colchetes, sinais
+   * de zoom, Delete, Escape, Espaço — e o resto com Ctrl/Cmd. Uma letra solta
+   * colidiria com a digitação no primeiro instante em que o foco escapasse da
+   * guarda acima.
+   */
   useEffect(() => {
     function aoTeclar(e: KeyboardEvent) {
       const alvo = e.target as HTMLElement | null;
@@ -378,19 +632,154 @@ export default function EditorDeConvite({
         alvo?.tagName === "INPUT" ||
         alvo?.tagName === "TEXTAREA" ||
         alvo?.isContentEditable === true;
+
+      if (e.key === "Escape") {
+        setSelecionado(null);
+        setMenuBaixar(false);
+        setAtalhosAbertos(false);
+        return;
+      }
       if (digitando || editandoTexto) return;
+
+      const comando = e.ctrlKey || e.metaKey;
+      const bloco = doc.blocos.find((b) => b.id === selecionado) ?? null;
+
+      // ── desfazer e refazer ──────────────────────────────────────────────
+      if (comando && e.key.toLowerCase() === "z") {
+        e.preventDefault();
+        if (e.shiftKey) refazer();
+        else desfazer();
+        return;
+      }
+
+      // ── duplicar ────────────────────────────────────────────────────────
+      if (comando && e.key.toLowerCase() === "d") {
+        if (!bloco) return;
+        e.preventDefault();
+        duplicarNaTela(bloco);
+        return;
+      }
+
+      /* ── copiar e colar ─────────────────────────────────────────────────
+         `preventDefault` só quando há o que copiar: sem seleção, a cópia
+         normal do navegador continua funcionando, e roubar `Ctrl+C` de quem
+         queria copiar uma frase seria um defeito difícil de nomear. */
+      if (comando && e.key.toLowerCase() === "c") {
+        if (!bloco) return;
+        e.preventDefault();
+        areaDeTransferencia.current = bloco;
+        return;
+      }
+      if (comando && e.key.toLowerCase() === "v") {
+        const guardado = areaDeTransferencia.current;
+        if (!guardado) return;
+        e.preventDefault();
+        duplicarNaTela(guardado);
+        return;
+      }
+
+      // ── camadas ─────────────────────────────────────────────────────────
+      if ((e.key === "[" || e.key === "]") && selecionado) {
+        e.preventDefault();
+        const i = doc.blocos.findIndex((b) => b.id === selecionado);
+        if (i < 0) return;
+        moverCamada(i, e.key === "]" ? i + 1 : i - 1);
+        return;
+      }
+
+      // ── zoom ────────────────────────────────────────────────────────────
+      if (!comando && (e.key === "+" || e.key === "=")) {
+        e.preventDefault();
+        setZoom((z) => Math.min(z * 1.1, 4));
+        return;
+      }
+      if (!comando && e.key === "-") {
+        e.preventDefault();
+        setZoom((z) => Math.max(z / 1.1, 0.4));
+        return;
+      }
+      if (!comando && e.key === "0") {
+        e.preventDefault();
+        // 1 é o zoom em que o convite cabe inteiro na moldura — a largura da
+        // tela é calculada por `min()` justamente para isso.
+        setZoom(1);
+        setPan({ x: 0, y: 0 });
+        return;
+      }
+
+      // ── espaço: move a tela mesmo com bloco sob o cursor ────────────────
+      if (e.code === "Space") {
+        e.preventDefault();
+        setEspacoPressionado(true);
+        return;
+      }
+
+      // ── setas ───────────────────────────────────────────────────────────
+      const SETAS: Record<string, [number, number]> = {
+        ArrowLeft: [-1, 0],
+        ArrowRight: [1, 0],
+        ArrowUp: [0, -1],
+        ArrowDown: [0, 1],
+      };
+      const direcao = SETAS[e.key];
+      if (direcao && selecionado) {
+        e.preventDefault();
+        const passo = e.shiftKey ? 10 : 1;
+        const dx = (direcao[0] * passo) / doc.largura;
+        const dy = (direcao[1] * passo) / doc.altura;
+
+        /* Uma rajada de setas é UM gesto. O `antes` é guardado na primeira
+           tecla e o passo de desfazer só fecha 500ms depois da última — senão
+           voltar dez toques exigiria dez desfazeres. */
+        if (!gestoDeSeta.current) {
+          gestoDeSeta.current = { antes: doc, timer: 0 };
+        }
+        window.clearTimeout(gestoDeSeta.current.timer);
+        gestoDeSeta.current.timer = window.setTimeout(() => {
+          if (gestoDeSeta.current) registrar(gestoDeSeta.current.antes);
+          gestoDeSeta.current = null;
+        }, 500);
+
+        mudar((d) => ({
+          ...d,
+          blocos: d.blocos.map((b) =>
+            b.id === selecionado
+              ? prenderNaTela({ ...b, x: b.x + dx, y: b.y + dy })
+              : b
+          ),
+        }));
+        return;
+      }
+
+      // ── apagar ──────────────────────────────────────────────────────────
       if ((e.key === "Delete" || e.key === "Backspace") && selecionado) {
         e.preventDefault();
         apagarSelecionado();
       }
-      if (e.key === "Escape") {
-        setSelecionado(null);
-        setMenuBaixar(false);
-      }
     }
+
+    function aoSoltarTecla(e: KeyboardEvent) {
+      if (e.code === "Space") setEspacoPressionado(false);
+    }
+
     window.addEventListener("keydown", aoTeclar);
-    return () => window.removeEventListener("keydown", aoTeclar);
-  }, [apagarSelecionado, editandoTexto, selecionado]);
+    window.addEventListener("keyup", aoSoltarTecla);
+    return () => {
+      window.removeEventListener("keydown", aoTeclar);
+      window.removeEventListener("keyup", aoSoltarTecla);
+    };
+  }, [
+    apagarSelecionado,
+    doc,
+    duplicarNaTela,
+    editandoTexto,
+    moverCamada,
+    mudar,
+    refazer,
+    registrar,
+    desfazer,
+    selecionado,
+  ]);
 
   /**
    * Zoom com a roda do mouse.
@@ -545,15 +934,107 @@ export default function EditorDeConvite({
     }
   }
 
-  function salvar() {
-    iniciarSalvamento(async () => {
-      const r = await salvarConviteAction(siteId, inviteId, orderId, doc, nome);
-      if (r && "saved" in r) {
-        zerar(doc);
-        setSalvo(true);
-      }
-    });
-  }
+  /**
+   * Grava no servidor.
+   *
+   * `manual` separa o que o casal PEDIU do que o editor fez sozinho: só o
+   * pedido ganha brinde. Um brinde a cada 800ms de trabalho é ruído, e o
+   * indicador da barra já conta o mesmo sem interromper.
+   */
+  const salvar = useCallback(
+    (manual = false) => {
+      if (conflito) return;
+      window.clearTimeout(debounce.current);
+
+      iniciarSalvamento(async () => {
+        const r = await salvarConviteAction(
+          siteId,
+          inviteId,
+          orderId,
+          doc,
+          nome,
+          versao.current
+        );
+
+        if (r && "conflito" in r) {
+          /* Outra aba gravou depois desta abrir. Parar aqui é o ponto:
+             sobrescrever devolveria a versão velha por cima da nova, e o casal
+             perderia trabalho sem ver nada acontecer. */
+          setConflito(true);
+          return;
+        }
+
+        if (r && "saved" in r) {
+          versao.current = r.updatedAt;
+          zerar(doc);
+          setSalvo(true);
+          setSalvoEm(r.updatedAt);
+          /* O rascunho local só some depois da CONFIRMAÇÃO do servidor. Apagar
+             antes deixaria o casal sem nenhuma cópia se a rede caísse no meio. */
+          apagarRascunho(chaveDoRascunho);
+          if (manual) brinde("Convite salvo.");
+          return;
+        }
+
+        /* Falha de rede: o indicador NÃO vai para "salvo" e o rascunho local
+           fica onde está. `salvo` continua falso, e a próxima mudança agenda
+           outra tentativa. */
+      });
+    },
+    [
+      brinde,
+      chaveDoRascunho,
+      conflito,
+      doc,
+      inviteId,
+      nome,
+      orderId,
+      siteId,
+      zerar,
+    ]
+  );
+
+  /* O agendamento é debounce sobre o `doc`, e não uma chamada no fim de cada
+     gesto.
+     
+     Durante um arrasto o `doc` muda a cada quadro, e cada mudança reinicia a
+     contagem — então o disparo acontece 800ms depois da ÚLTIMA mudança, que é
+     800ms depois de soltar. Uma chamada por gesto, sem espalhar `agendar()`
+     pelos dez lugares que mexem no documento.
+
+     Enquanto o casal digita dentro de um bloco, não agenda: gravaria meia
+     palavra e faria o indicador piscar a cada letra. Sair da digitação muda
+     `editandoTexto` e o efeito roda de novo, disparando um salvamento. */
+  useEffect(() => {
+    if (salvo || conflito || editandoTexto) return;
+    window.clearTimeout(debounce.current);
+    debounce.current = window.setTimeout(() => salvar(), 800);
+    return () => window.clearTimeout(debounce.current);
+  }, [doc, salvo, conflito, editandoTexto, salvar]);
+
+  /* O rascunho local, gravado a cada mudança.
+     
+     É a rede de segurança de quem fecha a aba nos 800ms de espera — ou de quem
+     perde a conexão. Em `try/catch` porque modo privado e cota cheia lançam, e
+     um editor que quebra por causa do rascunho é pior que um editor sem
+     rascunho. */
+  useEffect(() => {
+    if (salvo) return;
+    guardarRascunho(chaveDoRascunho, doc);
+  }, [doc, salvo, chaveDoRascunho]);
+
+  /** `Ctrl/Cmd + S` — cancela a espera e grava agora. */
+  useEffect(() => {
+    function aoTeclar(e: KeyboardEvent) {
+      if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== "s") return;
+      // Sem isto o navegador abre "salvar página", que não é o que ninguém
+      // quis dizer com Ctrl+S dentro de um editor.
+      e.preventDefault();
+      salvar(true);
+    }
+    window.addEventListener("keydown", aoTeclar);
+    return () => window.removeEventListener("keydown", aoTeclar);
+  }, [salvar]);
 
   // Guarda o elemento de cada bloco para a barra flutuante saber ONDE ele
   // está na janela. Fora do JSX de propósito: o lint do React reprova
@@ -635,7 +1116,9 @@ export default function EditorDeConvite({
           style={{
             // Declara o container para o `100cqh` da tela medir ESTA moldura.
             containerType: "size",
-            cursor: "grab",
+            // Com Espaço, o cursor conta o que vai acontecer antes de a
+            // pessoa arrastar — sem isso o atalho é invisível.
+            cursor: espacoPressionado ? "grabbing" : "grab",
           }}
         >
           <div
@@ -671,6 +1154,30 @@ export default function EditorDeConvite({
               aoTerminarEdicao={terminarEdicao}
             />
           ))}
+
+          {/* As guias do encaixe.
+
+              Depois dos blocos e antes das alças de seleção: sobre o desenho,
+              porque uma guia escondida atrás de uma foto não guia nada; sob as
+              alças, porque a alça é o que a mão está mirando.
+
+              `transition: none` explícito — o handoff §3 item 10 é literal:
+              *"sem transição durante o arrasto (segue o dedo)"*. Uma guia que
+              desliza até o lugar chega depois do bloco. */}
+          {guias.map((g) => (
+            <div
+              key={`${g.eixo}${g.pos}`}
+              data-guia={g.eixo}
+              aria-hidden="true"
+              className="pointer-events-none absolute bg-(--c-mark)"
+              style={{
+                transition: "none",
+                ...(g.eixo === "x"
+                  ? { left: `${g.pos * 100}%`, top: 0, bottom: 0, width: 1 }
+                  : { top: `${g.pos * 100}%`, left: 0, right: 0, height: 1 }),
+              }}
+            />
+          ))}
           </div>
         </div>
 
@@ -703,19 +1210,32 @@ export default function EditorDeConvite({
             marcarGesto={marcarGesto}
             fecharGesto={fecharGesto}
           />
-          <span className="flex items-center gap-1">
+          <span className="relative flex items-center gap-1">
+            <LegendaDeAtalhos
+              aberto={atalhosAbertos}
+              aoFechar={() => setAtalhosAbertos(false)}
+            />
+            <button
+              type="button"
+              onClick={() => setAtalhosAbertos((a) => !a)}
+              aria-expanded={atalhosAbertos}
+              aria-label="Atalhos do editor"
+              className="mr-1 size-8 border border-(--c-rule) transition-colors hover:bg-(--c-sunken)"
+            >
+              ?
+            </button>
             <button
               type="button"
               onClick={() => setZoom((z) => Math.max(z / 1.2, 0.4))}
               aria-label="Afastar"
-              className="size-8 border border-(--c-rule) transition-colors hover:bg-white"
+              className="size-8 border border-(--c-rule) transition-colors hover:bg-(--c-sunken)"
             >
               −
             </button>
             <button
               type="button"
               onClick={() => setZoom(1)}
-              className="min-w-14 border border-(--c-rule) px-2 py-1 tabular-nums transition-colors hover:bg-white"
+              className="min-w-14 border border-(--c-rule) px-2 py-1 tabular-nums transition-colors hover:bg-(--c-sunken)"
               title="Voltar ao tamanho normal"
             >
               {Math.round(zoom * 100)}%
@@ -724,7 +1244,7 @@ export default function EditorDeConvite({
               type="button"
               onClick={() => setZoom((z) => Math.min(z * 1.2, 4))}
               aria-label="Aproximar"
-              className="size-8 border border-(--c-rule) transition-colors hover:bg-white"
+              className="size-8 border border-(--c-rule) transition-colors hover:bg-(--c-sunken)"
             >
               +
             </button>
@@ -742,7 +1262,7 @@ export default function EditorDeConvite({
               setSalvo(false);
             }}
             aria-label="Nome do convite"
-            className="min-h-11 w-full border border-(--c-rule) bg-white px-3 text-[14px]"
+            className="min-h-11 w-full border border-(--c-rule) bg-(--c-surface) px-3 text-[14px]"
           />
 
           <div className="flex items-center gap-3">
@@ -764,14 +1284,95 @@ export default function EditorDeConvite({
             </button>
           </div>
 
+          {/* O indicador de três estados. É ele que faz o autosave existir
+              para o casal: sem um lugar dizendo "salvo há 2 min", trabalho que
+              se guarda sozinho é indistinguível de trabalho que se perde. */}
+          <p
+            data-estado-do-salvamento
+            aria-live="polite"
+            className="text-center text-[11.5px] text-(--c-ink-2)"
+          >
+            {salvando
+              ? "salvando…"
+              : !salvo
+                ? "não salvo"
+                : salvoEm && agora
+                  ? /* `agora` é 0 no render do servidor, onde não há relógio
+                       que valha. Ali sai só "salvo": inventar um "há N min"
+                       com o relógio da máquina que renderizou seria mostrar
+                       um número errado com cara de certo. */
+                    `salvo ${quando(new Date(salvoEm), agora)}`
+                  : "salvo"}
+          </p>
+
+          {/* O botão continua, e o autosave não o substitui: ele é o que diz
+              ao casal que o trabalho dele está guardado — e é onde a mão vai
+              quando bate a dúvida. */}
           <button
             type="button"
-            onClick={salvar}
+            onClick={() => salvar(true)}
             disabled={salvando || salvo}
-            className="min-h-11 w-full bg-(--c-ink) text-[13px] text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+            className="btn btn-ink btn-sm min-h-11 w-full"
           >
             {salvando ? "Salvando…" : salvo ? "Tudo salvo" : "Salvar convite"}
           </button>
+
+          {/* Duas abas no mesmo convite. Recarregar é a única saída honesta:
+              o contrato é last-write-wins COM AVISO, e sobrescrever devolveria
+              a versão velha por cima da nova. */}
+          {conflito && (
+            <div className="aviso flex-col items-start gap-2 text-(--c-warn)">
+              <span className="aviso-texto">
+                Este convite foi alterado em outro lugar. Recarregue para não
+                perder o que foi salvo lá.
+              </span>
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="btn btn-quiet btn-sm"
+              >
+                Recarregar
+              </button>
+            </div>
+          )}
+
+          {/* Rascunho local mais novo que o servidor: alguém fechou a aba nos
+              800ms de espera, ou perdeu a conexão. A decisão é do casal —
+              carregar sozinho descartaria em silêncio o que foi salvo de outro
+              aparelho; ignorar sozinho jogaria fora o trabalho do navegador. */}
+          {rascunho && (
+            <div
+              data-aviso-rascunho
+              className="aviso flex-col items-start gap-2 text-(--c-warn)"
+            >
+              <span className="aviso-texto">
+                Vocês têm mudanças que não chegaram a ser salvas.
+              </span>
+              <span className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDoc(rascunho);
+                    setSalvo(false);
+                    setRascunhoDescartado(true);
+                  }}
+                  className="btn btn-ink btn-sm"
+                >
+                  Recuperar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    apagarRascunho(chaveDoRascunho);
+                    setRascunhoDescartado(true);
+                  }}
+                  className="btn btn-quiet btn-sm"
+                >
+                  Descartar
+                </button>
+              </span>
+            </div>
+          )}
         </div>
 
         {/* CAMADAS — a lista de tudo que existe no convite, e a ordem em que
@@ -784,6 +1385,14 @@ export default function EditorDeConvite({
           selecionado={selecionado}
           aoEscolher={setSelecionado}
           aoMover={moverCamada}
+        />
+
+        {/* MODELOS em primeiro lugar: é a escolha que muda a tela inteira, e
+            quem vai trocar de estilo faz isso antes de posicionar bloco. */}
+        <PainelDeModelos
+          modelos={modelos}
+          atual={estiloDoSite}
+          aoTrocar={trocarModelo}
         />
 
         <div className="surface-raised flex flex-col gap-2 rounded-[3px] p-4">
@@ -809,7 +1418,7 @@ export default function EditorDeConvite({
                   link: "",
                 })
               }
-              className="min-h-11 flex-1 border border-(--c-rule) px-3 text-[13px] transition-colors hover:bg-white"
+              className="min-h-11 flex-1 border border-(--c-rule) px-3 text-[13px] transition-colors hover:bg-(--c-sunken)"
             >
               Texto
             </button>
@@ -827,7 +1436,7 @@ export default function EditorDeConvite({
                   espessura: 2,
                 })
               }
-              className="min-h-11 flex-1 border border-(--c-rule) px-3 text-[13px] transition-colors hover:bg-white"
+              className="min-h-11 flex-1 border border-(--c-rule) px-3 text-[13px] transition-colors hover:bg-(--c-sunken)"
             >
               Linha
             </button>
@@ -862,7 +1471,7 @@ export default function EditorDeConvite({
                     raio: 24,
                   })
                 }
-                className="flex aspect-square items-center justify-center border border-(--c-rule) transition-colors hover:border-(--c-ink) hover:bg-white"
+                className="flex aspect-square items-center justify-center border border-(--c-rule) transition-colors hover:border-(--c-ink) hover:bg-(--c-sunken)"
               >
                 <span
                   aria-hidden
@@ -886,7 +1495,7 @@ export default function EditorDeConvite({
               montar nada — quer subir e mandar o link. A imagem vira o convite
               inteiro, no formato dela, e os blocos que existiam ficam por
               cima (dá para acrescentar um botão de presentes sobre a arte). */}
-          <label className="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-[3px] border border-(--c-ink) bg-(--c-ink) px-3 text-[13px] text-white transition-opacity hover:opacity-90">
+          <label className="btn btn-ink btn-sm min-h-11 cursor-pointer">
             <svg aria-hidden width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M2.5 3.5h11v9h-11zM2.5 10l3-3 3 3M9 8.5l1.5-1.5 3 3" />
             </svg>
@@ -903,7 +1512,7 @@ export default function EditorDeConvite({
             />
           </label>
 
-          <label className="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-[3px] border border-(--c-rule) px-3 text-[13px] transition-colors hover:bg-white">
+          <label className="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-[3px] border border-(--c-rule) px-3 text-[13px] transition-colors hover:bg-(--c-sunken)">
             <svg aria-hidden width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M8 11V3.5M5 6l3-3 3 3M2.5 11.5v1.5h11v-1.5" />
             </svg>
@@ -992,7 +1601,7 @@ export default function EditorDeConvite({
                   onBlur={fecharGesto}
                   rows={3}
                   aria-label="Texto do bloco"
-                  className="w-full resize-y border border-(--c-rule) bg-white p-2 text-[14px]"
+                  className="w-full resize-y border border-(--c-rule) bg-(--c-surface) p-2 text-[14px]"
                 />
 
                 <Numero
@@ -1017,7 +1626,7 @@ export default function EditorDeConvite({
                       });
                       registrar(antes);
                     }}
-                    className="min-h-11 border border-(--c-rule) bg-white px-2 text-[13px]"
+                    className="min-h-11 border border-(--c-rule) bg-(--c-surface) px-2 text-[13px]"
                   >
                     {FONTES.map((f) => (
                       <option key={f.id} value={f.id}>
@@ -1042,7 +1651,7 @@ export default function EditorDeConvite({
                         }}
                         className={`size-11 border text-[11px] ${
                           bloco.alinhamento === a
-                            ? "border-(--c-ink) bg-(--c-ink) text-white"
+                            ? "border-(--c-ink) bg-(--c-ink) text-(--c-surface)"
                             : "border-(--c-rule)"
                         }`}
                       >
@@ -1101,7 +1710,7 @@ export default function EditorDeConvite({
                       });
                       registrar(antes);
                     }}
-                    className="min-h-11 border border-(--c-rule) bg-white px-2 text-[13px]"
+                    className="min-h-11 border border-(--c-rule) bg-(--c-surface) px-2 text-[13px]"
                   >
                     <option value="">Não — é só texto</option>
                     {LINKS_DO_CONVITE.map((l) => (
@@ -1129,7 +1738,7 @@ export default function EditorDeConvite({
                         }
                         onFocus={marcarGesto}
                         onBlur={fecharGesto}
-                        className="min-h-11 border border-(--c-rule) bg-white px-2 text-[13px]"
+                        className="min-h-11 border border-(--c-rule) bg-(--c-surface) px-2 text-[13px]"
                       />
                     )}
 
@@ -1228,7 +1837,7 @@ export default function EditorDeConvite({
                       });
                       registrar(antes);
                     }}
-                    className="min-h-11 border border-(--c-rule) bg-white px-2 text-[13px]"
+                    className="min-h-11 border border-(--c-rule) bg-(--c-surface) px-2 text-[13px]"
                   >
                     {FORMAS.map((f) => (
                       <option key={f} value={f}>
@@ -1359,6 +1968,8 @@ export default function EditorDeConvite({
           noAr={noAr}
           temMudancaNaoSalva={!salvo}
           siteNoAr={siteNoAr}
+          temSaida={temSaida(doc)}
+          aoAcrescentarBotao={acrescentarBotao}
         />
 
         {/* BAIXAR: um botão, e o menu abre com os formatos.
@@ -1375,7 +1986,7 @@ export default function EditorDeConvite({
             type="button"
             onClick={() => setMenuBaixar((v) => !v)}
             aria-expanded={menuBaixar}
-            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-[3px] border border-(--c-ink) bg-(--c-ink) text-[13px] text-white transition-opacity hover:opacity-90"
+            className="btn btn-ink btn-sm min-h-11 w-full"
           >
             <svg aria-hidden width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M8 2v8M4.5 7L8 10.5L11.5 7M2.5 13.5h11" />

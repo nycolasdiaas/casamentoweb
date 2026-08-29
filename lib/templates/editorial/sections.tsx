@@ -7,6 +7,7 @@ import GiftGrid from "@/components/site/GiftGrid";
 import { loadGiftSection } from "@/lib/site/giftSection";
 import { listSitePhotos, photoAt, SLOT_CAPACITY } from "@/lib/repositories/sitePhotos";
 import type { SectionProps, SiteContentView } from "@/lib/templates/contract";
+import Mural from "@/components/site/Mural";
 
 // Seções do molde Editorial — revista de moda.
 //
@@ -97,9 +98,21 @@ export async function Cover({ content, siteId }: SectionProps) {
   const data = content.weddingDateParts;
 
   return (
-    <section className="px-6 pt-5 pb-12 lg:px-20 lg:pt-8 lg:pb-20">
+    /*
+      A capa a 1920 é DUAS COLUNAS com um fio no meio: texto à esquerda, foto
+      sangrando à direita (`Enlace - Estilos Completos.dc.html`, bloco 01).
+      No celular ela continua sendo a coluna centrada de sempre.
+
+      A ordem do DOM é a do CELULAR — cabeçalho, data, retrato, legenda — e
+      NÃO muda. Quem move o retrato para a segunda coluna é a colocação
+      explícita da grade (`xl:col-start-2 xl:row-span-3`), não a ordem dos
+      elementos. Reordenar o DOM seria o caminho curto, e mudaria o celular:
+      a legenda subiria para cima do retrato. A regra da spec 002 é que as
+      capturas de 390px saiam idênticas, e é ela que decide isto.
+    */
+    <section className="px-6 pt-5 pb-12 xl:grid xl:grid-cols-2 xl:grid-rows-[auto_1fr_auto] xl:min-h-[100svh] xl:px-0 xl:pt-0 xl:pb-0 xl:items-stretch">
       <div
-        className="flex justify-between items-center gap-2 pb-4"
+        className="flex justify-between items-center gap-2 pb-4 xl:col-start-1 xl:row-start-1 xl:mx-14 xl:mt-14 xl:mb-0"
         style={{ borderBottom: `1px solid ${HAIRLINE}` }}
       >
         <span
@@ -115,17 +128,22 @@ export async function Cover({ content, siteId }: SectionProps) {
           className="text-[8.5px] tracking-[0.22em] uppercase px-2.5 py-1.5 shrink-0 lg:text-[9.4px]"
           style={{ border: `1px solid ${fade(40)}` }}
         >
-          RSVP
+          Confirme
         </span>
       </div>
 
-      <div className="mt-10 text-center">
-        {/* clamp() nas miniaturas e na data: em 320px, larguras fixas dos dois
-            lados não deixavam espaço para "19 · 09 · 26" sem quebrar linha. */}
-        <div className="flex items-center justify-center gap-3.5">
+      {/* clamp() nas miniaturas e na data: em 320px, larguras fixas dos dois
+          lados não deixavam espaço para "19 · 09 · 26" sem quebrar linha.
+
+          A 1920 a data é o que o catálogo vende ("Editorial: data gigante") e
+          continua sendo a peça grande — o desenho recompõe a MOLDURA, não a
+          hierarquia. É o que o próprio arquivo do desenho diz: "o que muda é
+          a composição, não a identidade". */}
+      <div className="mt-10 text-center xl:col-start-1 xl:row-start-2 xl:mx-14 xl:my-0 xl:flex xl:flex-col xl:justify-center xl:text-left">
+        <div className="flex items-center justify-center gap-3.5 xl:flex-wrap xl:justify-start xl:gap-x-4 xl:gap-y-7">
           {/* O teto de 64px é do celular. Num cartão de 1120px a miniatura
               some ao lado de uma data de 73px — vira sujeira, não composição. */}
-          <div className="w-[clamp(44px,14vw,64px)] shrink-0 lg:w-[150px]">
+          <div className="w-[clamp(44px,14vw,64px)] shrink-0 lg:w-[150px] xl:w-[110px]">
             <SitePhoto
               photo={lado[0]}
               label="Foto"
@@ -133,7 +151,7 @@ export async function Cover({ content, siteId }: SectionProps) {
             />
           </div>
           {data ? (
-            <h1 style={{ "--motion-delay": "260ms" } as React.CSSProperties} className="motion-word font-[family-name:var(--font-display)] text-[clamp(30px,11vw,46px)] font-medium leading-[0.92] tracking-[0.01em] whitespace-nowrap">
+            <h1 style={{ "--motion-delay": "260ms" } as React.CSSProperties} className="motion-word font-[family-name:var(--font-display)] text-[clamp(30px,11vw,46px)] font-medium leading-[0.92] tracking-[0.01em] whitespace-nowrap xl:order-first xl:w-full xl:text-[72px]">
               {data.day}
               <span style={{ color: fade(35) }}> · </span>
               {data.month}
@@ -141,13 +159,13 @@ export async function Cover({ content, siteId }: SectionProps) {
               {data.year}
             </h1>
           ) : (
-            <h1 className="font-[family-name:var(--font-display)] text-[clamp(26px,9vw,38px)] font-medium leading-[0.95] tracking-[0.02em] uppercase">
+            <h1 className="font-[family-name:var(--font-display)] text-[clamp(26px,9vw,38px)] font-medium leading-[0.95] tracking-[0.02em] uppercase xl:order-first xl:w-full xl:text-[60px]">
               Save the date
             </h1>
           )}
           {/* O teto de 64px é do celular. Num cartão de 1120px a miniatura
               some ao lado de uma data de 73px — vira sujeira, não composição. */}
-          <div className="w-[clamp(44px,14vw,64px)] shrink-0 lg:w-[150px]">
+          <div className="w-[clamp(44px,14vw,64px)] shrink-0 lg:w-[150px] xl:w-[110px]">
             <SitePhoto
               photo={lado[1]}
               label="Foto"
@@ -156,24 +174,80 @@ export async function Cover({ content, siteId }: SectionProps) {
           </div>
         </div>
 
-        {/* Retrato da capa: 250px é a medida do celular. No desktop ele é o
-            centro da primeira dobra e precisa de presença. */}
-        <div className="mt-5.5 mx-auto max-w-[250px] lg:max-w-[520px]">
-          <SitePhoto
-            photo={capa}
-            label="Foto principal do casal"
-            className="w-full aspect-[3/4]"
-            priority
-          />
-        </div>
+        {/* O fio de 140px e a linha de horários que o desenho põe sob a data.
+            Só no widescreen: no celular a coluna já é curta e este bloco
+            competiria com a legenda logo abaixo.
 
-        <p
-          className="mt-5.5 mx-auto max-w-[34ch] text-[10px] tracking-[0.24em] uppercase leading-[2] lg:text-[11px]"
-          style={{ color: fade(62) }}
-        >
-          Junte-se a nós em uma jornada de amor, alegria e felicidade eterna
-        </p>
+            Cerimônia, festa e local saem de `content` — os três campos
+            existem. O desenho também escreve "DESDE 2019 — Nº 01" no canto da
+            foto, e isso NÃO foi portado: não há campo de "desde quando" no
+            modelo, e §4.4.1 é explícita — o que não existe no banco não é
+            transplantado. */}
+        <div className="hidden xl:block">
+          <div className="mt-10 h-px w-[140px]" style={{ background: "var(--ink)" }} />
+          <div className="mt-8 flex flex-wrap gap-x-14 gap-y-5">
+            {content.weddingTimeLabel && (
+              <div>
+                <Kicker>Cerimônia</Kicker>
+                <div className="mt-1.5 font-[family-name:var(--font-display)] text-[26px]">
+                  {content.weddingTimeLabel}
+                </div>
+              </div>
+            )}
+            {content.ceremonyVenue && (
+              <div>
+                <Kicker>Local</Kicker>
+                <div className="mt-1.5 font-[family-name:var(--font-display)] text-[26px]">
+                  {content.ceremonyVenue}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
+
+      {/* Retrato da capa: 250px é a medida do celular. No widescreen ele deixa
+          de ser retrato centrado e vira a COLUNA DIREITA inteira, sangrando de
+          topo a base — é o movimento que o desenho faz.
+
+          `xl:row-span-3` é o que o põe ao lado das três linhas da esquerda sem
+          que ele precise vir antes delas no DOM. */}
+      <div className="mt-5.5 mx-auto max-w-[250px] lg:max-w-[520px] xl:mt-0 xl:mx-0 xl:max-w-none xl:col-start-2 xl:row-start-1 xl:row-span-3 xl:relative xl:overflow-hidden">
+        <SitePhoto
+          photo={capa}
+          label="Foto principal do casal"
+          /* `xl:max-h-none!` nao e enfeite. A regra global
+             `.site-canvas [class*="aspect-"] { max-height: 74vh }` casa pelo
+             TEXTO da classe, e `aspect-[3/4]` continua escrito aqui mesmo com
+             `xl:aspect-auto` desligando a proporcao. Sem o `!`, a foto que
+             deveria preencher a coluna de 100svh pararia em 74vh e deixaria
+             uma faixa de papel no pe da capa. A utilitaria sozinha nao vence:
+             o seletor global tem especificidade maior. */
+          className="w-full aspect-[3/4] xl:h-full xl:aspect-auto xl:max-h-none! xl:absolute xl:inset-0"
+          priority
+        />
+        {/* O degradê que o desenho põe no pé da foto, para a legenda clara ter
+            onde pousar. Deriva da tinta do tema — nunca de preto fixo. */}
+        <div
+          className="hidden xl:block xl:absolute xl:inset-x-0 xl:bottom-0 xl:h-[32%] xl:pointer-events-none"
+          style={{
+            background: `linear-gradient(to bottom, transparent, color-mix(in srgb, var(--ink) 55%, transparent))`,
+          }}
+          aria-hidden
+        />
+      </div>
+
+      <p
+        /* `max-xl:text-center` e não `text-center`: a regra global
+           `.site-canvas p[class~="text-center"] { margin-inline: auto }` tem
+           especificidade maior que a utilitária `xl:mx-14` e recentralizaria o
+           parágrafo justamente onde o desenho o quer na margem esquerda. O
+           seletor casa o token exato — `max-xl:text-center` não é ele. */
+        className="mt-5.5 mx-auto max-w-[34ch] max-xl:text-center text-[10px] tracking-[0.24em] uppercase leading-[2] lg:text-[11px] xl:col-start-1 xl:row-start-3 xl:mx-14 xl:mb-14 xl:max-w-[46ch] xl:text-left"
+        style={{ color: fade(62) }}
+      >
+        Junte-se a nós no dia em que a gente diz sim
+      </p>
     </section>
   );
 }
@@ -201,12 +275,16 @@ export async function CountdownSection({ content, siteId }: SectionProps) {
             "linear-gradient(180deg, color-mix(in srgb, var(--ink) 72%, transparent), color-mix(in srgb, var(--ink) 86%, transparent))",
         }}
       />
+      {/* A 1920 a contagem deixa de ser bloco centrado e vira FAIXA: rótulo
+          ancorado à esquerda, números à direita, de ponta a ponta — o desenho
+          usa a largura inteira aqui, e é uma das seções que ganham com ela.
+          No celular segue centrada. */}
       <div
-        className="relative z-10 px-6 py-16 text-center lg:px-20 lg:py-28"
+        className="relative z-10 px-6 py-16 text-center lg:flex lg:items-center lg:justify-between lg:gap-16 lg:px-14 lg:py-24 lg:text-left"
         style={{ color: "var(--paper)" }}
       >
         <Kicker onDark>Que a contagem comece</Kicker>
-        <div className="mt-6">
+        <div className="mt-6 lg:mt-0 lg:shrink-0">
           <Countdown targetDate={content.weddingDate.toISOString()} />
         </div>
       </div>
@@ -222,7 +300,7 @@ export async function Story({ content, siteId }: SectionProps) {
   const duas = fotos.filter((f) => f.slot === "gallery").slice(0, 2);
 
   return (
-    <section className="px-6 py-16 lg:px-20 lg:py-28">
+    <section className="px-6 py-16 lg:px-14 lg:py-28">
       <div className="text-center mb-2">
         <Kicker>Capítulo um</Kicker>
       </div>
@@ -232,23 +310,34 @@ export async function Story({ content, siteId }: SectionProps) {
         história
       </h2>
 
-      <div className="my-8">
-        <SitePhoto
-          photo={principal}
-          label="A nossa história"
-          className="w-full aspect-[16/11]"
-        />
+      {/* A 1920 a história é DUAS COLUNAS: retrato de 4/5 à esquerda, texto à
+          direita, alinhados pelo centro — o desenho repete esse par duas
+          vezes, alternando o lado.
+
+          Aqui ele aparece UMA vez, e é de propósito: `content.story` é UM
+          campo de texto livre. O desenho preenche o segundo par com "2025 — o
+          pedido" e uma segunda citação, que sairiam de um modelo de linha do
+          tempo que não existe. §4.4.1 — o que não está no banco não é
+          transplantado. Fica registrado como campo pendente, não inventado. */}
+      <div className="lg:mt-16 lg:grid lg:grid-cols-2 lg:gap-[72px] lg:items-center">
+        <div className="my-8 lg:my-0">
+          <SitePhoto
+            photo={principal}
+            label="A nossa história"
+            className="w-full aspect-[16/11] lg:aspect-[4/5]"
+          />
+        </div>
+
+        <p
+          className="max-lg:text-center text-[14.5px] leading-[1.85] whitespace-pre-line lg:text-[22px] lg:leading-[1.55]"
+          style={{ color: fade(75) }}
+        >
+          {content.story}
+        </p>
       </div>
 
-      <p
-        className="text-center text-[14.5px] leading-[1.85] whitespace-pre-line lg:text-[17.4px]"
-        style={{ color: fade(75) }}
-      >
-        {content.story}
-      </p>
-
       {duas.length === 2 && (
-        <div className="mt-8 grid grid-cols-2 gap-3.5 lg:grid-cols-4">
+        <div className="mt-8 grid grid-cols-2 gap-3.5 lg:mt-16 lg:gap-[72px]">
           {duas.map((foto, i) => (
             <SitePhoto
               key={foto.id}
@@ -271,14 +360,18 @@ export function Details({ content }: SectionProps) {
     <>
       {temLocal && (
         <section
-          className="px-6 pt-16 pb-14 lg:px-20"
+          className="px-6 pt-16 pb-14 lg:px-14 lg:pt-24 lg:pb-20"
           style={{ background: "var(--ink)", color: "var(--paper)" }}
         >
           <Head kicker="Uma prévia de" title={<>O nosso dia</>} onDark />
 
-          <div className="mt-8 flex flex-col gap-8">
+          {/* Cerimônia e festa lado a lado, separadas por um fio vertical — a
+              faixa de três colunas do desenho. São duas e não três porque o
+              traje tem seção própria neste molde e movê-lo para cá mudaria o
+              celular, onde ele fecha a página com o par de filetes. */}
+          <div className="mt-8 flex flex-col gap-8 lg:mt-14 lg:grid lg:grid-cols-2 lg:gap-0">
             {content.ceremonyVenue && (
-              <div className="text-center">
+              <div className="text-center lg:pr-14">
                 <div
                   className="text-[8.5px] tracking-[0.26em] uppercase lg:text-[9.4px]"
                   style={{ color: fadePaper(60) }}
@@ -308,9 +401,12 @@ export function Details({ content }: SectionProps) {
             )}
 
             {content.receptionVenue && (
+              /* O filete muda de lado no widescreen: no celular ele separa
+                 por cima, entre dois blocos empilhados; a 1920 ele é a régua
+                 vertical entre as duas colunas. */
               <div
-                className="text-center pt-8"
-                style={{ borderTop: `1px solid ${HAIRLINE_DARK}` }}
+                className="text-center pt-8 max-lg:border-t lg:pt-0 lg:border-l lg:pl-14"
+                style={{ borderColor: HAIRLINE_DARK }}
               >
                 <div
                   className="text-[8.5px] tracking-[0.26em] uppercase lg:text-[9.4px]"
@@ -350,7 +446,7 @@ export function Details({ content }: SectionProps) {
       )}
 
       {content.dressCode && (
-        <section className="px-6 py-14 lg:px-20 lg:py-24">
+        <section className="px-6 py-14 lg:px-14 lg:py-24">
           <div
             className="py-7 text-center lg:py-12"
             style={{
@@ -378,25 +474,33 @@ export async function Gallery({ siteId }: SectionProps) {
   const [larga, ...resto] = fotos;
 
   return (
-    <section className="px-6 py-16 lg:px-20 lg:py-28">
+    <section className="px-6 py-16 lg:px-14 lg:py-28">
       <Head kicker="Antes do grande dia" title="Pré-wedding" />
 
-      <div className="mb-3">
+      {/* Uma grade só, não duas.
+
+          No celular o resultado é o de sempre — a foto larga ocupando as três
+          colunas e o resto embaixo, com os mesmos 12px de intervalo (o `mb-3`
+          que separava os dois blocos era exatamente o `gap-3` de dentro).
+
+          A 1920 essa mesma grade vira o mosaico do desenho: `2fr 1fr 1fr` com
+          a primeira foto ocupando as duas fileiras de 300px. Dois blocos
+          irmãos não conseguiriam fazer isso — um `row-span` só atravessa as
+          fileiras da PRÓPRIA grade. */}
+      <div className="grid grid-cols-3 gap-3 lg:grid-cols-[2fr_1fr_1fr] lg:auto-rows-[300px] lg:gap-4">
         <SitePhoto
           photo={larga}
           label="Ensaio"
-          className="w-full aspect-[16/10]"
+          className="w-full aspect-[16/10] col-span-3 lg:col-span-1 lg:row-span-2 lg:h-full lg:aspect-auto"
         />
-      </div>
 
-      <div className="grid grid-cols-3 gap-3 lg:grid-cols-4">
         {resto.length > 0
           ? resto.map((foto, i) => (
               <SitePhoto
                 key={foto.id}
                 photo={foto}
                 label={`Momento ${i + 1}`}
-                className="w-full aspect-[3/4]"
+                className="w-full aspect-[3/4] lg:h-full lg:aspect-auto"
               />
             ))
           : // Sem fotos do casal, os quadros de exemplo seguram o desenho —
@@ -405,7 +509,7 @@ export async function Gallery({ siteId }: SectionProps) {
               <PhotoSlot
                 key={label}
                 label={label}
-                className="w-full aspect-[3/4]"
+                className="w-full aspect-[3/4] lg:h-full lg:aspect-auto"
               />
             ))}
       </div>
@@ -415,11 +519,11 @@ export async function Gallery({ siteId }: SectionProps) {
 
 export function Rsvp({ slug }: SectionProps) {
   return (
-    <section className="px-6 py-16 lg:px-20 lg:py-28">
+    <section className="px-6 py-16 lg:px-14 lg:py-28">
       <div className="text-center mb-6">
         <Kicker>Confirme sua presença</Kicker>
         <h2 className="mt-3 font-[family-name:var(--font-display)] text-[40px] font-medium tracking-[0.02em] uppercase lg:text-[64px]">
-          RSVP
+          Você vem?
         </h2>
         <p
           className="mt-4 mx-auto max-w-[36ch] text-[14px] leading-[1.7] lg:text-[16.8px]"
@@ -457,7 +561,7 @@ export async function Gifts({ siteId, content }: SectionProps) {
 
   return (
     <section
-      className="px-6 py-16 lg:px-20 lg:py-28"
+      className="px-6 py-16 lg:px-14 lg:py-28"
       style={{ background: "color-mix(in srgb, var(--ink) 6%, var(--paper))" }}
     >
       <Head kicker="Se o coração pedir" title="Presentes" />
@@ -469,6 +573,25 @@ export async function Gifts({ siteId, content }: SectionProps) {
           "Sem faqueiro, sem lista de loja. Cada cota é um pedaço da nossa lua de mel — via Pix."}
       </p>
       <GiftGrid gifts={gifts} pix={pix} siteId={siteId}
+      />
+    </section>
+  );
+}
+
+/**
+ * Mural de recados (pacote Para Sempre).
+ *
+ * A lista e o formulário são os mesmos dos seis moldes — ver
+ * `components/site/Mural.tsx`. Aqui entra só o enquadramento deste molde.
+ */
+export async function Guestbook({ siteId, slug }: SectionProps) {
+  return (
+    <section className="px-6 py-16 lg:px-14 lg:py-28">
+      <Head kicker="Escreva para nós" title="Mural" />
+      <Mural
+        siteId={siteId}
+        slug={slug}
+        convite="Duas linhas bastam. A gente guarda todas."
       />
     </section>
   );
@@ -487,7 +610,7 @@ function Vazio({ content }: { content: SectionProps["content"] }) {
 
   return (
     <section
-      className="px-6 py-16 text-center lg:px-20 lg:py-28"
+      className="px-6 py-16 text-center lg:px-14 lg:py-28"
       style={{ background: "var(--ink)", color: "var(--paper)" }}
     >
       <Kicker onDark>Depois da festa · álbum trancado</Kicker>
@@ -530,7 +653,7 @@ export function Footer({ content }: SectionProps) {
 
   return (
     <footer
-      className="px-6 pt-14 pb-11 text-center lg:px-20"
+      className="px-6 pt-14 pb-11 text-center lg:px-14"
       style={{
         background: "color-mix(in srgb, var(--ink) 92%, black)",
         color: "var(--paper)",

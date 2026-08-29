@@ -106,6 +106,62 @@
       "when": 1787101959005,
       "tag": "0014_lame_jetstream",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1787419782841,
+      "tag": "0015_gorgeous_captain_america",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1787614036559,
+      "tag": "0016_tiresome_millenium_guard",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1787652548902,
+      "tag": "0017_hot_wrecker",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1787865205178,
+      "tag": "0018_clean_adam_destine",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1787867964926,
+      "tag": "0019_fancy_ultimates",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1787927106971,
+      "tag": "0020_handy_freak",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1787929276500,
+      "tag": "0021_new_hercules",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1787966333250,
+      "tag": "0022_absurd_zemo",
+      "breakpoints": true
     }
   ]
 }

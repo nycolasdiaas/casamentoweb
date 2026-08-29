@@ -232,3 +232,57 @@ describe("publishedSiteTags", () => {
     ]);
   });
 });
+
+describe("SC-002 a SC-004 · a data de saída do ar (spec `site-publico/008`)", () => {
+  /* A trava desta spec: enquanto `PRAZO_ANUNCIADO_EM` for `null` — ou seja,
+     enquanto `lib/packages.ts` não disser prazo nenhum — publicar NUNCA grava
+     data de saída, para nenhum pacote e para nenhum casal.
+
+     É o requisito que impede a porta dos fundos que o agente
+     `regras-de-negocio` encontrou: um pedido pago hoje, lendo uma vitrine
+     calada, publicado depois desta spec subir, ganharia um prazo que ninguém
+     mostrou a ele. */
+
+  it("publicar não grava expires_at enquanto a vitrine estiver calada", async () => {
+    const { order, siteId } = await pedidoComSite({ paid: true });
+
+    const r = await publishSiteForOrder(order.id, {
+      baseUrl: "https://enlace.test",
+    });
+    expect(r.ok).toBe(true);
+
+    const [depois] = await db.select().from(sites).where(eq(sites.id, siteId));
+    expect(depois.status).toBe("published");
+    // `null` = nunca sai do ar. É o estado correto hoje.
+    expect(depois.expiresAt).toBeNull();
+  });
+
+  it("nem para o pacote que um dia vai expirar", async () => {
+    /* O pedido acima já é `packageTier: "site"`, que é um dos dois que a
+       spec marca como expiráveis. Mesmo assim: `null`. O tier não decide
+       sozinho — o anúncio da vitrine decide antes. */
+    const { order, siteId } = await pedidoComSite({ paid: true });
+    await publishSiteForOrder(order.id, { baseUrl: "https://enlace.test" });
+
+    const [depois] = await db.select().from(sites).where(eq(sites.id, siteId));
+    expect(depois.tier).toBe("site");
+    expect(depois.expiresAt).toBeNull();
+  });
+
+  it("republicar não apaga uma data posta à mão", async () => {
+    /* Quando a expiração estiver ligada, um admin poderá estender o prazo de
+       um casal cujo casamento adiou. Publicar de novo (webhook reenviado,
+       tela recarregada) não pode desfazer isso — por isso o `set` só escreve
+       `expiresAt` quando há data a escrever. */
+    const { order, siteId } = await pedidoComSite({ paid: true });
+    await publishSiteForOrder(order.id, { baseUrl: "https://enlace.test" });
+
+    const posto = new Date(2030, 0, 1);
+    await db.update(sites).set({ expiresAt: posto }).where(eq(sites.id, siteId));
+
+    await publishSiteForOrder(order.id, { baseUrl: "https://enlace.test" });
+
+    const [depois] = await db.select().from(sites).where(eq(sites.id, siteId));
+    expect(depois.expiresAt?.getTime()).toBe(posto.getTime());
+  });
+});

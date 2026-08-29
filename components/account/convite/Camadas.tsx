@@ -2,6 +2,7 @@
 
 import { NOME_DA_FORMA } from "@/lib/site/inviteShapes";
 import type { Bloco } from "@/lib/site/inviteDoc";
+import { Icone } from "@/components/ui/prensa";
 
 /**
  * As camadas do convite.
@@ -42,6 +43,7 @@ function rotulo(b: Bloco): string {
   if (b.tipo === "texto") return b.texto.trim() || "Texto vazio";
   if (b.tipo === "foto") return "Foto";
   if (b.tipo === "linha") return "Divisor";
+  if (b.tipo === "botao") return b.rotulo.trim() || "Botão";
   return NOME_DA_FORMA[b.forma];
 }
 
@@ -49,6 +51,7 @@ function icone(b: Bloco): string {
   if (b.tipo === "texto") return "Aa";
   if (b.tipo === "foto") return "▣";
   if (b.tipo === "linha") return "―";
+  if (b.tipo === "botao") return "▭";
   return "◆";
 }
 
@@ -67,7 +70,11 @@ export default function Camadas({
     <div className="surface-raised flex flex-col rounded-[3px]">
       <div className="flex items-center justify-between border-b border-(--c-rule) px-4 py-3">
         <span className="meta text-(--c-ink-2)">Camadas</span>
-        <span className="meta text-[9.5px] text-(--c-ink-2)">frente ↑</span>
+        {/* "frente" é para CIMA na pilha — a seta é o sentido, não enfeite. */}
+        <span className="meta inline-flex items-center gap-1 text-[9.5px] text-(--c-ink-2)">
+          frente
+          <Icone nome="setaCima" tamanho={16} />
+        </span>
       </div>
 
       <ul className="max-h-72 overflow-y-auto">
@@ -92,7 +99,7 @@ export default function Camadas({
                 if (Number.isFinite(de) && de !== iDoc) aoMover(de, iDoc);
               }}
               className={`flex items-center gap-1.5 border-b border-(--c-rule) pr-2 last:border-b-0 ${
-                ativo ? "bg-(--c-sunken)" : "hover:bg-white"
+                ativo ? "bg-(--c-sunken)" : "hover:bg-(--c-sunken)"
               }`}
             >
               <span
@@ -127,7 +134,7 @@ export default function Camadas({
                   disabled={noTopo}
                   aria-label={`Trazer ${rotulo(b)} para a frente`}
                   onClick={() => aoMover(iDoc, iDoc + 1)}
-                  className="flex size-7 items-center justify-center border border-(--c-rule) bg-white text-(--c-ink-2) transition-colors hover:text-(--c-ink) disabled:opacity-30 disabled:hover:text-(--c-ink-2)"
+                  className="flex size-7 items-center justify-center border border-(--c-rule) bg-(--c-surface) text-(--c-ink-2) transition-colors hover:text-(--c-ink) disabled:opacity-30 disabled:hover:text-(--c-ink-2)"
                 >
                   <svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <path d="M5 8.5V2M2 5l3-3 3 3" />
@@ -138,7 +145,7 @@ export default function Camadas({
                   disabled={noFundo}
                   aria-label={`Mandar ${rotulo(b)} para trás`}
                   onClick={() => aoMover(iDoc, iDoc - 1)}
-                  className="flex size-7 items-center justify-center border border-(--c-rule) bg-white text-(--c-ink-2) transition-colors hover:text-(--c-ink) disabled:opacity-30 disabled:hover:text-(--c-ink-2)"
+                  className="flex size-7 items-center justify-center border border-(--c-rule) bg-(--c-surface) text-(--c-ink-2) transition-colors hover:text-(--c-ink) disabled:opacity-30 disabled:hover:text-(--c-ink-2)"
                 >
                   <svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <path d="M5 1.5V8M2 5l3 3 3-3" />

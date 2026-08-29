@@ -44,10 +44,19 @@ function Barra({ className }: { className: string }) {
 export default function SiteSkeleton({
   accent,
   className = "",
+  parado = false,
 }: {
   /** tinta do molde escolhido; sem ela o esqueleto sai na cor do painel */
   accent?: string | null;
   className?: string;
+  /**
+   * Para a construção e deixa o esqueleto legível.
+   *
+   * Usado quando o provisionamento falhou: continuar montando um site que não
+   * vai nascer é a tela contando uma história que já acabou — e é justamente
+   * nesse momento que a pessoa precisa ler o que deu errado.
+   */
+  parado?: boolean;
 }) {
   const raiz = useRef<HTMLDivElement>(null);
 
@@ -56,6 +65,8 @@ export default function SiteSkeleton({
       // Movimento reduzido do sistema, a menos que a pessoa tenha ligado o
       // movimento neste site (ver InterruptorDeMovimento). Sem construção, o
       // esqueleto fica parado e legível — que é o comportamento correto.
+      if (parado) return;
+
       const querMenos =
         window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
         document.documentElement.dataset.movimento !== "ligado";
@@ -126,7 +137,7 @@ export default function SiteSkeleton({
           "-=0.1"
         );
     },
-    { scope: raiz }
+    { scope: raiz, dependencies: [parado] }
   );
 
   return (
