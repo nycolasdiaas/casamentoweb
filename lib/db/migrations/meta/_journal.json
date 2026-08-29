@@ -141,6 +141,27 @@
       "when": 1787867964926,
       "tag": "0019_fancy_ultimates",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1787927106971,
+      "tag": "0020_handy_freak",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1787929276500,
+      "tag": "0021_new_hercules",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1787966333250,
+      "tag": "0022_absurd_zemo",
+      "breakpoints": true
     }
   ]
 }

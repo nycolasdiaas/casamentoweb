@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Icone, type NomeDoIcone } from "@/components/ui/prensa";
 import type { Aviso } from "@/lib/site/avisos";
+import { marcarRecadosLidosAction } from "@/app/actions/account-actions";
 import { quando } from "@/lib/site/tempoRelativo";
 
 /**
@@ -43,6 +44,8 @@ const ICONE: Record<Aviso["tipo"], NomeDoIcone> = {
   confirmacoes: "pessoas",
   prazo: "alerta",
   "no-ar": "check",
+  "sai-do-ar": "alerta",
+  recado: "mensagem",
 };
 
 const COR: Record<Aviso["tom"], string> = {
@@ -62,10 +65,13 @@ function faixaDoDia(em: Date, agora: number): string {
 export default function Avisos({
   avisos,
   recentes,
+  orderId,
 }: {
   avisos: Aviso[];
   /** Quantos caem na janela de sete dias. Vem do servidor — ver o cabeçalho. */
   recentes: number;
+  /** Para marcar os recados do time como lidos ao abrir. */
+  orderId: string;
 }) {
   const [aberto, setAberto] = useState(false);
   const [agora, setAgora] = useState(0);
@@ -92,6 +98,18 @@ export default function Avisos({
   function alternar() {
     // O relógio é lido AQUI: gesto do usuário, não render.
     if (!aberto) setAgora(Date.now());
+
+    /* Abrir o sino é o que marca os recados do time como lidos.
+
+       Sem `await`: o painel não deve esperar o banco para abrir uma caixa que
+       já está montada na tela. E o `catch` vazio é deliberado — se a marcação
+       falhar, o pior que acontece é o sino continuar aceso, e trocar isso por
+       uma mensagem de erro sobre algo que o casal não pediu seria pior que o
+       defeito. */
+    if (!aberto && avisos.some((a) => a.tipo === "recado")) {
+      void marcarRecadosLidosAction(orderId).catch(() => {});
+    }
+
     setAberto((v) => !v);
   }
 
@@ -185,9 +203,15 @@ export default function Avisos({
                           <Link
                             href={aviso.acao.href}
                             onClick={() => setAberto(false)}
-                            className="inline-block mt-1.5 text-[12.5px] text-(--c-ink) underline underline-offset-4"
+                            className="mt-1.5 inline-flex items-center gap-1.5 text-[12.5px] text-(--c-ink)"
                           >
-                            {aviso.acao.rotulo}
+                            {/* O sublinhado fica no TEXTO, não no link inteiro.
+                                Com ele no link, a seta ganhava um risco embaixo
+                                e virava um traço solto ao lado da palavra. */}
+                            <span className="underline underline-offset-4">
+                              {aviso.acao.rotulo}
+                            </span>
+                            <Icone nome="setaDireita" tamanho={16} />
                           </Link>
                         )}
                       </div>

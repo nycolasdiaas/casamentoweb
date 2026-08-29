@@ -175,6 +175,17 @@ export const orders = pgTable(
     paymentId: text("payment_id"),
     paymentUrl: text("payment_url"),
     paymentStatus: text("payment_status"), // PENDING/PAID/... (espelho do AbacatePay)
+    /* A HORA do pagamento, escrita uma vez por `markOrderPaid`.
+     *
+     * Antes desta coluna, o recibo usava `updated_at` — e só funcionava por um
+     * acidente de ordem: ele é montado ANTES da transação que publica.
+     * Bastaria alguém acrescentar uma escrita em `orders` entre a confirmação
+     * e o envio, ou reenviar um recibo depois, para o comprovante do casal
+     * sair com a hora errada.
+     *
+     * `null` nos pedidos anteriores à coluna: o recibo cai em `updated_at`,
+     * como antes. Nenhum backfill — a hora real deles não é reconstituível. */
+    paidAt: timestamp("paid_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -243,6 +254,16 @@ export const sites = pgTable("sites", {
   // no meio, o erro da chave Pix chumbada: dado sensível com destino errado.
   accessPasswordHash: text("access_password_hash"),
   publishedAt: timestamp("published_at", { withTimezone: true }),
+  /* Quando o site sai do ar — spec `site-publico/008`.
+   *
+   * `null` significa NUNCA EXPIRA, e é o que todo site existente recebe: a
+   * migração não muda o comportamento de nenhum casamento que já está no ar.
+   * O `para-sempre` fica `null` para sempre, que é o que o nome dele vende.
+   *
+   * Preenchido na PUBLICAÇÃO (data do casamento + 12 meses), não na compra:
+   * um site comprado em janeiro e publicado em agosto não pode ter queimado
+   * sete meses de prazo na gaveta. Ver `lib/site/expiracao.ts`. */
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
   // última visita registrada pelo beacon (§6.1 do SDD)
   lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
@@ -784,6 +805,66 @@ export const orderAuditLogRelations = relations(orderAuditLog, ({ one }) => ({
   }),
   admin: one(admins, {
     fields: [orderAuditLog.adminId],
+    references: [admins.id],
+  }),
+}));
+
+/* --------------------------------------------------------------------------
+   Recado do time para o casal.
+
+   O que existia era `orders.admin_message`: UM campo de texto, sobrescrito a
+   cada envio. Ele resolve "qual o último recado" e não resolve nada mais —
+   não guarda histórico, não sabe se o casal leu, e o segundo recado apaga o
+   primeiro sem deixar rastro. Numa venda com acompanhamento, o rastro é
+   metade do produto.
+
+   Esta tabela é o mesmo assunto feito direito: uma linha por recado, com
+   quem mandou, quando, se o casal já leu e se o e-mail de aviso saiu.
+
+   `admin_message` NÃO foi removida junto, de propósito. Ela tem dado vivo em
+   13 pedidos e aparece na tela de acompanhamento; apagá-la na mesma mudança
+   que cria a substituta seria destrutivo e irreversível. A aposentadoria dela
+   é um passo posterior — migrar o conteúdo, trocar a tela, e só então dropar
+   a coluna, na ordem expandir → migrar → verificar → restringir (§13.1).
+
+   `on delete cascade` no pedido: o recado vive no acompanhamento DELE. Sem
+   pedido não há tela onde ele apareça, e uma linha órfã só acumularia.
+   -------------------------------------------------------------------------- */
+export const adminNotices = pgTable(
+  "admin_notices",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orderId: uuid("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    /** Quem mandou. `set null` porque apagar um admin não pode apagar o
+     *  histórico do casal — o recado continua tendo existido. */
+    adminId: uuid("admin_id").references(() => admins.id, {
+      onDelete: "set null",
+    }),
+    /** Copiado no envio: se o admin sair, o casal ainda vê de quem veio. */
+    adminName: text("admin_name").notNull(),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    /** null = ainda não lido. Não é boolean: quando importa mais que se. */
+    readAt: timestamp("read_at", { withTimezone: true }),
+    /** null = e-mail não saiu (desligado, ou falhou). O recado vale mesmo
+     *  assim — o aviso por e-mail é conveniência, não o canal. */
+    emailSentAt: timestamp("email_sent_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index("idx_admin_notices_order_id").on(table.orderId)]
+);
+
+export const adminNoticesRelations = relations(adminNotices, ({ one }) => ({
+  order: one(orders, {
+    fields: [adminNotices.orderId],
+    references: [orders.id],
+  }),
+  admin: one(admins, {
+    fields: [adminNotices.adminId],
     references: [admins.id],
   }),
 }));

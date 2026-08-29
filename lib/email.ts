@@ -10,10 +10,20 @@
 //   2. Resend      — RESEND_API_KEY + RESET_EMAIL_FROM
 //      Exige domínio verificado (SPF/DKIM). É o destino final.
 //
-// O Gmail tem prioridade quando os dois estão preenchidos, porque é o que
-// se configura "temporariamente por cima". Sem nenhum dos dois, o envio
-// fica desligado: a redefinição aponta para o WhatsApp e a confirmação de
-// e-mail não bloqueia o envio do pedido.
+// ── Qual dos dois manda ────────────────────────────────────────────────────
+//
+// `EMAIL_TRANSPORT=resend` (ou `=gmail`) decide, e ponto. **Só quando ela não
+// existe** vale a precedência antiga: o Gmail ganha, porque é o que se
+// configura "temporariamente por cima".
+//
+// A variável existe porque a precedência sozinha é uma armadilha silenciosa.
+// Quem acabou de tirar a `RESEND_API_KEY` do provedor põe a chave, reinicia, e
+// **continua enviando pelo Gmail** — sem erro, sem aviso, com os e-mails
+// chegando normalmente. O único jeito de trocar era apagar credencial que
+// ainda funciona, e o único jeito de descobrir era ler este arquivo.
+//
+// Sem nenhum dos dois, o envio fica desligado: a redefinição aponta para o
+// WhatsApp e a confirmação de e-mail não bloqueia o envio do pedido.
 
 import nodemailer, { type Transporter } from "nodemailer";
 import { baseUrlEstatica } from "@/lib/baseUrl";
@@ -23,22 +33,46 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const GMAIL_USER = process.env.GMAIL_USER;
 const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD?.replace(/\s+/g, "");
 
-// O remetente muda com o transporte: no Gmail o From TEM que ser a própria
-// conta autenticada (o Google reescreve qualquer outro), no Resend é o
-// endereço do domínio verificado.
-const FROM = GMAIL_APP_PASSWORD
-  ? (process.env.MAIL_FROM_NAME ?? "Enlace") + ` <${GMAIL_USER}>`
-  : (process.env.RESET_EMAIL_FROM ?? "Enlace <onboarding@resend.dev>");
+const temGmail = Boolean(GMAIL_USER && GMAIL_APP_PASSWORD);
 
 export function isEmailConfigured(): boolean {
-  return Boolean((GMAIL_USER && GMAIL_APP_PASSWORD) || RESEND_API_KEY);
+  return Boolean(temGmail || RESEND_API_KEY);
 }
 
 /** Qual transporte está ativo — usado pelo script de teste e por diagnóstico. */
 export function emailTransport(): "gmail" | "resend" | "none" {
-  if (GMAIL_USER && GMAIL_APP_PASSWORD) return "gmail";
+  const forcado = process.env.EMAIL_TRANSPORT?.trim().toLowerCase();
+
+  /* Escolha explícita vale mesmo quando a credencial falta, e aí o transporte
+     é `none` em vez de cair no outro. Cair no outro seria o mesmo defeito ao
+     contrário: quem pediu Resend e errou a chave receberia e-mail pelo Gmail,
+     concluiria que o Resend está de pé, e descobriria no dia em que o Gmail
+     batesse o limite. */
+  if (forcado === "resend") return RESEND_API_KEY ? "resend" : "none";
+  if (forcado === "gmail") return temGmail ? "gmail" : "none";
+
+  if (temGmail) return "gmail";
   if (RESEND_API_KEY) return "resend";
   return "none";
+}
+
+/**
+ * O remetente, que muda com o transporte ATIVO.
+ *
+ * Amarrado a `emailTransport()` e não à presença de `GMAIL_APP_PASSWORD`: com
+ * `EMAIL_TRANSPORT=resend` e a credencial do Gmail ainda no arquivo, a versão
+ * anterior montava `From: <voce@gmail.com>` e mandava pelo Resend — que
+ * recusa remetente de domínio que não é dele. O envio morria com um 403 sobre
+ * domínio não verificado, e a causa (uma variável do Gmail que ninguém apagou)
+ * não aparecia em lugar nenhum da mensagem.
+ *
+ * No Gmail o From TEM que ser a própria conta autenticada, porque o Google
+ * reescreve qualquer outro. No Resend é o endereço do domínio verificado.
+ */
+function remetente(): string {
+  return emailTransport() === "gmail"
+    ? (process.env.MAIL_FROM_NAME ?? "Enlace") + ` <${GMAIL_USER}>`
+    : (process.env.RESET_EMAIL_FROM ?? "Enlace <onboarding@resend.dev>");
 }
 
 // Reaproveita a conexão SMTP entre envios (pool) em vez de abrir uma nova a
@@ -267,7 +301,7 @@ export async function send(
 
   if (transport === "gmail") {
     await gmailTransporter().sendMail({
-      from: FROM,
+      from: remetente(),
       to,
       subject,
       html,
@@ -277,8 +311,15 @@ export async function send(
   }
 
   if (transport === "none") {
+    /* A mensagem nomeia a escolha explícita quando ela existe: sem isso, quem
+       pôs `EMAIL_TRANSPORT=resend` e esqueceu a chave leria "nenhum
+       transporte configurado" com o Gmail configurado bem ali, e procuraria
+       no lugar errado. */
+    const forcado = process.env.EMAIL_TRANSPORT?.trim().toLowerCase();
     throw new Error(
-      "Nenhum transporte de e-mail configurado (GMAIL_APP_PASSWORD ou RESEND_API_KEY)."
+      forcado === "resend" || forcado === "gmail"
+        ? `EMAIL_TRANSPORT=${forcado}, mas a credencial dele não está configurada (${forcado === "resend" ? "RESEND_API_KEY" : "GMAIL_USER e GMAIL_APP_PASSWORD"}).`
+        : "Nenhum transporte de e-mail configurado (GMAIL_APP_PASSWORD ou RESEND_API_KEY)."
     );
   }
 
@@ -288,7 +329,7 @@ export async function send(
       Authorization: `Bearer ${RESEND_API_KEY}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ from: FROM, to: [to], subject, html }),
+    body: JSON.stringify({ from: remetente(), to: [to], subject, html }),
     cache: "no-store",
   });
 
@@ -603,6 +644,188 @@ export async function sendResumoSemanalEmail(
       <p style="margin-top:18px;font-size:11.5px;line-height:1.6;color:${TERCIARIO}">
         Vocês recebem este resumo às segundas, e só quando houve movimento na
         semana. <a href="${dados.descadastroUrl}" style="color:${TERCIARIO}">Parar de receber</a>.
+      </p>`,
+    })
+  );
+}
+
+/**
+ * Modelos 06, 07 e 08 · o site sai do ar — spec `site-publico/008`.
+ *
+ * ── Por que estes três NÃO têm descadastro ─────────────────────────────────
+ *
+ * O resumo semanal tem, e é o único que tem: ele sai porque é segunda-feira.
+ * Estes saem porque **o serviço que o casal pagou está mudando de estado** —
+ * são a mesma família do recibo e do "está no ar", que a prancha de e-mails
+ * classifica como transacionais, sem descadastro.
+ *
+ * A regra veio do agente `regras-de-negocio`, e o argumento é o caso concreto:
+ * quem tivesse se descadastrado do resumo semanal descobriria que o site saiu
+ * do ar **por um convidado dizendo que o link quebrou**. Um aviso que o
+ * silêncio do casal pode suprimir não é aviso.
+ *
+ * ── O vocabulário ─────────────────────────────────────────────────────────
+ *
+ * "Expirar" é palavra de sistema e não aparece em nenhum destes textos. Para o
+ * casal é **sai do ar** / **saiu do ar**, o mesmo par que o produto já usa em
+ * "colocar no ar". `expires_at` fica no código e no admin — o dono não é o
+ * casal.
+ *
+ * ── E por que o preço vai escrito ─────────────────────────────────────────
+ *
+ * "Fale com a gente" sem o valor vira "consulte valores", que é exatamente o
+ * que a promessa *"a página é a proposta"* proíbe. Com **R$ 99,90** na
+ * mensagem, a proposta continua sendo a página mesmo quando o atendimento é
+ * humano.
+ */
+export async function sendSaidaDoArEmail(
+  to: string,
+  dados: {
+    nomes: string;
+    /** "Convite" ou "Site do Casamento" — o pacote que o casal comprou. */
+    pacote: string;
+    /** O endereço do site, sem protocolo: "anaepedro.enlace.com". */
+    endereco: string;
+    /** A data em que sai, por extenso: "12 de outubro de 2027". */
+    saiEm: string;
+    /** Preço do Para Sempre, já formatado. */
+    precoParaSempre: string;
+    whatsappUrl: string;
+    quando: "30-dias" | "7-dias" | "saiu-do-ar";
+  }
+): Promise<void> {
+  const nomes = escaparHtml(dados.nomes);
+  const pacote = escaparHtml(dados.pacote);
+  const endereco = escaparHtml(dados.endereco);
+  const saiEm = escaparHtml(dados.saiEm);
+  const preco = escaparHtml(dados.precoParaSempre);
+
+  const p = (conteudo: string) =>
+    `<p style="font-size:14px;line-height:1.6;color:#5a624f">${conteudo}</p>`;
+
+  /* Sem emoji e sem exclamação: o casal lê isto um ano depois da festa, e não
+     está mais no clima de casamento. O tom é administrativo com afeto contido
+     — nunca urgência de venda ("últimos dias", "não perca"). */
+  const textos = {
+    "30-dias": {
+      assunto: "O site de vocês sai do ar em 30 dias",
+      caixa: `Sai do ar em ${dados.saiEm}. Dá para mantê-lo no ar sem prazo.`,
+      titulo: "O site de vocês sai do ar em 30 dias",
+      corpo:
+        p(
+          `Oi, ${nomes}. O site de vocês fica no ar por doze meses depois do casamento — é o prazo do pacote ${pacote}. Esse prazo termina em <strong>${saiEm}</strong>.`
+        ) +
+        p(
+          "Até lá nada muda: o endereço continua abrindo normalmente e vocês continuam editando o que quiserem."
+        ) +
+        p(
+          `Se quiserem que o site fique no ar sem prazo, o pacote Para Sempre custa ${preco}, uma vez só. Fale com a gente pelo WhatsApp que a gente faz a troca — ou responda este e-mail.`
+        ),
+      fecho: `O site continua no ar até lá: ${endereco}`,
+    },
+    "7-dias": {
+      assunto: `O site de vocês sai do ar em ${dados.saiEm}`,
+      caixa: "Faltam 7 dias. Depois disso o link para de abrir.",
+      titulo: "Faltam 7 dias",
+      corpo:
+        p(
+          `Oi, ${nomes}. Em <strong>${saiEm}</strong> terminam os doze meses do pacote ${pacote}, e o endereço ${endereco} deixa de abrir para quem tiver o link.`
+        ) +
+        p(
+          "Nada é apagado. Tudo que vocês montaram continua guardado, do jeito que está."
+        ) +
+        p(
+          `Para o site continuar no ar, sem prazo desta vez, o Para Sempre custa ${preco}, uma vez só. Fale com a gente antes dessa data e a gente resolve — ou responda este e-mail.`
+        ),
+      fecho:
+        "Se ainda tem alguém para ver o site, esta é uma boa semana para mandar o link.",
+    },
+    "saiu-do-ar": {
+      assunto: "O site de vocês saiu do ar",
+      caixa: "Nada foi apagado. Está tudo guardado.",
+      titulo: "O site saiu do ar hoje",
+      corpo:
+        p(
+          `Oi, ${nomes}. Hoje terminaram os doze meses do pacote ${pacote}, e o endereço ${endereco} parou de abrir.`
+        ) +
+        /* "Nada foi apagado" é FATO, no passado — descreve o que aconteceu.
+           "Vamos guardar" seria promessa futura sem prazo definido, e prazo de
+           guarda é decisão do dono que ainda não foi tomada. Por isso não há
+           "para sempre" nem "por N meses" em lugar nenhum deste texto. */
+        p(
+          "<strong>Nada foi apagado.</strong> As fotos, os textos e tudo que vocês montaram continuam guardados, exatamente como estavam."
+        ) +
+        p(
+          `Para colocar o site de volta no ar, sem prazo, o Para Sempre custa ${preco}, uma vez só — e tudo volta no lugar. Fale com a gente pelo WhatsApp ou responda este e-mail.`
+        ),
+      fecho: "Foi bom ter feito parte do casamento de vocês.",
+    },
+  }[dados.quando];
+
+  await send(
+    to,
+    textos.assunto,
+    layout({
+      titulo: textos.titulo,
+      linhaDaCaixa: textos.caixa,
+      corpo:
+        textos.corpo +
+        /* `false` porque `wa.me/?text=…` não é um destino que alguém copiaria
+           para outro aparelho — é ação. Mesma decisão do "está no ar". */
+        button(dados.whatsappUrl, "Falar no WhatsApp", false) +
+        `<p style="font-size:13px;line-height:1.6;color:${TERCIARIO}">${escaparHtml(textos.fecho)}</p>`,
+    })
+  );
+}
+
+/**
+ * "Tem um recado novo" — migração 0022.
+ *
+ * ── O e-mail NÃO repete o recado ───────────────────────────────────────────
+ *
+ * Ele diz que existe um e leva ao painel. Dois motivos, e o segundo é o que
+ * decide:
+ *
+ * 1. O recado é escrito à mão por uma pessoa do time, sem revisão de voz. Um
+ *    texto que sai por e-mail alcança a caixa de entrada de um cliente e não
+ *    volta — e-mail não tem "editar". No painel ele pode ser corrigido.
+ * 2. O casal responde ao recado NO painel, onde estão o pedido, as fotos e o
+ *    site. Um e-mail com o texto inteiro convida a responder o e-mail, e o
+ *    e-mail que sai daqui não tem quem leia a resposta.
+ *
+ * Por isso o assunto carrega o TÍTULO (para a caixa de entrada ser útil) e o
+ * corpo carrega só a chamada.
+ */
+export async function sendRecadoDoTimeEmail(
+  to: string,
+  dados: {
+    nomes: string;
+    /** Título do recado — vai no assunto. */
+    titulo: string;
+    /** Endereço absoluto do acompanhamento do pedido. */
+    painelUrl: string;
+  }
+): Promise<void> {
+  const nomes = escaparHtml(dados.nomes);
+  const titulo = escaparHtml(dados.titulo);
+
+  await send(
+    to,
+    `Recado sobre o site de vocês: ${dados.titulo}`,
+    layout({
+      titulo: "Tem um recado novo",
+      linhaDaCaixa: `${titulo} — abra o painel para ler.`,
+      corpo: `<p style="font-size:14px;line-height:1.6;color:#5a624f">
+        Oi, ${nomes}. Deixamos um recado sobre o site de vocês no painel:
+      </p>
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="width:100%;margin:20px 0">
+        <tr><td style="padding:16px;background:#ffffff;border:1px solid ${FIO};font-family:${F_DISPLAY};font-size:17px;color:${TINTA}">
+          ${titulo}
+        </td></tr>
+      </table>
+      ${button(dados.painelUrl, "Ler o recado", true)}
+      <p style="font-size:13px;line-height:1.6;color:#5a624f">
+        Se precisarem falar com a gente, é só responder por lá.
       </p>`,
     })
   );

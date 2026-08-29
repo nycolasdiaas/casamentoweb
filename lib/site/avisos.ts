@@ -6,6 +6,8 @@ import {
   groups,
   orderAuditLog,
 } from "@/lib/db/schema";
+import { AVISOS_EM_DIAS, dataPorExtenso, diasAteExpirar } from "./expiracao";
+import { recadosNaoLidos } from "@/lib/repositories/adminNotices";
 
 /**
  * Faixa J · os avisos do casal, DERIVADOS.
@@ -39,7 +41,7 @@ const JANELA_DIAS = 30;
 
 export type Aviso = {
   id: string;
-  tipo: "presente" | "confirmacoes" | "prazo" | "no-ar";
+  tipo: "presente" | "confirmacoes" | "prazo" | "no-ar" | "sai-do-ar" | "recado";
   /** A frase. As partes em negrito vêm separadas para o texto não virar HTML. */
   principal: { antes?: string; forte: string; depois?: string };
   detalhe: string;
@@ -85,6 +87,7 @@ export async function montarAvisos({
   base,
   rsvpDeadline,
   semResposta,
+  expiresAt = null,
 }: {
   siteId: string;
   orderId: string;
@@ -93,6 +96,8 @@ export async function montarAvisos({
   rsvpDeadline: string | null;
   /** Convidados ainda sem resposta — entra no aviso de prazo. */
   semResposta: number;
+  /** Quando o site sai do ar. `null` = nunca — spec `site-publico/008`. */
+  expiresAt?: Date | null;
 }): Promise<{ avisos: Aviso[]; recentes: number }> {
   /* TODA leitura de relógio do recurso mora nesta função, e não em quem
      chama. O `react-hooks/purity` reprova `Date.now()` dentro de um
@@ -103,16 +108,20 @@ export async function montarAvisos({
   const agora = new Date();
   const desde = new Date(agora.getTime() - JANELA_DIAS * 86_400_000);
 
-  const [presentes, confirmacoes, publicacao] = await Promise.all([
+  const [presentes, confirmacoes, publicacao, recados] = await Promise.all([
     presentesRecebidos(siteId, desde, base),
     confirmacoesPorDia(siteId, desde, base),
     entrouNoAr(orderId, desde, base),
+    recadosDoTime(orderId, base),
   ]);
 
   const prazo = avisoDePrazo({ rsvpDeadline, semResposta, base, agora });
+  const saida = avisoDeSaidaDoAr({ expiresAt, base, agora });
 
   const avisos = [
+    ...(saida ? [saida] : []),
     ...(prazo ? [prazo] : []),
+    ...recados,
     ...presentes,
     ...confirmacoes,
     ...publicacao,
@@ -188,7 +197,7 @@ async function presentesRecebidos(
         : { antes: "Vocês receberam ", forte: valor ?? "um presente" },
       detalhe: linha.giftName,
       em: linha.createdAt,
-      acao: { rotulo: "Ver os presentes →", href: `${base}/presentes` },
+      acao: { rotulo: "Ver os presentes", href: `${base}/presentes` },
       tom: "ok" as const,
     };
   });
@@ -238,9 +247,9 @@ async function confirmacoesPorDia(
     },
     // "resposta" e não "confirmação": quem respondeu "não posso" também está
     // aqui, e chamar isso de confirmação seria dar um número errado ao casal.
-    detalhe: "Quem vem e quem não vem está na aba Convites",
+    detalhe: "Quem vem e quem não vem está na aba Convidados",
     em: ultima,
-    acao: { rotulo: "Ver quem respondeu →", href: `${base}/convites` },
+    acao: { rotulo: "Ver quem respondeu", href: `${base}/convidados` },
     tom: "neutro" as const,
   }));
 }
@@ -281,7 +290,7 @@ async function entrouNoAr(
       principal: { antes: "O site de vocês ", forte: "está no ar" },
       detalhe: "Hora de mandar o link no grupo da família",
       em: linha.createdAt,
-      acao: { rotulo: "Copiar o link →", href: base },
+      acao: { rotulo: "Copiar o link", href: base },
       tom: "ok" as const,
     },
   ];
@@ -328,7 +337,94 @@ function avisoDePrazo({
         ? "1 convidado ainda não respondeu"
         : `${semResposta} convidados ainda não responderam`,
     em: agora,
-    acao: { rotulo: "Ver os convites →", href: `${base}/convites` },
+    acao: { rotulo: "Ver os convites", href: `${base}/convites` },
     tom: "warn",
   };
+}
+
+/**
+ * O site sai do ar em breve — spec `site-publico/008`, FR-009.
+ *
+ * ── Por que aqui, e não num bloco novo na tela ────────────────────────────
+ *
+ * A spec dizia para pôr a data em `SiteNoAr`. Ao abrir o componente, ele diz
+ * de si mesmo: *"é comemoração de um momento, não estado da tela"* — ele
+ * aparece uma vez, no primeiro carregamento depois de publicar, e some. Um
+ * prazo escrito ali seria visto por quem acabou de publicar e por mais
+ * ninguém.
+ *
+ * O sino já é o lugar onde o painel conta o que muda com o tempo, e já tem um
+ * aviso de prazo com a mesma forma. Reaproveitar custa uma função e nenhum
+ * componente.
+ *
+ * ── E por que nos MESMOS dias do e-mail ───────────────────────────────────
+ *
+ * 30 e 7. Se a tela avisasse todo dia e o e-mail só em dois, o casal veria
+ * dois produtos discordando sobre a urgência da mesma coisa. Fora desses
+ * marcos, silêncio: lembrete diário sobre o que ainda não aconteceu é o que
+ * treina a pessoa a ignorar o sino.
+ */
+function avisoDeSaidaDoAr({
+  expiresAt,
+  base,
+  agora,
+}: {
+  expiresAt: Date | null;
+  base: string;
+  agora: Date;
+}): Aviso | null {
+  const dias = diasAteExpirar(expiresAt, agora);
+  if (dias === null) return null;
+  if (!AVISOS_EM_DIAS.includes(dias as (typeof AVISOS_EM_DIAS)[number])) {
+    return null;
+  }
+
+  return {
+    id: `sai-do-ar:${expiresAt!.toISOString()}:${dias}`,
+    tipo: "sai-do-ar",
+    principal: {
+      antes: "O site sai do ar em ",
+      forte: dias === 1 ? "1 dia" : `${dias} dias`,
+      depois: "",
+    },
+    // "Sai do ar", nunca "expira" — expirar é palavra de sistema.
+    detalhe: `Termina em ${dataPorExtenso(expiresAt!)}. Nada é apagado.`,
+    em: agora,
+    acao: { rotulo: "Ver o pedido", href: base },
+    tom: "warn",
+  };
+}
+
+/**
+ * Recados que o time mandou — migração 0022.
+ *
+ * ── Por que estes NÃO respeitam a janela de 30 dias ────────────────────────
+ *
+ * Todos os outros avisos são derivados de eventos: um presente que chegou,
+ * uma resposta que entrou, o site que subiu. Eles envelhecem porque o evento
+ * envelhece — um presente de dois meses atrás não é notícia.
+ *
+ * Um recado do time não é evento, é MENSAGEM: alguém escreveu para este casal
+ * e ainda não foi lido. Ele não deixa de ser verdade porque o tempo passou, e
+ * sumir sozinho seria perder a única coisa que o produto tem de conversa. Por
+ * isso a consulta é por `read_at is null`, não por data.
+ *
+ * O que dá o fim dele é o casal ler — `marcarRecadosComoLidos`, quando o sino
+ * abre.
+ */
+async function recadosDoTime(orderId: string, base: string): Promise<Aviso[]> {
+  const recados = await recadosNaoLidos(orderId);
+
+  return recados.map((r) => ({
+    id: `recado:${r.id}`,
+    tipo: "recado" as const,
+    principal: { forte: r.title },
+    /* O corpo inteiro no sino viraria parágrafo dentro de um item de lista.
+       As duas primeiras linhas dizem do que se trata; o resto está no painel,
+       que é para onde a ação leva. */
+    detalhe: r.body.length > 120 ? `${r.body.slice(0, 117).trimEnd()}…` : r.body,
+    em: r.createdAt,
+    acao: { rotulo: "Ler no painel", href: base },
+    tom: "neutro" as const,
+  }));
 }

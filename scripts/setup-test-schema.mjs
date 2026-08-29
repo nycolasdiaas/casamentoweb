@@ -55,6 +55,7 @@ const DDL = [
      status public.site_status not null default 'provisioning',
      preview_token text not null unique,
      published_at timestamptz,
+     expires_at timestamptz,
      last_seen_at timestamptz,
      created_at timestamptz not null default now(),
      updated_at timestamptz not null default now()
@@ -149,6 +150,29 @@ const DDL = [
      primary key (site_id, day)
    )`,
 
+  /* Recado do time para o casal (migração 0022).
+
+     `admins` não existe no schema `test`, então `admin_id` fica SEM chave
+     estrangeira aqui — é uma coluna uuid solta. O teste do repositório grava
+     e lê recado; ele não tem nada a dizer sobre integridade referencial com
+     uma tabela que este schema não espelha, e criar `test.admins` só para
+     isso arrastaria a tabela de senhas para o schema que os testes limpam
+     entre casos. */
+  `create table if not exists test.admin_notices (
+     id uuid primary key default gen_random_uuid(),
+     order_id uuid not null references test.orders(id) on delete cascade,
+     admin_id uuid,
+     admin_name text not null,
+     title text not null,
+     body text not null,
+     read_at timestamptz,
+     email_sent_at timestamptz,
+     created_at timestamptz not null default now()
+   )`,
+
+  `create index if not exists idx_test_admin_notices_order
+     on test.admin_notices (order_id)`,
+
   `alter table test.groups add column if not exists site_id uuid
      references test.sites(id) on delete restrict`,
   `alter table test.gifts add column if not exists site_id uuid
@@ -167,6 +191,10 @@ const DDL = [
   `alter table test.site_photos add column if not exists category text`,
   `alter table test.site_invites add column if not exists slug text`,
   `alter table test.site_invites add column if not exists published_at timestamptz`,
+  /* O `create table if not exists` acima não alcança um schema `test` que já
+     existe — e ele existe em toda máquina que já rodou a suíte uma vez. */
+  `alter table test.sites add column if not exists expires_at timestamptz`,
+  `alter table test.orders add column if not exists paid_at timestamptz`,
   `alter table test.site_content add column if not exists pix_key text`,
   `alter table test.site_content add column if not exists pix_key_type text`,
   `alter table test.site_content add column if not exists pix_recipient text`,

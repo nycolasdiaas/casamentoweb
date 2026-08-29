@@ -49,15 +49,27 @@ export default async function GerenciarLayout({
   // que é exatamente a diferença de autonomia que o Anderson apontou no
   // painel do iCasei. O selo é UMA palavra: mais que isso vira legenda e
   // compete com o rótulo do item.
-  const [fotos, presentes, convitesDoSite, recados] = site
+  const [fotos, presentes, convitesDoSite, recados, grupos] = site
     ? await Promise.all([
         countSitePhotos(site.id),
         listGifts(site.id),
         listInvites(site.id),
         contarRecados(site.id),
+        /* Os grupos entram AQUI, e não mais lá embaixo com os avisos.
+
+           A consulta é a mesma, e antes ela acontecia duas vezes por
+           carregamento assim que a aba Convidados passou a precisar do número:
+           uma para a contagem do menu, outra para o aviso de prazo. Uma ida ao
+           banco alimenta as duas — e o `Promise.all` já estava aqui. */
+        listGroupsWithGuests(site.id),
       ])
-    : [0, [], [], 0];
+    : [0, [], [], 0, []];
   const convites = convitesDoSite.length;
+
+  /* Quantos grupos JÁ responderam — o número que a aba Convidados mostra.
+     `seatsConfirmed === null` é "não respondeu"; `0` é "respondeu que não
+     vai". Quem respondeu que não vai respondeu, e conta. */
+  const respostas = grupos.filter((g) => g.seatsConfirmed !== null).length;
 
   const conteudoPronto = Boolean(
     conteudo?.coupleNames?.trim() && conteudo?.weddingDate
@@ -116,6 +128,25 @@ export default async function GerenciarLayout({
     { href: `${base}/compartilhar`, rotulo: "Compartilhar" },
   ];
 
+  /* CONVIDADOS — logo depois de Convites, porque é a resposta dele.
+
+     Convites é onde o casal manda; Convidados é onde ele vê quem respondeu.
+     Separar as duas em pontas opostas da barra faria o casal procurar a
+     resposta na tela de enviar — que é exatamente o que acontecia quando esta
+     aba não existia: o sino dizia "ver quem respondeu" e levava para Convites,
+     onde há três números somados e nenhuma linha.
+
+     Só a partir do Site do Casamento: confirmação de presença não entra no
+     pacote Convite (§4.5), e oferecer a aba ali seria cobrar atenção por um
+     recurso que o casal não comprou. */
+  if (tierAllowsSection(order.packageTier, "rsvp")) {
+    abas.splice(6, 0, {
+      href: `${base}/convidados`,
+      rotulo: "Convidados",
+      contagem: respostas > 0 ? respostas : undefined,
+    });
+  }
+
   /* A aba do mural só existe no pacote que tem mural.
      Mostrá-la no Convite ou no Site seria oferecer uma tela que só diz "isto
      não é seu" — e a regra é que a lista de tarefas respeita o pacote
@@ -141,7 +172,7 @@ export default async function GerenciarLayout({
        Desde a 0016 a resposta é do grupo: `seatsConfirmed === null` é "não
        respondeu" (diferente de `0`, que é "respondemos que não vamos"). O
        aviso de prazo fala em pessoas, então soma os lugares reservados. */
-    const semResposta = (await listGroupsWithGuests(site.id))
+    const semResposta = grupos
       .filter((g) => g.seatsConfirmed === null)
       .reduce((total, g) => total + g.seats, 0);
 
@@ -151,6 +182,8 @@ export default async function GerenciarLayout({
       base,
       rsvpDeadline: conteudo?.rsvpDeadline ?? null,
       semResposta,
+      // `null` para todo site de hoje — spec `site-publico/008`.
+      expiresAt: site.expiresAt,
     }));
   }
 
@@ -166,6 +199,7 @@ export default async function GerenciarLayout({
           abas={abas}
           avisos={avisos}
           recentes={recentes}
+          orderId={order.id}
           iniciais={iniciaisDe(order.coupleNames, "NS")}
         />
 

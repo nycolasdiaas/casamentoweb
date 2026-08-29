@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Abas, EtiquetaDoPedido, type Aba } from "@/components/ui/prensa";
+import { Abas, EtiquetaDoPedido, Icone, type Aba } from "@/components/ui/prensa";
 import Avisos from "@/components/account/manage/Avisos";
 import type { Aviso } from "@/lib/site/avisos";
 import type { OrderStatus } from "@/lib/orderStatus";
@@ -36,6 +36,7 @@ export default function CascaDoPainel({
   abas,
   avisos,
   recentes,
+  orderId,
   iniciais,
 }: {
   titulo: string;
@@ -44,6 +45,8 @@ export default function CascaDoPainel({
   abas: Aba[];
   avisos: Aviso[];
   recentes: number;
+  /** Repassado ao sino, que marca os recados do time como lidos ao abrir. */
+  orderId: string;
   /** Iniciais do casal — o mesmo círculo do cabeçalho da conta (prancha E1). */
   iniciais: string;
 }) {
@@ -122,12 +125,13 @@ export default function CascaDoPainel({
               href={linkDoSite}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[13.5px] text-(--c-ink) underline underline-offset-4 px-2"
+              className="inline-flex items-center gap-1.5 px-2 text-[13.5px] text-(--c-ink)"
             >
-              Ver o site →
+              <span className="underline underline-offset-4">Ver o site</span>
+              <Icone nome="setaDireita" tamanho={16} />
             </Link>
           )}
-          <Avisos avisos={avisos} recentes={recentes} />
+          <Avisos avisos={avisos} recentes={recentes} orderId={orderId} />
           <span
             className="flex size-[30px] items-center justify-center rounded-full bg-(--c-olive) t-data text-[11px] text-(--c-paper-warm)"
             aria-hidden="true"
