@@ -2,7 +2,11 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { carregarGerenciamento } from "@/lib/site/manageData";
 import { getSiteContent } from "@/lib/repositories/siteContent";
-import { listGifts, contribuicoesPorCota } from "@/lib/repositories/gifts";
+import {
+  listGifts,
+  contribuicoesPorCota,
+  fotosPorPresente,
+} from "@/lib/repositories/gifts";
 import { listSiteSections } from "@/lib/repositories/siteSections";
 import { formatPriceCents } from "@/lib/format";
 import { ROTULO_TIPO, type PixKeyType } from "@/lib/pix/key";
@@ -41,7 +45,7 @@ export default async function PresentesPage({
   if (site === null) {
     return (
       <div className="flex flex-col gap-6">
-        <Cabecalho />
+        <Cabecalho linkDoSite={null} />
         <p className="surface-raised p-6 text-sm text-(--c-ink-2)">
           O site de vocês ainda está sendo montado. Assim que a prévia ficar
           pronta, a lista de presentes aparece aqui.
@@ -50,11 +54,12 @@ export default async function PresentesPage({
     );
   }
 
-  const [conteudo, presentes, escolhas, secoes] = await Promise.all([
+  const [conteudo, presentes, escolhas, secoes, fotos] = await Promise.all([
     getSiteContent(site.id),
     listGifts(site.id),
     contribuicoesPorCota(site.id),
     listSiteSections(site.id),
+    fotosPorPresente(site.id),
   ]);
 
   const secaoLigada = secoes.some((s) => s.sectionKey === "gifts" && s.enabled);
@@ -65,6 +70,7 @@ export default async function PresentesPage({
     id: g.id,
     name: g.name,
     category: g.category,
+    description: g.description,
     priceCents: g.priceCents,
     quantity: g.quantity,
     escolhidas: escolhas.get(g.id) ?? 0,
@@ -83,9 +89,15 @@ export default async function PresentesPage({
     ? null
     : cotas.reduce((s, c) => s + c.escolhidas * (c.priceCents ?? 0), 0);
 
+  // Mostra o link sempre que existir site (mesmo em prévia, mesmo com a
+  // seção "gifts" desligada) — é o casal conferindo o trabalho, não o
+  // convidado; a seção desligada já tem aviso próprio, não precisa também
+  // sumir o atalho de conferência.
+  const linkDoSite = order.siteUrl ?? order.previewUrl ?? null;
+
   return (
     <div className="flex flex-col gap-6">
-      <Cabecalho />
+      <Cabecalho linkDoSite={linkDoSite} />
 
       {/* O estado que mais importa: lista visível sem chave. A trava impede o
           site de mostrar chave de outra pessoa; este aviso impede o casal de
@@ -108,7 +120,11 @@ export default async function PresentesPage({
       )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px] lg:items-start">
-        <Cotas siteId={site.id} cotas={cotas} />
+        <Cotas
+          siteId={site.id}
+          cotas={cotas}
+          fotos={Object.fromEntries(fotos)}
+        />
 
         <div className="flex flex-col gap-5">
           {/* ARRECADADO — o card oliva do desenho. */}
@@ -180,15 +196,27 @@ export default async function PresentesPage({
   );
 }
 
-function Cabecalho() {
+function Cabecalho({ linkDoSite }: { linkDoSite: string | null }) {
   return (
-    <header className="flex flex-col gap-3">
-      <span className="meta text-(--c-mark)">Presentes</span>
-      <h1 className="t-d2 text-(--c-ink)">Lista de presentes</h1>
-      <p className="t-corpo text-(--c-ink-2) medida">
-        O convidado escolhe uma cota e paga por Pix — direto na conta de vocês,
-        sem passar por ninguém.
-      </p>
+    <header className="flex flex-wrap items-end justify-between gap-4">
+      <div className="flex flex-col gap-3">
+        <span className="meta text-(--c-mark)">Presentes</span>
+        <h1 className="t-d2 text-(--c-ink)">Lista de presentes</h1>
+        <p className="t-corpo text-(--c-ink-2) medida">
+          O convidado escolhe uma cota e paga por Pix — direto na conta de
+          vocês, sem passar por ninguém.
+        </p>
+      </div>
+      {linkDoSite && (
+        <Link
+          href={linkDoSite}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn btn-quiet btn-sm shrink-0"
+        >
+          Ver como o convidado vê →
+        </Link>
+      )}
     </header>
   );
 }

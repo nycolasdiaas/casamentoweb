@@ -515,6 +515,10 @@ export const gifts = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     category: text("category").notNull(),
     name: text("name").notNull(),
+    // Descrição opcional, com tom de humor ("Cota da air fryer, o verdadeiro
+    // amor da casa") — o casal escreve ao cadastrar, pode deixar em branco.
+    // NUNCA gerada automaticamente: quem escreve é o casal, não o sistema.
+    description: text("description"),
     // null = convidado escolhe o valor ("presente livre")
     priceCents: integer("price_cents"),
     /**
@@ -558,6 +562,33 @@ export const giftContributions = pgTable(
   },
   (table) => [index("idx_gift_contributions_gift_id").on(table.giftId)]
 );
+
+/**
+ * Uma foto por presente. Não usa `site_photos` de propósito: aquela tabela
+ * modela slot fixo do molde (cover/story/gallery/album, capacidade definida
+ * por pacote) — presente é lista de tamanho variável (até dezenas de itens),
+ * um por linha em `gifts`, sem relação com o desenho do molde. `giftId`
+ * único: um presente tem no máximo uma foto, trocar substitui a linha.
+ *
+ * Mesmo padrão de segurança de `site_photos`: bucket privado, bytes
+ * repassados por `/gf/<id>`, nunca URL crua do Storage no HTML.
+ */
+export const giftPhotos = pgTable("gift_photos", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  giftId: uuid("gift_id")
+    .notNull()
+    .unique()
+    .references(() => gifts.id, { onDelete: "cascade" }),
+  storagePath: text("storage_path").notNull().unique(),
+  contentType: text("content_type").notNull(),
+  sizeBytes: integer("size_bytes").notNull(),
+  width: integer("width"),
+  height: integer("height"),
+  blurDataUrl: text("blur_data_url"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
 
 // ─────────────────────────────────────────────────────────────────────────
 // Tabelas que JÁ EXISTEM em produção mas estavam fora do schema.ts (drift de
@@ -670,6 +701,10 @@ export const siteSectionsRelations = relations(siteSections, ({ one }) => ({
 export const giftsRelations = relations(gifts, ({ one, many }) => ({
   contributions: many(giftContributions),
   site: one(sites, { fields: [gifts.siteId], references: [sites.id] }),
+  photo: one(giftPhotos, {
+    fields: [gifts.id],
+    references: [giftPhotos.giftId],
+  }),
 }));
 
 /**

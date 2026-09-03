@@ -34,6 +34,7 @@ export default function SiteFromView({
   view,
   slug,
   previa = false,
+  apenas,
 }: {
   view: SiteView;
   slug: string;
@@ -47,6 +48,18 @@ export default function SiteFromView({
    * o convidado.
    */
   previa?: boolean;
+  /**
+   * Renderiza SÓ estas seções — o que sustenta `/s/<slug>/presentes`, o link
+   * que o casal manda para quem só vai presentear.
+   *
+   * É um RECORTE do que o site já mostraria, nunca um atalho por cima das
+   * regras: a seção pedida ainda precisa passar pelo pacote (`sectionsForTier`
+   * dentro do `SiteRenderer`) e pelo interruptor da aba Páginas (o filtro de
+   * `desligadas` logo abaixo). Desligar "Lista de presentes" no painel derruba
+   * a seção aqui também — se não derrubasse, o casal teria um interruptor que
+   * não desliga o link que ele mandou no WhatsApp.
+   */
+  apenas?: SectionKey[];
 }) {
   const template = getTemplate(view.site.templateId);
 
@@ -86,6 +99,15 @@ export default function SiteFromView({
     ? (template.order.filter((k) => !desligadas.includes(k)) as SectionKey[])
     : undefined;
 
+  /* O recorte entra por INTERSEÇÃO, nunca por substituição: `apenas` só
+     consegue tirar seções da lista, nunca acrescentar uma que o casal
+     desligou ou que o pacote não libera. */
+  const secoes = apenas
+    ? (habilitadas ?? (template.order as SectionKey[])).filter((k) =>
+        apenas.includes(k)
+      )
+    : habilitadas;
+
   return (
     <>
       {previa && <SeloDePrevia />}
@@ -96,7 +118,7 @@ export default function SiteFromView({
         tier={view.site.tier}
         slug={slug}
         siteId={view.site.id}
-        enabledSections={habilitadas}
+        enabledSections={secoes}
       />
     </>
   );

@@ -162,6 +162,13 @@
       "when": 1787966333250,
       "tag": "0022_absurd_zemo",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1788395947389,
+      "tag": "0023_broken_saracen",
+      "breakpoints": true
     }
   ]
 }

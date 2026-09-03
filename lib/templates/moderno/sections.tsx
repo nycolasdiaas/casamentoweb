@@ -349,7 +349,7 @@ export function Rsvp({ slug }: SectionProps) {
 }
 
 export async function Gifts({ siteId, content }: SectionProps) {
-  const { gifts, pix } = await loadGiftSection(siteId);
+  const { gifts, pix, fotos, presenteados } = await loadGiftSection(siteId);
   if (gifts.length === 0) return null;
 
   return (
@@ -362,7 +362,12 @@ export async function Gifts({ siteId, content }: SectionProps) {
         {content.giftMessage ??
           "Sem faqueiro, sem lista de loja. Cada cota é um pedaço da nossa lua de mel — via Pix."}
       </p>
-      <GiftGrid gifts={gifts} pix={pix} siteId={siteId}
+      <GiftGrid
+        gifts={gifts}
+        pix={pix}
+        siteId={siteId}
+        fotos={fotos}
+        presenteados={presenteados}
       />
     </section>
   );

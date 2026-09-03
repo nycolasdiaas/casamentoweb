@@ -485,7 +485,7 @@ export function Rsvp({ slug }: SectionProps) {
 }
 
 export async function Gifts({ siteId, content }: SectionProps) {
-  const { gifts, pix } = await loadGiftSection(siteId);
+  const { gifts, pix, fotos, presenteados } = await loadGiftSection(siteId);
   if (gifts.length === 0) return null;
 
   return (
@@ -498,7 +498,12 @@ export async function Gifts({ siteId, content }: SectionProps) {
         {content.giftMessage ??
           "Ter você conosco já é presente. Mas, se o coração pedir, cada mimo abaixo vira uma lembrança da nossa lua de mel."}
       </p>
-      <GiftGrid gifts={gifts} pix={pix} siteId={siteId}
+      <GiftGrid
+        gifts={gifts}
+        pix={pix}
+        siteId={siteId}
+        fotos={fotos}
+        presenteados={presenteados}
       />
     </section>
   );

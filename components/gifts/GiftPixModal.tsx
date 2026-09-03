@@ -29,11 +29,13 @@ export default function GiftPixModal({
   gift,
   pix,
   siteId,
+  foto,
   onClose,
 }: {
   gift: Gift;
   pix: PixParaConvidado | null;
   siteId: string;
+  foto?: { id: string; blurDataUrl: string | null };
   onClose: () => void;
 }) {
   const [guestName, setGuestName] = useState("");
@@ -122,25 +124,53 @@ export default function GiftPixModal({
         aria-modal="true"
         aria-label={`Presentear: ${gift.name}`}
         onClick={(event) => event.stopPropagation()}
-        className="w-full max-w-md max-h-[90dvh] overflow-y-auto bg-(--color-paper) border border-(--color-gold) p-6 flex flex-col gap-5 motion-rise-in"
+        className="w-full max-w-md max-h-[90dvh] overflow-y-auto bg-(--color-paper) border border-(--color-gold) flex flex-col motion-rise-in"
       >
+        {foto && (
+          <div className="relative h-[170px] bg-(--color-blush) overflow-hidden shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`/gf/${foto.id}`}
+              alt=""
+              className="w-full h-full object-cover"
+            />
+            <button
+              type="button"
+              onClick={fecharDeVez}
+              aria-label="Fechar"
+              className="absolute top-2.5 right-2.5 size-[34px] border border-(--color-gold) bg-(--color-paper) text-(--color-olive) text-base leading-none transition-colors hover:bg-(--color-blush)"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
+        <div className="p-6 flex flex-col gap-5">
         <div className="flex items-start justify-between gap-4">
-          <div className="flex flex-col gap-1">
-            <h2 className="font-serif text-base text-(--color-olive) leading-snug">
+          <div className="flex-1 flex flex-col items-center text-center gap-1.5">
+            <h2 className="font-script text-[28px] leading-[1.2] text-(--color-olive)">
               {gift.name}
             </h2>
-            <p className="font-serif text-2xl text-(--color-olive)">
+            {gift.description && (
+              <p className="font-serif text-base italic text-[#7d8577] leading-relaxed text-pretty">
+                {gift.description}
+              </p>
+            )}
+            <p className="font-serif text-xl text-(--color-olive) mt-1">
               {formatPriceCents(gift.priceCents)}
             </p>
+            <div className="w-16 h-px bg-(--color-gold) opacity-80 mt-2" />
           </div>
-          <button
-            type="button"
-            onClick={fecharDeVez}
-            aria-label="Fechar"
-            className="font-serif text-xl text-(--color-muted) leading-none transition-opacity hover:opacity-60"
-          >
-            ×
-          </button>
+          {!foto && (
+            <button
+              type="button"
+              onClick={fecharDeVez}
+              aria-label="Fechar"
+              className="font-serif text-xl text-(--color-muted) leading-none transition-opacity hover:opacity-60 shrink-0"
+            >
+              ×
+            </button>
+          )}
         </div>
 
         {saindo && !done ? (
@@ -264,6 +294,7 @@ export default function GiftPixModal({
             </button>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

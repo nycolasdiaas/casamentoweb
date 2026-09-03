@@ -18,9 +18,17 @@ export const MENSAGEM_LIMITE = `Vocês já têm ${LIMITE_DE_PEDIDOS} pedidos. Pa
  * Fica junto porque toda tela que esconde o botão precisa das DUAS coisas: a
  * decisão e o número para explicar a decisão. Botão que some sem dizer por quê
  * é pior que botão desabilitado.
+ *
+ * Pedido cancelado NÃO conta para o teto — cancelar existe para o casal abrir
+ * espaço, e contar contra ele igual mesmo assim tornaria o botão de cancelar
+ * uma mentira. Mesmo filtro de `app/conta/pedidos/page.tsx` (FR-007 da spec
+ * 013-cancelar-vira-estado): a linha continua no banco para a operação ver,
+ * só não conta como "em uso" para o casal.
  */
 export async function situacaoDePedidos(userId: string) {
-  const pedidos = await listOrdersByUserId(userId);
+  const pedidos = (await listOrdersByUserId(userId)).filter(
+    (o) => o.status !== "cancelled"
+  );
   return {
     total: pedidos.length,
     podeCriar: pedidos.length < LIMITE_DE_PEDIDOS,

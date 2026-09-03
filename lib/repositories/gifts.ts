@@ -4,6 +4,7 @@ import { db } from "@/lib/db/client";
 import {
   gifts,
   giftContributions,
+  giftPhotos,
   siteContent,
   sites,
 } from "@/lib/db/schema";
@@ -17,6 +18,11 @@ import {
 export type GiftInput = {
   category: string;
   name: string;
+  /**
+   * Descrição opcional, com o tom de humor do casal. Sempre digitada por
+   * eles — nunca gerada automaticamente (ver comentário na coluna, schema.ts).
+   */
+  description?: string | null;
   priceCents: number | null;
   /**
    * null ou ausente = sem teto de cotas. Ver `gifts.quantity` no schema.
@@ -158,6 +164,10 @@ export function groupGiftsByCategory<
 export async function contribuicoesPorCota(
   siteId: string
 ): Promise<Map<string, number>> {
+  "use cache";
+  cacheTag(`gift-contributions:${siteId}`);
+  cacheLife("minutes");
+
   const linhas = await db
     .select({
       giftId: giftContributions.giftId,
@@ -173,6 +183,77 @@ export async function contribuicoesPorCota(
       .filter((l): l is { giftId: string; total: number } => l.giftId !== null)
       .map((l) => [l.giftId, l.total])
   );
+}
+
+/**
+ * Foto de cada presente do site, indexada por giftId — para o grid montar
+ * `<img src="/gf/<id>">` sem uma consulta por card.
+ */
+export async function fotosPorPresente(
+  siteId: string
+): Promise<Map<string, { id: string; blurDataUrl: string | null }>> {
+  "use cache";
+  cacheTag(`gift-photos:${siteId}`);
+  cacheLife("days");
+
+  const linhas = await db
+    .select({
+      giftId: giftPhotos.giftId,
+      id: giftPhotos.id,
+      blurDataUrl: giftPhotos.blurDataUrl,
+    })
+    .from(giftPhotos)
+    .innerJoin(gifts, eq(giftPhotos.giftId, gifts.id))
+    .where(eq(gifts.siteId, siteId));
+
+  return new Map(linhas.map((l) => [l.giftId, l]));
+}
+
+export async function getGiftPhotoById(photoId: string) {
+  const [photo] = await db
+    .select()
+    .from(giftPhotos)
+    .where(eq(giftPhotos.id, photoId));
+  return photo ?? null;
+}
+
+export async function getGiftPhotoByGiftId(giftId: string) {
+  const [photo] = await db
+    .select()
+    .from(giftPhotos)
+    .where(eq(giftPhotos.giftId, giftId));
+  return photo ?? null;
+}
+
+export type NewGiftPhoto = {
+  giftId: string;
+  storagePath: string;
+  contentType: string;
+  sizeBytes: number;
+  width: number | null;
+  height: number | null;
+  blurDataUrl: string | null;
+};
+
+/**
+ * Cria a foto do presente. `giftId` é único na tabela — se já existir uma,
+ * a action chamadora precisa apagar a linha antiga primeiro (ver
+ * `deleteGiftPhoto`) e só então chamar esta, para o objeto velho no Storage
+ * não virar lixo órfão (mesma ordem — linha sai, objeto depois — de
+ * `deletePhotoAction`).
+ */
+export async function setGiftPhoto(input: NewGiftPhoto) {
+  const [photo] = await db.insert(giftPhotos).values(input).returning();
+  return photo;
+}
+
+/** Apaga a linha e devolve o caminho no Storage, para o objeto sair junto. */
+export async function deleteGiftPhoto(giftId: string) {
+  const [deleted] = await db
+    .delete(giftPhotos)
+    .where(eq(giftPhotos.giftId, giftId))
+    .returning({ storagePath: giftPhotos.storagePath });
+  return deleted?.storagePath ?? null;
 }
 
 /**

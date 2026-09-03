@@ -4,6 +4,7 @@ import {
   listGifts,
   listContributions,
   listContributionsParaAdmin,
+  fotosPorPresente,
 } from "@/lib/repositories/gifts";
 import { getLegacySiteId } from "@/lib/repositories/sites";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
@@ -167,15 +168,20 @@ async function Contribuicoes() {
  */
 async function CotasDoLegado() {
   const siteId = await getLegacySiteId();
-  const [gifts, contributions] = await Promise.all([
+  const [gifts, contributions, fotos] = await Promise.all([
     listGifts(siteId),
     listContributions(siteId),
+    fotosPorPresente(siteId),
   ]);
 
   return (
     <section className="flex flex-col gap-3 border-t border-(--c-rule) pt-8">
       <h2 className="meta text-(--c-ink-2)">Cotas do casamento no ar</h2>
-      <GiftAdmin gifts={gifts} contributions={contributions} />
+      <GiftAdmin
+        gifts={gifts}
+        contributions={contributions}
+        fotos={Object.fromEntries(fotos)}
+      />
     </section>
   );
 }

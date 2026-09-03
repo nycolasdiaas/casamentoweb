@@ -66,7 +66,11 @@ export default async function AccountHubPage() {
   const user = await getUserById(userId);
   if (!user) redirect("/conta/entrar");
 
-  const orders = await listOrdersByUserId(userId);
+  // Mesmo filtro de /conta/pedidos: pedido cancelado é registro da operação,
+  // não conteúdo do painel do casal (FR-007, spec 013-cancelar-vira-estado).
+  const orders = (await listOrdersByUserId(userId)).filter(
+    (o) => o.status !== "cancelled"
+  );
   const latest = orders[0] ?? null;
 
   return (

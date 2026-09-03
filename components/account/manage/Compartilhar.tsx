@@ -33,6 +33,12 @@ type Props = {
   url: string;
   /** O mesmo endereço sem `https://` — é assim que se compartilha (S2). */
   urlLimpa: string;
+  /**
+   * `/s/<slug>/presentes` — a lista sozinha, para quem só vai presentear.
+   * `null` quando a seção está desligada ou fora do pacote: não se oferece
+   * para copiar um link que responde "fora do ar".
+   */
+  urlDosPresentes: string | null;
   slug: string;
   /** "05 de setembro", quando há prazo de confirmação. */
   prazo: string | null;
@@ -45,13 +51,20 @@ type Props = {
 export default function Compartilhar({
   url,
   urlLimpa,
+  urlDosPresentes,
   slug,
   prazo,
   cartao,
   nomesDoCasal,
   dataLegivel,
 }: Props) {
-  const mensagens = montarMensagens(urlLimpa, prazo);
+  /* Sem `linkSemEsquema` daqui: aquele módulo importa `qrcode`, que é do
+     servidor e não tem por que entrar no bundle do painel. O corte é o mesmo
+     que ele faz, numa linha. */
+  const presentesLimpo = urlDosPresentes
+    ? urlDosPresentes.replace(/^https?:\/\//, "")
+    : null;
+  const mensagens = montarMensagens(urlLimpa, prazo, presentesLimpo);
   const [escolhida, setEscolhida] = useState(0);
 
   async function enviar() {
@@ -123,6 +136,28 @@ export default function Compartilhar({
             </p>
           </fieldset>
         </section>
+
+        {/* SÓ A LISTA DE PRESENTES.
+            Um segundo endereço, para quem só vai presentear: abre direto na
+            lista, sem a capa e a história rolando junto. Fica aqui embaixo, e
+            não ao lado do link principal, porque é o secundário — o link do
+            site é o que o casal manda para todo mundo. */}
+        {presentesLimpo && (
+          <section className="surface-raised p-6">
+            <h2 className="meta text-(--c-ink-2)">Só a lista de presentes</h2>
+            <p className="t-corpo-p mt-1.5 text-(--c-ink-2)">
+              Abre direto na lista, sem o resto do site. Bom para quem já
+              confirmou presença e só quer presentear.
+            </p>
+
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <p className="surface-sunken t-data min-w-0 flex-1 break-all px-3.5 py-3 text-[15px] text-(--c-ink)">
+                {presentesLimpo}
+              </p>
+              <CopiarLink url={urlDosPresentes!} />
+            </div>
+          </section>
+        )}
 
         {/* COMO APARECE NO WHATSAPP */}
         <section className="surface-raised p-6">
@@ -227,7 +262,9 @@ export default function Compartilhar({
  */
 function montarMensagens(
   urlLimpa: string,
-  prazo: string | null
+  prazo: string | null,
+  /** `<endereço>/presentes`, sem esquema. `null` = a lista não está no ar. */
+  presentesLimpo: string | null
 ): { rotulo: string; texto: string }[] {
   return [
     {
@@ -242,7 +279,14 @@ function montarMensagens(
     },
     {
       rotulo: "Presentes",
-      texto: `Quem quiser nos presentear, a lista está no site — e dá para pagar por Pix.\n${urlLimpa}`,
+      /* Aponta para a lista sozinha quando ela existe: quem recebe esta
+         mensagem já decidiu presentear, e mandá-lo para a capa do site é
+         pedir uma rolagem que ele não pediu. Sem a lista no ar, a mensagem
+         cai no site inteiro em vez de sumir — o casal ainda pode falar de
+         presente, só não tem para onde apontar direto. */
+      texto: presentesLimpo
+        ? `Quem quiser nos presentear, a lista está aqui — e dá para pagar por Pix.\n${presentesLimpo}`
+        : `Quem quiser nos presentear, a lista está no site — e dá para pagar por Pix.\n${urlLimpa}`,
     },
   ];
 }

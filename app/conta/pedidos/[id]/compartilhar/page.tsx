@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { carregarGerenciamento } from "@/lib/site/manageData";
 import { getSiteContent } from "@/lib/repositories/siteContent";
+import { listSiteSections } from "@/lib/repositories/siteSections";
+import { listaDePresentesVisivel } from "@/lib/site/giftSection";
 import { listSitePhotos } from "@/lib/repositories/sitePhotos";
 import { metricasDoSite } from "@/lib/repositories/siteMetrics";
 import { getBaseUrl } from "@/lib/baseUrl";
@@ -57,14 +59,22 @@ export default async function CompartilharPage({
     );
   }
 
-  const [conteudo, fotos, metricas, base] = await Promise.all([
+  const [conteudo, fotos, metricas, base, secoes] = await Promise.all([
     getSiteContent(site.id),
     listSitePhotos(site.id),
     metricasDoSite(site.id),
     getBaseUrl(),
+    listSiteSections(site.id),
   ]);
 
   const url = enderecoDoSite(base, site.slug);
+
+  /* O link só-presentes só aparece se a lista de fato aparece no site: mesma
+     regra da rota `/s/<slug>/presentes`. Oferecer para copiar um endereço que
+     responde "fora do ar" seria o casal descobrir pelo convidado. */
+  const urlDosPresentes = listaDePresentesVisivel({ site, sections: secoes })
+    ? `${url.replace(/\/+$/, "")}/presentes`
+    : null;
   const versao = versaoDoCartao({
     coupleNames: conteudo?.coupleNames ?? null,
     weddingDate: conteudo?.weddingDate ?? null,
@@ -79,6 +89,7 @@ export default async function CompartilharPage({
       <Compartilhar
         url={url}
         urlLimpa={linkSemEsquema(url)}
+        urlDosPresentes={urlDosPresentes}
         slug={site.slug}
         prazo={prazoPorExtenso(conteudo?.rsvpDeadline)}
         cartao={`/s/${site.slug}/opengraph-image?v=${versao}`}

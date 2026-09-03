@@ -218,6 +218,23 @@ const DDL = [
   // Teto de cotas por presente (migração 0017).
   `alter table test.gifts add column if not exists quantity smallint`,
 
+  // Descrição do presente (migração 0023).
+  `alter table test.gifts add column if not exists description text`,
+
+  // Foto por presente (migração 0023). Tabela nova — o `create table` normal
+  // basta aqui, sem o problema do `if not exists` contra schema já criado.
+  `create table if not exists test.gift_photos (
+     id uuid primary key default gen_random_uuid(),
+     gift_id uuid not null unique references test.gifts(id) on delete cascade,
+     storage_path text not null unique,
+     content_type text not null,
+     size_bytes integer not null,
+     width integer,
+     height integer,
+     blur_data_url text,
+     created_at timestamptz not null default now()
+   )`,
+
   `create index if not exists idx_test_groups_site_id on test.groups (site_id)`,
   `create index if not exists idx_test_gifts_site_id on test.gifts (site_id)`,
 ];
