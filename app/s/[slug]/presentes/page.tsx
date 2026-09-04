@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import BecoComSaida from "@/components/site/BecoComSaida";
@@ -136,13 +135,18 @@ async function PortaoDeAcesso({
 /**
  * A lista, com o mínimo de contexto que um link de Pix precisa carregar.
  *
- * Os nomes do casal e a volta para o site não são enfeite: sem eles, um link
- * só-presentes chegando no WhatsApp é indistinguível de golpe — o convidado
- * não tem como saber de que casamento é a chave que vai pagar.
+ * Os nomes do casal não são enfeite: sem eles, um link só-presentes chegando
+ * no WhatsApp é indistinguível de golpe — o convidado não tem como saber de
+ * que casamento é a chave que vai pagar.
  *
- * O que NÃO está escrito aqui, por decisão do dono (03/09/2026): nada sobre
- * taxa ou sobre para onde o dinheiro vai. Falar de dinheiro numa tela de
- * presente é o tom que a própria aba Compartilhar evita.
+ * Duas coisas que NÃO estão aqui, as duas por decisão do dono:
+ *
+ * - Nada sobre taxa ou sobre para onde o dinheiro vai (03/09/2026). Falar de
+ *   dinheiro numa tela de presente é o tom que a própria aba Compartilhar
+ *   evita.
+ * - A volta para `/s/<slug>` (04/09/2026). O link existe para mandar a lista
+ *   sozinha, e um caminho de volta para o site inteiro convidava justamente
+ *   ao que ele evita. Quem quiser o site recebe o outro endereço.
  */
 function SoPresentes({
   view,
@@ -161,19 +165,11 @@ function SoPresentes({
   return (
     <>
       {nomes && (
-        <div className="flex flex-col items-center gap-1 px-6 pt-8 pb-2 text-center">
-          <Link
-            href={`/s/${slug}`}
-            className="text-lg text-(--color-olive) no-underline"
-          >
-            {nomes}
-          </Link>
-          <Link
-            href={`/s/${slug}`}
-            className="text-xs text-(--color-muted) underline underline-offset-4"
-          >
-            ver o site do casamento
-          </Link>
+        <div className="flex flex-col items-center px-6 pt-8 pb-2 text-center">
+          {/* Texto, não link: sem a volta para o site, um `<a>` aqui seria um
+              destino que não existe. O nome está aqui para dizer de QUEM é a
+              lista, e isso ele faz parado. */}
+          <p className="text-lg text-(--color-olive)">{nomes}</p>
         </div>
       )}
       <SiteFromView view={view} slug={slug} apenas={["gifts"]} />
