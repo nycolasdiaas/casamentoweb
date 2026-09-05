@@ -451,7 +451,7 @@ export async function Gifts({ siteId, content }: SectionProps) {
   return (
     <section className="px-8 xl:px-14 py-16 lg:py-28" style={{ background: CREME }}>
       <SectionTitle kicker="Con affetto" title="Lista de presentes" />
-      <p className="mb-6 text-center text-[15px] leading-[1.7] lg:text-[18px]">
+      <p className="mb-6 whitespace-pre-line text-center text-[15px] leading-[1.7] lg:text-[18px]">
         {content.giftMessage ??
           "Ter você conosco já é presente. Mas, se o coração pedir, cada mimo abaixo vira uma lembrança da nossa lua de mel."}
       </p>

@@ -566,7 +566,7 @@ export async function Gifts({ siteId, content }: SectionProps) {
     >
       <Head kicker="Se o coração pedir" title="Presentes" />
       <p
-        className="mb-6 text-center text-[14px] leading-[1.7] lg:text-[16.8px]"
+        className="mb-6 whitespace-pre-line text-center text-[14px] leading-[1.7] lg:text-[16.8px]"
         style={{ color: fade(72) }}
       >
         {content.giftMessage ??

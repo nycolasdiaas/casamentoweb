@@ -494,7 +494,7 @@ export async function Gifts({ siteId, content }: SectionProps) {
         <ScriptTitle>Lista de presentes</ScriptTitle>
         <DotDivider />
       </div>
-      <p className="mb-6 text-center text-[15px] leading-relaxed lg:text-[18px]" style={{ color: tinta(85) }}>
+      <p className="mb-6 whitespace-pre-line text-center text-[15px] leading-relaxed lg:text-[18px]" style={{ color: tinta(85) }}>
         {content.giftMessage ??
           "Ter você conosco já é presente. Mas, se o coração pedir, cada mimo abaixo vira uma lembrança da nossa lua de mel."}
       </p>

@@ -432,7 +432,7 @@ export async function Gifts({ siteId, content }: SectionProps) {
     >
       <div className={MIOLO}>
         <SectionHeading script="com carinho" title="Lista de presentes" />
-        <p className="mb-6 text-center text-[15.5px] leading-relaxed opacity-85 @min-[900px]:text-[17px]">
+        <p className="mb-6 whitespace-pre-line text-center text-[15.5px] leading-relaxed opacity-85 @min-[900px]:text-[17px]">
           {content.giftMessage ??
             "Ter você conosco já é presente. Mas, se o coração pedir, cada mimo abaixo vira uma lembrança da nossa lua de mel."}
         </p>

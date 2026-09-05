@@ -358,7 +358,7 @@ export async function Gifts({ siteId, content }: SectionProps) {
       style={{ background: "color-mix(in srgb, var(--ink) 5%, var(--paper))" }}
     >
       <NumberedHead n="07" label="Presentes" />
-      <p className="mb-6 text-[15px] leading-relaxed lg:text-[18px]" style={{ color: tinta(85) }}>
+      <p className="mb-6 whitespace-pre-line text-[15px] leading-relaxed lg:text-[18px]" style={{ color: tinta(85) }}>
         {content.giftMessage ??
           "Sem faqueiro, sem lista de loja. Cada cota é um pedaço da nossa lua de mel — via Pix."}
       </p>
