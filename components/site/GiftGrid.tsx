@@ -43,13 +43,22 @@ export default function GiftGrid({
 
   return (
     <>
-      {/* Mesma grade da vitrine `/presentes`: `auto-fill` com faixa mínima de
-          240px. O `grid-cols-2` fixo que existia aqui deixava dois cartões
-          gigantes por linha assim que o card ganhou imagem. */}
-      <div
-        className="grid gap-6"
-        style={{ gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))" }}
-      >
+      {/* Colunas declaradas por faixa, não por `auto-fill`.
+
+          O `auto-fill` com faixa mínima parecia mais elegante e não serve
+          aqui: 240px de mínimo não comportavam duas colunas num celular de
+          390 e a grade caía para UMA — um presente por vez. Baixar o mínimo
+          para caber duas no celular fazia o desktop de 1600 abrir OITO
+          colunas de 157px, cartões pequenos demais para uma foto.
+
+          Duas no celular, três a partir de 560 e quatro a partir de 900 é a
+          escada que o desenho pede, e ela é a mesma da vitrine `/presentes`.
+
+          `@[...]` e não `sm:`/`lg:`: o site renderiza dentro de um `<iframe>`
+          na prévia do painel, onde a janela tem 1440 e o quadro pode ter 390.
+          Media query leria a janela e mostraria desktop dentro do "modo
+          celular" — container query lê o cartão, que é quem manda. */}
+      <div className="grid gap-4 grid-cols-2 @[560px]:gap-6 @[560px]:grid-cols-3 @[900px]:grid-cols-4">
         {gifts.map((gift, i) => {
           const foto = fotos[gift.id];
           const recebido = presenteados.includes(gift.id);

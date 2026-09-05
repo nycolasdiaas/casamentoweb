@@ -97,10 +97,10 @@ export default function GiftGallery({
           Nenhum presente nessa faixa de preço.
         </p>
       ) : (
-        <ul
-          className="grid gap-6"
-          style={{ gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))" }}
-        >
+        /* Duas colunas no celular, três no tablet, quatro no desktop — a
+           mesma escada do `GiftGrid`. Breakpoint normal aqui (e container
+           query lá) porque esta página não roda dentro do iframe da prévia. */
+        <ul className="grid gap-4 grid-cols-2 sm:gap-6 sm:grid-cols-3 lg:grid-cols-4">
           {filtrados.map((gift) => {
             const foto = fotos[gift.id];
             const recebido = jaPresenteado.has(gift.id);
