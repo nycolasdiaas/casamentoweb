@@ -938,3 +938,62 @@ entre pacotes. Vale uma varredura própria: hoje restam oito usos de
 `getLegacySiteId` em `app/actions/gift-actions.ts`, e todos os outros são de
 telas do `/admin`, onde estão certos. Se alguma action pública for acrescentada
 ali, ela herda o defeito por vizinhança.
+
+---
+
+# 17. Varredura de isolamento de tenant (10/09/2026)
+
+Três dos defeitos desta auditoria vieram da mesma origem — `getLegacySiteId()`
+em código que serve todos os casais. Isso levantou a suspeita de que houvesse
+mais vazamento de tenant não descoberto. A suspeita foi testada.
+
+**A hipótese não se confirmou. O isolamento está íntegro.** Registro aqui o que
+foi olhado, para ninguém precisar refazer.
+
+## O que foi varrido
+
+**1. Consultas em tabelas com dono.** Nove tabelas têm `site_id`. Das ~40
+funções de repositório que as tocam, quatro não mencionam `siteId`:
+
+| Função | Veredito |
+|---|---|
+| `getGroupBySlug` | global **por decisão** (§6.2 do SDD): o slug é a credencial e os links `/rsvp/` já estão no WhatsApp |
+| `listGroupSlugs` | índice para `generateStaticParams`; global é o que ela precisa ser |
+| `listPublishedInviteSlugs` | idem |
+| `responderRsvpDoGrupo` | recebe o `groupId` resolvido a partir do slug em `responderRsvpAction`, nunca do usuário. Sem IDOR |
+
+**2. Tags de cache.** Das dezesseis, três são globais — `group-slugs`,
+`published-site-slugs` e `CONVITES_PUBLICADOS`. Todas são índices de slug para
+prerender, e nenhuma guarda conteúdo de casal. O `cacheTag("site-view:x")` que
+aparece na busca é exemplo dentro de um comentário em `lib/voz/varrer.ts`.
+
+**3. `generateStaticParams`.** Enumeram todos os sites/grupos, e nenhuma rota
+declara `dynamicParams = false` — por isso a família cadastrada durante o teste
+teve o `/rsvp/<slug>` respondendo na hora, sem esperar build.
+
+**4. Posse no painel do casal** (não estava no plano, foi de brinde): as onze
+rotas de `/conta/pedidos/[id]/` passam por `carregarGerenciamento`, que compara
+`order.userId` com a sessão e responde igual para "não existe" e "não é seu".
+
+## O único defeito, e por que ele importa mais do que parece
+
+`app/rsvp/[slug]/page.tsx` tinha `view.siteSlug ?? LEGACY_SITE_SLUG`. Um grupo
+cujo join com `sites` viesse vazio teria a abertura do RSVP contada **no
+casamento de outro casal**.
+
+Métrica errada é pior que métrica faltando: a que falta alguém investiga, a
+errada alguém usa para decidir. E como o caso é raro, o fallback passaria
+despercebido indefinidamente. Sem site resolvido, agora não conta nada.
+
+## A conclusão estrutural
+
+A camada de repositório está sólida — quase toda função recebe `siteId`, e as
+exceções têm o motivo escrito ao lado. **O que falhou nos três bugs originais
+não foi a arquitetura: foi a organização de arquivo.** Actions públicas moram
+dentro de arquivos de admin, e a action nova herda o escopo da vizinha por
+imitação. `couple-gift-actions.ts` já tinha sido separado por essa razão, e o
+comentário dele avisa disso.
+
+**Recomendação (não aplicada, decisão do dono):** mover
+`registerContributionAction` de `gift-actions.ts` para um arquivo de actions
+públicas. Não muda comportamento; fecha a porta por onde três bugs entraram.
