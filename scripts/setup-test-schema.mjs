@@ -195,6 +195,8 @@ const DDL = [
      existe — e ele existe em toda máquina que já rodou a suíte uma vez. */
   `alter table test.sites add column if not exists expires_at timestamptz`,
   `alter table test.orders add column if not exists paid_at timestamptz`,
+  // Conteúdo do site enquanto o pedido é rascunho — migração 0024.
+  `alter table test.orders add column if not exists draft_content jsonb`,
   `alter table test.site_content add column if not exists pix_key text`,
   `alter table test.site_content add column if not exists pix_key_type text`,
   `alter table test.site_content add column if not exists pix_recipient text`,
