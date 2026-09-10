@@ -28,9 +28,19 @@ function AvisoDeSenhaRedefinida() {
 }
 
 export default function SigninPage() {
+  /* O e-mail digitado volta junto com o erro.
+     Errar a senha limpava os DOIS campos, e o casal redigitava o endereço
+     inteiro a cada tentativa — no celular, com teclado pequeno, é onde a
+     pessoa desiste e vai para "esqueci a senha" sem precisar. A senha, essa
+     sim, some: é o campo que estava errado. */
   const [state, action, pending] = useActionState(
-    async (_prev: { error?: string } | undefined, formData: FormData) => {
-      return signinAction(formData);
+    async (
+      _prev: { error?: string; email?: string } | undefined,
+      formData: FormData
+    ) => {
+      const email = formData.get("email")?.toString() ?? "";
+      const resultado = await signinAction(formData);
+      return resultado ? { ...resultado, email } : resultado;
     },
     undefined
   );
@@ -73,6 +83,7 @@ export default function SigninPage() {
           name="email"
           autoComplete="email"
           required
+          defaultValue={state?.email}
         />
         <Campo
           rotulo="Senha"

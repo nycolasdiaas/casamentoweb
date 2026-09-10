@@ -1,19 +1,32 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { getSessionUserId } from "@/lib/auth/userSession";
+import { getUserById } from "@/lib/repositories/users";
 import AccountShell from "@/components/account/AccountShell";
 import OrderWizard from "@/components/account/wizard/OrderWizard";
-import { SITE_NAME } from "@/lib/site";
 import { situacaoDePedidos, LIMITE_DE_PEDIDOS } from "@/lib/orderLimits";
+import { PACKAGES, type PackageTier } from "@/lib/packages";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: `Novo pedido | ${SITE_NAME}`,
+  title: "Novo pedido",
 };
 
-export default async function NewOrderPage() {
+export default async function NewOrderPage({
+  searchParams,
+}: {
+  /* `?pacote=` vem dos botões "Escolher <pacote>" da vitrine. */
+  searchParams: Promise<{ pacote?: string }>;
+}) {
+  const { pacote } = await searchParams;
+  const pacoteInicial = PACKAGES.some((p) => p.tier === pacote)
+    ? (pacote as PackageTier)
+    : null;
   const userId = await getSessionUserId();
   if (!userId) redirect("/conta/entrar");
+
+  // Só para pré-preencher os nomes na etapa 2 — ver `nomeDaConta`.
+  const usuario = await getUserById(userId);
 
   // Recusa ANTES de desenhar o questionário. Deixar a pessoa responder sete
   // etapas para só então dizer que não dá é a pior forma possível de aplicar
@@ -56,7 +69,12 @@ export default async function NewOrderPage() {
         </p>
       </div>
 
-      <OrderWizard order={null} orderId={null} />
+      <OrderWizard
+        order={null}
+        orderId={null}
+        nomeDaConta={usuario?.name ?? null}
+        pacoteInicial={pacoteInicial}
+      />
     </AccountShell>
   );
 }

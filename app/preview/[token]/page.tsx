@@ -60,7 +60,17 @@ export default async function PreviewPage({
           Diz duas coisas, e a segunda é a que faltava: além de "só quem tem o
           link vê", ela avisa que o site AINDA NÃO ESTÁ NO AR. Sem isso o casal
           abre a prévia, vê tudo pronto e conclui que já publicou. */}
-      <div className={`${uiPrensa} w-full bg-(--c-ink) text-white`}>
+      {/* Duas camadas, e o motivo é CSS: `.ui-prensa` declara
+          `background-color` e `color` FORA de qualquer `@layer`, e no Tailwind
+          v4 regra sem camada vence utilitário. Com `uiPrensa` e `bg-(--c-ink)`
+          no mesmo elemento, o `.ui-prensa` ganhava — e a tarja, que devia ser
+          branca sobre tinta, saía clara sobre clara. O aviso mais importante
+          da tela era o menos legível dela.
+
+          Escopo fora, cor dentro: os tokens da Prensa continuam valendo, e as
+          utilitárias voltam a pintar. */}
+      <div className={`${uiPrensa} w-full`}>
+        <div className="w-full bg-(--c-ink) text-white">
         <div className="trilho py-2.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
           <span className="flex items-center gap-2.5">
             <span
@@ -69,7 +79,11 @@ export default async function PreviewPage({
             >
               <span className="size-[3px] rounded-full bg-(--c-mark)" />
             </span>
-            <span className="meta text-[11px] text-white/85">
+            {/* Sem a classe `meta`: `.ui-prensa .meta` tem especificidade 0,2,0
+                e reimpõe a cor de texto da Prensa por cima da utilitária, que
+                é o mesmo tropeço da tarja. O desenho (mono, caixa alta,
+                entreletra) vem das utilitárias, e a cor fica branca. */}
+            <span className="text-[11px] font-mono uppercase tracking-[0.14em] text-white/85">
               Prévia · só quem tem este link vê · o site ainda não está no ar
             </span>
           </span>
@@ -82,6 +96,7 @@ export default async function PreviewPage({
             </span>
             <Icone nome="setaDireita" tamanho={16} />
           </Link>
+        </div>
         </div>
       </div>
       <SiteFromView view={view} slug={view.site.slug} previa />

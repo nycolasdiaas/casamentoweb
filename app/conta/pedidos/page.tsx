@@ -9,11 +9,11 @@ import { canCancelOrder, type OrderStatus } from "@/lib/orderStatus";
 import { EtiquetaDoPedido } from "@/components/ui/prensa";
 import ContagemDaLinha from "@/components/account/ContagemDaLinha";
 import { diasAte } from "@/lib/site/dataLegivel";
+import { datasEfetivasPorPedido } from "@/lib/repositories/siteContent";
 import { getPackage } from "@/lib/packages";
-import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: `Meus pedidos | ${SITE_NAME}`,
+  title: "Meus pedidos",
 };
 
 export default async function OrdersListPage() {
@@ -34,6 +34,11 @@ export default async function OrdersListPage() {
   const orders = (await listOrdersByUserId(userId)).filter(
     (o) => o.status !== "cancelled"
   );
+
+  /* A data que vale é a do site, quando ele já existe — o casal a edita pela
+     aba Conteúdo, e `orders.wedding_date` vira histórico nesse instante.
+     Ver `datasEfetivasPorPedido`. */
+  const datas = await datasEfetivasPorPedido(orders.map((o) => o.id));
 
   return (
     <AccountShell active="pedidos">
@@ -122,7 +127,9 @@ export default async function OrdersListPage() {
                           nada: um "—" grande chamaria atenção para uma
                           ausência que não é problema. */}
                       <div className="hidden lg:block lg:col-span-2 text-right">
-                        <ContagemDaLinha dias={diasAte(order.weddingDate)} />
+                        <ContagemDaLinha
+                          dias={diasAte(datas.get(order.id) ?? order.weddingDate)}
+                        />
                       </div>
 
                       <div className="lg:col-span-2 flex items-center gap-4 lg:justify-end">

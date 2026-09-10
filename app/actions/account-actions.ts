@@ -10,7 +10,11 @@ import {
   clearUserSessionCookie,
   getSessionUserId,
 } from "@/lib/auth/userSession";
-import { createUser, getUserByEmail } from "@/lib/repositories/users";
+import {
+  createUser,
+  getUserByEmail,
+  updateUserPassword,
+} from "@/lib/repositories/users";
 import { getAdminByEmail } from "@/lib/repositories/admins";
 import { clearSessionCookie as clearAdminSessionCookie } from "@/lib/auth/session";
 import { marcarRecadosComoLidos } from "@/lib/repositories/adminNotices";
@@ -66,7 +70,15 @@ export async function signupAction(formData: FormData) {
 
   await clearAdminSessionCookie();
   await createUserSessionCookie(user.id);
-  redirect("/conta");
+
+  /* Quem chegou clicando "Escolher Para Sempre" na vitrine já decidiu o
+     pacote. Levar essa escolha adiante evita perguntá-la de novo três telas
+     depois — e é o que faz o botão da vitrine significar alguma coisa para
+     quem ainda não tinha conta. Valor desconhecido é ignorado: `?pacote=` vem
+     da URL, e a validação real acontece na tela do questionário. */
+  const pacote = formData.get("pacote")?.toString().trim() ?? "";
+  const valido = PACKAGES.some((p) => p.tier === pacote);
+  redirect(valido ? `/conta/pedido/novo?pacote=${pacote}` : "/conta");
 }
 
 // Hash descartável (senha aleatória) para gastar o mesmo tempo de scrypt
@@ -175,8 +187,49 @@ function parseOrderForm(formData: FormData) {
       // foto cai. Pedir um link de Drive antes disso era pedir trabalho no
       // momento errado — e ninguém abria a pasta.
       notes: formData.get("notes")?.toString().trim() || undefined,
+      /* O conteúdo do site viaja junto no rascunho.
+         Ver o comentário de `orders.draftContent` em `lib/db/schema.ts`: sem
+         isto, "Salvar e sair" perdia cerimônia, festa, traje e história,
+         porque esses campos só têm coluna em `site_content` e `site_content`
+         só existe depois do provisionamento. */
+      draftContent: lerConteudoDoRascunho(formData),
     },
   };
+}
+
+/** Os campos do questionário que pertencem ao SITE, não ao pedido. */
+const CAMPOS_DE_CONTEUDO = [
+  "weddingTime",
+  "ceremonyVenue",
+  "ceremonyAddress",
+  "receptionVenue",
+  "receptionAddress",
+  "dressCode",
+  "story",
+] as const;
+
+/**
+ * Recolhe o conteúdo do site para guardar no rascunho.
+ *
+ * Devolve `undefined` quando o casal não preencheu nada — assim um salvamento
+ * na etapa 1 não sobrescreve com `{}` o que já havia sido guardado antes.
+ */
+function lerConteudoDoRascunho(
+  formData: FormData
+): Record<string, string> | undefined {
+  const conteudo: Record<string, string> = {};
+  for (const campo of CAMPOS_DE_CONTEUDO) {
+    const valor = formData.get(campo)?.toString().trim();
+    if (valor) conteudo[campo] = valor;
+  }
+
+  /* Onde o casal parou, para reabrir ali em vez de na etapa 1.
+     Guardamos o ID da etapa, não o índice: índice vira etapa errada no dia em
+     que a ordem do questionário mudar, e ninguém lembraria de migrar. */
+  const etapa = formData.get("etapaAtual")?.toString().trim();
+  if (etapa) conteudo._etapa = etapa;
+
+  return Object.keys(conteudo).length > 0 ? conteudo : undefined;
 }
 
 // Retorna o pedido se ele existe E pertence ao casal logado; senão null.
@@ -390,4 +443,47 @@ export async function marcarRecadosLidosAction(orderId: string) {
   const marcados = await marcarRecadosComoLidos(order.id);
   if (marcados > 0) revalidatePath(`/conta/pedidos/${order.id}`);
   return { marcados };
+}
+
+/**
+ * Trocar a senha estando logado — senha atual + senha nova, sem e-mail.
+ *
+ * ── Por que não bastava o "Esqueci a senha" ────────────────────────────────
+ *
+ * "Alterar senha", no painel, levava para `/conta/esqueci`: o fluxo de
+ * RECUPERAÇÃO, que manda um link por e-mail. Quem sabe a própria senha e só
+ * quer trocá-la era obrigado a sair da conta pelo correio — e, se o envio
+ * falhasse (ou o endereço estivesse errado, já que a conta nunca foi
+ * verificada), não havia caminho nenhum para trocar a senha.
+ *
+ * Pedir a senha ATUAL não é burocracia: sem isso, um navegador deixado aberto
+ * numa festa troca a senha do casal e o tira da própria conta.
+ */
+export async function trocarSenhaAction(
+  _prev: { error?: string; ok?: true } | undefined,
+  formData: FormData
+): Promise<{ error?: string; ok?: true }> {
+  const userId = await getSessionUserId();
+  if (!userId) redirect("/conta/entrar");
+
+  const atual = formData.get("senhaAtual")?.toString() ?? "";
+  const nova = formData.get("senhaNova")?.toString() ?? "";
+
+  if (nova.length < 8) {
+    return { error: "A senha nova precisa de pelo menos 8 caracteres." };
+  }
+  if (nova === atual) {
+    return { error: "A senha nova é igual à atual." };
+  }
+
+  const user = await getUserById(userId);
+  if (!user) redirect("/conta/entrar");
+
+  if (!(await verifyPassword(atual, user.passwordHash))) {
+    return { error: "A senha atual não confere." };
+  }
+
+  await updateUserPassword(userId, await hashPassword(nova));
+  revalidatePath("/conta");
+  return { ok: true };
 }

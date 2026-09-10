@@ -16,6 +16,9 @@ import {
 } from "@/lib/repositories/siteSections";
 import { archiveSite, unarchiveSite } from "@/lib/site/visibility";
 import { publishedSiteTags } from "@/lib/site/publish";
+import { createGroup, deleteGroup } from "@/lib/repositories/groups";
+import { tierAllowsSection } from "@/lib/templates/contract";
+import type { PackageTier } from "@/lib/packages";
 
 // Controle do site pelo casal — Fase 4 do SDD. Ligar/desligar seção e tirar
 // o site do ar ou colocar de volta.
@@ -250,4 +253,100 @@ export async function entrarNoSiteAction(
   // formulário se algo falhasse no meio.
   revalidatePath(`/s/${slug}`);
   return undefined;
+}
+
+/* ── As famílias que confirmam presença ──────────────────────────────────────
+ *
+ * Cadastrar família era exclusividade do `/admin`: `createGroupAction` só
+ * existia lá, presa ao site legado. O casal via a aba Convidados dizer "quando
+ * vocês cadastrarem as famílias" e não tinha onde fazer isso — enquanto o site
+ * dele já dizia aos convidados "cada família recebeu um link pessoal".
+ *
+ * Isso quebrava as regras §2.1 e §3: recurso que só funciona quando alguém
+ * abre o /admin não está pronto, e montar site não é trabalho do dono. E
+ * quebrava justamente no recurso que separa o pacote de R$ 9,90 do de
+ * R$ 29,90.
+ *
+ * O que estas actions NÃO fazem, de propósito:
+ *
+ * - não regeram slug de grupo existente (§2.5: `/rsvp/<slug>` já está no
+ *   WhatsApp das famílias e nunca pode deixar de responder);
+ * - não escrevem em `guests.rsvp_status`. A resposta do RSVP mora em dois
+ *   lugares desde a migração 0016, e o painel lê `groups.seats_confirmed`.
+ *   Encostar no outro lado misturaria dois números que ninguém reconstrói
+ *   (AGENTS.md §2).
+ */
+
+/** Teto de nomes por família. Convite de casamento não é lista de e-mail. */
+const MAXIMO_DE_PESSOAS_POR_FAMILIA = 20;
+
+export async function criarFamiliaAction(
+  _prev: SiteActionResult,
+  formData: FormData
+): Promise<SiteActionResult> {
+  const dono = await siteDoCasal(formData);
+  if ("error" in dono) return { error: dono.error };
+  const { site } = dono;
+
+  /* Mesma guarda da aba. Sem ela, quem tem o pacote Convite chegaria aqui
+     por POST direto e criaria grupo para um site que não mostra RSVP. */
+  if (!tierAllowsSection(site.tier as PackageTier, "rsvp")) {
+    return { error: "A confirmação de presença entra a partir do Site do Casamento." };
+  }
+
+  const label = formData.get("label")?.toString().trim() ?? "";
+  const nomes = formData
+    .getAll("nome")
+    .map((v) => v.toString().trim())
+    .filter(Boolean);
+
+  if (!label && nomes.length === 0) {
+    return { error: "Escrevam ao menos o nome da família." };
+  }
+  if (nomes.length > MAXIMO_DE_PESSOAS_POR_FAMILIA) {
+    return {
+      error: `São até ${MAXIMO_DE_PESSOAS_POR_FAMILIA} pessoas por família. Para grupos maiores, criem mais de uma.`,
+    };
+  }
+
+  /* Família sem nomes individuais é caso legítimo — e comum: o casal quase
+     sempre sabe "Família Silva, 4 lugares" antes de saber o nome completo de
+     todo mundo. Nesse caso os lugares vêm do campo de número; com nomes
+     escritos, eles vêm da lista (ver `createGroup`). */
+  const lugares = Number(formData.get("lugares") ?? 1);
+
+  await createGroup({
+    siteId: site.id,
+    label: label || undefined,
+    guestNames: nomes,
+    seats: Number.isFinite(lugares) ? Math.min(Math.max(1, lugares), MAXIMO_DE_PESSOAS_POR_FAMILIA) : 1,
+  });
+
+  revalidatePath("/conta/pedidos/[id]/convidados", "page");
+  revalidatePath("/conta/pedidos/[id]/convites", "page");
+  revalidatePath("/conta/pedidos/[id]", "page");
+
+  return { saved: true, message: "Família cadastrada ✓" };
+}
+
+export async function apagarFamiliaAction(
+  _prev: SiteActionResult,
+  formData: FormData
+): Promise<SiteActionResult> {
+  const dono = await siteDoCasal(formData);
+  if ("error" in dono) return { error: dono.error };
+  const { site } = dono;
+
+  const groupId = formData.get("groupId")?.toString() ?? "";
+  if (!groupId) return { error: "Família não informada." };
+
+  /* `deleteGroup` filtra por `siteId` — família de outro casamento não é
+     apagada por id adivinhado. */
+  await deleteGroup(site.id, groupId);
+
+  revalidatePath("/conta/pedidos/[id]/convidados", "page");
+  revalidatePath("/conta/pedidos/[id]/convites", "page");
+  revalidatePath("/conta/pedidos/[id]", "page");
+
+  return { saved: true, message: "Família removida ✓" };
 }

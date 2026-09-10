@@ -12,9 +12,8 @@ import { versaoDoCartao } from "@/lib/site/cartaoDeLink";
 import { dataPorExtenso } from "@/lib/site/dataLegivel";
 import { prazoPorExtenso } from "@/lib/site/prazoRsvp";
 import Compartilhar from "@/components/account/manage/Compartilhar";
-import { SITE_NAME } from "@/lib/site";
 
-export const metadata: Metadata = { title: `Compartilhar | ${SITE_NAME}` };
+export const metadata: Metadata = { title: "Compartilhar" };
 
 /**
  * S4 · onde o casal pega tudo que precisa para o link circular.

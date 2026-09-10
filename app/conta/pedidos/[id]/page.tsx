@@ -29,11 +29,10 @@ import { oQueFalta } from "@/lib/site/oQueFalta";
 import { carregarGerenciamento } from "@/lib/site/manageData";
 import { canCancelOrder, type OrderStatus } from "@/lib/orderStatus";
 import type { PackageTier } from "@/lib/packages";
-import { SITE_NAME } from "@/lib/site";
 import { dataPorExtenso } from "@/lib/site/dataLegivel";
 
 export const metadata: Metadata = {
-  title: `Nosso site | ${SITE_NAME}`,
+  title: "Nosso site",
 };
 
 /**
@@ -157,7 +156,18 @@ export default async function GerenciarInicioPage({
      cliente arriscaria divergência de ICU entre servidor e navegador — e
      divergência em data é erro de hidratação. O `T12:00:00` evita que o fuso
      empurre o dia para trás. */
-  const dataLegivel = dataPorExtenso(order.weddingDate);
+  /* Depois que o site existe, quem manda na data é `site_content` — é lá que
+     a aba Conteúdo grava, e é de lá que o site do convidado lê.
+     `order.weddingDate` continua guardando o que foi respondido no
+     questionário, e vira histórico no instante em que o casal edita a data
+     pelo painel.
+
+     Ler a coluna errada punha DUAS respostas na MESMA tela: a faixa "A data"
+     dizia "Ainda não escolhida" enquanto, três blocos abaixo, "Áreas
+     editáveis" mostrava 15 de maio de 2027. O casal não tem como saber qual
+     acreditar, e a leitura natural é que o painel perdeu a edição dele. */
+  const dataDoCasamento = valoresEditaveis?.weddingDate || order.weddingDate;
+  const dataLegivel = dataPorExtenso(dataDoCasamento);
 
   return (
     <div className="flex flex-col gap-12">
@@ -217,7 +227,7 @@ export default async function GerenciarInicioPage({
           {site !== null && site.status !== "archived" && (
             <FaixaDoCasamento
               coluna
-              weddingDate={order.weddingDate ?? null}
+              weddingDate={dataDoCasamento ?? null}
               dataLegivel={dataLegivel}
               endereco={status === "published" ? order.siteUrl ?? null : null}
             />

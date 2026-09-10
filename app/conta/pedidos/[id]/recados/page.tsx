@@ -4,10 +4,9 @@ import Recados from "@/components/account/manage/Recados";
 import { carregarGerenciamento } from "@/lib/site/manageData";
 import { listarRecadosParaOCasal } from "@/lib/repositories/guestbook";
 import { tierAllowsSection } from "@/lib/templates/contract";
-import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: `Recados | ${SITE_NAME}`,
+  title: "Recados",
 };
 
 /**

@@ -240,12 +240,14 @@ function CartaoDePacote({
             <CtaPacoteFallback
               className={botao(destaque)}
               rotulo={`Escolher ${pacote.name}`}
+            tier={pacote.tier}
             />
           }
         >
           <CtaPacote
             className={botao(destaque)}
             rotulo={`Escolher ${pacote.name}`}
+            tier={pacote.tier}
           />
         </Suspense>
       </div>

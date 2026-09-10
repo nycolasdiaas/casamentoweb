@@ -9,12 +9,17 @@ export type OrderInput = {
   templateStyle?: string | null;
   primaryColor?: string;
   secondaryColor?: string;
+  /* Estava faltando aqui, embora `parseOrderForm` já a devolvesse: entrava no
+     banco de carona no spread, sem o TypeScript conferir nada. */
+  tertiaryColor?: string;
   fontStyle?: string;
   styleNotes?: string;
   coupleNames?: string;
   weddingDate?: string;
   photosLink?: string;
   notes?: string;
+  /** Conteúdo do site enquanto o pedido é rascunho. Ver `orders.draftContent`. */
+  draftContent?: Record<string, string>;
 };
 
 /** Todos os pedidos do casal, do mais recente ao mais antigo. */

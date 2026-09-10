@@ -125,7 +125,17 @@ export default function DialogoDestrutivo({
               </button>
 
               {form ? (
-                <form action={form.action}>
+                /* Fecha no submit, pela mesma razão que o ramo de baixo fecha
+                   no clique: a ação já foi confirmada.
+
+                   Sem isto o diálogo ficava aberto depois de confirmar. A
+                   action roda e termina em `redirect`, mas quando o destino é
+                   a página em que o casal já está, a navegação é suave e este
+                   componente não desmonta — então o diálogo continuava por
+                   cima da lista, com o pedido ainda listado. Numa auditoria de
+                   uso real a leitura foi "não aconteceu nada", e o caminho
+                   natural dali é clicar de novo numa ação irreversível. */
+                <form action={form.action} onSubmit={() => setAberto(false)}>
                   {form.campos}
                   <button type="submit" className="btn btn-perigo btn-sm">
                     {confirmar}

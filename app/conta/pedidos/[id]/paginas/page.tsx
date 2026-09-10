@@ -7,9 +7,8 @@ import {
 } from "@/lib/repositories/siteSections";
 import { SECTION_LABELS } from "@/lib/site/sectionLabels";
 import { isSectionKey, type SectionKey } from "@/lib/templates/contract";
-import { SITE_NAME } from "@/lib/site";
 
-export const metadata: Metadata = { title: `Páginas | ${SITE_NAME}` };
+export const metadata: Metadata = { title: "Páginas" };
 
 /**
  * As páginas (seções) do site: ligar, desligar, reordenar, e tirar do ar.

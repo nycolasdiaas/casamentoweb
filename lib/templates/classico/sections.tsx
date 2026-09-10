@@ -198,7 +198,7 @@ export function CountdownSection({ content }: SectionProps) {
     >
       <div className={`${MIOLO} text-center`}>
         <div className="font-[family-name:var(--font-script)] text-[29px] leading-none text-(--accent) @min-[900px]:text-[44px]">
-          falta pouco
+          a nossa contagem
         </div>
         <div className="mt-5">
           <Countdown targetDate={content.weddingDate.toISOString()} />

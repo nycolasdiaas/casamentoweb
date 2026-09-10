@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { Suspense, useActionState } from "react";
+import CampoPacoteEscolhido from "@/components/account/CampoPacoteEscolhido";
 import PendingVeil from "@/components/ui/PendingVeil";
 import CascaDeConta from "@/components/account/CascaDeConta";
 import { Botao, Campo } from "@/components/ui/prensa";
@@ -51,10 +52,15 @@ export default function SignupPage() {
       <PendingVeil
         ativo={pending}
         label="Criando a conta de vocês"
-        sublabel="Estamos guardando os dados com segurança e preparando o e-mail de confirmação."
+        sublabel="Guardando os dados de vocês com segurança."
       />
 
       <form action={action} className="flex flex-col gap-5">
+        {/* O pacote escolhido na vitrine viaja até o questionário.
+            Em <Suspense> porque ele lê a query string — ver o componente. */}
+        <Suspense fallback={null}>
+          <CampoPacoteEscolhido />
+        </Suspense>
         <Campo
           rotulo="Nomes de vocês"
           name="name"
@@ -69,11 +75,21 @@ export default function SignupPage() {
           autoComplete="email"
           required
         />
+        {/* O campo aceitava "11" — dois dígitos — sem reclamar. É o canal por
+            onde a gente avisa quando algo trava, então um número inválido
+            aceito em silêncio derruba justamente a rota de socorro.
+
+            O padrão é largo de propósito: aceita com e sem máscara, com e sem
+            o nono dígito, e continua opcional. Ele barra o engano óbvio (o
+            campo com meia dúzia de caracteres), não a formatação. */}
         <Campo
           rotulo="WhatsApp"
           type="tel"
           name="whatsapp"
           autoComplete="tel"
+          inputMode="tel"
+          pattern="[\s()+\-0-9]{10,20}"
+          title="Com DDD — ex: (11) 98888-7777"
           ajuda="Com DDD. Opcional — é por onde a gente avisa se algo travar."
         />
         <Campo
@@ -87,13 +103,18 @@ export default function SignupPage() {
           erro={state?.error}
         />
 
+        {/* Aqui havia: "Vamos mandar um link no e-mail de vocês para confirmar
+            a conta." Não íamos — a verificação de e-mail não existe na `main`
+            (AGENTS.md §6: o código só sobrevive na branch órfã). O casal
+            procurava no spam um e-mail que ninguém mandou, e alguns criavam a
+            conta de novo achando que tinha falhado.
+
+            Não pusemos outra promessa no lugar de propósito: a conta já está
+            pronta quando o botão volta, e a próxima tela mostra isso. Quando a
+            verificação for reconstruída, a frase volta — aí sendo verdade. */}
         <Botao type="submit" carregando={pending} larguraCheia className="mt-1">
           Criar conta
         </Botao>
-
-        <p className="t-corpo-p text-(--c-ink-2) text-center">
-          Vamos mandar um link no e-mail de vocês para confirmar a conta.
-        </p>
       </form>
     </CascaDeConta>
   );

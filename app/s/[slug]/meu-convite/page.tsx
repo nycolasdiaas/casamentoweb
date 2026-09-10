@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
+import BuscaDeConvite, { type BuscaState } from "@/components/site/BuscaDeConvite";
 import type { Metadata } from "next";
 import {
   getSiteViewBySlug,
@@ -69,7 +70,9 @@ export default async function MeuConvitePage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ nome?: string; erro?: string; grupo?: string }>;
+  /* `nome` e `erro` saíram: o nome do convidado não volta mais pela URL,
+     e sim pelo estado do formulário. Ver `BuscaDeConvite`. */
+  searchParams: Promise<{ grupo?: string }>;
 }) {
   const { slug } = await params;
 
@@ -145,7 +148,7 @@ async function Conteudo({
   weddingDate: Date | null;
   searchParams: Promise<{ nome?: string; erro?: string; grupo?: string }>;
 }) {
-  const { nome, erro, grupo } = await searchParams;
+  const { grupo } = await searchParams;
 
   if (grupo) {
     const convite = await getRsvpViewBySlug(grupo);
@@ -169,18 +172,19 @@ async function Conteudo({
     }
   }
 
-  async function procurar(formData: FormData) {
+  async function procurar(
+    _prev: BuscaState,
+    formData: FormData
+  ): Promise<BuscaState> {
     "use server";
     const digitado = String(formData.get("nome") ?? "");
     const achado = await findGroupByGuestName(siteId, digitado);
 
-    // Sem resultado, volta com o nome preenchido: reescrever tudo é o que faz
-    // a pessoa desistir.
-    if (!achado) {
-      redirect(
-        `/s/${slug}/meu-convite?erro=1&nome=${encodeURIComponent(digitado)}`
-      );
-    }
+    /* Sem resultado, o nome volta pelo ESTADO do formulário — reescrever tudo
+       é o que faz a pessoa desistir, mas devolvê-lo pela URL punha o nome
+       completo de um convidado no log, no histórico e no `Referer`. */
+    if (!achado) return { erro: true, nome: digitado };
+
     redirect(`/s/${slug}/meu-convite?grupo=${achado.slug}`);
   }
 
@@ -202,41 +206,7 @@ async function Conteudo({
         gente te leva direto para o seu convite.
       </p>
 
-      <form action={procurar} className="mt-8 flex flex-col gap-3">
-        <input
-          type="text"
-          name="nome"
-          required
-          minLength={3}
-          defaultValue={nome ?? ""}
-          autoComplete="name"
-          placeholder="Maria Souza"
-          aria-label="Seu nome completo"
-          className="min-h-12 w-full border px-4 text-center text-[16px] outline-none"
-          style={{
-            borderColor: `color-mix(in srgb, ${cores.ink} 30%, transparent)`,
-            background: `color-mix(in srgb, ${cores.paper} 85%, white)`,
-            color: cores.ink,
-          }}
-        />
-        <button
-          type="submit"
-          className="min-h-12 w-full text-[11.5px] uppercase tracking-[0.24em] transition-opacity hover:opacity-85"
-          style={{ background: cores.ink, color: cores.paper }}
-        >
-          Encontrar meu convite
-        </button>
-      </form>
-
-      {erro === "1" && (
-        <p
-          className="mt-5 text-[14px] leading-relaxed"
-          style={{ color: cores.accent }}
-        >
-          Não encontramos esse nome na lista. Tente com o nome completo, do
-          jeito que os noivos devem ter escrito — ou peça o link para eles.
-        </p>
-      )}
+      <BuscaDeConvite acao={procurar} cores={cores} />
 
       <Link
         href={`/s/${slug}`}

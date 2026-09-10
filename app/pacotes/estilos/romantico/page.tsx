@@ -8,7 +8,8 @@ import FakeQrCanvas from "@/components/templates/FakeQrCanvas";
 import { useWeddingDemoState } from "@/components/templates/useWeddingDemoState";
 import { usePackageTier } from "@/components/templates/usePackageTier";
 import { buildDemoPixCode } from "@/lib/demoPix";
-import { DEMO_COUPLE, tierIncludes } from "@/lib/packages";
+import { DEMO_COUPLE } from "@/lib/packages";
+import { tierAllowsSection } from "@/lib/templates/contract";
 
 const script = Great_Vibes({
   subsets: ["latin"],
@@ -80,8 +81,13 @@ export default function RomanticoTemplatePage() {
 
 function RomanticoTemplateInner() {
   const [tier, setTier] = usePackageTier();
-  const hasRsvp = tierIncludes(tier, "site");
-  const hasGifts = tierIncludes(tier, "para-sempre");
+  /* O que cada pacote mostra sai do CONTRATO, nunca de uma comparacao de
+     tier escrita a mao aqui. O mural estava presa a `hasRsvp`, e a previa do
+     Site do Casamento exibia uma secao que so existe no Para Sempre — a
+     vitrine prometia o que o pacote nao entrega. */
+  const hasRsvp = tierAllowsSection(tier, "rsvp");
+  const hasGifts = tierAllowsSection(tier, "gifts");
+  const hasMural = tierAllowsSection(tier, "guestbook");
 
   const s = useWeddingDemoState({
     storageKey: "tc-demo-romantico",
@@ -503,7 +509,7 @@ function RomanticoTemplateInner() {
           )}
 
           {/* 7. Mural de recados — a partir do pacote Site do Casamento */}
-          {hasRsvp && (
+          {hasMural && (
           <section className="px-6 lg:px-[8vw].5 pt-14 lg:pt-32 pb-15">
             <div className="text-center mb-5.5">
               <div className="font-[family-name:var(--font-script)] text-[44px] leading-tight text-[#7c4a55]">

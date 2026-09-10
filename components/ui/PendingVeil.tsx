@@ -5,7 +5,7 @@ import { useDelayedFlag } from "@/lib/ui/useDelayedFlag";
 
 /**
  * Véu de espera com a marca, para ações que levam tempo de verdade — criar
- * conta (hash de senha + e-mail de confirmação), entrar, redefinir senha.
+ * conta (hash de senha), entrar, redefinir senha.
  *
  * Aparece na hora do clique e fica no mínimo ~700 ms — ver `useDelayedFlag`
  * para o porquê. Resumo: a versão anterior atrasava o aparecer e não segurava

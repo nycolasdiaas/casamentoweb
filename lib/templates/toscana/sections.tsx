@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { linhaDeLugar } from "@/lib/site/lugar";
 import AlbumPorCategoria from "@/components/site/AlbumPorCategoria";
 import PhotoSlot from "@/components/templates/PhotoSlot";
 import SitePhoto from "@/components/site/SitePhoto";
@@ -109,9 +110,11 @@ export async function Cover({ content, siteId }: SectionProps) {
         style={{ color: "var(--paper)" }}
       >
         <Monograma content={content} size={38} />
-        {content.ceremonyAddress && (
+        {/* Cidade e estado, não o endereço inteiro — ver `linhaDeLugar`.
+            O endereço completo continua na seção "O grande dia". */}
+        {linhaDeLugar(content.ceremonyAddress) && (
           <div className="text-[9.5px] tracking-[0.34em] uppercase opacity-85 text-right lg:text-[10.5px]">
-            {content.ceremonyAddress}
+            {linhaDeLugar(content.ceremonyAddress)}
           </div>
         )}
       </div>
@@ -228,7 +231,7 @@ export function CountdownSection({ content }: SectionProps) {
           A contagem começou
         </div>
         <div className="mt-2 font-[family-name:var(--font-script)] text-[46px] leading-none lg:text-[73.6px]">
-          falta pouco…
+          o nosso dia vem vindo
         </div>
       </div>
       <Countdown targetDate={content.weddingDate.toISOString()} />

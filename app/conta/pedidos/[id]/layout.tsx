@@ -113,14 +113,6 @@ export default async function GerenciarLayout({
       rotulo: "Convites",
       contagem: convites > 0 ? convites : undefined,
     },
-    {
-      href: `${base}/presentes`,
-      rotulo: "Presentes",
-      contagem: presentes.length > 0 ? presentes.length : undefined,
-      // O único estado em que o site engana o convidado em silêncio: ele vê a
-      // lista de presentes e não consegue presentear.
-      pendencia: presentesSemPix ? "falta o Pix" : undefined,
-    },
     /* COMPARTILHAR — a última aba, e é onde ela pertence.
        A ordem das abas é a ordem do trabalho: montar o site, depois espalhar o
        link. Pôr Compartilhar antes de Presentes sugeriria mandar o link de um
@@ -157,6 +149,30 @@ export default async function GerenciarLayout({
       href: `${base}/recados`,
       rotulo: "Recados",
       contagem: recados > 0 ? recados : undefined,
+    });
+  }
+
+  /* PRESENTES — mesma regra das duas acima, que faltava a ela.
+     A aba era fixa e abria em qualquer pacote, embora a lista de presentes
+     seja do Para Sempre. O casal do Site do Casamento montava as cotas e
+     cadastrava a chave Pix — que pode ser o CPF dele — para uma seção que o
+     site dele não renderiza. Agora a página redireciona (guarda própria) E a
+     aba some, para não sobrar um link que rebate. */
+  if (tierAllowsSection(order.packageTier, "gifts")) {
+    /* Ancorado no href de Compartilhar, não num índice contado à mão:
+       Convidados e Recados entram condicionalmente, e um número fixo aqui
+       poria Presentes depois de Compartilhar em alguns pacotes e antes em
+       outros. */
+    const antesDeCompartilhar = abas.findIndex((a) =>
+      a.href.endsWith("/compartilhar")
+    );
+    abas.splice(antesDeCompartilhar, 0, {
+      href: `${base}/presentes`,
+      rotulo: "Presentes",
+      contagem: presentes.length > 0 ? presentes.length : undefined,
+      // O único estado em que o site engana o convidado em silêncio: ele vê a
+      // lista de presentes e não consegue presentear.
+      pendencia: presentesSemPix ? "falta o Pix" : undefined,
     });
   }
 

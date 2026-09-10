@@ -8,7 +8,8 @@ import FakeQrCanvas from "@/components/templates/FakeQrCanvas";
 import { useWeddingDemoState } from "@/components/templates/useWeddingDemoState";
 import { usePackageTier } from "@/components/templates/usePackageTier";
 import { buildDemoPixCode } from "@/lib/demoPix";
-import { DEMO_COUPLE, tierIncludes } from "@/lib/packages";
+import { DEMO_COUPLE } from "@/lib/packages";
+import { tierAllowsSection } from "@/lib/templates/contract";
 import { Icone } from "@/components/ui/prensa";
 
 const sans = Archivo({
@@ -84,8 +85,13 @@ export default function EditorialTemplatePage() {
 
 function EditorialTemplateInner() {
   const [tier, setTier] = usePackageTier();
-  const hasRsvp = tierIncludes(tier, "site");
-  const hasGifts = tierIncludes(tier, "para-sempre");
+  /* O que cada pacote mostra sai do CONTRATO, nunca de uma comparacao de
+     tier escrita a mao aqui. O mural estava presa a `hasRsvp`, e a previa do
+     Site do Casamento exibia uma secao que so existe no Para Sempre — a
+     vitrine prometia o que o pacote nao entrega. */
+  const hasRsvp = tierAllowsSection(tier, "rsvp");
+  const hasGifts = tierAllowsSection(tier, "gifts");
+  const hasMural = tierAllowsSection(tier, "guestbook");
 
   const s = useWeddingDemoState({
     storageKey: "tc-editorial",
@@ -428,7 +434,7 @@ function EditorialTemplateInner() {
           )}
 
           {/* 7. Mural — Site do Casamento */}
-          {hasRsvp && (
+          {hasMural && (
             <section className="px-6 lg:px-[8vw] py-16 lg:py-36">
               <Head kicker="Deixe registrado" title="Mural" />
               <div className="flex flex-col">

@@ -28,7 +28,10 @@ type ContentRow = {
   pixInstitution: string | null;
 } | null;
 
-function partesNoFuso(
+/* Exportada porque a lista "Meus pedidos" também precisa do dia no fuso do
+   site. Duplicar a conversão daria um segundo caminho para a data — que é
+   exatamente como a cerimônia das 16h vira 19h. */
+export function partesNoFuso(
   date: Date,
   timezone: string
 ): { dia: string; hora: string } {

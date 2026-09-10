@@ -15,9 +15,8 @@ import {
 } from "@/lib/repositories/sitePhotos";
 import { isStorageEnabled } from "@/lib/storage/supabase";
 import LivePreview from "@/components/account/LivePreview";
-import { SITE_NAME } from "@/lib/site";
 
-export const metadata: Metadata = { title: `Visual | ${SITE_NAME}` };
+export const metadata: Metadata = { title: "Visual" };
 
 export default async function VisualPage({
   params,

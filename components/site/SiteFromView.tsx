@@ -119,6 +119,7 @@ export default function SiteFromView({
         slug={slug}
         siteId={view.site.id}
         enabledSections={secoes}
+        previa={previa}
       />
     </>
   );
@@ -146,7 +147,13 @@ function SeloDePrevia() {
   return (
     <span
       aria-hidden="true"
-      className="pointer-events-none fixed right-4 top-16 z-40 flex size-16 flex-col items-center justify-center rounded-full border-[1.5px] border-white/80 text-white mix-blend-difference lg:right-7 lg:top-24 lg:size-[92px]"
+      /* No celular o selo desce para o RODAPÉ à direita.
+         Em `top-16` ele caía exatamente sobre a barra fixa do site, cobrindo
+         o botão "Confirmar presença" — o único botão que o convidado precisa
+         achar. `pointer-events-none` impedia que ele roubasse o clique, mas
+         não impedia que escondesse o alvo. No desktop há folga de sobra e ele
+         continua no alto. */
+      className="pointer-events-none fixed bottom-6 right-4 z-40 flex size-16 flex-col items-center justify-center rounded-full border-[1.5px] border-white/80 text-white mix-blend-difference lg:bottom-auto lg:right-7 lg:top-24 lg:size-[92px]"
       style={{ transform: "rotate(-8deg)" }}
     >
       <span className="font-mono text-[9px] tracking-[0.14em] lg:text-[11px]">
