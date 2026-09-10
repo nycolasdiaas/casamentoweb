@@ -9,7 +9,6 @@ import TrackView from "@/components/TrackView";
 import { uiPrensa } from "@/lib/fonts/ui";
 import { prazoVencido, prazoPorExtenso } from "@/lib/site/prazoRsvp";
 import { dataPorExtenso } from "@/lib/site/dataLegivel";
-import { LEGACY_SITE_SLUG } from "@/lib/repositories/sites";
 
 /**
  * F4 · confirmação de presença. **A rota com gente real.**
@@ -65,7 +64,19 @@ export default async function RsvpPage({
     <main
       className={`${uiPrensa} flex-1 flex flex-col items-center justify-center bg-(--c-paper-warm) px-6 py-16 text-(--c-ink)`}
     >
-      <TrackView siteSlug={view.siteSlug ?? LEGACY_SITE_SLUG} kind="rsvp_open" />
+      {/* Sem site resolvido, NÃO conta a visita.
+
+          Aqui havia `?? LEGACY_SITE_SLUG`: um grupo cujo `leftJoin` com
+          `sites` viesse vazio tinha a abertura do RSVP contabilizada no
+          casamento legado — o número ia para o balde de outro casal, em
+          silêncio. Métrica errada é pior que métrica faltando: a faltante
+          alguém investiga, a errada alguém usa para decidir.
+
+          Hoje o caso é raro (todo grupo tem site), e é justamente por isso
+          que o fallback passaria despercebido pelo tempo que fosse. */}
+      {view.siteSlug && (
+        <TrackView siteSlug={view.siteSlug} kind="rsvp_open" />
+      )}
 
       {/* A DECISÃO DE PRAZO É POR PEDIDO, o resto da rota não precisa ser.
 
