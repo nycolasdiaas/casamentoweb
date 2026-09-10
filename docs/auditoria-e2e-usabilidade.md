@@ -857,3 +857,84 @@ schema.
 no `public` continua permitido, mas deixa de ser silencioso. Os sete scripts
 que escrevem foram convertidos. Os de backup são leitura pura e ficaram como
 estavam.
+
+---
+
+# 16. O que a auditoria original não alcançou: publicar e o pós-festa
+
+A auditoria de 09/09 parou na porta do checkout — a chave da AbacatePay parecia
+de produção e disparar cobrança em serviço externo não era decisão minha. Em
+10/09 o dono apontou que existe modo de teste, e o trecho foi percorrido.
+
+Ele é o trecho mais caro do produto, e estava com um defeito crítico.
+
+## O fluxo de publicação funciona
+
+A chave é `abc_dev_…`; a tela do gateway diz **"Sandbox Mode"** e traz um botão
+"Simular Pagamento". Nenhum dinheiro real se move.
+
+Percorrido inteiro: pedido Para Sempre → "Publicar site" → CPF do pagador
+(sintético) → cobrança criada → pagamento simulado → volta para o painel com
+`?publicado=1`. Resultado: pedido `published`, `payment_status: PAID`, `paid_at`
+preenchido, site `published` e no ar em `/s/bia-e-tomas`, sem marca d'água.
+
+## 🔴 O convidado presenteava e ninguém ficava sabendo
+
+**Onde:** `registerContributionAction` (`app/actions/gift-actions.ts`), o botão
+"Já fiz o Pix" no site de qualquer casal.
+
+**O que acontecia:** a action resolvia o casamento com `getLegacySiteId()` — o
+site legado — em vez do site dono do presente. Ela mora num arquivo de actions
+do ADMIN, onde todas as vizinhas são do casamento legado e por isso fazem isso
+certo; só que esta roda no site de QUALQUER casal. `getGiftById` era chamado
+com o id errado, não achava o presente e lançava `Gift not found`.
+
+Resquício de antes da multi-tenancy — **o mesmo defeito do `createGroupAction`
+do C1**, na mesma linha de código, sobrevivendo num segundo lugar.
+
+**O que o convidado via:** mandava o Pix, clicava em "Já fiz o Pix", e nada
+acontecia. Sem confirmação e sem erro — o modal engolia a exceção num
+`try/finally` sem `catch`. O caminho natural dali é mandar o Pix de novo.
+
+**O que o casal perdia:** quem deu o presente. E a cota seguia aparecendo como
+disponível para o convidado seguinte.
+
+**Correção:** a action passou a receber o `siteId` — que já viajava do
+`GiftGrid` até o modal e simplesmente não era usado — e o modal ganhou
+tratamento de erro que diz o que ainda vale ("seu Pix já foi enviado") em vez
+de sumir. Coberto por teste de regressão: presente de um site não pode ser
+registrado pelo id de outro.
+
+## 🟠 O nome de quem presenteou só chegava ao `/admin`
+
+O convidado é convidado a se identificar — *"conte pra gente quem você é"* — e
+o nome era gravado. Mas a única leitura era `listContributionsParaAdmin`: o
+casal via um número ("1 cota escolhida") e mais nada.
+
+Mesma forma do C1 outra vez: o recurso existia, só não para quem comprou. Sem
+ele, agradecer é impossível.
+
+Acrescentado "Quem já presenteou" na aba Presentes do casal, com o rótulo
+honesto para quem preferiu não se identificar e o aviso de que a Enlace nunca
+vê se o Pix caiu — confiram o extrato antes de agradecer (§2.4).
+
+## O resto do pós-publicação está de pé
+
+| O que | Resultado |
+|---|---|
+| Lista de presentes sem chave Pix | degrada honesto: "os noivos ainda não cadastraram a chave". Nenhum QR falso (§3) |
+| Com chave | BR Code correto, campo 54 com o valor da cota, chave do casal |
+| Mural de recados | recado publicado na hora, com confirmação |
+| Cadastro de família com lugares e sem nomes | 4 lugares → convidado confirmou 3 |
+| Agenda `.ics` | evento válido; dia cheio quando não há hora de cerimônia |
+| Compartilhar | link, QR, mensagens prontas e o link só da lista |
+
+## O padrão que estes dois casos revelam
+
+Três defeitos desta auditoria têm a mesma origem: **`getLegacySiteId()` em
+código que serve todos os casais** — o cadastro de famílias (C1), a
+contribuição de presente (§16) e, de forma mais branda, o vazamento de recursos
+entre pacotes. Vale uma varredura própria: hoje restam oito usos de
+`getLegacySiteId` em `app/actions/gift-actions.ts`, e todos os outros são de
+telas do `/admin`, onde estão certos. Se alguma action pública for acrescentada
+ali, ela herda o defeito por vizinhança.

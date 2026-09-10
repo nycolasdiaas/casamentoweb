@@ -215,13 +215,34 @@ export async function deleteGiftPhotoAction(
   return { deleted: true };
 }
 
-/** Ação pública: convidado registra que enviou um Pix (identificação opcional). */
+/**
+ * Ação PÚBLICA: o convidado avisa que enviou o Pix (identificar-se é opcional).
+ *
+ * ── Por que ela recebe `siteId` ────────────────────────────────────────────
+ *
+ * Ela mora neste arquivo, que é do ADMIN e do casamento LEGADO — e por isso
+ * resolvia o site com `getLegacySiteId()`, como as vizinhas. Só que as
+ * vizinhas são do admin cuidando de UM casamento, e esta roda no site de
+ * QUALQUER casal.
+ *
+ * O efeito era mudo e caro: no site de um casal de verdade, `getGiftById` era
+ * chamado com o id do site legado, não achava o presente, e a action lançava
+ * "Gift not found". O convidado que acabou de mandar R$ 180 por Pix clicava em
+ * "Já fiz o Pix" e não acontecia nada — nenhuma confirmação, nenhum erro. O
+ * casal nunca ficava sabendo quem deu o presente, e a cota continuava
+ * aparecendo como disponível para o próximo convidado.
+ *
+ * Resquício de antes da multi-tenancy, o mesmo do `createGroupAction`. O
+ * `siteId` já viajava do `GiftGrid` até o modal; faltava chegar aqui.
+ */
 export async function registerContributionAction({
   giftId,
   guestName,
+  siteId,
 }: {
   giftId: string;
   guestName: string;
+  siteId: string;
 }) {
   const ip = await getClientIp();
   const { allowed } = await checkRateLimit(`contrib:${ip}`, 20);
@@ -229,10 +250,11 @@ export async function registerContributionAction({
     throw new Error("Muitas tentativas. Aguarde alguns minutos.");
   }
 
-  const siteId = await getLegacySiteId();
   const gift = await getGiftById(siteId, giftId);
   if (!gift) {
-    throw new Error("Gift not found");
+    // Presente de outro site, ou id que não existe. A mensagem é a mesma nos
+    // dois casos: quem sonda id alheio não aprende nada com a resposta.
+    throw new Error("Presente não encontrado.");
   }
 
   const trimmedName = guestName.trim().slice(0, 120);

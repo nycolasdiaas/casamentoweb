@@ -7,6 +7,7 @@ import { getSiteContent } from "@/lib/repositories/siteContent";
 import {
   listGifts,
   contribuicoesPorCota,
+  contribuicoesDoSite,
   fotosPorPresente,
 } from "@/lib/repositories/gifts";
 import { listSiteSections } from "@/lib/repositories/siteSections";
@@ -75,6 +76,9 @@ export default async function PresentesPage({
     listSiteSections(site.id),
     fotosPorPresente(site.id),
   ]);
+
+  // Quem já presenteou — ver `contribuicoesDoSite`.
+  const quemPresenteou = await contribuicoesDoSite(site.id);
 
   const secaoLigada = secoes.some((s) => s.sectionKey === "gifts" && s.enabled);
   const temPix = Boolean(conteudo?.pixKey);
@@ -159,6 +163,42 @@ export default async function PresentesPage({
               fixo.
             </p>
           </section>
+
+          {/* QUEM JÁ PRESENTEOU.
+              O convidado é convidado a se identificar, e até aqui o nome dele
+              só chegava ao /admin: o casal via "3 cotas escolhidas" e mais
+              nada, sem ter como agradecer a ninguém.
+
+              Some quando não há ninguém: uma caixa vazia dizendo "nenhum
+              presente ainda" repetiria o zero que o card oliva já mostra. */}
+          {quemPresenteou.length > 0 && (
+            <section className="surface-raised flex flex-col gap-3 p-6">
+              <h2 className="meta text-(--c-ink-2)">Quem já presenteou</h2>
+              <ul className="flex flex-col">
+                {quemPresenteou.map((c) => (
+                  <li
+                    key={c.id}
+                    className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 border-b border-(--c-rule) py-2.5 last:border-b-0"
+                  >
+                    <span className="text-[13.5px] text-(--c-ink)">
+                      {/* Identificar-se é opcional, e o site promete isso ao
+                          convidado ("ou fique no mistério"). Aqui a promessa é
+                          cumprida com um rótulo, não com um espaço em branco. */}
+                      {c.guestName ?? "Alguém, sem se identificar"}
+                    </span>
+                    <span className="text-[12.5px] text-(--c-ink-2)">
+                      {c.giftName}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="border-t border-(--c-rule) pt-3 text-[12px] leading-relaxed text-(--c-ink-2)">
+                É o que o convidado avisou ter feito. O Pix vai direto para a
+                conta de vocês e a gente nunca vê se ele caiu — confiram no
+                extrato antes de agradecer.
+              </p>
+            </section>
+          )}
 
           {/* CHAVE PIX — na própria aba, como no desenho.
               Ela vivia só em Conteúdo, e esta tela apenas apontava para lá: o
