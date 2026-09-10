@@ -359,7 +359,14 @@ export function Details({ content }: SectionProps) {
 
         {content.receptionVenue && (
           <InfoCard
-            kicker="Recepção"
+            /* Mesmo formato do kicker da cerimônia, logo acima: os dois ficam
+               na mesma régua, e "18:00" ao lado de "18H" pareceria erro.
+               Sem hora informada, some — nada de 18h de exemplo. */
+            kicker={
+              content.receptionTimeLabel
+                ? `Recepção · ${content.receptionTimeLabel}`
+                : "Recepção"
+            }
             title={content.receptionVenue}
             lines={[content.receptionAddress]}
           />

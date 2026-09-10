@@ -19,6 +19,7 @@ type ContentRow = {
   ceremonyMapUrl: string | null;
   receptionVenue: string | null;
   receptionAddress: string | null;
+  receptionTime: string | null;
   story: string | null;
   dressCode: string | null;
   giftMessage: string | null;
@@ -72,6 +73,10 @@ export function toEditorValues(row: ContentRow): ContentEditorValues {
     ceremonyMapUrl: row?.ceremonyMapUrl ?? "",
     receptionVenue: row?.receptionVenue ?? "",
     receptionAddress: row?.receptionAddress ?? "",
+    /* `time` volta do Postgres como "HH:MM:SS"; o `<input type="time">` quer
+       "HH:MM". Cortar aqui evita o campo aparecer vazio para o casal que já
+       tinha preenchido. */
+    receptionTime: (row?.receptionTime ?? "").slice(0, 5),
     story: row?.story ?? "",
     dressCode: row?.dressCode ?? "",
     giftMessage: row?.giftMessage ?? "",

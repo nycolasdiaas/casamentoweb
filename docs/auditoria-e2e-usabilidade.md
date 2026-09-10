@@ -768,3 +768,92 @@ site não provisionado — feature de porte, não ajuste.
 | `npm run verify:template` | **não rodado** — o script espera o servidor na porta 3000 |
 
 Nada foi commitado.
+
+---
+
+# 15. As pendências que sobraram (10/09/2026)
+
+Depois do merge do PR #4, sobravam três itens da §14. Dois estão fechados aqui;
+o terceiro fica fechado como "não é defeito", com o motivo.
+
+## M15 · A festa agora tem horário
+
+Era o único item que exigia trabalho de verdade. O agente `regras-de-negocio`
+deu **PODE, COM AJUSTE**, e três das travas dele mudaram a implementação:
+
+1. **Não vira tarefa em `oQueFalta`.** Uma tarefa nova rebaixaria o progresso
+   de **todo site já pronto** de 4/4 para 4/5 da noite para o dia — o casal que
+   terminou veria o próprio site desandar.
+2. **Hora de parede, sem fuso.** `timestamptz` aqui seria o *segundo caminho
+   para a data* que o `AGENTS.md` alerta: exigiria um dia que a festa não tem,
+   conversão de ida e volta a cada salvamento, e quebraria na festa que
+   atravessa a meia-noite. A coluna é `time`; `null` é "não informado" de
+   verdade — a convenção de meia-noite do `wedding_date` **não** vale aqui,
+   porque lá o dia e a hora dividem o mesmo campo.
+3. **Não mexer no `.ics`.** O evento na agenda do convidado é a cerimônia;
+   trocar por horário de festa mudaria o que já está no celular de gente real.
+
+Também por veredito: entra nos **três pacotes** sem tocar em `TIER_SECTIONS` —
+a seção `details` já está no Convite, e a vitrine dele promete "Data, horário e
+local com mapa". Gatear seria cobrar do menor por algo que a própria página
+dele anuncia.
+
+**Migração 0025**, aditiva, uma linha: `site_content.reception_time time`.
+
+O campo entra na etapa 4 do questionário, que passa a se chamar *"E a festa,
+onde e a que horas?"*, e na aba Conteúdo. Nos seis moldes ele aparece no mesmo
+formato da cerimônia (`Recepção · 19:30`), na mesma régua — "18:00" ao lado de
+"18H" pareceria erro. Sem hora informada, some: nada de 18h de exemplo.
+
+**Verificado:** salvei 19:30 pela aba Conteúdo → banco gravou `19:30:00` → o
+site renderiza `Recepção · 19:30`, e a data da cerimônia não se moveu. Cinco
+testes novos, entre eles um que salva e relê cinco vezes seguidas para provar
+que a hora não drifta.
+
+## `verify:template` · agora roda
+
+Estava listado como "não rodado — o script exige a porta 3000". A causa era
+pior do que parecia: além da porta fixa, o script **insere sites direto no
+banco apontado por `DATABASE_URL`** — que neste repositório é produção — sem
+isolamento de schema. Limpa no `finally`, mas uma queda no meio deixaria um
+site descartável no `public`.
+
+Agora ele respeita `DATABASE_SCHEMA` e aceita `VERIFY_BASE_URL`. Rodado nos
+seis moldes contra o schema isolado: **todos 200, todos com "paleta só no
+wrapper"** — prova de que as seções continuam sem hex escrito à mão, inclusive
+depois das mudanças do horário da festa.
+
+## A prévia da etapa 7 · fechada como "não é defeito"
+
+Mitigada por texto na §14, e fica assim. A investigação mostrou por quê: os
+nomes do casal de demonstração **não vêm de constante** — são literais no JSX
+de cada molde, junto com uma história fictícia ("um churrasco em 2019, um gato
+adotado"), recados de convidados inventados e a hashtag `#AnaEPedro`.
+
+Trocar só os nomes deixaria o casal vendo o **próprio nome numa história que
+não é dele**. Isso é pior que um exemplo assumidamente fictício. Um exemplo de
+verdade com o conteúdo do casal exige renderizar um site não provisionado —
+feature de porte, não ajuste.
+
+---
+
+## Achado novo, fora da auditoria: os scripts ignoravam `DATABASE_SCHEMA`
+
+Descoberto na prática, e da pior forma: rodei `DATABASE_SCHEMA=e2e npm run
+backfill:legacy` e ele foi **direto para produção**. Sem estrago — o script é
+idempotente e não tinha o que mudar; produção conferida antes e depois: 15
+sites, 23 grupos, 31 convidados, conteúdo mais recente de 03/09 — mas a próxima
+vez podia ter.
+
+Doze scripts criavam o próprio cliente de banco e **nenhum** olhava
+`DATABASE_SCHEMA`. O aplicativo olha (`lib/db/client.ts`), os testes olham
+(`vitest.config.ts`); só os scripts não olhavam. Como o `DATABASE_URL` deste
+repositório aponta para produção, `seed:demo`, `seed:gifts`, `fix:slug` e os
+backfills escreviam no `public` mesmo para quem tinha acabado de pedir outro
+schema.
+
+`scripts/_cliente.mjs` centraliza a criação do cliente, respeita
+`DATABASE_SCHEMA` e **anuncia o schema antes do primeiro comando** — escrever
+no `public` continua permitido, mas deixa de ser silencioso. Os sete scripts
+que escrevem foram convertidos. Os de backup são leitura pura e ficaram como
+estavam.

@@ -221,7 +221,10 @@ export function Details({ content }: SectionProps) {
       href: content.ceremonyMapUrl,
     },
     content.receptionVenue && {
-      kicker: "Recepção",
+      // Mesmo formato do kicker da cerimônia, acima.
+      kicker: content.receptionTimeLabel
+        ? `Recepção · ${content.receptionTimeLabel}`
+        : "Recepção",
       title: content.receptionVenue,
       text: content.receptionAddress,
       href: null,

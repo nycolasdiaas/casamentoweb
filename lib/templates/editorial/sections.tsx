@@ -417,6 +417,15 @@ export function Details({ content }: SectionProps) {
                 <div className="mt-2 font-[family-name:var(--font-display)] text-[27px] font-medium leading-tight lg:text-[39.2px]">
                   {content.receptionVenue}
                 </div>
+                {/* Mesma linha que a cerimônia usa para a hora dela. */}
+                {content.receptionTimeLabel && (
+                  <div
+                    className="mt-1.5 text-[10px] tracking-[0.24em] uppercase lg:text-[11px]"
+                    style={{ color: fadePaper(70) }}
+                  >
+                    {content.receptionTimeLabel}
+                  </div>
+                )}
                 {content.receptionAddress && (
                   <div
                     className="mt-2 text-[10px] tracking-[0.2em] uppercase leading-[1.9] lg:text-[11px]"

@@ -197,6 +197,8 @@ const DDL = [
   `alter table test.orders add column if not exists paid_at timestamptz`,
   // Conteúdo do site enquanto o pedido é rascunho — migração 0024.
   `alter table test.orders add column if not exists draft_content jsonb`,
+  // Hora da festa, sem fuso — migração 0025.
+  `alter table test.site_content add column if not exists reception_time time`,
   `alter table test.site_content add column if not exists pix_key text`,
   `alter table test.site_content add column if not exists pix_key_type text`,
   `alter table test.site_content add column if not exists pix_recipient text`,

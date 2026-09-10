@@ -160,6 +160,61 @@ describe("ida e volta entre formulário e banco", () => {
     expect(volta.weddingTime).toBe("18:30");
   });
 
+  /* A HORA DA FESTA é hora de parede: não tem dia próprio, não passa por
+     fuso, e por isso não pode driftar como a da cerimônia driftaria. Estes
+     casos existem para garantir que ela nunca ganhe um caminho de conversão
+     por engano. */
+  describe("hora da festa", () => {
+    it("volta exatamente como foi digitada, em qualquer fuso", () => {
+      for (const fuso of [FORTALEZA, SAO_PAULO]) {
+        const salvo = parseContentForm(
+          form({ receptionTime: "19:30" }),
+          fuso
+        );
+        if (!salvo.ok) throw new Error("não salvou");
+        expect(salvo.value.receptionTime).toBe("19:30");
+        expect(toEditorValues({ ...salvo.value, timezone: fuso }).receptionTime).toBe(
+          "19:30"
+        );
+      }
+    });
+
+    it("não drifta entre salvamentos seguidos", () => {
+      // O defeito clássico da data: cada ida ao banco somava três horas.
+      let valor = "22:00";
+      for (let i = 0; i < 5; i++) {
+        const salvo = parseContentForm(form({ receptionTime: valor }), SAO_PAULO);
+        if (!salvo.ok) throw new Error("não salvou");
+        valor = toEditorValues({ ...salvo.value, timezone: SAO_PAULO })
+          .receptionTime;
+      }
+      expect(valor).toBe("22:00");
+    });
+
+    it("em branco é null — e não meia-noite", () => {
+      // `wedding_date` usa meia-noite como "não informado" porque lá o dia e a
+      // hora dividem o mesmo campo. Aqui a coluna é só da hora, então `null`
+      // é `null` — e o molde não mostra hora nenhuma.
+      const r = parseContentForm(form({ receptionTime: "" }), FORTALEZA);
+      if (!r.ok) throw new Error("não salvou");
+      expect(r.value.receptionTime).toBeNull();
+    });
+
+    it("recusa hora impossível em vez de guardar lixo", () => {
+      for (const ruim of ["25:00", "12:75", "sete horas", "19"]) {
+        const r = parseContentForm(form({ receptionTime: ruim }), FORTALEZA);
+        if (!r.ok) throw new Error("não salvou");
+        expect(r.value.receptionTime).toBeNull();
+      }
+    });
+
+    it("aceita o \"HH:MM:SS\" que alguns navegadores mandam", () => {
+      const r = parseContentForm(form({ receptionTime: "19:30:00" }), FORTALEZA);
+      if (!r.ok) throw new Error("não salvou");
+      expect(r.value.receptionTime).toBe("19:30");
+    });
+  });
+
   it("linha ausente vira formulário todo vazio, sem quebrar", () => {
     const volta = toEditorValues(null);
     expect(volta.coupleNames).toBe("");

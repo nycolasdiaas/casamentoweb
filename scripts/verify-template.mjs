@@ -15,8 +15,25 @@ import crypto from "node:crypto";
 
 config({ path: ".env.local" });
 
-const BASE = "http://localhost:3000";
-const sql = postgres(process.env.DATABASE_URL, { prepare: false, max: 1 });
+/* A base é configurável porque a porta 3000 nem sempre está livre — no
+   Windows ela costuma estar tomada, e um script de verificação que só roda
+   num endereço fixo acaba não rodando. */
+const BASE = process.env.VERIFY_BASE_URL ?? "http://localhost:3000";
+
+/* O SCHEMA também.
+   Antes, este script inseria sites direto no banco apontado por
+   `DATABASE_URL` — que neste repositório é PRODUÇÃO, com casamento de cliente
+   no ar. A limpeza está no `finally`, mas uma queda no meio (rede, Ctrl-C,
+   servidor fora do ar) deixava um site descartável no `public`.
+
+   Respeitar `DATABASE_SCHEMA` é o mesmo que `lib/db/client.ts` já faz, e
+   permite verificar molde contra um schema isolado. */
+const searchPath = process.env.DATABASE_SCHEMA;
+const sql = postgres(process.env.DATABASE_URL, {
+  prepare: false,
+  max: 1,
+  ...(searchPath ? { connection: { search_path: searchPath } } : {}),
+});
 
 const moldes = process.argv.slice(2);
 if (moldes.length === 0) throw new Error("passe ao menos um id de molde");

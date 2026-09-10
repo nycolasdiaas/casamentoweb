@@ -8,6 +8,7 @@ import {
   bigserial,
   boolean,
   date,
+  time,
   jsonb,
   pgEnum,
   index,
@@ -306,6 +307,22 @@ export const siteContent = pgTable("site_content", {
   ceremonyMapUrl: text("ceremony_map_url"),
   receptionVenue: text("reception_venue"),
   receptionAddress: text("reception_address"),
+  /* A HORA da festa — hora de parede, sem fuso, e por isso `time` e não
+     `timestamptz`.
+
+     "A que horas começa a festa?" é dúvida corriqueira de convidado e não
+     tinha onde ser respondida: só a cerimônia tem horário, e ele mora dentro
+     de `wedding_date`.
+
+     `timestamptz` aqui seria um SEGUNDO caminho para a data — exigiria um dia
+     que a festa não tem por conta própria, conversão de ida e volta a cada
+     salvamento, e quebraria na festa que atravessa a meia-noite. É assim que
+     "a cerimônia das 16h vira 19h".
+
+     `null` é "não informado" de verdade. NÃO vale aqui a convenção de
+     meia-noite usada em `wedding_date`: aquela só existe porque lá o dia e a
+     hora dividem o mesmo campo. */
+  receptionTime: time("reception_time"),
   story: text("story"),
   dressCode: text("dress_code"),
   giftMessage: text("gift_message"),

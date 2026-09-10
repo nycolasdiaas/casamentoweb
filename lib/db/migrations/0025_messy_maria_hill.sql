@@ -1,0 +1,1 @@
+ALTER TABLE "site_content" ADD COLUMN "reception_time" time;
