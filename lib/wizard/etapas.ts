@@ -88,9 +88,9 @@ export const ETAPAS: Etapa[] = [
   },
   {
     id: "festa",
-    titulo: "E a festa, onde vai ser?",
+    titulo: "E a festa, onde e a que horas?",
     subtitulo:
-      "Se for no mesmo lugar da cerimônia, podem repetir — ou pular e ajustar depois.",
+      "Se for no mesmo lugar da cerimônia, podem repetir. Ainda não sabem a hora? Deixem em branco.",
   },
   {
     id: "traje",

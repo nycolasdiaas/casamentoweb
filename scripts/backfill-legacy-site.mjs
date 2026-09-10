@@ -1,6 +1,6 @@
 import { config } from "dotenv";
 import crypto from "crypto";
-import postgres from "postgres";
+import { clienteDeBanco } from "./_cliente.mjs";
 
 config({ path: ".env.local" });
 
@@ -24,7 +24,7 @@ async function main() {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) throw new Error("DATABASE_URL is not set");
 
-  const sql = postgres(databaseUrl, { prepare: false, max: 1 });
+  const sql = clienteDeBanco();
 
   const antes = await contagens(sql);
   console.log("=== ANTES ===");

@@ -17,6 +17,8 @@ type ContentRow = {
   ceremonyMapUrl: string | null;
   receptionVenue: string | null;
   receptionAddress: string | null;
+  /** Hora de parede da festa, "HH:MM" ou "HH:MM:SS" como o Postgres devolve. */
+  receptionTime: string | null;
   story: string | null;
   dressCode: string | null;
   giftMessage: string | null;
@@ -93,6 +95,11 @@ export function buildContentView(row: ContentRow): SiteContentView {
     ceremonyMapUrl: row.ceremonyMapUrl,
     receptionVenue: row.receptionVenue,
     receptionAddress: row.receptionAddress,
+    /* Mesmo formato de `weddingTimeLabel` ("HH:MM"): os dois aparecem lado a
+       lado na régua do dia, e "18:00" ao lado de "18H" parece erro.
+       Vazio não vira "a combinar" nem 18h de exemplo — sem hora informada o
+       molde simplesmente não mostra hora nenhuma para a festa. */
+    receptionTimeLabel: (row.receptionTime ?? "").slice(0, 5) || null,
     story: row.story,
     dressCode: row.dressCode,
     giftMessage: row.giftMessage,

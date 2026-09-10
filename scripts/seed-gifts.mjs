@@ -1,5 +1,5 @@
 import { config } from "dotenv";
-import postgres from "postgres";
+import { clienteDeBanco } from "./_cliente.mjs";
 
 config({ path: ".env.local" });
 
@@ -46,7 +46,7 @@ async function main() {
     throw new Error("DATABASE_URL is not set");
   }
 
-  const sql = postgres(databaseUrl, { prepare: false });
+  const sql = clienteDeBanco();
 
   const [{ count }] = await sql`select count(*)::int as count from public.gifts`;
   if (count > 0) {

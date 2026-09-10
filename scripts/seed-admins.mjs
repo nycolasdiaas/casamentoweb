@@ -1,6 +1,6 @@
 import { config } from "dotenv";
 import crypto from "crypto";
-import postgres from "postgres";
+import { clienteDeBanco } from "./_cliente.mjs";
 
 config({ path: ".env.local" });
 
@@ -32,7 +32,7 @@ async function main() {
     throw new Error("DATABASE_URL is not set");
   }
 
-  const sql = postgres(databaseUrl, { prepare: false });
+  const sql = clienteDeBanco();
   const created = [];
 
   for (const { name, email } of ADMINS) {

@@ -88,6 +88,7 @@ export default function SiteFromView({
       ceremonyMapUrl: null,
       receptionVenue: null,
       receptionAddress: null,
+      receptionTime: null,
       story: null,
       dressCode: null,
       giftMessage: null,

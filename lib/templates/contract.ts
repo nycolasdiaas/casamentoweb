@@ -48,6 +48,8 @@ export type SiteContentView = {
   ceremonyMapUrl: string | null;
   receptionVenue: string | null;
   receptionAddress: string | null;
+  /** Hora da festa, "HH:MM". `null` = não informada, e o molde não mostra hora. */
+  receptionTimeLabel: string | null;
   story: string | null;
   dressCode: string | null;
   giftMessage: string | null;

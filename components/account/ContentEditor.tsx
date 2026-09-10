@@ -14,6 +14,7 @@ export type ContentEditorValues = {
   ceremonyMapUrl: string;
   receptionVenue: string;
   receptionAddress: string;
+  receptionTime: string;
   story: string;
   dressCode: string;
   giftMessage: string;
@@ -220,6 +221,13 @@ export default function ContentEditor({
             placeholder="Rua, número, bairro, cidade"
             defaultValue={values.receptionAddress}
             maxLength={300}
+          />
+          <Campo
+            name="receptionTime"
+            label="Horário da festa"
+            type="time"
+            hint="Aparece no site logo abaixo do local da festa. Em branco, o site mostra só o local."
+            defaultValue={values.receptionTime}
           />
           <Campo
             name="dressCode"

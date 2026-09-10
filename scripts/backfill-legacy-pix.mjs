@@ -16,7 +16,7 @@
 //   node scripts/backfill-legacy-pix.mjs --aplicar (grava)
 
 import "dotenv/config";
-import postgres from "postgres";
+import { clienteDeBanco } from "./_cliente.mjs";
 
 const LEGACY_SLUG = "isabelle-e-nycolas";
 
@@ -38,7 +38,7 @@ if (!url) {
   process.exit(1);
 }
 
-const sql = postgres(url, { prepare: false });
+const sql = clienteDeBanco();
 
 try {
   const [site] = await sql`

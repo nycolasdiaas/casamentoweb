@@ -200,6 +200,7 @@ export default function OrderWizard({
   const [festaEndereco, setFestaEndereco] = useState(
     rascunho.receptionAddress ?? ""
   );
+  const [festaHora, setFestaHora] = useState(rascunho.receptionTime ?? "");
   const [traje, setTraje] = useState(rascunho.dressCode ?? "");
   const [historia, setHistoria] = useState(rascunho.story ?? "");
 
@@ -433,6 +434,23 @@ export default function OrderWizard({
             maxLength={300}
             className={campoBase}
           />
+        </label>
+        {/* "A que horas começa a festa?" não tinha onde ser respondida: só a
+            cerimônia tinha horário. Fica aqui, e não numa etapa nova, porque
+            é o mesmo assunto das duas linhas acima — e porque etapa nova é
+            trabalho a mais para o casal. Opcional, como todo o resto. */}
+        <label style={{ ["--i" as string]: 2 }} className="flex flex-col gap-2">
+          <span className="text-sm font-medium">Horário da festa</span>
+          <input
+            id="q-festa-hora"
+            type="time"
+            value={festaHora}
+            onChange={(e) => setFestaHora(e.target.value)}
+            className={campoBase}
+          />
+          <span className="text-xs text-(--c-ink-2)">
+            Em branco, o site mostra só o local.
+          </span>
         </label>
         <button
           type="button"
@@ -742,6 +760,7 @@ export default function OrderWizard({
               ["Horário", hora.trim()],
               ["Festa", festaLocal.trim()],
               ["Endereço da festa", festaEndereco.trim()],
+              ["Horário da festa", festaHora.trim()],
               ["Traje", traje.trim()],
               ["A história de vocês", resumir(historia)],
               ["Observações de estilo", resumir(estilo)],
@@ -853,6 +872,7 @@ export default function OrderWizard({
         <input type="hidden" name="ceremonyAddress" value={cerimoniaEndereco} />
         <input type="hidden" name="receptionVenue" value={festaLocal} />
         <input type="hidden" name="receptionAddress" value={festaEndereco} />
+        <input type="hidden" name="receptionTime" value={festaHora} />
         <input type="hidden" name="dressCode" value={traje} />
         <input type="hidden" name="story" value={historia} />
 

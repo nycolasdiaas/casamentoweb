@@ -116,6 +116,29 @@ function dataHora(
   return real;
 }
 
+/**
+ * Uma hora de parede vinda de `<input type="time">`, ou `null`.
+ *
+ * Diferente da hora da CERIMÔNIA, que é fundida com a data em `wedding_date`
+ * e por isso passa por fuso: esta vai para uma coluna `time` e não tem dia
+ * nenhum a que se prender. Não há nada a converter — e é justamente por não
+ * haver que ela não pode derivar do relógio de ninguém.
+ *
+ * Vazio devolve `null`, que é "não informado". Aqui NÃO vale a convenção de
+ * meia-noite de `wedding_date`: lá ela existe porque o dia e a hora dividem o
+ * mesmo campo; aqui `null` é `null`.
+ */
+function horaDeParede(formData: FormData, campo: string): string | null {
+  const bruto = formData.get(campo)?.toString().trim() ?? "";
+  if (!bruto) return null;
+  // `<input type="time">` manda "HH:MM"; alguns navegadores mandam "HH:MM:SS".
+  const m = /^(\d{2}):(\d{2})(?::\d{2})?$/.exec(bruto);
+  if (!m) return null;
+  const [, hh, mm] = m;
+  if (Number(hh) > 23 || Number(mm) > 59) return null;
+  return `${hh}:${mm}`;
+}
+
 /** Quantos minutos somar a um instante UTC para ele significar a hora local. */
 function deslocamentoEmMinutos(instante: Date, timezone: string): number {
   try {
@@ -203,6 +226,7 @@ export function parseContentForm(
       ceremonyMapUrl: mapa,
       receptionVenue: texto(formData, "receptionVenue"),
       receptionAddress: texto(formData, "receptionAddress"),
+      receptionTime: horaDeParede(formData, "receptionTime"),
       story: texto(formData, "story"),
       dressCode: texto(formData, "dressCode"),
       giftMessage: texto(formData, "giftMessage"),

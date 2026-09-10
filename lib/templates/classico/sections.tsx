@@ -254,8 +254,10 @@ export function Details({ content }: SectionProps) {
     },
     content.receptionVenue && {
       label: "Festa",
-      destaque: content.receptionVenue,
-      value: null,
+      // Espelha o item da cerimônia acima: com hora, ela é o destaque e o
+      // local desce para a segunda linha. Sem hora, o local segue no destaque.
+      destaque: content.receptionTimeLabel ?? content.receptionVenue,
+      value: content.receptionTimeLabel ? content.receptionVenue : null,
       extra: content.receptionAddress,
     },
     content.dressCode && {

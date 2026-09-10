@@ -200,7 +200,7 @@ export function Details({ content }: SectionProps) {
       cta: "Ver no mapa",
     },
     content.receptionVenue && {
-      time: "Festa",
+      time: content.receptionTimeLabel ?? "Festa",
       label: "Recepção",
       title: content.receptionVenue,
       text: content.receptionAddress,

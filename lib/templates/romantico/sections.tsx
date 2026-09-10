@@ -379,7 +379,12 @@ export function Details({ content }: SectionProps) {
           {content.receptionVenue && (
             <GardenCard
               icon={<IconTaca />}
-              kicker="Recepção"
+              /* Mesmo formato do kicker da cerimônia, acima. */
+              kicker={
+                content.receptionTimeLabel
+                  ? `Recepção · ${content.receptionTimeLabel}`
+                  : "Recepção"
+              }
               title={content.receptionVenue}
               lines={[content.receptionAddress]}
             />

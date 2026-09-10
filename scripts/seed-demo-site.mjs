@@ -1,6 +1,6 @@
 import { config } from "dotenv";
 import crypto from "crypto";
-import postgres from "postgres";
+import { clienteDeBanco } from "./_cliente.mjs";
 
 config({ path: ".env.local" });
 
@@ -17,7 +17,7 @@ config({ path: ".env.local" });
 const SLUG = "ana-e-pedro";
 
 async function main() {
-  const sql = postgres(process.env.DATABASE_URL, { prepare: false, max: 1 });
+  const sql = clienteDeBanco();
 
   const tema = {
     version: 1,

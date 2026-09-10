@@ -204,6 +204,7 @@ const CAMPOS_DE_CONTEUDO = [
   "ceremonyAddress",
   "receptionVenue",
   "receptionAddress",
+  "receptionTime",
   "dressCode",
   "story",
 ] as const;

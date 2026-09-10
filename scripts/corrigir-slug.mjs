@@ -27,11 +27,11 @@
  *   node scripts/corrigir-slug.mjs --listar
  */
 
-import postgres from "postgres";
+import { clienteDeBanco } from "./_cliente.mjs";
 import "dotenv/config";
 import { isValidSiteSlug } from "../lib/siteSlug.ts";
 
-const sql = postgres(process.env.DATABASE_URL, { ssl: "require" });
+const sql = clienteDeBanco();
 
 async function listar() {
   const linhas = await sql`

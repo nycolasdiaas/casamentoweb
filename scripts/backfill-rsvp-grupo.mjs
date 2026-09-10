@@ -1,5 +1,5 @@
 import { config } from "dotenv";
-import postgres from "postgres";
+import { clienteDeBanco } from "./_cliente.mjs";
 
 config({ path: ".env.local" });
 
@@ -38,7 +38,7 @@ async function main() {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) throw new Error("DATABASE_URL is not set");
 
-  const sql = postgres(databaseUrl, { prepare: false });
+  const sql = clienteDeBanco();
 
   /* Um grupo "já respondeu" quando ALGUM convidado dele saiu de `pending`.
      Não basta ter confirmado: um grupo em que todo mundo recusou também

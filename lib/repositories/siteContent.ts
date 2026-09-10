@@ -24,6 +24,8 @@ export type EditableContent = {
   ceremonyMapUrl: string | null;
   receptionVenue: string | null;
   receptionAddress: string | null;
+  /** Hora de parede da festa, "HH:MM". `null` = não informada. */
+  receptionTime: string | null;
   story: string | null;
   dressCode: string | null;
   giftMessage: string | null;
