@@ -497,8 +497,14 @@ export default function PackagesPage() {
             vocês em poucos minutos.
           </p>
           <div className="flex flex-wrap justify-center gap-3 pt-2">
+            {/* Mesmo destino do "Criar meu site" do topo.
+                Este apontava para `/conta`, que manda quem não tem conta para
+                a tela de ENTRAR — dois botões com o mesmo rótulo levando a
+                lugares diferentes, e o do rodapé caindo na porta errada para
+                o visitante típico da landing, que é justamente quem ainda não
+                tem conta. */}
             <a
-              href="/conta"
+              href="/conta/criar"
               className="bg-white text-(--c-ink) text-sm font-medium px-8 py-3.5 rounded-[2px] hover:bg-(--c-base) transition-colors"
             >
               Criar meu site

@@ -4,9 +4,8 @@ import LivePreview from "@/components/account/LivePreview";
 import { carregarGerenciamento } from "@/lib/site/manageData";
 import { getSiteContent } from "@/lib/repositories/siteContent";
 import { toEditorValues } from "@/lib/site/contentFields";
-import { SITE_NAME } from "@/lib/site";
 
-export const metadata: Metadata = { title: `Conteúdo | ${SITE_NAME}` };
+export const metadata: Metadata = { title: "Conteúdo" };
 
 export default async function ConteudoPage({
   params,

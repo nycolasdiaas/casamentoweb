@@ -6,12 +6,12 @@ import { getUserById } from "@/lib/repositories/users";
 import { signoutAction } from "@/app/actions/account-actions";
 import { listOrdersByUserId } from "@/lib/repositories/orders";
 import AccountShell from "@/components/account/AccountShell";
+import TrocarSenha from "@/components/account/TrocarSenha";
 import { STATUS_META } from "@/lib/orderStatus";
 import { getPackage } from "@/lib/packages";
-import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: `Minha conta | ${SITE_NAME}`,
+  title: "Minha conta",
 };
 
 /**
@@ -195,12 +195,14 @@ export default async function AccountHubPage() {
             </div>
             <div className="flex flex-wrap items-baseline justify-between gap-3 px-4 py-3.5">
               <span className="text-[13.5px] text-(--c-ink-2)">Senha</span>
-              <Link
-                href="/conta/esqueci"
-                className="text-[13.5px] text-(--c-ink) underline underline-offset-4"
-              >
-                Alterar senha
-              </Link>
+              {/* Trocar senha logado NÃO passa mais por e-mail.
+                  Este link levava a `/conta/esqueci` — o fluxo de recuperação
+                  — e mandava quem sabe a própria senha esperar um link no
+                  correio. Pior: a conta nunca é verificada (a verificação de
+                  e-mail não existe na `main`), então um endereço digitado
+                  errado no cadastro deixava o casal sem NENHUM caminho para
+                  trocar a senha. */}
+              <TrocarSenha />
             </div>
           </div>
 

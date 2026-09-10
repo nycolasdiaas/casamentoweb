@@ -74,10 +74,13 @@ export default function PhotoManager({
   siteId,
   photos: iniciais,
   limit,
+  slotsPermitidos,
 }: {
   siteId: string;
   photos: ManagedPhoto[];
   limit: number;
+  /** Chaves de `SLOTS` que o pacote do casal inclui. */
+  slotsPermitidos: string[];
 }) {
   const [photos, setPhotos] = useState<ManagedPhoto[]>(iniciais);
   const [erro, setErro] = useState<string | null>(null);
@@ -241,7 +244,13 @@ export default function PhotoManager({
         </p>
       )}
 
-      {SLOTS.map((spec) => {
+      {/* Só os lugares que o pacote inclui.
+          Capa, história e galeria estão em todos os pacotes; o álbum é do
+          Para Sempre. Antes o álbum aparecia para todo mundo, e o casal do
+          Site do Casamento subia as fotos da festa num lugar que o site dele
+          nunca renderiza. Filtrar aqui, e não esconder a aba inteira, é o que
+          preserva as fotos que ele de fato comprou. */}
+      {SLOTS.filter((spec) => slotsPermitidos.includes(spec.key)).map((spec) => {
         const doSlot = photos.filter((p) => p.slot === spec.key);
         const cheio = doSlot.length >= spec.capacity;
         const semCota = total >= limit;

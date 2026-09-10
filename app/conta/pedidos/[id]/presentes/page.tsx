@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { carregarGerenciamento } from "@/lib/site/manageData";
+import { tierAllowsSection } from "@/lib/templates/contract";
 import { getSiteContent } from "@/lib/repositories/siteContent";
 import {
   listGifts,
@@ -10,11 +12,10 @@ import {
 import { listSiteSections } from "@/lib/repositories/siteSections";
 import { formatPriceCents } from "@/lib/format";
 import { ROTULO_TIPO, type PixKeyType } from "@/lib/pix/key";
-import { SITE_NAME } from "@/lib/site";
 import { Aviso } from "@/components/ui/prensa";
 import Cotas from "@/components/account/manage/Cotas";
 
-export const metadata: Metadata = { title: `Presentes | ${SITE_NAME}` };
+export const metadata: Metadata = { title: "Presentes" };
 
 /**
  * E6 · a lista de presentes do casal.
@@ -33,6 +34,15 @@ export const metadata: Metadata = { title: `Presentes | ${SITE_NAME}` };
  * presente e de quem deu, nunca um centavo. O card oliva mostra quantas cotas
  * foram escolhidas, que é o que sabemos de verdade — e o valor estimado só
  * quando todas as cotas escolhidas tinham preço fixo.
+ *
+ * ── Por que existe a guarda de pacote ──────────────────────────────────────
+ *
+ * A lista de presentes é do Para Sempre (`lib/templates/contract.ts`). Esta
+ * aba abria em qualquer pacote: o casal do Site do Casamento montava as cotas
+ * inteiras e cadastrava a chave Pix — que pode ser o CPF dele — para um
+ * recurso que a seção do site nem renderiza. Trabalho perdido, e dado
+ * sensível pedido à toa. Mesma porta de `recados`, pela mesma razão (§2.3,
+ * §4): recurso pertence a um pacote e só a ele.
  */
 export default async function PresentesPage({
   params,
@@ -41,6 +51,10 @@ export default async function PresentesPage({
 }) {
   const { id } = await params;
   const { order, site } = await carregarGerenciamento(id);
+
+  if (!tierAllowsSection(order.packageTier, "gifts")) {
+    redirect(`/conta/pedidos/${order.id}`);
+  }
 
   if (site === null) {
     return (

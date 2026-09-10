@@ -56,7 +56,7 @@ export type EtapaId =
  * válido em todo o resto, e cada seção do molde degrada sozinha quando falta
  * dado.
  */
-export type RegraEtapa = "nomes";
+export type RegraEtapa = "nomes" | "pacote";
 
 export type Etapa = {
   id: EtapaId;
@@ -72,6 +72,7 @@ export const ETAPAS: Etapa[] = [
     titulo: "Qual pacote combina com vocês?",
     subtitulo:
       "Dá para mudar depois — nada aqui é definitivo até o pedido ser enviado.",
+    exige: "pacote",
   },
   {
     id: "nomes",

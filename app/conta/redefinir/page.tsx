@@ -2,11 +2,10 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import ResetPasswordForm from "@/components/account/ResetPasswordForm";
 import CascaDeConta from "@/components/account/CascaDeConta";
-import { SITE_NAME } from "@/lib/site";
 import { Icone } from "@/components/ui/prensa";
 
 export const metadata: Metadata = {
-  title: `Criar senha nova | ${SITE_NAME}`,
+  title: "Criar senha nova",
 };
 
 /**

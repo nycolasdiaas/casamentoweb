@@ -165,6 +165,22 @@ export const orders = pgTable(
     weddingDate: text("wedding_date"),
     photosLink: text("photos_link"),
     notes: text("notes"),
+    /* O CONTEÚDO do site enquanto o pedido ainda é rascunho.
+     *
+     * Cerimônia, festa, traje e história moram em `site_content` — que só
+     * nasce no provisionamento. Enquanto o pedido é rascunho não existe site,
+     * e portanto não existia onde guardar essas respostas: o "Salvar e sair"
+     * do questionário mandava os campos, `parseOrderForm` os ignorava por não
+     * terem coluna, e o casal reabria o rascunho com sete campos em branco.
+     * Perdia justamente o mais chato (endereços) e o mais pessoal (a
+     * história) — por ter clicado no botão que promete salvar.
+     *
+     * Esta coluna é a área de espera, não a fonte da verdade. No
+     * provisionamento o conteúdo é copiado para `site_content` e a partir daí
+     * é ela que vale; aqui vira histórico morto. Não leia daqui depois que o
+     * site existe.
+     */
+    draftContent: jsonb("draft_content"),
     status: orderStatusEnum("status").notNull().default("draft"),
     // Campos preenchidos pelo admin durante a produção do site.
     previewUrl: text("preview_url"), // link da prévia pro casal ver

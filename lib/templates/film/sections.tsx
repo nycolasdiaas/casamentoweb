@@ -160,7 +160,7 @@ export function CountdownSection({ content }: SectionProps) {
 
   return (
     <section className="px-8 xl:px-14 py-14 lg:py-24" style={{ background: CREME }}>
-      <Head kicker="A contagem começou" title="falta pouco" />
+      <Head kicker="A contagem começou" title="vem vindo" />
       <Countdown targetDate={content.weddingDate.toISOString()} />
     </section>
   );

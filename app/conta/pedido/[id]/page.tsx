@@ -4,10 +4,10 @@ import { getSessionUserId } from "@/lib/auth/userSession";
 import { getOrderById } from "@/lib/repositories/orders";
 import AccountShell from "@/components/account/AccountShell";
 import OrderWizard, { type OrderData } from "@/components/account/wizard/OrderWizard";
-import { SITE_NAME } from "@/lib/site";
+import { lerRascunho } from "@/lib/wizard/rascunho";
 
 export const metadata: Metadata = {
-  title: `Meu pedido | ${SITE_NAME}`,
+  title: "Meu pedido",
 };
 
 export default async function EditOrderPage({
@@ -35,7 +35,16 @@ export default async function EditOrderPage({
         </p>
       </div>
 
-      <OrderWizard order={order as OrderData} orderId={order.id} />
+      <OrderWizard
+        order={
+          {
+            ...order,
+            // `jsonb` chega como `unknown`; o cast sozinho deixaria passar.
+            draftContent: lerRascunho(order.draftContent),
+          } as OrderData
+        }
+        orderId={order.id}
+      />
     </AccountShell>
   );
 }

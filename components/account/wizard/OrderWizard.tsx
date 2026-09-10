@@ -22,6 +22,8 @@ import type { OrderStatus } from "@/lib/orderStatus";
 import LivePreview from "@/components/account/LivePreview";
 import WizardShell from "@/components/account/wizard/WizardShell";
 import ColorRow from "@/components/account/wizard/ColorRow";
+import AvisoDeContraste from "@/components/account/wizard/AvisoDeContraste";
+import AmostraDeCores from "@/components/account/wizard/AmostraDeCores";
 import { useConfirmacaoDeEscolha } from "@/components/account/wizard/useConfirmacaoDeEscolha";
 import CelebrationScreen from "@/components/account/wizard/CelebrationScreen";
 import { FONT_PREVIEW_CLASS, CATEGORY_PREVIEW_SIZE } from "@/components/account/wizard/fontPreview";
@@ -54,6 +56,8 @@ export type OrderData = {
   coupleNames: string | null;
   weddingDate: string | null;
   notes: string | null;
+  /** Conteúdo do site guardado no rascunho. Ver `orders.draftContent`. */
+  draftContent: Record<string, string> | null;
   status: OrderStatus;
 };
 
@@ -62,6 +66,19 @@ export type OrderData = {
 type ActionResult =
   | Awaited<ReturnType<typeof saveOrderAction>>
   | Awaited<ReturnType<typeof submitOrderAction>>;
+
+/**
+ * Encolhe um texto longo para caber numa linha da revisão.
+ *
+ * A história pode ter 5000 caracteres; a revisão precisa provar que ela
+ * chegou, não reproduzi-la. O corte em 80 mostra o começo — o suficiente para
+ * o casal reconhecer o próprio texto e perceber se colou a coisa errada.
+ */
+function resumir(texto: string): string {
+  const limpo = texto.trim().replace(/\s+/g, " ");
+  if (limpo.length <= 80) return limpo;
+  return `${limpo.slice(0, 80)}…`;
+}
 
 const FONT_CATEGORY_ORDER: FontCategory[] = [
   "serifa",
@@ -76,11 +93,39 @@ const campoBase =
 export default function OrderWizard({
   order,
   orderId,
+  nomeDaConta,
+  pacoteInicial,
 }: {
   order: OrderData | null;
   orderId: string | null;
+  /**
+   * O nome que o casal deu na criação da conta, para a etapa 2 já vir
+   * preenchida.
+   *
+   * A pergunta "Como vocês se chamam?" chegava com o campo vazio, embora a
+   * conta já se chamasse "Mariana & Rafael" e o painel cumprimentasse por
+   * esse nome duas telas antes. Perguntar de novo o que já foi respondido é
+   * o tipo de retrabalho que faz o casal desconfiar que nada foi salvo.
+   */
+  nomeDaConta?: string | null;
+  /**
+   * O pacote que o casal clicou na vitrine (`?pacote=` na URL).
+   *
+   * Não é pré-seleção: é a escolha que ele já fez, um clique antes. A etapa 1
+   * continua sem padrão para quem chega sem ter escolhido nada.
+   */
+  pacoteInicial?: PackageTier | null;
 }) {
-  const [passo, setPasso] = useState(0);
+  /* Reabrir um rascunho volta para a etapa onde o casal parou.
+     Antes voltava sempre para a 1: quem salvou na etapa 7 tinha que clicar
+     "Continuar" seis vezes para chegar de novo onde estava — e, como as
+     respostas de conteúdo não voltavam, ainda encontrava os campos vazios no
+     caminho. */
+  const [passo, setPasso] = useState(() => {
+    const salva = order?.draftContent?._etapa;
+    const i = salva ? ETAPAS.findIndex((e) => e.id === salva) : -1;
+    return i > 0 ? i : 0;
+  });
   const [direcao, setDirecao] = useState<"frente" | "tras">("frente");
   // Ligado no CLIQUE do botão, nunca dentro da action.
   //
@@ -95,10 +140,25 @@ export default function OrderWizard({
   const [enviando, setEnviando] = useState(false);
 
   // ---- respostas -----------------------------------------------------------
-  const [pacote, setPacote] = useState<PackageTier>(
-    order?.packageTier ?? (PACKAGES.find((p) => p.highlight)?.tier ?? "site")
+  /* Pedido NOVO nasce SEM pacote escolhido, e a etapa 1 bloqueia o avanço até
+     haver escolha.
+
+     Antes o padrão era o pacote com `highlight` — o Para Sempre, R$ 99,90.
+     Quem clicasse "Continuar" sem olhar levava o mais caro sem ter escolhido
+     nada, e o rascunho ficava gravado assim. Numa auditoria de uso real foi
+     exatamente o que aconteceu: um pedido inteiro registrado como Para Sempre
+     sem que o seletor tivesse sido tocado uma única vez.
+
+     Escolher o pacote é a única decisão da tela que mexe no preço. Ela tem que
+     ser um ato, não um padrão. */
+  const [pacote, setPacote] = useState<PackageTier | "">(
+    order?.packageTier ?? pacoteInicial ?? ""
   );
-  const [nomes, setNomes] = useState(order?.coupleNames ?? "");
+  /* Pedido existente manda; pedido novo herda o nome da conta. O casal edita
+     à vontade — o campo continua sendo dele. */
+  const [nomes, setNomes] = useState(
+    order?.coupleNames ?? (order ? "" : nomeDaConta ?? "")
+  );
   const [data, setData] = useState(order?.weddingDate ?? "");
   // Pedido NOVO nasce com um molde escolhido; pedido EXISTENTE respeita o que
   // o casal salvou — inclusive "do zero" (null), que é escolha legítima.
@@ -117,18 +177,31 @@ export default function OrderWizard({
   const [estilo, setEstilo] = useState(order?.styleNotes ?? "");
   const [obs, setObs] = useState(order?.notes ?? "");
 
-  // ---- o CONTEÚDO do site ----------------------------------------------
-  // Estes campos NÃO moram em `orders`: vão direto para `site_content` no
-  // provisionamento. Pedido guarda a escolha (pacote, estilo, cores); o site
-  // guarda o que ele diz. Separar assim evitou migração e mantém uma fonte
-  // só para cada coisa.
-  const [hora, setHora] = useState("");
-  const [cerimoniaLocal, setCerimoniaLocal] = useState("");
-  const [cerimoniaEndereco, setCerimoniaEndereco] = useState("");
-  const [festaLocal, setFestaLocal] = useState("");
-  const [festaEndereco, setFestaEndereco] = useState("");
-  const [traje, setTraje] = useState("");
-  const [historia, setHistoria] = useState("");
+  /* ---- o CONTEÚDO do site ------------------------------------------------
+     Estes campos não moram em colunas de `orders`: no provisionamento vão
+     para `site_content`, que é a fonte da verdade a partir dali.
+
+     Enquanto o pedido é rascunho, porém, `site_content` ainda não existe — e
+     era aí que sete respostas se perdiam. Elas nasciam "" e nada as
+     reidratava, então quem clicava "Salvar e sair" reabria o questionário com
+     cerimônia, festa, traje e história em branco, sem nenhum aviso.
+
+     Agora o rascunho guarda tudo em `orders.draftContent` e a leitura volta
+     por aqui. */
+  const rascunho = order?.draftContent ?? {};
+  const [hora, setHora] = useState(rascunho.weddingTime ?? "");
+  const [cerimoniaLocal, setCerimoniaLocal] = useState(
+    rascunho.ceremonyVenue ?? ""
+  );
+  const [cerimoniaEndereco, setCerimoniaEndereco] = useState(
+    rascunho.ceremonyAddress ?? ""
+  );
+  const [festaLocal, setFestaLocal] = useState(rascunho.receptionVenue ?? "");
+  const [festaEndereco, setFestaEndereco] = useState(
+    rascunho.receptionAddress ?? ""
+  );
+  const [traje, setTraje] = useState(rascunho.dressCode ?? "");
+  const [historia, setHistoria] = useState(rascunho.story ?? "");
 
   /** O botão de envio, para a tela de falha conseguir reenviar. */
   const botaoDeEnvio = useRef<HTMLButtonElement>(null);
@@ -214,17 +287,27 @@ export default function OrderWizard({
   // `lib/wizard/etapas.ts`. Aqui fica so o DESENHO de cada uma.
   const regras: Record<RegraEtapa, boolean> = {
     nomes: nomes.trim().length > 0,
+    pacote: pacote !== "",
   };
 
   const conteudos: Record<EtapaId, ReactNode> = {
+    /* `radiogroup` e não uma pilha de botões: são três opções mutuamente
+       exclusivas de uma pergunta só. Sem isso o leitor de tela anunciava três
+       botões soltos e nunca dizia qual estava escolhido. */
     pacote: (
-        <div className="motion-stagger grid gap-3 sm:grid-cols-3">
+        <div
+          role="radiogroup"
+          aria-label="Pacote"
+          className="motion-stagger grid gap-3 sm:grid-cols-3"
+        >
           {PACKAGES.map((pkg, i) => {
             const ativo = pacote === pkg.tier;
             return (
               <button
                 key={pkg.tier}
                 type="button"
+                role="radio"
+                aria-checked={ativo}
                 onClick={() => setPacote(pkg.tier)}
                 data-escolha={ativo ? "sim" : "nao"}
                 style={{ ["--i" as string]: i }}
@@ -234,7 +317,16 @@ export default function OrderWizard({
                     : "border-(--c-rule) bg-white"
                 }`}
               >
-                <span className="text-sm font-semibold">{pkg.name}</span>
+                <span className="flex items-center gap-1.5 text-sm font-semibold">
+                  {pkg.name}
+                  {/* A marca visual não pode ser só a borda: numa tela clara,
+                      duas bordas parecidas não dizem qual foi escolhido. */}
+                  {ativo && (
+                    <span className="text-xs font-normal text-(--c-ink-2)">
+                      ✓ escolhido
+                    </span>
+                  )}
+                </span>
                 <span className="text-xl font-bold">{pkg.price}</span>
                 <span className="text-xs leading-relaxed text-(--c-ink-2)">
                   {pkg.tagline}
@@ -249,6 +341,7 @@ export default function OrderWizard({
           <label style={{ ["--i" as string]: 0 }} className="flex flex-col gap-2">
             <span className="text-sm font-medium">Nomes de vocês</span>
             <input
+              id="q-nomes"
               value={nomes}
               onChange={(e) => setNomes(e.target.value)}
               placeholder="Ex: Ana &amp; Pedro"
@@ -264,6 +357,7 @@ export default function OrderWizard({
             <span className="text-sm font-medium">Data do casamento</span>
             <input
               type="date"
+              id="q-data"
               value={data}
               onChange={(e) => setData(e.target.value)}
               className={campoBase}
@@ -280,6 +374,7 @@ export default function OrderWizard({
         <label style={{ ["--i" as string]: 0 }} className="flex flex-col gap-2">
           <span className="text-sm font-medium">Local da cerimônia</span>
           <input
+            id="q-cerimonia-local"
             value={cerimoniaLocal}
             onChange={(e) => setCerimoniaLocal(e.target.value)}
             placeholder="Ex: Igreja Nossa Senhora das Graças"
@@ -290,6 +385,8 @@ export default function OrderWizard({
         <label style={{ ["--i" as string]: 1 }} className="flex flex-col gap-2">
           <span className="text-sm font-medium">Endereço</span>
           <input
+            id="q-cerimonia-endereco"
+            autoComplete="street-address"
             value={cerimoniaEndereco}
             onChange={(e) => setCerimoniaEndereco(e.target.value)}
             placeholder="Rua, número, bairro, cidade"
@@ -304,6 +401,7 @@ export default function OrderWizard({
           <span className="text-sm font-medium">Horário</span>
           <input
             type="time"
+            id="q-cerimonia-hora"
             value={hora}
             onChange={(e) => setHora(e.target.value)}
             className={campoBase}
@@ -316,6 +414,7 @@ export default function OrderWizard({
         <label style={{ ["--i" as string]: 0 }} className="flex flex-col gap-2">
           <span className="text-sm font-medium">Local da festa</span>
           <input
+            id="q-festa-local"
             value={festaLocal}
             onChange={(e) => setFestaLocal(e.target.value)}
             placeholder="Ex: Espaço Jardim das Oliveiras"
@@ -326,6 +425,8 @@ export default function OrderWizard({
         <label style={{ ["--i" as string]: 1 }} className="flex flex-col gap-2">
           <span className="text-sm font-medium">Endereço</span>
           <input
+            id="q-festa-endereco"
+            autoComplete="street-address"
             value={festaEndereco}
             onChange={(e) => setFestaEndereco(e.target.value)}
             placeholder="Rua, número, bairro, cidade"
@@ -351,6 +452,7 @@ export default function OrderWizard({
         <label style={{ ["--i" as string]: 0 }} className="flex flex-col gap-2">
           <span className="text-sm font-medium">Traje</span>
           <input
+            id="q-traje"
             value={traje}
             onChange={(e) => setTraje(e.target.value)}
             placeholder="Ex: Esporte fino"
@@ -381,6 +483,7 @@ export default function OrderWizard({
           <span className="text-sm font-medium">Nossa história</span>
           <textarea
             rows={7}
+            id="q-historia"
             value={historia}
             onChange={(e) => setHistoria(e.target.value)}
             placeholder="Onde se conheceram, como foi o pedido, o que vocês querem que os convidados saibam…"
@@ -448,27 +551,43 @@ export default function OrderWizard({
               <LivePreview
                 src={`/pacotes/estilos/${modelo}?pacote=${pacote}&embutido=1`}
                 titulo="Como este modelo fica"
-                descricao="Depois de enviar o pedido, esta prévia passa a mostrar o site com o conteúdo de vocês."
+                /* Diz de quem são os dados ANTES de o casal reparar sozinho.
+                   O texto anterior — "depois de enviar o pedido, esta prévia
+                   passa a mostrar o site com o conteúdo de vocês" — era
+                   verdadeiro, mas falava do futuro: o casal acabou de digitar
+                   o próprio nome, a data e o endereço, e vê na tela um casal
+                   chamado Ana & Pedro casando em Fortaleza. Nomear o exemplo
+                   evita a leitura de que os dados dele se perderam. */
+                descricao="Exemplo com um casal fictício — o conteúdo de vocês entra no lugar assim que o pedido for enviado. Aqui o que importa é o desenho: as cores, as fontes e a ordem das seções."
                 fullBleed={false}
               />
             </div>
           )}
         </div>
     ),
+    /* Os RÓTULOS aqui seguem o que `resolveTheme` realmente faz, e não o
+       contrário. A cor 1 vira o `accent` e a cor 2 vira o `ink` — está assim
+       de propósito (ver o comentário de `lib/theme/spec.ts`: o acento é o
+       detalhe que o casal percebe como "a cor do nosso casamento").
+
+       Os rótulos antigos diziam o oposto: "Cor principal — a tinta, títulos e
+       texto" e "Cor secundária — o acento". O casal escolhia a cor do texto e
+       recebia a cor dos enfeites. Trocar o mapeamento em vez do texto teria
+       repintado todo site já provisionado, inclusive os que estão no ar. */
     cores: (
         <div className="motion-stagger mx-auto flex max-w-2xl flex-col gap-7">
           <div style={{ ["--i" as string]: 0 }}>
             <ColorRow
               label="Cor principal"
-              hint="a tinta — títulos e texto"
+              hint="o acento — detalhes, botões, ornamentos"
               valor={cor1}
               onChange={setCor1}
             />
           </div>
           <div style={{ ["--i" as string]: 1 }}>
             <ColorRow
-              label="Cor secundária"
-              hint="o acento — detalhes, botões, ornamentos"
+              label="Cor do texto"
+              hint="a tinta — títulos e parágrafos"
               valor={cor2}
               onChange={setCor2}
             />
@@ -481,6 +600,8 @@ export default function OrderWizard({
               onChange={setCor3}
             />
           </div>
+          <AmostraDeCores acento={cor1} tinta={cor2} papel={cor3} />
+          <AvisoDeContraste tinta={cor2} papel={cor3} />
         </div>
     ),
     // A rolagem PRÓPRIA da lista só existe a partir de sm. No celular, uma
@@ -549,13 +670,23 @@ export default function OrderWizard({
         <div className="motion-stagger mx-auto flex max-w-xl flex-col gap-5">
           <label style={{ ["--i" as string]: 0 }} className="flex flex-col gap-2">
             <span className="text-sm font-medium">Observações de estilo</span>
+            {/* Limite e contador iguais aos da história.
+                Estes dois campos não tinham limite NENHUM (`maxLength` = -1)
+                nem contador, embora a tela dissesse "aqui não tem limite" —
+                enquanto a história, três etapas antes, mostrava 0/5000. Duas
+                regras diferentes para a mesma coisa na mesma sequência. */}
             <textarea
               rows={4}
+              id="q-estilo"
               value={estilo}
               onChange={(e) => setEstilo(e.target.value)}
               placeholder="Tema praia, flores em aquarela, nada de rosa, uma fonte que viram por aí…"
+              maxLength={2000}
               className={`${campoBase} resize-y`}
             />
+            <span className="text-xs text-(--c-ink-2)">
+              {estilo.length}/2000
+            </span>
           </label>
           <label style={{ ["--i" as string]: 1 }} className="flex flex-col gap-2">
             <span className="text-sm font-medium">
@@ -563,11 +694,14 @@ export default function OrderWizard({
             </span>
             <textarea
               rows={3}
+              id="q-observacoes"
               value={obs}
               onChange={(e) => setObs(e.target.value)}
               placeholder="Qualquer coisa: prazo apertado, uma surpresa, uma dúvida…"
+              maxLength={2000}
               className={`${campoBase} resize-y`}
             />
+            <span className="text-xs text-(--c-ink-2)">{obs.length}/2000</span>
           </label>
           <p
             style={{ ["--i" as string]: 2 }}
@@ -580,30 +714,52 @@ export default function OrderWizard({
           </p>
         </div>
     ),
+    /* A revisão mostra TUDO que foi respondido.
+       Ela listava pacote, nomes, data, modelo, tipografia e cores — e omitia
+       cerimônia, festa, traje, história e observações. Justamente os campos
+       onde erro de digitação é mais provável e mais caro: um endereço errado
+       vira convidado perdido. "Conferindo antes de mandar" que não deixa
+       conferir metade é uma etapa a menos, não uma a mais.
+
+       Linha vazia continua fora: uma pilha de "—" faria a tela parecer um
+       formulário mal preenchido em vez de um resumo. */
     revisao: (
         <div className="motion-stagger mx-auto flex max-w-xl flex-col gap-2.5">
-          {[
-            ["Pacote", PACKAGES.find((p) => p.tier === pacote)?.name ?? "—"],
-            ["Nomes", nomes.trim() || "—"],
+          {(
             [
-              "Data",
-              dataPorExtenso(data, {
-                day: "2-digit",
-                month: "long",
-                year: "numeric",
-              }) ?? "a definir",
-            ],
-            [
-              "Ponto de partida",
-              TEMPLATE_STYLES.find((s) => s.id === modelo)?.name ??
-                "do zero, com as cores de vocês",
-            ],
-            [
-              "Tipografia",
-              FONT_STYLES.find((f) => f.id === fonte)?.name ??
-                "a gente sugere",
-            ],
-          ].map(([rotulo, valor], i) => (
+              ["Pacote", PACKAGES.find((p) => p.tier === pacote)?.name ?? "—"],
+              ["Nomes", nomes.trim() || "—"],
+              [
+                "Data",
+                dataPorExtenso(data, {
+                  day: "2-digit",
+                  month: "long",
+                  year: "numeric",
+                }) ?? "a definir",
+              ],
+              ["Cerimônia", cerimoniaLocal.trim()],
+              ["Endereço da cerimônia", cerimoniaEndereco.trim()],
+              ["Horário", hora.trim()],
+              ["Festa", festaLocal.trim()],
+              ["Endereço da festa", festaEndereco.trim()],
+              ["Traje", traje.trim()],
+              ["A história de vocês", resumir(historia)],
+              ["Observações de estilo", resumir(estilo)],
+              ["Mais alguma coisa", resumir(obs)],
+              [
+                "Ponto de partida",
+                TEMPLATE_STYLES.find((s) => s.id === modelo)?.name ??
+                  "do zero, com as cores de vocês",
+              ],
+              [
+                "Tipografia",
+                FONT_STYLES.find((f) => f.id === fonte)?.name ??
+                  "a gente sugere",
+              ],
+            ] as [string, string][]
+          )
+            .filter(([, valor]) => valor !== "")
+            .map(([rotulo, valor], i) => (
             <div
               key={rotulo}
               style={{ ["--i" as string]: i }}
@@ -627,11 +783,15 @@ export default function OrderWizard({
               {[cor1, cor2, cor3].filter(Boolean).length === 0 ? (
                 <span className="text-sm font-medium">a gente sugere</span>
               ) : (
+                /* A chave é a POSIÇÃO, não o hex.
+                   Escolher a mesma cor para dois papéis é legítimo — e com
+                   `key={hex}` o React reclamava de chave duplicada e podia
+                   omitir uma das bolinhas, mostrando duas onde havia três. */
                 [cor1, cor2, cor3]
                   .filter(Boolean)
-                  .map((hex) => (
+                  .map((hex, i) => (
                     <span
-                      key={hex}
+                      key={i}
                       style={{ backgroundColor: hex }}
                       className="size-6 rounded-full border border-black/10"
                     />
@@ -646,6 +806,8 @@ export default function OrderWizard({
   // A lista vem do dado; o desenho vem do mapa acima. `podeAvancar` sai da
   // regra declarada na etapa — sem regra, a etapa e pulavel, que e o padrao.
   const PASSOS = ETAPAS.map((e) => ({
+    // O `id` viaja junto para o rascunho conseguir gravar ONDE o casal parou.
+    id: e.id,
     titulo: e.titulo,
     subtitulo: e.subtitulo,
     podeAvancar: e.exige ? regras[e.exige] : true,
@@ -693,6 +855,9 @@ export default function OrderWizard({
         <input type="hidden" name="receptionAddress" value={festaEndereco} />
         <input type="hidden" name="dressCode" value={traje} />
         <input type="hidden" name="story" value={historia} />
+
+        {/* Onde o casal está agora, para o rascunho reabrir aqui. */}
+        <input type="hidden" name="etapaAtual" value={etapa.id} />
 
         <WizardShell
           passo={passo}

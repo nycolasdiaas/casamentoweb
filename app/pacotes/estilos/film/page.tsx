@@ -8,7 +8,8 @@ import FakeQrCanvas from "@/components/templates/FakeQrCanvas";
 import { useWeddingDemoState } from "@/components/templates/useWeddingDemoState";
 import { usePackageTier } from "@/components/templates/usePackageTier";
 import { buildDemoPixCode } from "@/lib/demoPix";
-import { DEMO_COUPLE, tierIncludes } from "@/lib/packages";
+import { DEMO_COUPLE } from "@/lib/packages";
+import { tierAllowsSection } from "@/lib/templates/contract";
 import { Icone } from "@/components/ui/prensa";
 
 const serif = Cormorant_Garamond({
@@ -113,8 +114,13 @@ export default function FilmTemplatePage() {
 
 function FilmTemplateInner() {
   const [tier, setTier] = usePackageTier();
-  const hasRsvp = tierIncludes(tier, "site");
-  const hasGifts = tierIncludes(tier, "para-sempre");
+  /* O que cada pacote mostra sai do CONTRATO, nunca de uma comparacao de
+     tier escrita a mao aqui. O mural estava presa a `hasRsvp`, e a previa do
+     Site do Casamento exibia uma secao que so existe no Para Sempre — a
+     vitrine prometia o que o pacote nao entrega. */
+  const hasRsvp = tierAllowsSection(tier, "rsvp");
+  const hasGifts = tierAllowsSection(tier, "gifts");
+  const hasMural = tierAllowsSection(tier, "guestbook");
 
   const s = useWeddingDemoState({
     storageKey: "tc-film",
@@ -436,7 +442,7 @@ function FilmTemplateInner() {
           )}
 
           {/* 7. Mural — Site do Casamento */}
-          {hasRsvp && (
+          {hasMural && (
             <section className="px-8 lg:px-[8vw] py-16 lg:py-36">
               <Head kicker="Palavras para guardar" title="mural de recados" />
               <div className="flex flex-col gap-3.5">

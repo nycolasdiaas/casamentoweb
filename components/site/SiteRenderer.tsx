@@ -30,6 +30,7 @@ export default function SiteRenderer({
   slug,
   siteId,
   enabledSections,
+  previa = false,
 }: {
   template: TemplateModule;
   theme: ThemeSpec;
@@ -39,6 +40,16 @@ export default function SiteRenderer({
   siteId: string;
   /** seções desligadas pelo casal; ausente = tudo que o pacote permite */
   enabledSections?: SectionKey[];
+  /**
+   * Estamos dentro da prévia do casal, não do site do convidado.
+   *
+   * Serve só para NÃO contar a visita: o casal abre a própria prévia dezenas
+   * de vezes enquanto monta o site, e cada abertura entrava em "Visitas nos
+   * últimos 30 dias". O painel mostrava movimento antes de existir um único
+   * convidado, e o número que devia dizer "o link está circulando" dizia
+   * "você recarregou a página".
+   */
+  previa?: boolean;
 }) {
   const permitidas = sectionsForTier(tier);
   const chaves = template.order.filter(
@@ -121,7 +132,7 @@ export default function SiteRenderer({
             a barra nunca inventa um destino que a página não tem. */}
         <BarraDoSite nomes={content.coupleNames} chaves={chaves} />
 
-        <TrackView siteSlug={slug} />
+        {!previa && <TrackView siteSlug={slug} />}
 
         {/* A coreografia de rolagem mora aqui, num componente só, e alcança
             os 6 moldes de uma vez — um molde novo a herda sem saber que ela

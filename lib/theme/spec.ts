@@ -40,6 +40,7 @@ export type ThemeSpec = {
 export type ThemeOverrides = {
   primaryColor?: string | null;
   secondaryColor?: string | null;
+  tertiaryColor?: string | null;
   fontStyle?: string | null;
 };
 
@@ -106,9 +107,15 @@ export function clampThemeFonts(
  * Preset do template + escolhas do casal = tema final.
  *
  * A cor principal do casal vira o `accent` (é o detalhe que ele percebe como
- * "a cor do nosso casamento"), e a secundária, quando válida, vira o `ink`.
- * Escolha inválida ou ausente simplesmente mantém o preset — o site nunca
- * fica feio por causa de um campo mal preenchido.
+ * "a cor do nosso casamento"), a secundária vira o `ink` e a terciária, o
+ * `paper`. Escolha inválida ou ausente simplesmente mantém o preset — o site
+ * nunca fica feio por causa de um campo mal preenchido.
+ *
+ * A terciária ficou fora daqui até 09/2026: o questionário perguntava "Cor de
+ * fundo — o papel do convite", gravava em `orders.tertiary_color` e NADA lia
+ * a coluna. O casal decidia uma cor que não existia. Ligá-la aqui é o que
+ * torna a pergunta verdadeira; a aba Visual do painel já editava `paper`
+ * direto, então a capacidade existia — faltava o caminho do questionário.
  */
 export function resolveTheme(
   preset: ThemeSpec,
@@ -122,6 +129,9 @@ export function resolveTheme(
   }
   if (overrides.secondaryColor && isHexColor(overrides.secondaryColor)) {
     palette.ink = overrides.secondaryColor;
+  }
+  if (overrides.tertiaryColor && isHexColor(overrides.tertiaryColor)) {
+    palette.paper = overrides.tertiaryColor;
   }
   if (overrides.fontStyle && isFontStyle(overrides.fontStyle)) {
     fonts.display = overrides.fontStyle;

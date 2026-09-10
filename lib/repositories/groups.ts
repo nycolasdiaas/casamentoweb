@@ -15,10 +15,23 @@ export async function createGroup({
   siteId,
   label,
   guestNames,
+  seats,
 }: {
   siteId: string;
   label?: string;
   guestNames: string[];
+  /**
+   * Lugares reservados, quando o casal NÃO escreveu os nomes.
+   *
+   * Ignorado se `guestNames` vier preenchido: ali os lugares nascem da lista,
+   * e deixá-los divergir é como um grupo passa a "ter 3 lugares" com dois
+   * nomes dentro.
+   *
+   * Existe porque "Família Silva, 4 lugares" é o que o casal costuma saber
+   * primeiro — os nomes completos de todo mundo vêm depois, se vierem. Sem
+   * isto, uma família sem nomes nascia com um lugar só.
+   */
+  seats?: number;
 }) {
   const slug = await generateUniqueSlug(slugExists);
 
@@ -29,24 +42,24 @@ export async function createGroup({
         slug,
         label,
         siteId,
-        // Os lugares reservados nascem da lista que o casal escreveu. Pedir o
-        // número separado seria pedir duas vezes a mesma informação — e
-        // deixá-los divergir é como um grupo passa a "ter 3 lugares" com dois
-        // nomes dentro.
-        seats: guestNames.length,
+        seats: guestNames.length > 0 ? guestNames.length : Math.max(1, seats ?? 1),
       })
       .returning();
 
-    const insertedGuests = await tx
-      .insert(guests)
-      .values(
-        guestNames.map((name, index) => ({
-          groupId: group.id,
-          name,
-          position: index,
-        }))
-      )
-      .returning();
+    // Sem nomes não há linha de convidado — e `insert` com lista vazia é erro.
+    const insertedGuests =
+      guestNames.length > 0
+        ? await tx
+            .insert(guests)
+            .values(
+              guestNames.map((name, index) => ({
+                groupId: group.id,
+                name,
+                position: index,
+              }))
+            )
+            .returning()
+        : [];
 
     return { ...group, guests: insertedGuests };
   });

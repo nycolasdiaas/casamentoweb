@@ -141,12 +141,14 @@ function CartaoDePacote({ tier }: { tier: PackageTier }) {
             <CtaPacoteFallback
               className={`btn ${destaque ? "btn-ink" : "btn-quiet"} w-full`}
               rotulo={`Escolher ${pkg.name}`}
+              tier={pkg.tier}
             />
           }
         >
           <CtaPacote
             className={`btn ${destaque ? "btn-ink" : "btn-quiet"} w-full`}
             rotulo={`Escolher ${pkg.name}`}
+              tier={pkg.tier}
           />
         </Suspense>
         {/* `/pacotes/exemplo/<tier>` é redirect para "/" desde que as demos

@@ -49,6 +49,7 @@ async function pedidoComSite(overrides: { paid?: boolean } = {}) {
       templateStyle: "classico",
       primaryColor: null,
       secondaryColor: null,
+      tertiaryColor: null,
       fontStyle: null,
       coupleNames: order.coupleNames,
       weddingDate: order.weddingDate,

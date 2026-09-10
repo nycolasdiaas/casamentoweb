@@ -11,7 +11,6 @@ import { themePresetFor } from "@/lib/theme/presets";
 import type { ThemeSpec } from "@/lib/theme/spec";
 import type { TemplateStyleId } from "@/lib/templates";
 import { modelosDeConvite } from "@/lib/templates/modelos";
-import { SITE_NAME } from "@/lib/site";
 import { uiPrensa } from "@/lib/fonts/ui";
 import { Icone } from "@/components/ui/prensa";
 
@@ -35,7 +34,7 @@ import { Icone } from "@/components/ui/prensa";
  * mesma e está no WHERE da consulta: convite de outro casal não é encontrado.
  */
 
-export const metadata: Metadata = { title: `Editar convite | ${SITE_NAME}` };
+export const metadata: Metadata = { title: "Editar convite" };
 
 export default async function EditarConvitePage({
   params,

@@ -36,6 +36,7 @@ export type OrderForProvision = {
   templateStyle: string | null;
   primaryColor: string | null;
   secondaryColor: string | null;
+  tertiaryColor: string | null;
   fontStyle: string | null;
   coupleNames: string | null;
   weddingDate: string | null;
@@ -107,6 +108,7 @@ export async function provisionSiteForOrder(
   const tema = resolveTheme(themePresetFor(order.templateStyle), {
     primaryColor: order.primaryColor,
     secondaryColor: order.secondaryColor,
+    tertiaryColor: order.tertiaryColor,
     fontStyle: order.fontStyle,
   });
 

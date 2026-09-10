@@ -17,18 +17,30 @@ import { getSessionUserId } from "@/lib/auth/userSession";
 export default async function CtaPacote({
   className,
   rotulo = "Começar agora",
+  tier,
 }: {
   className: string;
+  /**
+   * O pacote deste cartão, para o questionário abrir com ele escolhido.
+   *
+   * Sem isto, "Escolher Para Sempre" levava ao questionário com a etapa 1
+   * em branco: o casal já tinha decidido, e a primeira coisa que a tela fazia
+   * era perguntar de novo. Antes o efeito ficava escondido porque a etapa
+   * vinha pré-marcada no pacote mais caro — o que dava a resposta certa por
+   * acaso em um dos três cartões e a errada nos outros dois.
+   */
+  tier?: string;
   /** "Escolher Para Sempre" diz mais que "Começar agora" (Voz V4: o botão
       descreve a ação, não o conceito). Fica opcional porque o mesmo CTA
       aparece no topo da landing, onde ainda não há pacote escolhido. */
   rotulo?: string;
 }) {
   const logado = Boolean(await getSessionUserId());
+  const query = tier ? `?pacote=${tier}` : "";
 
   return (
     <Link
-      href={logado ? "/conta/pedido/novo" : "/conta/criar"}
+      href={logado ? `/conta/pedido/novo${query}` : `/conta/criar${query}`}
       className={className}
     >
       {rotulo}
@@ -46,12 +58,17 @@ export default async function CtaPacote({
 export function CtaPacoteFallback({
   className,
   rotulo = "Começar agora",
+  tier,
 }: {
   className: string;
   rotulo?: string;
+  tier?: string;
 }) {
   return (
-    <Link href="/conta/criar" className={className}>
+    <Link
+      href={tier ? `/conta/criar?pacote=${tier}` : "/conta/criar"}
+      className={className}
+    >
       {rotulo}
     </Link>
   );

@@ -7,9 +7,8 @@ import { criarConviteAction } from "@/app/actions/invite-actions";
 import MiniConvite from "@/components/account/convite/MiniConvite";
 import ListaDeConvites from "@/components/account/convite/ListaDeConvites";
 import { EstadoVazio } from "@/components/ui/prensa";
-import { SITE_NAME } from "@/lib/site";
 
-export const metadata: Metadata = { title: `Convites | ${SITE_NAME}` };
+export const metadata: Metadata = { title: "Convites" };
 
 /**
  * E7 · a aba Convites.
@@ -54,10 +53,17 @@ export default async function ConvitesPage({
               uma PÁGINA, não um arquivo. Num PNG o botão "Lista de presentes"
               é desenho, não botão. O download continua existindo dentro do
               editor; deixou de ser o assunto da frase. */}
+          {/* "até 5 MODELOS", não "até 5 convites".
+              O teto é de ARTE (`site_invites`), e não tem relação nenhuma com
+              as famílias cadastradas na aba Convidados, que não têm limite. A
+              frase antiga — "dá para ter até 5" — lida ao lado da vitrine, que
+              promete "cada família recebe um link exclusivo", dizia ao casal
+              de trinta famílias que ele não caberia no produto. */}
           <p className="t-corpo text-(--c-ink-2) medida">
             Cada convite vira uma página com endereço próprio, para mandar no
-            grupo da família. Dá para ter até {MAX_CONVITES} — um para os
-            padrinhos, outro para o pessoal do trabalho, o que quiserem.
+            grupo da família. Dá para ter até {MAX_CONVITES} modelos diferentes
+            — um para os padrinhos, outro para o pessoal do trabalho, o que
+            quiserem. O número de famílias convidadas não tem limite.
           </p>
         </div>
 

@@ -6,9 +6,9 @@ import { listGroupsWithGuests } from "@/lib/repositories/groups";
 import { tierAllowsSection } from "@/lib/templates/contract";
 import { EstadoVazio } from "@/components/ui/prensa";
 import CopiarLink from "@/components/ui/prensa/CopiarLink";
-import { SITE_NAME } from "@/lib/site";
+import FormularioDeFamilia from "@/components/account/manage/FormularioDeFamilia";
 
-export const metadata: Metadata = { title: `Convidados | ${SITE_NAME}` };
+export const metadata: Metadata = { title: "Convidados" };
 
 /**
  * A aba Convidados — quem foi convidado e quem respondeu.
@@ -97,10 +97,18 @@ export default async function ConvidadosPage({
           pronta, os convidados aparecem aqui.
         </p>
       ) : grupos.length === 0 ? (
-        <EstadoVazio titulo="Nenhuma família cadastrada">
-          Quando vocês cadastrarem as famílias, cada uma ganha um endereço
-          próprio para responder — e as respostas aparecem nesta tela.
-        </EstadoVazio>
+        /* O estado vazio agora termina num verbo — o formulário está logo
+           abaixo dele. Antes esta tela dizia "quando vocês cadastrarem as
+           famílias" e não oferecia nenhum caminho para cadastrar: o cadastro
+           só existia no /admin. O casal lia uma instrução para uma ação que
+           não conseguia executar. */
+        <>
+          <EstadoVazio titulo="Nenhuma família cadastrada">
+            Comecem pela primeira: cada família cadastrada ganha um endereço
+            próprio para responder, e as respostas aparecem aqui.
+          </EstadoVazio>
+          <FormularioDeFamilia siteId={site.id} />
+        </>
       ) : (
         <>
           <dl className="grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -195,6 +203,11 @@ export default async function ConvidadosPage({
               </li>
             ))}
           </ul>
+
+          {/* Depois da lista, não antes: com famílias já cadastradas, o que o
+              casal vem ver aqui é quem respondeu. Cadastrar a próxima é a
+              segunda intenção da tela. */}
+          <FormularioDeFamilia siteId={site.id} />
         </>
       )}
     </div>

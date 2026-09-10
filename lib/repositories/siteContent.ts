@@ -1,6 +1,7 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { siteContent } from "@/lib/db/schema";
+import { siteContent, sites } from "@/lib/db/schema";
+import { partesNoFuso } from "@/lib/site/contentFields";
 
 /**
  * Leitura e escrita do conteúdo editável do site.
@@ -60,4 +61,48 @@ export async function saveSiteContent(
       target: siteContent.siteId,
       set: { ...input, updatedAt: new Date() },
     });
+}
+
+/**
+ * A data do casamento de vários pedidos de uma vez, já no fuso de cada site.
+ *
+ * ── Por que existe ─────────────────────────────────────────────────────────
+ *
+ * A data mora em dois lugares: `orders.wedding_date` guarda o que o casal
+ * respondeu no questionário, e `site_content.wedding_date` é o que ele edita
+ * no painel — e é o que o site do convidado mostra. Quem lê só a primeira vê
+ * a resposta velha para sempre.
+ *
+ * Era o que acontecia na lista "Meus pedidos": o casal mudava a data pela aba
+ * Conteúdo e a coluna "Faltam" continuava vazia, como se o casamento não
+ * tivesse data. Ao lado, a tela do pedido mostrava a data certa.
+ *
+ * Devolve um mapa `orderId → "yyyy-mm-dd"`. Pedido sem site, ou site sem data,
+ * simplesmente não aparece no mapa — quem chama cai no valor do pedido.
+ */
+export async function datasEfetivasPorPedido(
+  orderIds: string[]
+): Promise<Map<string, string>> {
+  const mapa = new Map<string, string>();
+  if (orderIds.length === 0) return mapa;
+
+  const linhas = await db
+    .select({
+      orderId: sites.orderId,
+      weddingDate: siteContent.weddingDate,
+      timezone: siteContent.timezone,
+    })
+    .from(siteContent)
+    .innerJoin(sites, eq(sites.id, siteContent.siteId))
+    .where(inArray(sites.orderId, orderIds));
+
+  for (const linha of linhas) {
+    if (!linha.orderId || !linha.weddingDate) continue;
+    mapa.set(
+      linha.orderId,
+      partesNoFuso(linha.weddingDate, linha.timezone || "America/Fortaleza").dia
+    );
+  }
+
+  return mapa;
 }
