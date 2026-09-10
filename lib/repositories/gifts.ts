@@ -273,6 +273,43 @@ export async function deleteGiftPhoto(giftId: string) {
  * "pendente". O Pix vai direto para a conta de cada casal e nunca passa pela
  * Enlace (§2.4); um campo desses seria a operação que as regras recusam.
  */
+/**
+ * Quem já presenteou, para O CASAL — nome, presente e quando.
+ *
+ * ── Por que faltava ────────────────────────────────────────────────────────
+ *
+ * O convidado é convidado a se identificar ("conte pra gente quem você é"), o
+ * nome é gravado, e até hoje só o `/admin` conseguia lê-lo
+ * (`listContributionsParaAdmin`). O casal via um número — "3 cotas escolhidas"
+ * — e mais nada. Quem deu o quê, que é o que ele precisa para agradecer, ficava
+ * do lado de dentro da plataforma.
+ *
+ * Mesma forma do cadastro de famílias antes de ser portado: o recurso existia,
+ * só não para quem comprou.
+ *
+ * O que ela NÃO tem, e não pode ganhar: valor recebido ou confirmação de que o
+ * Pix caiu. A Enlace nunca fica no meio (§2.4) — isto é a autodeclaração do
+ * convidado, e a tela precisa dizer isso com essas letras.
+ */
+export async function contribuicoesDoSite(siteId: string, limite = 200) {
+  "use cache";
+  cacheTag(`gift-contributions:${siteId}`);
+  cacheLife("minutes");
+
+  return db
+    .select({
+      id: giftContributions.id,
+      giftName: giftContributions.giftName,
+      guestName: giftContributions.guestName,
+      createdAt: giftContributions.createdAt,
+    })
+    .from(giftContributions)
+    .innerJoin(gifts, eq(giftContributions.giftId, gifts.id))
+    .where(eq(gifts.siteId, siteId))
+    .orderBy(desc(giftContributions.createdAt))
+    .limit(limite);
+}
+
 export async function listContributionsParaAdmin(limite = 200) {
   return db
     .select({

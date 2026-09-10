@@ -135,6 +135,25 @@ describe("as três saídas", () => {
     // Nada de um segundo caminho de registro: é a mesma
     // `registerContributionAction`, com o mesmo nome opcional.
     expect(SAIDA).toContain("onClick={handleConfirm}");
-    expect(CODIGO).toContain("registerContributionAction({ giftId: gift.id, guestName })");
+    // UMA chamada só. Contar em vez de casar a assinatura inteira: o objetivo
+    // é impedir um segundo caminho de registro, não congelar os argumentos —
+    // e a versão anterior deste teste quebrou justamente por congelá-los.
+    expect(CODIGO.match(/registerContributionAction\(/g) ?? []).toHaveLength(1);
+  });
+
+  it("registra no site DONO do presente", () => {
+    /* O `siteId` não é enfeite: sem ele a action resolvia o casamento com
+       `getLegacySiteId()` e, no site de um casal de verdade, não achava o
+       presente. O convidado mandava o Pix, clicava aqui e não acontecia
+       nada — nem confirmação, nem erro. */
+    expect(CODIGO).toContain("siteId");
+    expect(CODIGO).toMatch(/registerContributionAction\(\{[^}]*siteId[^}]*\}\)/);
+  });
+
+  it("falha de rede não some em silêncio", () => {
+    // Havia um `try/finally` sem `catch`: a exceção sumia e o modal ficava
+    // idêntico. Para quem acabou de mandar o Pix, isso é o pior estado.
+    expect(CODIGO).toContain("catch");
+    expect(CODIGO).toContain("setErro(");
   });
 });

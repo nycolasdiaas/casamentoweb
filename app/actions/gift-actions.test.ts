@@ -34,14 +34,16 @@ function giftFormData(category: string, name: string, price: string) {
   return formData;
 }
 
+let siteId: string;
+
 beforeEach(async () => {
   sessionState.valid = true;
   await db.delete(giftContributions);
   await db.delete(gifts);
   await db.delete(loginAttempts);
   await db.delete(sites);
-  // As actions ainda resolvem o tenant pelo slug legado (Fase 0).
-  await createTestSite(LEGACY_SITE_SLUG);
+  // As actions do ADMIN ainda resolvem o tenant pelo slug legado (Fase 0).
+  siteId = (await createTestSite(LEGACY_SITE_SLUG)).id;
 });
 
 afterAll(async () => {
@@ -131,6 +133,7 @@ describe("registerContributionAction", () => {
     const contribution = await registerContributionAction({
       giftId: gift.id,
       guestName: "  Ana Silva  ",
+      siteId,
     });
 
     expect(contribution.guestName).toBe("Ana Silva");
@@ -145,9 +148,39 @@ describe("registerContributionAction", () => {
     const contribution = await registerContributionAction({
       giftId: gift.id,
       guestName: "   ",
+      siteId,
     });
 
     expect(contribution.guestName).toBeNull();
+  });
+
+  /* O defeito que este bloco tranca: a action resolvia o tenant com
+     `getLegacySiteId()`, como as vizinhas de admin — mas ela roda no site de
+     QUALQUER casal. No site de um casal de verdade ela procurava o presente
+     dentro do casamento legado, não achava, e lançava. O convidado que tinha
+     acabado de mandar o Pix clicava em "Já fiz o Pix" e não acontecia nada. */
+  it("registra no site DONO do presente, não no legado", async () => {
+    const outroSite = await createTestSite();
+    const gift = await createGiftAction(
+      giftFormData("Lua de Mel", "Jantar", "180")
+    );
+    // O presente nasce no site legado (a action de criar é do admin).
+    // Registrar a contribuição pelo site errado não pode achar nada.
+    await expect(
+      registerContributionAction({
+        giftId: gift.id,
+        guestName: "Tia Regina",
+        siteId: outroSite.id,
+      })
+    ).rejects.toThrow();
+
+    // Pelo site certo, funciona.
+    const contribuicao = await registerContributionAction({
+      giftId: gift.id,
+      guestName: "Tia Regina",
+      siteId,
+    });
+    expect(contribuicao.guestName).toBe("Tia Regina");
   });
 
   it("rejects an unknown gift id", async () => {
@@ -155,6 +188,7 @@ describe("registerContributionAction", () => {
       registerContributionAction({
         giftId: "00000000-0000-0000-0000-000000000000",
         guestName: "Ana",
+        siteId,
       })
     ).rejects.toThrow();
   });

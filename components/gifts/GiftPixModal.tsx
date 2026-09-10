@@ -41,6 +41,7 @@ export default function GiftPixModal({
   const [guestName, setGuestName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
 
   // O BR Code é calculado aqui, e não no servidor, porque depende do valor
   // DESTA cota: gerar os N payloads no HTML mandaria ~150 bytes por presente
@@ -106,9 +107,22 @@ export default function GiftPixModal({
 
   async function handleConfirm() {
     setSubmitting(true);
+    setErro(null);
     try {
-      await registerContributionAction({ giftId: gift.id, guestName });
+      await registerContributionAction({ giftId: gift.id, guestName, siteId });
       setDone(true);
+    } catch {
+      /* Sem este `catch` o erro sumia: o `finally` desligava o "Enviando…" e o
+         modal ficava exatamente como estava. Para o convidado que ACABOU de
+         mandar o Pix, isso é a pior leitura possível — ele não sabe se o aviso
+         chegou, e o único caminho que sobra é mandar de novo.
+
+         A mensagem não explica a causa (ele não pode fazer nada sobre ela) e
+         não diz "tente de novo" como se fosse culpa dele: diz o que ainda vale
+         (o Pix já saiu) e o que fazer agora. */
+      setErro(
+        "Não conseguimos avisar os noivos agora. Seu Pix já foi enviado — se puder, conte para eles direto."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -274,6 +288,11 @@ export default function GiftPixModal({
               >
                 {submitting ? "Enviando…" : "Já fiz o Pix"}
               </button>
+              {erro && (
+                <p role="alert" className="text-xs leading-relaxed text-(--color-olive)">
+                  {erro}
+                </p>
+              )}
             </div>
           </>
         ) : (
