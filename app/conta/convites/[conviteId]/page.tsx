@@ -6,7 +6,7 @@ import { getInviteDoDono } from "@/lib/repositories/siteInvites";
 import { listSitePhotosFresh } from "@/lib/repositories/sitePhotos";
 import EditorDeConvite from "@/components/account/convite/EditorDeConvite";
 import ApagarConvite from "@/components/account/convite/ApagarConvite";
-import { getBaseUrl } from "@/lib/baseUrl";
+import { baseUrlOuNulo } from "@/lib/baseUrl";
 import { themePresetFor } from "@/lib/theme/presets";
 import type { ThemeSpec } from "@/lib/theme/spec";
 import type { TemplateStyleId } from "@/lib/templates";
@@ -57,9 +57,11 @@ export default async function EditarConvitePage({
   const tema =
     (achado.temaDoSite as ThemeSpec | null) ??
     themePresetFor(achado.templateId);
+  /* O endereço é rodapé do convite: sem ele a tela abre igual, com o rodapé
+     vazio. Ver UX-002 — antes, a falta do endereço derrubava o editor. */
   const [fotos, baseUrl] = await Promise.all([
     listSitePhotosFresh(siteId),
-    getBaseUrl(),
+    baseUrlOuNulo(),
   ]);
 
   const voltar = orderId ? `/conta/pedidos/${orderId}/convites` : "/conta/pedidos";
@@ -103,10 +105,10 @@ export default async function EditarConvitePage({
           nomeInicial={convite.name}
           docInicial={convite.doc}
           fotos={fotos.map((f) => ({ id: f.id, alt: f.alt }))}
-          baseUrl={baseUrl}
+          baseUrl={baseUrl ?? ""}
           slug={slug}
           urlDoConvite={
-            convite.slug
+            convite.slug && baseUrl
               ? `${baseUrl.replace(/\/+$/, "")}/c/${convite.slug}`
               : null
           }

@@ -6,6 +6,9 @@ import { generateSiteSlug } from "@/lib/siteSlug";
 import { themePresetFor } from "@/lib/theme/presets";
 import { resolveTheme } from "@/lib/theme/spec";
 import { sectionsForTier } from "@/lib/templates/contract";
+import { parseContentForm } from "@/lib/site/contentInput";
+import { lerRascunho } from "@/lib/wizard/rascunho";
+import type { EditableContent } from "@/lib/repositories/siteContent";
 import type { PackageTier } from "@/lib/packages";
 
 // Provisionamento automático: pedido enviado vira site, sem humano no meio.
@@ -41,7 +44,71 @@ export type OrderForProvision = {
   coupleNames: string | null;
   weddingDate: string | null;
   notes: string | null;
+  /**
+   * O conteúdo do site respondido no questionário — cerimônia, festa, traje,
+   * história. Ver `orders.draftContent` em `lib/db/schema.ts`.
+   *
+   * `unknown` porque vem de uma coluna `jsonb`: quem normaliza é
+   * `lerRascunho`, aqui dentro, e não cada chamador.
+   */
+  draftContent?: unknown;
 };
+
+/** Os campos do questionário que pertencem ao SITE, não ao pedido. */
+const CAMPOS_DE_CONTEUDO = [
+  "weddingTime",
+  "ceremonyVenue",
+  "ceremonyAddress",
+  "receptionVenue",
+  "receptionAddress",
+  "receptionTime",
+  "dressCode",
+  "story",
+] as const;
+
+/**
+ * O conteúdo que o casal respondeu, pronto para nascer junto com o site.
+ *
+ * ── Por que reusar `parseContentForm` e não ler o rascunho na mão ──────────
+ *
+ * A hora da cerimônia mora dentro de `wedding_date` e depende do fuso do
+ * site. Refazer essa conta aqui é como a cerimônia das 16h vira 19h — e ganha
+ * três horas a cada salvamento. Montar um `FormData` e passar pela mesma
+ * função que a tela de conteúdo usa custa nada e garante que os dois caminhos
+ * gravem a mesma coisa.
+ *
+ * Devolve `null` quando o rascunho não dá para ler. Conteúdo ruim não pode
+ * derrubar o provisionamento: melhor o site nascer com o mínimo do que não
+ * nascer.
+ */
+function conteudoDoQuestionario(
+  order: OrderForProvision,
+  nomes: string
+): EditableContent | null {
+  const rascunho = lerRascunho(order.draftContent);
+  if (!rascunho) return null;
+
+  const formData = new FormData();
+  formData.set("coupleNames", nomes);
+  if (order.weddingDate) formData.set("weddingDate", order.weddingDate);
+  for (const campo of CAMPOS_DE_CONTEUDO) {
+    const valor = rascunho[campo];
+    if (valor) formData.set(campo, valor);
+  }
+
+  const lido = parseContentForm(formData);
+  if (!lido.ok) return null;
+
+  // O mesmo teto de ano de `parseWeddingDate`, pela mesma razão: o ano 13131
+  // passa pelo navegador e pelo JS, e só estoura no Postgres — dentro desta
+  // transação, derrubando o site inteiro.
+  const ano = lido.value.weddingDate?.getFullYear();
+  if (ano !== undefined && (ano < 2000 || ano > 2100)) {
+    return { ...lido.value, weddingDate: null };
+  }
+
+  return lido.value;
+}
 
 export type ProvisionResult =
   | { ok: true; siteId: string; slug: string; created: boolean }
@@ -113,6 +180,7 @@ export async function provisionSiteForOrder(
   });
 
   const previewToken = crypto.randomBytes(24).toString("base64url");
+  const conteudo = conteudoDoQuestionario(order, nomes);
 
   const siteId = await db.transaction(async (tx) => {
     const [site] = await tx
@@ -130,13 +198,24 @@ export async function provisionSiteForOrder(
       })
       .returning({ id: sites.id });
 
+    /* O site nasce com o que o casal respondeu — por este caminho também.
+     *
+     * Até 11/09/2026 este insert gravava três colunas e punha `order.notes`
+     * em `story`. `notes` é a caixa "mais alguma coisa que a gente precisa
+     * saber?", recado para o dono: o site do casal auditado publicava
+     * "A avó Antônia faz o bolo" como a história de amor deles, e cerimônia,
+     * festa e traje chegavam vazios (UX-003).
+     *
+     * O envio do pedido sempre copiou o conteúdo direito; esta função é o
+     * outro caminho — a rede de segurança que cria o site quando o envio
+     * falha. Os dois precisam entregar a mesma coisa, senão o casal que
+     * tropeçou fica com um site pela metade e nem sabe.
+     */
     await tx.insert(siteContent).values({
+      ...(conteudo ?? {}),
       siteId: site.id,
       coupleNames: nomes,
-      weddingDate: parseWeddingDate(order.weddingDate),
-      // As anotações do briefing viram o primeiro rascunho da história —
-      // o casal edita depois. Melhor do que abrir o site vazio.
-      story: order.notes?.trim() || null,
+      weddingDate: conteudo ? conteudo.weddingDate : parseWeddingDate(order.weddingDate),
     });
 
     await tx.insert(siteSections).values(
@@ -171,7 +250,11 @@ export async function provisionSiteForOrder(
       .update(orders)
       .set({
         status: "preview_ready",
-        previewUrl: `${baseUrl ?? ""}/preview/${previewToken}`,
+        /* Sem endereço base conhecido, o campo fica NULO em vez de virar
+           "/preview/<token>" — um caminho solto que não abre em lugar nenhum.
+           A tela do casal sabe montar o link a partir do slug quando ele
+           falta, e é ela quem tem o endereço certo na hora de mostrar. */
+        previewUrl: baseUrl ? `${baseUrl}/preview/${previewToken}` : null,
         updatedAt: new Date(),
       })
       .where(eq(orders.id, order.id));

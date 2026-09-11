@@ -160,11 +160,25 @@ export default async function ConvidadosPage({
                     <Td>{g.attendingNames ?? "—"}</Td>
                     <Td>{g.message ?? "—"}</Td>
                     <Td>
-                      {base ? (
-                        <CopiarLink url={`${base}/rsvp/${g.slug}`} />
-                      ) : (
-                        "—"
-                      )}
+                      {/* O endereço aparece ESCRITO, não só copiável.
+                          Um botão "Copiar link" sozinho não deixa o casal
+                          conferir para onde o link vai, nem ditar o endereço
+                          para alguém — e, quando o endereço base sumia, a
+                          célula ficava num traço e a família não tinha como
+                          ser convidada (UX-016). */}
+                      <span className="flex flex-col items-start gap-1">
+                        <span className="text-[12.5px] break-all text-(--c-ink-2)">
+                          {base
+                            ? `${base.replace(/^https?:\/\//, "")}/rsvp/${g.slug}`
+                            : `/rsvp/${g.slug}`}
+                        </span>
+                        <span className="text-[12.5px] break-all text-(--c-ink-2)">
+                  {base
+                    ? `${base.replace(/^https?:\/\//, "")}/rsvp/${g.slug}`
+                    : `/rsvp/${g.slug}`}
+                </span>
+                {base && <CopiarLink url={`${base}/rsvp/${g.slug}`} />}
+                      </span>
                     </Td>
                   </tr>
                 ))}
@@ -199,6 +213,11 @@ export default async function ConvidadosPage({
                     “{g.message}”
                   </p>
                 )}
+                <span className="text-[12.5px] break-all text-(--c-ink-2)">
+                  {base
+                    ? `${base.replace(/^https?:\/\//, "")}/rsvp/${g.slug}`
+                    : `/rsvp/${g.slug}`}
+                </span>
                 {base && <CopiarLink url={`${base}/rsvp/${g.slug}`} />}
               </li>
             ))}

@@ -299,13 +299,20 @@ export default async function GerenciarInicioPage({
           isso é melhor que deixar a tela em silêncio — e o texto não promete
           prazo nenhum, porque não há prazo: há uma falha a investigar. */}
       {site === null && provisionamentoFalhou && (
-        <div className="surface-raised rounded-[3px] p-6 flex flex-col gap-2">
-          <span className="meta text-(--c-mark)">Prévia indisponível</span>
+        <div className="surface-raised rounded-[3px] p-6 flex flex-col gap-3 items-start">
+          <span className="meta text-(--c-mark)">A prévia não foi criada</span>
           <p className="text-base leading-relaxed text-(--c-ink-2) max-w-[52ch]">
-            O site de vocês ainda não foi criado. Isso não é normal — o pedido
-            chegou, mas a montagem não completou. Fale com a gente e a gente
-            resolve na hora.
+            O pedido de vocês chegou inteiro — o que não completou foi a
+            montagem do site. Nada do que vocês responderam se perdeu: é só
+            tentar de novo.
           </p>
+          {/* O link refaz a mesma rota que a tela chamaria sozinha. Ela para de
+              chamar por conta própria depois de uma falha (`provisionamento=erro`
+              corta o laço), então sem este botão o casal ficava sem NENHUMA
+              forma de tentar outra vez — só a de pedir socorro. */}
+          <a href={`/api/pedido/provisionar?pedido=${order.id}`} className="btn-primary">
+            Tentar de novo
+          </a>
         </div>
       )}
 

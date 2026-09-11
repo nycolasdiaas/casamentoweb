@@ -32,7 +32,7 @@ import { provisionSiteForOrder } from "@/lib/site/provision";
 import { parseContentForm } from "@/lib/site/contentInput";
 import { saveSiteContent } from "@/lib/repositories/siteContent";
 import { getUserById } from "@/lib/repositories/users";
-import { getBaseUrl } from "@/lib/baseUrl";
+import { baseUrlOuNulo } from "@/lib/baseUrl";
 import { PACKAGES, type PackageTier } from "@/lib/packages";
 import { TEMPLATE_STYLES } from "@/lib/templates";
 import { isFontStyle, isHexColor } from "@/lib/customization";
@@ -309,12 +309,32 @@ export async function submitOrderAction(formData: FormData) {
   // Falha aqui NÃO derruba o envio do pedido: o pedido continua registrado e
   // o admin trata como exceção. Perder o pedido do casal por causa de um
   // tropeço no provisionamento seria muito pior do que provisionar depois.
+  /* O endereço público é enfeite perto do site existir.
+   *
+   * Ele entrava AQUI DENTRO, como primeira linha do bloco abaixo — e em
+   * 11/09/2026 isso custou o funil inteiro: `getBaseUrl()` lançava em produção
+   * (UX-001), a exceção acontecia antes de qualquer outra coisa, e o `catch`
+   * engolia junto o provisionamento E a cópia do conteúdo do casal. O casal
+   * respondia 11 etapas e recebia um pedido sem site.
+   *
+   * Agora ele é obtido antes, por conta própria: falhar aqui custa o link da
+   * prévia, não o site. */
+  let baseUrl: string | null = null;
+  try {
+    baseUrl = await baseUrlOuNulo();
+  } catch {
+    baseUrl = null;
+  }
+
   try {
     const order = await getOrderById(finalOrderId);
     const user = await getUserById(userId);
     if (order && user) {
-      const baseUrl = await getBaseUrl();
-      const resultado = await provisionSiteForOrder(order, user.name, baseUrl);
+      const resultado = await provisionSiteForOrder(
+        order,
+        user.name,
+        baseUrl ?? undefined
+      );
       if (!resultado.ok) {
         console.error(
           `[provision] pedido ${finalOrderId} não provisionado: ${resultado.reason}`

@@ -6,7 +6,7 @@ import { getSessionUserId } from "@/lib/auth/userSession";
 import { getSiteOwnedByUser } from "@/lib/repositories/sites";
 import { getSiteContent } from "@/lib/repositories/siteContent";
 import { toEditorValues } from "@/lib/site/contentFields";
-import { getBaseUrl } from "@/lib/baseUrl";
+import { baseUrlOuNulo } from "@/lib/baseUrl";
 import { themePresetFor } from "@/lib/theme/presets";
 import type { ThemeSpec } from "@/lib/theme/spec";
 import {
@@ -54,9 +54,13 @@ export async function criarConviteAction(formData: FormData) {
   const site = await siteDoDono(siteId);
   if (!site) redirect("/conta/pedidos");
 
+  /* `baseUrlOuNulo` e não `getBaseUrl`: o endereço entra no convite como
+     rodapé, e um rodapé não pode impedir o convite de nascer. Em 11/09/2026
+     impedia — `getBaseUrl()` lançava em produção e "Criar convite" devolvia
+     uma tela de erro em inglês (UX-002). */
   const [conteudo, baseUrl, existentes] = await Promise.all([
     getSiteContent(siteId),
-    getBaseUrl(),
+    baseUrlOuNulo(),
     listInvites(siteId),
   ]);
 
@@ -80,8 +84,10 @@ export async function criarConviteAction(formData: FormData) {
       data,
       hora: v.weddingTime || null,
       local: v.ceremonyVenue.trim() || null,
-      endereco: `${baseUrl.replace(/^https?:\/\//, "")}/s/${site.slug}`,
-      url: `${baseUrl.replace(/\/+$/, "")}/s/${site.slug}`,
+      endereco: baseUrl
+        ? `${baseUrl.replace(/^https?:\/\//, "")}/s/${site.slug}`
+        : `/s/${site.slug}`,
+      url: baseUrl ? `${baseUrl.replace(/\/+$/, "")}/s/${site.slug}` : "",
       // O gating de verdade, o mesmo que o `SiteRenderer` obedece.
       temRsvp: tierAllowsSection(site.tier, "rsvp"),
     },
@@ -203,7 +209,7 @@ export async function publicarConviteAction(
 
   const [slug, baseUrl] = await Promise.all([
     publicarConvite(siteId, inviteId),
-    getBaseUrl(),
+    baseUrlOuNulo(),
   ]);
   if (!slug) return { error: "Convite não encontrado." };
 
@@ -216,7 +222,10 @@ export async function publicarConviteAction(
   updateTag(conviteTag(slug));
   updateTag(CONVITES_PUBLICADOS);
   revalidatePath(`/conta/convites/${inviteId}`);
-  return { url: `${baseUrl.replace(/\/+$/, "")}/c/${slug}` };
+  /* Publicar deu certo mesmo sem endereço descoberto — o convite existe e o
+     link é o mesmo caminho. Devolver o caminho relativo é melhor que devolver
+     um erro por causa do prefixo. */
+  return { url: baseUrl ? `${baseUrl.replace(/\/+$/, "")}/c/${slug}` : `/c/${slug}` };
 }
 
 /** Tira do ar. O endereço fica guardado, para voltar no mesmo link. */

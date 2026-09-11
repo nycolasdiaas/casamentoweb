@@ -5,7 +5,7 @@ import { getOrderById } from "@/lib/repositories/orders";
 import { getUserById } from "@/lib/repositories/users";
 import { getSiteByOrderId } from "@/lib/repositories/sites";
 import { provisionSiteForOrder } from "@/lib/site/provision";
-import { getBaseUrl } from "@/lib/baseUrl";
+import { baseUrlOuNulo } from "@/lib/baseUrl";
 
 /**
  * Cria o site que faltou — a rede de segurança do provisionamento.
@@ -54,8 +54,19 @@ export async function GET(request: Request) {
   const user = await getUserById(userId);
   if (!user) redirect("/conta/entrar");
 
-  const baseUrl = await getBaseUrl();
-  const resultado = await provisionSiteForOrder(order, user.name, baseUrl);
+  /* Sem endereço público descoberto o site nasce igual, só sem o link da
+     prévia — a tela do casal monta esse link pelo slug.
+
+     Até 11/09/2026 esta linha era `await getBaseUrl()`, que LANÇA. Como a
+     rota inteira caía, o casal que chegava aqui (isto é: todo casal cujo
+     envio falhou) via uma tela de erro do navegador com HTTP 500, e o site
+     nunca era criado. Ver UX-001. */
+  const baseUrl = await baseUrlOuNulo();
+  const resultado = await provisionSiteForOrder(
+    order,
+    user.name,
+    baseUrl ?? undefined
+  );
 
   if (!resultado.ok) {
     console.error(

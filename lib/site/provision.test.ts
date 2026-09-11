@@ -44,6 +44,7 @@ async function criarPedido(
         "coupleNames" in overrides ? overrides.coupleNames : "Marina & Rafael",
       weddingDate: overrides.weddingDate ?? "2027-05-22",
       notes: overrides.notes ?? null,
+      draftContent: (overrides.draftContent as Record<string, string>) ?? null,
       status: "submitted",
     })
     .returning();
@@ -75,7 +76,6 @@ describe("provisionSiteForOrder", () => {
     const order = await criarPedido({
       coupleNames: "Ana & Pedro",
       weddingDate: "2027-09-19",
-      notes: "Nos conhecemos numa fila de padaria.",
     });
 
     const r = await provisionSiteForOrder(order, "Conta");
@@ -87,8 +87,80 @@ describe("provisionSiteForOrder", () => {
       .where(eq(siteContent.siteId, r.siteId));
 
     expect(content.coupleNames).toBe("Ana & Pedro");
-    expect(content.story).toBe("Nos conhecemos numa fila de padaria.");
     expect(content.weddingDate?.getUTCFullYear()).toBe(2027);
+  });
+
+  /* UX-003. Esta função é a REDE DE SEGURANÇA: cria o site quando o envio do
+     pedido falhou no meio. Até 11/09/2026 ela gravava três colunas e punha
+     `notes` — a caixa "mais alguma coisa que a gente precisa saber?" — no
+     lugar da história do casal. O site auditado anunciava "a avó faz o bolo"
+     como história de amor, e cerimônia, festa e traje chegavam vazios. */
+  it("traz cerimônia, festa, traje e história do questionário", async () => {
+    const order = await criarPedido({
+      coupleNames: "Ana & Pedro",
+      weddingDate: "2027-09-19",
+      notes: "A avó faz o bolo — recado para o dono, não para o site.",
+      draftContent: {
+        weddingTime: "16:30",
+        ceremonyVenue: "Igreja São Sebastião",
+        ceremonyAddress: "Praça da Sé, 100 — Sé, São Paulo/SP",
+        receptionVenue: "Espaço Villa Olívia",
+        receptionAddress: "Rua das Palmeiras, 1.250 — Barueri/SP",
+        receptionTime: "19:00",
+        dressCode: "Esporte fino",
+        story: "A gente se conheceu numa fila de padaria.",
+      },
+    });
+
+    const r = await provisionSiteForOrder(order, "Conta");
+    if (!r.ok) throw new Error("provisionamento falhou");
+
+    const [content] = await db
+      .select()
+      .from(siteContent)
+      .where(eq(siteContent.siteId, r.siteId));
+
+    expect(content.ceremonyVenue).toBe("Igreja São Sebastião");
+    expect(content.ceremonyAddress).toBe("Praça da Sé, 100 — Sé, São Paulo/SP");
+    expect(content.receptionVenue).toBe("Espaço Villa Olívia");
+    expect(content.receptionAddress).toBe("Rua das Palmeiras, 1.250 — Barueri/SP");
+    expect(content.receptionTime).toBe("19:00:00");
+    expect(content.dressCode).toBe("Esporte fino");
+    expect(content.story).toBe("A gente se conheceu numa fila de padaria.");
+  });
+
+  it("nunca publica a anotação interna como história do casal", async () => {
+    const order = await criarPedido({
+      notes: "A avó faz o bolo — recado para o dono, não para o site.",
+    });
+
+    const r = await provisionSiteForOrder(order, "Conta");
+    if (!r.ok) throw new Error("provisionamento falhou");
+
+    const [content] = await db
+      .select()
+      .from(siteContent)
+      .where(eq(siteContent.siteId, r.siteId));
+
+    expect(content.story).toBeNull();
+  });
+
+  /* UX-001. O link da prévia é enfeite perto do site existir: se o endereço
+     público não puder ser descoberto, o site nasce do mesmo jeito e o campo
+     fica nulo — a tela do casal monta o link pelo slug. */
+  it("cria o site mesmo sem endereço base, sem inventar um link quebrado", async () => {
+    const order = await criarPedido();
+
+    const r = await provisionSiteForOrder(order, "Conta");
+    if (!r.ok) throw new Error("provisionamento falhou");
+
+    const [pedido] = await db
+      .select()
+      .from(orders)
+      .where(eq(orders.id, order.id));
+
+    expect(pedido.status).toBe("preview_ready");
+    expect(pedido.previewUrl).toBeNull();
   });
 
   it("applies the couple's colour and font over the template preset", async () => {

@@ -27,8 +27,17 @@ const script = Petit_Formal_Script({
 export const metadata: Metadata = {
   /* Resolve as URLs relativas de `openGraph.images` e `openGraph.url`.
      Sem isto o Next avisa no build e cai em `http://localhost:3000` — o que
-     faria o cartão do WhatsApp apontar para a máquina de quem fez o deploy. */
-  metadataBase: new URL(baseUrlEstatica()),
+     faria o cartão do WhatsApp apontar para a máquina de quem fez o deploy.
+
+     Foi exatamente o que aconteceu em produção até 11/09/2026, porque
+     `baseUrlEstatica()` DEVOLVIA localhost quando a variável faltava: o site
+     publicado do casamento real anunciava
+     `og:image = http://localhost:3000/s/.../opengraph-image`, e o convite
+     mandado no grupo da família chegava sem foto (UX-021).
+
+     Hoje ela devolve "" quando não sabe, e aqui `undefined` é melhor que uma
+     base falsa: o Next avisa no build em vez de publicar link quebrado. */
+  metadataBase: baseUrlEstatica() ? new URL(baseUrlEstatica()) : undefined,
   title: {
     default: `${SITE_NAME} · ${SITE_TAGLINE}`,
     template: `%s | ${SITE_NAME}`,
