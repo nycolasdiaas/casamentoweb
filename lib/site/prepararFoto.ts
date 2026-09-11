@@ -34,10 +34,34 @@ function toBlob(canvas: HTMLCanvasElement, quality: number): Promise<Blob> {
   });
 }
 
+/** Os formatos que o produto promete na tela: "JPG, PNG ou WebP". */
+const FORMATOS = ["image/jpeg", "image/png", "image/webp"];
+
 export async function prepararFoto(file: File): Promise<FotoPreparada> {
-  const bitmap = await createImageBitmap(file, {
-    imageOrientation: "from-image",
-  });
+  /* A mensagem do navegador vazava para o casal.
+     
+     `createImageBitmap` recusa arquivo que não é foto com
+     **"The source image could not be decoded"** — em inglês, com vocabulário
+     de decodificador, e sem dizer o que fazer. Era isso que aparecia na tela
+     de Fotos de um produto escrito inteiro em português (UX-010).
+     
+     Conferir o tipo ANTES evita chegar lá no caso comum (um PDF, um HEIC de
+     iPhone antigo, um SVG), e o `catch` cobre o arquivo que mente o tipo ou
+     está corrompido. */
+  if (file.type && !FORMATOS.includes(file.type)) {
+    throw new Error(
+      "Esse arquivo não é uma foto que a gente consiga usar. Vale JPG, PNG ou WebP."
+    );
+  }
+
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+  } catch {
+    throw new Error(
+      "Não consegui abrir essa foto. Ela pode estar corrompida ou num formato que o navegador não lê — vale JPG, PNG ou WebP."
+    );
+  }
 
   try {
     const escala = Math.min(

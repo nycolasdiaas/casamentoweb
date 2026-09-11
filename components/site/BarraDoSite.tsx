@@ -93,13 +93,21 @@ export default function BarraDoSite({
 
       {/* No celular a faixa de âncoras rola na horizontal em vez de quebrar
           linha ou espremer os rótulos. `.no-scrollbar` esconde a barra de
-          rolagem — ela apareceria por cima do fio de baixo. */}
+          rolagem — ela apareceria por cima do fio de baixo.
+
+          `py-3` não é respiro: é ÁREA DE TOQUE. Medido em 390px na auditoria
+          de 11/09/2026, cada âncora tinha 12px de altura clicável — um terço
+          do mínimo de ~44px, na navegação principal de um site que o convidado
+          abre no celular, em pé, com uma mão (UX-015). O padding vertical
+          cresce a área sem mexer no tamanho da letra nem no desenho da faixa;
+          `-my-3` devolve o espaço ao layout, então a barra continua com a
+          mesma altura. */}
       <div className="no-scrollbar ml-auto flex min-w-0 items-center gap-4 overflow-x-auto @[700px]:gap-7">
         {ancoras.map((k) => (
           <a
             key={k}
             href={`#${ANCORA_DA_SECAO[k] ?? k}`}
-            className="shrink-0 text-[12px] leading-none no-underline opacity-75 transition-opacity hover:opacity-100 @[700px]:text-[13px]"
+            className="-my-3 shrink-0 py-3 text-[12px] leading-none no-underline opacity-75 transition-opacity hover:opacity-100 @[700px]:text-[13px]"
             style={{ color: "var(--ink)" }}
           >
             {ROTULO_CURTO[k] ?? k}
@@ -116,7 +124,10 @@ export default function BarraDoSite({
       {temConfirmacao && (
         <a
           href={`#${ANCORA_DA_SECAO.rsvp}`}
-          className="shrink-0 whitespace-nowrap px-3 py-2.5 text-[10px] uppercase leading-none tracking-[0.06em] no-underline transition-opacity hover:opacity-85 @[700px]:px-6 @[700px]:py-3 @[700px]:text-[11px] @[700px]:tracking-[0.18em]"
+          /* py-3.5 no celular: o botão tinha 30px de altura, e é o alvo mais
+             importante da barra — é por ele que passa a confirmação de
+             presença, que é o que o casal comprou (UX-015). */
+          className="shrink-0 whitespace-nowrap px-4 py-3.5 text-[10px] uppercase leading-none tracking-[0.06em] no-underline transition-opacity hover:opacity-85 @[700px]:px-6 @[700px]:py-3 @[700px]:text-[11px] @[700px]:tracking-[0.18em]"
           style={{ background: "var(--ink)", color: "var(--paper)" }}
         >
           Confirmar presença

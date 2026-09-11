@@ -33,8 +33,21 @@ export function linhaDeLugar(
 
   if (partes.length === 0) return null;
 
+  /* Os dois últimos trechos, **a não ser** que o penúltimo comece por número.
+     
+     A regra dos dois últimos foi escrita para "Rua X, Bairro, Cidade — UF".
+     Só que o endereço brasileiro mais comum põe o NÚMERO logo depois da
+     primeira vírgula: "Praça da Sé, 100 — Sé, São Paulo/SP". Aí os dois
+     últimos trechos viram "100 — Sé, São Paulo/SP", e a capa do casamento
+     abre com o número da casa em caixa alta e entreletra larga (UX-014).
+     
+     Quando o penúltimo começa com dígito, ele é número ou complemento — não
+     é lugar. Fica só o último, que é onde cidade e estado moram. */
+  const penultimo = partes.length >= 2 ? partes[partes.length - 2] : null;
+  const penultimoComecaPorNumero = penultimo !== null && /^\d/.test(penultimo);
+
   const cauda =
-    partes.length >= 2
+    partes.length >= 2 && !penultimoComecaPorNumero
       ? partes.slice(-2).join(", ")
       : partes[partes.length - 1];
 

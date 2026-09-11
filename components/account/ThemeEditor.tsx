@@ -115,12 +115,23 @@ export default function ThemeEditor({
   fontClassNames,
   nomeDoModelo,
   fotoSlot,
+  casal,
 }: {
   siteId: string;
   values: ThemeEditorValues;
   fontesDoModelo: FonteOpcao[];
   fontClassNames: string;
   nomeDoModelo: string;
+  /**
+   * Os nomes do casal, para a amostra mostrar o site DELES.
+   *
+   * A etapa das fontes, no questionário, já renderiza cada tipografia com o
+   * nome real — e a amostra de cores mostrava "Ana & Pedro · 16 de outubro de
+   * 2026 · Fortaleza", o casal fictício da vitrine, mesmo com o casal
+   * cadastrado (UX-018). Ausente, cai no exemplo, que continua melhor que uma
+   * amostra vazia.
+   */
+  casal?: { primeiro: string; segundo: string; linha: string } | null;
   fotoSlot: React.ReactNode;
 }) {
   const [state, action, pending] = useActionState(saveThemeAction, undefined);
@@ -210,17 +221,17 @@ export default function ThemeEditor({
               className="mt-2 text-3xl leading-tight"
               style={{ fontFamily: varDe("display") }}
             >
-              Ana{" "}
+              {casal?.primeiro ?? "Ana"}{" "}
               <span style={{ fontFamily: varDe("script"), color: cores.accent }}>
                 &amp;
               </span>{" "}
-              Pedro
+              {casal?.segundo ?? "Pedro"}
             </p>
             <p
               className="mt-3 text-xs opacity-80"
               style={{ fontFamily: varDe("body") }}
             >
-              16 de outubro de 2026 · Fortaleza
+              {casal?.linha ?? "16 de outubro de 2026 · Fortaleza"}
             </p>
           </div>
         </div>

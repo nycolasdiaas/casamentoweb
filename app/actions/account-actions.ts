@@ -159,9 +159,34 @@ function parseOrderForm(formData: FormData) {
   // calada, sem ninguém para avisar.
   const dataBruta = formData.get("weddingDate")?.toString().trim() ?? "";
   if (dataBruta) {
-    const anoDigitado = new Date(dataBruta).getFullYear();
+    const digitada = new Date(dataBruta);
+    const anoDigitado = digitada.getFullYear();
     if (Number.isNaN(anoDigitado) || anoDigitado < 2000 || anoDigitado > 2100) {
       return { error: "Confira o ano do casamento — a data não parece certa." as const };
+    }
+
+    /* Data que já passou é digitação, e o questionário é o único lugar onde
+       dá para afirmar isso: aqui se está MONTANDO um casamento que ainda vai
+       acontecer.
+       
+       A auditoria de 11/09/2026 digitou 01/01/2020 e o questionário avançou
+       sem uma palavra (UX-009). Um ano trocado (2026 no lugar de 2027) passa
+       do mesmo jeito, alimenta a contagem regressiva, a capa e o álbum
+       pós-festa, e o casal só descobre olhando o site pronto.
+       
+       A tela de Conteúdo NÃO ganha esta trava, de propósito: lá o casamento
+       pode já ter acontecido, e o álbum depende justamente disso. */
+    const hoje = new Date();
+    const inicioDeHoje = new Date(
+      hoje.getFullYear(),
+      hoje.getMonth(),
+      hoje.getDate()
+    );
+    if (digitada.getTime() < inicioDeHoje.getTime()) {
+      return {
+        error:
+          "Essa data já passou. Confiram o dia do casamento — ou deixem em branco se ainda não fecharam." as const,
+      };
     }
   }
 

@@ -472,23 +472,34 @@ pular todas as etapas opcionais; desktop e celular.
 - **Evidência:** sem captura — comportamento observado e descrito acima.
 - **Sugestão:** ou o botão leva mesmo para `/conta/pedidos` com um aviso de rascunho
   guardado, ou ele passa a se chamar "Salvar rascunho" e mostra um "salvo ✓" ali mesmo.
-- **Status:** Aberto
+- **Status:** ✅ **Resolvido** — feature `003-ux-fricao-celular-e-polimento`
 
-### UX-013 — Trocar o modelo rola a página e esconde a prévia que acabou de mudar
-- **Severidade:** 🟡 Médio
-- **Tipo:** Usabilidade
-- **Onde:** questionário etapa 7
-- **Viewport:** Desktop (mais visível)
-- **Ação realizada:** rolar até a prévia (scrollY ≈ 1105) e clicar em outro modelo.
-- **Resultado esperado:** a prévia troca à vista, que é o motivo de ela existir.
-- **Resultado atual:** a página salta para scrollY ≈ 433 — o cartão do modelo clicado — e
-  a prévia sai da tela. Medido antes e depois do clique.
-- **Impacto:** a prévia ao vivo é o melhor argumento da etapa, e some justo na hora em que
-  muda. Quem não rolar de volta conclui que o clique não fez nada.
-- **Evidência:** `docs/auditoria/evidencias/UX-013.png`
-- **Sugestão:** não mexer no scroll ao selecionar; se algo tiver de rolar, que seja a
-  prévia entrando no campo de visão.
-- **Status:** Aberto
+### UX-013 — ~~Trocar o modelo rola a página~~ · **RETRATADO em 11/09/2026**
+- **Severidade:** ~~🟡 Médio~~ → **não é defeito**
+- **Status:** **Retratado — era o meu automatizador, não o produto**
+
+**O que eu registrei:** que escolher outro modelo na etapa 7 rolava a página de
+scrollY ≈ 1105 para ≈ 433, tirando a prévia da tela.
+
+**Por que estava errado:** eu cliquei o cartão pelo chrome-devtools MCP, e **ele rola o
+elemento para dentro da viewport antes de clicar**. A prévia estava na tela porque eu
+tinha rolado até ela; o cartão, não. O scroll que medi foi o do meu próprio instrumento
+entrando em quadro.
+
+**Medido de novo**, clicando por script (`card.click()`), sem rolar nada:
+
+```
+scrollY antes ....... 990
+scrollY depois ...... 990
+modelo selecionado .. film
+```
+
+A página não se move. A prévia continua onde estava e troca à vista, que é o
+comportamento que a etapa promete.
+
+**A lição fica:** instrumento de automação tem efeito colateral, e medir "antes e depois"
+sem saber disso produz achado que não existe. A verificação honesta foi feita pelo
+caminho que o usuário usa — o clique —, não pelo que o robô usa.
 
 ### UX-015 — Alvos de toque de 12px na navegação do site do convidado
 - **Severidade:** 🟡 Médio
@@ -504,7 +515,7 @@ pular todas as etapas opcionais; desktop e celular.
 - **Evidência:** `docs/auditoria/evidencias/contexto-site-mobile.png` (medição no texto).
 - **Sugestão:** aumentar a área tocável com padding vertical, sem mexer no tamanho da
   fonte nem no desenho.
-- **Status:** Aberto
+- **Status:** ✅ **Resolvido** — feature `003-ux-fricao-celular-e-polimento`
 
 ### UX-016 — Em produção, o casal não consegue pegar o link da família
 - **Severidade:** 🟠 Alto
@@ -537,7 +548,7 @@ pular todas as etapas opcionais; desktop e celular.
 - **Impacto:** é o canal pelo qual a Enlace avisa quando algo trava. Um dígito errado
   passa despercebido para sempre.
 - **Sugestão:** formatar enquanto digita e mostrar o número (editável) nos dados da conta.
-- **Status:** Aberto
+- **Status:** ✅ **Resolvido** — feature `003-ux-fricao-celular-e-polimento`
 
 ### UX-018 — A amostra de cores mostra outro casal
 - **Severidade:** 🟢 Baixo
@@ -549,7 +560,7 @@ pular todas as etapas opcionais; desktop e celular.
 - **Impacto:** a amostra perde força e o casal fica sem ver como a escolha fica com o
   próprio nome.
 - **Sugestão:** usar os dados do site, como a etapa da tipografia já faz.
-- **Status:** Aberto
+- **Status:** ✅ **Resolvido** — feature `003-ux-fricao-celular-e-polimento`
 
 ### UX-020 — Ações importantes terminam em silêncio
 - **Severidade:** 🟢 Baixo
@@ -559,7 +570,12 @@ pular todas as etapas opcionais; desktop e celular.
   pedidos), mas nenhuma diz o que aconteceu — nem "vocês saíram", nem "pedido cancelado".
   O diálogo de confirmação do cancelamento, esse, é exemplar.
 - **Sugestão:** uma linha de confirmação no destino.
-- **Status:** Aberto
+- **Status:** ⏭️ **Adiado** — feature `003`, com justificativa
+- **Por que adiado:** confirmar no destino ("vocês saíram", "pedido cancelado") exigiria
+  `searchParams` em duas rotas cacheadas, e `cacheComponents` está ligado — é armadilha
+  conhecida (AGENTS.md §4). Para um 🟢 cujas duas ações já mudam de tela de forma
+  inequívoca, e cujo cancelamento já tem diálogo de confirmação **antes**, o custo não se
+  justifica. **O que o reabre:** alguém relatar que não percebeu que a ação aconteceu.
 
 ---
 
@@ -648,7 +664,7 @@ corrigido na seção 2.
 - **Evidência:** `docs/auditoria/evidencias/UX-009.png`
 - **Sugestão:** avisar (sem bloquear) quando a data for anterior a hoje, e confirmar.
   O `min` do `<input type="date">` resolve metade; a outra metade é a mensagem.
-- **Status:** Aberto
+- **Status:** ✅ **Resolvido** — feature `003-ux-fricao-celular-e-polimento`
 
 ### UX-010 — Erro de upload aparece em inglês
 - **Severidade:** 🟡 Médio
@@ -664,7 +680,7 @@ corrigido na seção 2.
   chega à tela sem tradução.
 - **Sugestão:** conferir o tipo do arquivo antes de tentar decodificar e escrever a
   mensagem na voz do produto.
-- **Status:** Aberto
+- **Status:** ✅ **Resolvido** — feature `003-ux-fricao-celular-e-polimento`
 
 ### UX-012 — O mural da prévia diz "Não achamos esse casamento" e apaga o recado
 - **Severidade:** 🟡 Médio
@@ -702,7 +718,7 @@ corrigido na seção 2.
   Cidade/UF"), esses dois últimos são "123 — Bairro" e "Cidade/UF".
 - **Sugestão:** preferir o último trecho quando o penúltimo começar por número, ou pedir
   cidade/estado num campo próprio.
-- **Status:** Aberto
+- **Status:** ✅ **Resolvido** — feature `003-ux-fricao-celular-e-polimento`
 
 ### UX-019 — História colada acima de 5.000 caracteres é cortada em silêncio
 - **Severidade:** 🟢 Baixo
@@ -712,7 +728,7 @@ corrigido na seção 2.
   faz o navegador cortar no limite, sem aviso — o contador simplesmente marca 5000/5000.
 - **Impacto:** quem escreveu a história no WhatsApp e colou pode perder o final sem notar.
 - **Sugestão:** avisar quando o texto colado for maior que o limite.
-- **Status:** Aberto
+- **Status:** ✅ **Resolvido** — feature `003-ux-fricao-celular-e-polimento`
 
 ---
 
@@ -828,18 +844,18 @@ pública. O produto não está mal construído — está mal ligado.
 | UX-006 | 🟠 Alto | Cores e tema | Aberto | — | — |
 | UX-007 | ~~🟠~~ | Presentes (convidado) | **Retratado** — não reproduz em produção | — | — |
 | UX-008 | 🟠 Alto | Convidados / privacidade | Aberto | — | — |
-| UX-009 | 🟡 Médio | Questionário | Aberto | — | — |
-| UX-010 | 🟡 Médio | Painel · Fotos | Aberto | — | — |
-| UX-011 | 🟡 Médio | Questionário | Aberto | — | — |
+| UX-009 | 🟡 Médio | Questionário | ✅ Resolvido | 003-ux-fricao-celular-e-polimento | ver tasks.md |
+| UX-010 | 🟡 Médio | Painel · Fotos | ✅ Resolvido | 003-ux-fricao-celular-e-polimento | ver tasks.md |
+| UX-011 | 🟡 Médio | Questionário | ✅ Resolvido | 003-ux-fricao-celular-e-polimento | ver tasks.md |
 | UX-012 | 🟡 Médio | Mural (convidado) | ✅ Resolvido | 002-ux-nao-perder-o-que-foi-digitado | T001–T014 |
-| UX-013 | 🟡 Médio | Questionário | Aberto | — | — |
-| UX-014 | 🟡 Médio | Site do convidado · capa | Aberto | — | — |
-| UX-015 | 🟡 Médio | Site do convidado · celular | Aberto | — | — |
+| UX-013 | ~~🟡~~ | Questionário | **Retratado** — era o automatizador de teste | — | — |
+| UX-014 | 🟡 Médio | Site do convidado · capa | ✅ Resolvido | 003-ux-fricao-celular-e-polimento | ver tasks.md |
+| UX-015 | 🟡 Médio | Site do convidado · celular | ✅ Resolvido | 003-ux-fricao-celular-e-polimento | ver tasks.md |
 | UX-016 | 🟠 Alto | Painel · Convidados | ✅ Resolvido | 001-ux-provisionamento-e-ambiente | T001–T019 |
-| UX-017 | 🟢 Baixo | Cadastro / conta | Aberto | — | — |
-| UX-018 | 🟢 Baixo | Painel · Visual | Aberto | — | — |
-| UX-019 | 🟢 Baixo | Questionário | Aberto | — | — |
-| UX-020 | 🟢 Baixo | Conta / pedidos | Aberto | — | — |
+| UX-017 | 🟢 Baixo | Cadastro / conta | ✅ Resolvido | 003-ux-fricao-celular-e-polimento | ver tasks.md |
+| UX-018 | 🟢 Baixo | Painel · Visual | ✅ Resolvido | 003-ux-fricao-celular-e-polimento | ver tasks.md |
+| UX-019 | 🟢 Baixo | Questionário | ✅ Resolvido | 003-ux-fricao-celular-e-polimento | ver tasks.md |
+| UX-020 | 🟢 Baixo | Conta / pedidos | ⏭️ Adiado | 003-ux-fricao-celular-e-polimento | justificativa na spec |
 
 ---
 

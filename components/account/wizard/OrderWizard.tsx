@@ -512,6 +512,21 @@ export default function OrderWizard({
         <span style={{ ["--i" as string]: 1 }} className="text-xs text-(--c-ink-2)">
           {historia.length}/5000
         </span>
+        {/* O corte no limite acontecia calado.
+            `maxLength` faz o navegador descartar o excedente sem avisar: quem
+            escreveu a história no WhatsApp e colou aqui perdia o fim e não
+            tinha como saber (UX-019). O contador sozinho não conta essa
+            história — 5000/5000 parece um texto que coube. */}
+        {historia.length >= 5000 && (
+          <span
+            role="status"
+            style={{ ["--i" as string]: 2 }}
+            className="text-xs text-(--c-mark)"
+          >
+            Chegou no limite de 5.000 caracteres — o que vier depois disso não
+            entra. Se vocês colaram um texto maior, confiram o fim.
+          </span>
+        )}
       </div>
     ),
     modelo: (
@@ -905,7 +920,7 @@ export default function OrderWizard({
                   disabled={pending || jaEnviado}
                   className="text-[13px] whitespace-nowrap text-(--c-ink-2) underline underline-offset-4 transition-colors hover:text-(--c-ink) disabled:opacity-50"
                 >
-                  {pending && !enviando ? "Salvando…" : "Salvar e sair"}
+                  {pending && !enviando ? "Salvando…" : "Salvar rascunho"}
                 </button>
               )}
             </>

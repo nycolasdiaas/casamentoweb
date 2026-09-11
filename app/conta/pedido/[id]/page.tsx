@@ -30,8 +30,9 @@ export default async function EditOrderPage({
         <span className="meta text-(--c-mark)">Rascunho</span>
         <h1 className="t-d2 text-(--c-ink)">Continuar o pedido de vocês</h1>
         <p className="t-corpo text-(--c-ink-2) medida">
-          Terminem de montar e enviem quando estiver do jeito de vocês. Dá para
-          salvar e sair a qualquer momento.
+          Terminem de montar e enviem quando estiver do jeito de vocês. O
+          rascunho fica guardado a cada “Salvar rascunho” — e também quando
+          vocês fecham a página no meio.
         </p>
       </div>
 

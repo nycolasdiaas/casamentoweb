@@ -193,6 +193,22 @@ export default async function AccountHubPage() {
                 {user.email}
               </span>
             </div>
+            {/* O WhatsApp aparece aqui porque é por onde a Enlace avisa o
+                casal quando algo trava — e ele não aparecia em lugar nenhum
+                depois do cadastro. Um dígito errado ficava invisível para
+                sempre: o casal não tinha como conferir nem perceber (UX-017).
+                Em branco, a linha diz que está em branco, em vez de sumir e
+                deixar a impressão de que foi preenchido. */}
+            <div className="flex flex-wrap items-baseline justify-between gap-3 px-4 py-3.5 border-b border-(--c-rule)">
+              <span className="text-[13.5px] text-(--c-ink-2)">WhatsApp</span>
+              <span className="t-data text-[13px] text-(--c-ink)">
+                {user.whatsapp?.trim() ? (
+                  user.whatsapp
+                ) : (
+                  <span className="text-(--c-ink-2)">não informado</span>
+                )}
+              </span>
+            </div>
             <div className="flex flex-wrap items-baseline justify-between gap-3 px-4 py-3.5">
               <span className="text-[13.5px] text-(--c-ink-2)">Senha</span>
               {/* Trocar senha logado NÃO passa mais por e-mail.

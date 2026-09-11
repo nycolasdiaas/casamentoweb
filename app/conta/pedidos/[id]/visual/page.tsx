@@ -3,6 +3,9 @@ import ThemeEditor from "@/components/account/ThemeEditor";
 import TemplatePicker from "@/components/account/TemplatePicker";
 import PhotoOrder from "@/components/account/PhotoOrder";
 import { carregarGerenciamento } from "@/lib/site/manageData";
+import { linhaDeLugar } from "@/lib/site/lugar";
+import { buildContentView } from "@/lib/site/content";
+import { getSiteContent } from "@/lib/repositories/siteContent";
 import { getTemplate } from "@/lib/templates/registry";
 import { getTemplateStyle } from "@/lib/templates";
 import { parseThemeSpec, clampThemeFonts } from "@/lib/theme/spec";
@@ -18,6 +21,18 @@ import LivePreview from "@/components/account/LivePreview";
 
 export const metadata: Metadata = { title: "Visual" };
 
+/** A linha de baixo da amostra: data e lugar, como no convite. */
+function linhaDaAmostra(conteudo: {
+  weddingDateLabel: string | null;
+  ceremonyAddress: string | null;
+}): string {
+  const partes = [
+    conteudo.weddingDateLabel,
+    linhaDeLugar(conteudo.ceremonyAddress),
+  ].filter(Boolean);
+  return partes.length > 0 ? partes.join(" · ") : "a data e o lugar de vocês";
+}
+
 export default async function VisualPage({
   params,
 }: {
@@ -25,7 +40,31 @@ export default async function VisualPage({
 }) {
   const { id } = await params;
   const { order, site } = await carregarGerenciamento(id);
+  const linhaDeConteudo = site ? await getSiteContent(site.id) : null;
+  const conteudo = linhaDeConteudo ? buildContentView(linhaDeConteudo) : null;
   const previewSrc = order.previewUrl ?? order.siteUrl ?? null;
+
+  /* A amostra de cores mostra o casal DELES, não o da vitrine (UX-018).
+     `linhaDeLugar` é a mesma função que a capa usa, então a amostra mostra
+     exatamente a linha que vai sair no site. Sem conteúdo salvo, cai no
+     exemplo — melhor um exemplo do que um cartão vazio. */
+  const casalDaAmostra = (() => {
+    if (!conteudo) return null;
+    const primeiro = conteudo.partnerA?.trim();
+    const segundo = conteudo.partnerB?.trim();
+    if (!primeiro || !segundo) {
+      const [a, b] = (conteudo.coupleNames ?? "")
+        .split(/\s+(?:&|e)\s+/i)
+        .map((n: string) => n.trim());
+      if (!a || !b) return null;
+      return {
+        primeiro: a,
+        segundo: b,
+        linha: linhaDaAmostra(conteudo),
+      };
+    }
+    return { primeiro, segundo, linha: linhaDaAmostra(conteudo) };
+  })();
 
   const template = site ? getTemplate(site.templateId) : null;
 
@@ -114,6 +153,7 @@ export default async function VisualPage({
           {site !== null && temaAtual !== null ? (
             <ThemeEditor
               siteId={site.id}
+              casal={casalDaAmostra}
               nomeDoModelo={nomeDoModelo}
               fontesDoModelo={fontesDoModelo}
               fontClassNames={fontClassNames}
