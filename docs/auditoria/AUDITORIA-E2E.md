@@ -287,7 +287,7 @@ pular todas as etapas opcionais; desktop e celular.
      derrubar a página inteira** por causa de um link: quem chama `getBaseUrl()` para
      montar um endereço deve conseguir seguir sem ele, e o erro tem que aparecer como
      aviso ao casal, não como 500.
-- **Status:** Em correção — feature `001-ux-provisionamento-e-ambiente`
+- **Status:** ✅ **Resolvido** — feature `001-ux-provisionamento-e-ambiente`, verificado em produção em 11/09/2026 (ver `RELATORIO-CORRECOES.md`)
 
 ### UX-002 — "Criar convite" derruba a página com um erro em inglês
 - **Severidade:** 🔴 Crítico
@@ -308,7 +308,7 @@ pular todas as etapas opcionais; desktop e celular.
   e `app/conta/convites/[conviteId]/page.tsx:62` chamam `getBaseUrl()`.
 - **Sugestão:** a correção da UX-001 resolve. Independentemente dela, esta tela precisa
   de um `error.tsx` em português que diga o que houve e ofereça um caminho.
-- **Status:** Em correção — feature `001-ux-provisionamento-e-ambiente`
+- **Status:** ✅ **Resolvido** — feature `001-ux-provisionamento-e-ambiente`, verificado em produção em 11/09/2026 (ver `RELATORIO-CORRECOES.md`)
 
 ### UX-003 — O pedido resgatado pela rede de segurança nasce sem o conteúdo do questionário, e com a história trocada
 - **Severidade:** 🔴 Crítico
@@ -358,7 +358,7 @@ pular todas as etapas opcionais; desktop e celular.
   `ceremonyAddress`, `receptionVenue`, `receptionAddress`, `receptionTime`, `dressCode`) e
   usar `order.story` para a história, de modo que os dois caminhos entreguem a mesma
   coisa. Migração não é necessária: as colunas já existem em `site_content`.
-- **Status:** Em correção — feature `001-ux-provisionamento-e-ambiente`
+- **Status:** ✅ **Resolvido** — feature `001-ux-provisionamento-e-ambiente`, verificado em produção em 11/09/2026 (ver `RELATORIO-CORRECOES.md`)
 
 ### UX-004 — Um erro na chave Pix apaga os onze campos que o casal acabou de preencher
 - **Severidade:** 🔴 Crítico
@@ -526,7 +526,7 @@ pular todas as etapas opcionais; desktop e celular.
   aparece.
 - **Sugestão:** corrigir a UX-001 traz o botão de volta; além disso, **mostrar o endereço
   como texto** ao lado do botão, para o casal poder conferir e digitar se precisar.
-- **Status:** Em correção — feature `001-ux-provisionamento-e-ambiente`
+- **Status:** ✅ **Resolvido** — feature `001-ux-provisionamento-e-ambiente`, verificado em produção em 11/09/2026 (ver `RELATORIO-CORRECOES.md`)
 
 ### UX-017 — O WhatsApp do cadastro não tem máscara e some depois
 - **Severidade:** 🟢 Baixo
@@ -595,7 +595,7 @@ pular todas as etapas opcionais; desktop e celular.
 - **Sugestão:** dar a `baseUrlEstatica()` a mesma descoberta automática de endereço da
   UX-001 (endereço configurado → endereço da plataforma → localhost só em
   desenvolvimento).
-- **Status:** Em correção — feature `001-ux-provisionamento-e-ambiente`
+- **Status:** ✅ **Resolvido** — feature `001-ux-provisionamento-e-ambiente`, verificado em produção em 11/09/2026 (ver `RELATORIO-CORRECOES.md`)
 
 ### UX-005 — O QR do site publicado devolve 500 em produção (inclusive o do casamento real)
 - **Severidade:** 🟠 Alto
@@ -613,7 +613,7 @@ pular todas as etapas opcionais; desktop e celular.
   (`app/api/qr/[slug]/route.ts:31`); logo, um 500 significa que passou dali e a falha veio
   da função.
 - **Sugestão:** corrigir a UX-001.
-- **Status:** Em correção — feature `001-ux-provisionamento-e-ambiente`
+- **Status:** ✅ **Resolvido** — feature `001-ux-provisionamento-e-ambiente`, verificado em produção em 11/09/2026 (ver `RELATORIO-CORRECOES.md`)
 
 ### UX-007 — ~~"Já fiz o Pix" falha sempre~~ · **RETRATADO em 11/09/2026**
 - **Severidade:** ~~🟠 Alto~~ → **não é defeito**
@@ -819,12 +819,12 @@ pública. O produto não está mal construído — está mal ligado.
 
 | UX-ID | Severidade | Área | Status | Feature SDD | Tasks |
 |---|---|---|---|---|---|
-| UX-001 | 🔴 Crítico | Provisionamento / ambiente | Em correção | 001-ux-provisionamento-e-ambiente | ver tasks.md |
-| UX-002 | 🔴 Crítico | Convites / ambiente | Em correção | 001-ux-provisionamento-e-ambiente | ver tasks.md |
-| UX-003 | 🔴 Crítico | Provisionamento (rede de segurança) | Em correção | 001-ux-provisionamento-e-ambiente | ver tasks.md |
+| UX-001 | 🔴 Crítico | Provisionamento / ambiente | ✅ Resolvido | 001-ux-provisionamento-e-ambiente | T001–T019 |
+| UX-002 | 🔴 Crítico | Convites / ambiente | ✅ Resolvido | 001-ux-provisionamento-e-ambiente | T001–T019 |
+| UX-003 | 🔴 Crítico | Provisionamento (rede de segurança) | ✅ Resolvido | 001-ux-provisionamento-e-ambiente | T001–T019 |
 | UX-004 | 🔴 Crítico | Painel · Conteúdo | Aberto | — | — |
-| UX-005 | 🟠 Alto | QR / ambiente | Em correção | 001-ux-provisionamento-e-ambiente | ver tasks.md |
-| UX-021 | 🟠 Alto | Compartilhamento / ambiente | Em correção | 001-ux-provisionamento-e-ambiente | ver tasks.md |
+| UX-005 | 🟠 Alto | QR / ambiente | ✅ Resolvido | 001-ux-provisionamento-e-ambiente | T001–T019 |
+| UX-021 | 🟠 Alto | Compartilhamento / ambiente | ✅ Resolvido | 001-ux-provisionamento-e-ambiente | T001–T019 |
 | UX-006 | 🟠 Alto | Cores e tema | Aberto | — | — |
 | UX-007 | ~~🟠~~ | Presentes (convidado) | **Retratado** — não reproduz em produção | — | — |
 | UX-008 | 🟠 Alto | Convidados / privacidade | Aberto | — | — |
@@ -835,7 +835,7 @@ pública. O produto não está mal construído — está mal ligado.
 | UX-013 | 🟡 Médio | Questionário | Aberto | — | — |
 | UX-014 | 🟡 Médio | Site do convidado · capa | Aberto | — | — |
 | UX-015 | 🟡 Médio | Site do convidado · celular | Aberto | — | — |
-| UX-016 | 🟠 Alto | Painel · Convidados | Em correção | 001-ux-provisionamento-e-ambiente | ver tasks.md |
+| UX-016 | 🟠 Alto | Painel · Convidados | ✅ Resolvido | 001-ux-provisionamento-e-ambiente | T001–T019 |
 | UX-017 | 🟢 Baixo | Cadastro / conta | Aberto | — | — |
 | UX-018 | 🟢 Baixo | Painel · Visual | Aberto | — | — |
 | UX-019 | 🟢 Baixo | Questionário | Aberto | — | — |
