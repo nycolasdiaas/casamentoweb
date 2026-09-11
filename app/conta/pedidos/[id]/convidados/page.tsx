@@ -172,12 +172,7 @@ export default async function ConvidadosPage({
                             ? `${base.replace(/^https?:\/\//, "")}/rsvp/${g.slug}`
                             : `/rsvp/${g.slug}`}
                         </span>
-                        <span className="text-[12.5px] break-all text-(--c-ink-2)">
-                  {base
-                    ? `${base.replace(/^https?:\/\//, "")}/rsvp/${g.slug}`
-                    : `/rsvp/${g.slug}`}
-                </span>
-                {base && <CopiarLink url={`${base}/rsvp/${g.slug}`} />}
+                        {base && <CopiarLink url={`${base}/rsvp/${g.slug}`} />}
                       </span>
                     </Td>
                   </tr>
