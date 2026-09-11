@@ -46,9 +46,20 @@
 - [x] **T010** `npm run lint` limpo
 - [x] **T011** `npx tsc --noEmit` limpo
 - [x] **T012** `npm run build` passando
-- [ ] **T013** `npm run test` verde
-- [ ] **T014** Atualizar o status de UX-004 e UX-012 na auditoria e o índice de
+- [x] **T013** `npm run test` verde
+- [x] **T014** Atualizar o status de UX-004 e UX-012 na auditoria e o índice de
   rastreabilidade. — `[constitution · princípio II]`
+
+## Estado final — 11/09/2026
+
+14/14 tarefas. Portões: lint limpo, `tsc --noEmit` limpo, `next build` passando,
+`npm run test` com **800 testes em 69 arquivos, todos verdes**. Verificado em
+produção depois do deploy `c1ca29f` — ver
+`docs/auditoria/evidencias/RESULTADOS-002.md`.
+
+Uma rodada da suíte falhou antes desta, com `ECONNRESET` num insert de `sites`
+— queda de conexão com o banco remoto, não defeito. O arquivo passou sozinho e
+a rodada seguinte fechou 800/800.
 
 ## Cobertura
 

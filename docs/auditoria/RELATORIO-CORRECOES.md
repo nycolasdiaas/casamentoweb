@@ -1,13 +1,16 @@
-# Relatório de correções — feature 001
+# Relatório de correções — features 001 e 002
 
 **Data:** 11/09/2026
 **Auditoria de origem:** [`AUDITORIA-E2E.md`](./AUDITORIA-E2E.md)
-**Feature:** `specs/001-ux-provisionamento-e-ambiente`
-**No ar desde:** commit `c85f436` em `vercel-origin/main`
+**Features:** `specs/001-ux-provisionamento-e-ambiente` · `specs/002-ux-nao-perder-o-que-foi-digitado`
+**No ar desde:** commits `c85f436` e `c1ca29f` em `vercel-origin/main`
 
 ---
 
 ## 1. Resumo executivo — antes × depois
+
+**Duas features, oito achados, todos verificados no site no ar.** A 001 devolveu
+o funil; a 002 parou a perda de dado na tela de Conteúdo.
 
 **Antes.** Um casal que respondesse o questionário inteiro em
 `casamentoweb-ten.vercel.app` clicava em "Criar nosso site" e recebia **HTTP
@@ -16,13 +19,15 @@ encontrava o painel sem cerimônia, sem festa, sem traje, e com uma anotação d
 bastidor publicada no lugar da história de amor. "Criar convite" derrubava a
 página com um erro em inglês. O QR do casamento **que já está no ar** devolvia
 500, e o cartão do link que esse casal manda no WhatsApp apontava para
-`localhost`.
+`localhost`. E, na tela de Conteúdo, um dígito errado na chave Pix apagava os
+onze campos preenchidos — história de amor inclusive.
 
 **Depois.** O mesmo fluxo, feito do zero em produção com uma conta nova:
 "PRÉVIA PRONTA" na hora, painel abrindo, os oito campos do questionário no
 lugar certo, convite abrindo com o domínio real no rodapé, QR devolvendo
 imagem, e o cartão do WhatsApp do casamento real apontando para
-`https://casamentoweb-ten.vercel.app`.
+`https://casamentoweb-ten.vercel.app`. Errar a chave Pix agora custa uma
+correção de um campo, não o formulário inteiro.
 
 **Uma causa, seis sintomas.** `getBaseUrl()` lançava exceção quando
 `NEXT_PUBLIC_SITE_URL` não estava definida e o host não estava na allowlist — e
@@ -44,19 +49,22 @@ o domínio de produção tem um `-ten` que a lista não tinha. A gêmea dela,
 | Textos | 8,0 | **9,0** | as duas telas em inglês saíram |
 | Organização | 8,0 | 8,0 | sem mudança |
 | Feedback | 5,5 | **7,0** | "Site criado!" chega ao casal; falha tem tela com saída |
-| Prevenção de erros | 4,0 | 4,5 | UX-009 e UX-019 seguem abertos |
-| Recuperação de erros | 2,0 | **8,0** | tela de erro em português, "tentar de novo", nada se perde |
+| Prevenção de erros | 4,0 | **6,0** | o erro de Pix deixou de custar o formulário; UX-009 e UX-019 seguem abertos |
+| Recuperação de erros | 2,0 | **9,0** | tela de erro em português, "tentar de novo", e nenhum erro de validação apaga o que foi digitado |
 | Consistência | 6,5 | 7,0 | endereços passam a ser o mesmo em todo lugar |
 | Quantidade de etapas | 8,0 | 8,0 | sem mudança |
 | Pontos de abandono | 1,5 | **8,5** | o abandono estava no clique que fecha a venda; ele sumiu |
 
-### **Nota geral: 4,2 → 7,6**
+### **Nota geral: 4,2 → 8,0**
 
-O que segura em 7,6 e não mais alto são os quatorze achados que **não** entram
-nesta feature: as cores trocadas dos seis modelos (UX-006), o rótulo privado que
-vaza para o convidado (UX-008), a perda de onze campos quando a chave Pix é
-recusada (UX-004), os alvos de toque de 12px no celular (UX-015). Nada disso foi
-tocado aqui — de propósito: a feature 001 tinha um escopo, e ele era o funil.
+*(7,6 depois da feature 001; 8,0 depois da 002.)*
+
+O que segura em 8,0 e não mais alto são os doze achados que **não** entram
+nestas duas features: as cores trocadas dos seis modelos (UX-006), o rótulo
+privado que vaza para o convidado (UX-008), a data no passado aceita sem aviso
+(UX-009), os alvos de toque de 12px no celular (UX-015). Nada disso foi tocado
+aqui — de propósito: cada feature tinha um escopo, e eles eram o funil e a
+perda de dado.
 
 ---
 
@@ -70,10 +78,13 @@ tocado aqui — de propósito: a feature 001 tinha um escopo, e ele era o funil.
 | UX-005 | 🟠 | ✅ Resolvido | FR-006 | T002, T016 | `746cfd3` | `UX-005-log.md` | `RESULTADOS-DEPOIS.md` |
 | UX-016 | 🟠 | ✅ Resolvido | FR-013 | T002, T015, T018 | `746cfd3`, `c85f436` | (células lidas em produção) | `RESULTADOS-DEPOIS.md` |
 | UX-021 | 🟠 | ✅ Resolvido | FR-012 | T002, T017 | `746cfd3` | (og lido em produção) | `RESULTADOS-DEPOIS.md` |
+| UX-004 | 🔴 | ✅ Resolvido | 002/FR-001, FR-002, FR-003 | 002/T001–T005 | `c1ca29f` | `UX-004.png` | `RESULTADOS-002.md` |
+| UX-012 | 🟡 | ✅ Resolvido | 002/FR-004, FR-005 | 002/T006–T009 | `c1ca29f` | (texto lido em produção) | `RESULTADOS-002.md` |
 | UX-007 | ~~🟠~~ | **Retratado** | — | — | — | — | não é defeito: já estava consertado no ar |
 
-**Cobertura:** 6/6 UX-IDs desta feature · 13/13 FR · 9/9 SC. `/speckit-analyze`
-fechou sem gap.
+**Cobertura:** 8/8 UX-IDs das duas features · 18/18 FR · 12/12 SC.
+`/speckit-analyze` fechou sem gap na 001; a 002 nasceu já com a tabela de
+cobertura fechada.
 
 ---
 
@@ -84,30 +95,33 @@ fechou sem gap.
 | O endereço da família aparecia **duas vezes** na célula da tabela | Verificação em produção, logo depois do primeiro deploy | Erro meu ao editar: a mesma substituição pegou a tabela e a lista do celular. Corrigido em `c85f436` e reverificado |
 | Risco de `new URL("")` quebrar o `metadataBase` | Antevisto ao mudar `baseUrlEstatica()` | `app/layout.tsx` passa `undefined` quando não há endereço — o Next avisa no build em vez de publicar link quebrado |
 | Teste antigo exigia `notes` virando história | `lib/site/provision.test.ts` | O teste codificava o bug. Reescrito para exigir o contrário, com o porquê no comentário |
+| Uma rodada da suíte falhou com `ECONNRESET` | `lib/site/expirarSites.test.ts`, durante a feature 002 | Queda de conexão com o banco remoto, não defeito: o arquivo passou sozinho (37 testes) e a rodada seguinte fechou **800/800** |
 
 **Fluxos que funcionavam e continuam funcionando**, conferidos depois do deploy:
 `/rsvp/<slug>` (a rota que tem convidado real com link no WhatsApp), a busca do
 convite por nome, o modal de presente com Pix copia e cola, o aviso "Já fiz o
-Pix", o mural, o cancelamento de pedido e a suíte inteira — **792 testes em 67
-arquivos, todos verdes**.
+Pix", o mural, o cancelamento de pedido e a suíte inteira — **800 testes em 69
+arquivos, todos verdes** na última rodada.
 
 ---
 
 ## 5. Pendências
 
-### Aberto — fora do escopo desta feature (14 achados)
+### Aberto — fora do escopo destas features (12 achados)
+
+**Nenhum 🔴 continua aberto.**
 
 | Prioridade | Itens |
 |---|---|
-| 2 · Não perder o que foi digitado | UX-004 🔴, UX-012 🟡 |
 | 3 · Convidado e privacidade | UX-008 🟠 |
 | 4 · Cores e legibilidade | UX-006 🟠 — **espera decisão sua** |
 | 5 · Fricção | UX-009, UX-010, UX-011, UX-013 🟡 |
 | 6 · Celular e capa | UX-014, UX-015 🟡 |
 | 7 · Polimento | UX-017, UX-018, UX-019, UX-020 🟢 |
 
-**Recomendação de ordem:** a feature 002 (UX-004 + UX-012) é a próxima — UX-004
-é 🔴 e é perda de dado real, causada pelo erro mais provável do formulário.
+**Recomendação de ordem:** a próxima é a 003 (UX-008 🟠 — o rótulo privado que
+vaza para o convidado), que **depende de uma decisão sua**, e logo depois a 005
+(UX-009, UX-010, UX-011, UX-013), que é a de melhor retorno por linha de código.
 
 ### Decisões que continuam suas
 
@@ -170,14 +184,16 @@ Para conferir com os próprios olhos, em ordem de valor:
    para você mesmo no WhatsApp. Antes chegava sem foto; agora o cartão monta.
 2. **O funil.** Crie uma conta qualquer, responda o questionário pulando o que
    quiser, e veja o site nascer.
-3. **O código.** `git show 746cfd3` — o coração está em `lib/baseUrl.ts` e
-   `lib/site/provision.ts`.
+3. **A tela de Conteúdo.** Preencha, erre a chave Pix de propósito e salve: a
+   mensagem aparece e nada do que você escreveu se perde.
+4. **O código.** `git show 746cfd3` (o coração está em `lib/baseUrl.ts` e
+   `lib/site/provision.ts`) e `git show c1ca29f`.
 
 **Uma coisa depende de você:** definir `NEXT_PUBLIC_SITE_URL=https://casamentoweb-ten.vercel.app`
 no painel da Vercel, como combinado. O código **não precisa** mais dela — ele
 descobre o domínio sozinho pelo que a Vercel informa —, mas com ela o endereço
 fica explícito e sobrevive a uma eventual mudança de plataforma.
 
-**Se algo der errado:** `git revert 746cfd3 c85f436` devolve o estado anterior.
+**Se algo der errado:** `git revert c1ca29f c85f436 746cfd3` devolve o estado anterior.
 Nenhuma migração foi criada, nenhuma coluna mudou, nenhum dado foi reescrito —
 o rollback é só de código.
