@@ -120,6 +120,24 @@ export default function ContentEditor({
     undefined
   );
 
+  /* O que a tela mostra depois de uma recusa: o que o casal DIGITOU, não o
+     último valor salvo.
+     
+     O React reinicia formulário não-controlado quando a action termina —
+     inclusive quando ela termina em erro. Como os campos usam `defaultValue`,
+     uma chave Pix com um dígito errado devolvia a tela ao estado anterior e
+     levava junto os onze campos: locais, endereços, horários, traje e a
+     história inteira (UX-004).
+     
+     `defaultValue` só vale quando o campo MONTA — por isso a `key` no
+     formulário. Ela muda a cada recusa, o React remonta, e os valores
+     devolvidos aparecem. É o mecanismo que o próprio React oferece para
+     "este formulário agora é outro", e custa menos que controlar 18 campos. */
+  const recusado = state && "error" in state ? state : null;
+  const valoresNaTela = recusado
+    ? ({ ...values, ...recusado.valores } as ContentEditorValues)
+    : values;
+
   return (
     <section className="flex flex-col gap-5">
       <div className="flex flex-col gap-1.5">
@@ -130,14 +148,18 @@ export default function ContentEditor({
         </p>
       </div>
 
-      <form action={action} className="flex flex-col gap-5">
+      <form
+        key={recusado?.marca ?? "inicial"}
+        action={action}
+        className="flex flex-col gap-5"
+      >
         <input type="hidden" name="siteId" value={siteId} />
 
         <Campo
           name="coupleNames"
           label="Nomes de vocês"
           hint="Como aparece na capa do convite. Ex: Ana & Pedro"
-          defaultValue={values.coupleNames}
+          defaultValue={valoresNaTela.coupleNames}
           maxLength={120}
         />
 
@@ -146,14 +168,14 @@ export default function ContentEditor({
             name="partnerA"
             label="Primeiro nome"
             hint="Usado nas iniciais do monograma"
-            defaultValue={values.partnerA}
+            defaultValue={valoresNaTela.partnerA}
             maxLength={60}
           />
           <Campo
             name="partnerB"
             label="Segundo nome"
             hint="Deixem em branco e a gente tira dos nomes acima"
-            defaultValue={values.partnerB}
+            defaultValue={valoresNaTela.partnerB}
             maxLength={60}
           />
         </div>
@@ -164,14 +186,14 @@ export default function ContentEditor({
             label="Data do casamento"
             type="date"
             hint="Alimenta a contagem regressiva"
-            defaultValue={values.weddingDate}
+            defaultValue={valoresNaTela.weddingDate}
           />
           <Campo
             name="weddingTime"
             label="Horário da cerimônia"
             type="time"
             hint="Em branco = ainda não divulgado; o horário some do site"
-            defaultValue={values.weddingTime}
+            defaultValue={valoresNaTela.weddingTime}
           />
         </div>
 
@@ -183,14 +205,14 @@ export default function ContentEditor({
             name="ceremonyVenue"
             label="Local"
             placeholder="Ex: Igreja Nossa Senhora do Carmo"
-            defaultValue={values.ceremonyVenue}
+            defaultValue={valoresNaTela.ceremonyVenue}
             maxLength={160}
           />
           <Campo
             name="ceremonyAddress"
             label="Endereço"
             placeholder="Rua, número, bairro, cidade"
-            defaultValue={values.ceremonyAddress}
+            defaultValue={valoresNaTela.ceremonyAddress}
             maxLength={300}
           />
           <Campo
@@ -199,7 +221,7 @@ export default function ContentEditor({
             type="url"
             hint="Cole o link do Google Maps. O convidado abre a rota num toque."
             placeholder="https://maps.google.com/…"
-            defaultValue={values.ceremonyMapUrl}
+            defaultValue={valoresNaTela.ceremonyMapUrl}
             maxLength={600}
           />
         </div>
@@ -212,14 +234,14 @@ export default function ContentEditor({
             name="receptionVenue"
             label="Local"
             placeholder="Ex: Espaço Jardim das Oliveiras"
-            defaultValue={values.receptionVenue}
+            defaultValue={valoresNaTela.receptionVenue}
             maxLength={160}
           />
           <Campo
             name="receptionAddress"
             label="Endereço"
             placeholder="Rua, número, bairro, cidade"
-            defaultValue={values.receptionAddress}
+            defaultValue={valoresNaTela.receptionAddress}
             maxLength={300}
           />
           <Campo
@@ -227,13 +249,13 @@ export default function ContentEditor({
             label="Horário da festa"
             type="time"
             hint="Aparece no site logo abaixo do local da festa. Em branco, o site mostra só o local."
-            defaultValue={values.receptionTime}
+            defaultValue={valoresNaTela.receptionTime}
           />
           <Campo
             name="dressCode"
             label="Traje"
             placeholder="Ex: Esporte fino. Evitem branco e off-white."
-            defaultValue={values.dressCode}
+            defaultValue={valoresNaTela.dressCode}
             maxLength={200}
           />
         </div>
@@ -247,7 +269,7 @@ export default function ContentEditor({
             label="A história de vocês"
             hint="Vira a seção “Nossa história”, aquele trecho que os convidados leem entre as fotos. Escrevam com as palavras de vocês."
             placeholder="A gente se conheceu em 2019, num churrasco de amigos…"
-            defaultValue={values.story}
+            defaultValue={valoresNaTela.story}
             rows={7}
             maxLength={5000}
           />
@@ -255,7 +277,7 @@ export default function ContentEditor({
             name="giftMessage"
             label="Recado sobre presentes"
             hint="Aparece acima da lista de presentes. Ex: “A presença de vocês já é o maior presente — mas se quiserem nos mimar...”"
-            defaultValue={values.giftMessage}
+            defaultValue={valoresNaTela.giftMessage}
             rows={3}
             maxLength={1000}
           />
@@ -283,7 +305,7 @@ export default function ContentEditor({
             label="Chave Pix"
             hint="CPF, CNPJ, e-mail, celular com DDD ou a chave aleatória do banco. Conferimos os dígitos antes de salvar. Em branco = a lista aparece sem forma de pagamento."
             placeholder="00000000-0000-0000-0000-000000000000"
-            defaultValue={values.pixKey}
+            defaultValue={valoresNaTela.pixKey}
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -292,7 +314,7 @@ export default function ContentEditor({
               label="Nome de quem recebe"
               hint="Aparece na confirmação do app do banco. Até 25 letras, sem acento — é limite do padrão do Pix, não nosso."
               placeholder="Ana Paula Souza"
-              defaultValue={values.pixRecipient}
+              defaultValue={valoresNaTela.pixRecipient}
               maxLength={25}
             />
             <Campo
@@ -300,7 +322,7 @@ export default function ContentEditor({
               label="Cidade de quem recebe"
               hint="Também exigida pelo padrão. Até 15 letras."
               placeholder="Fortaleza"
-              defaultValue={values.pixCity}
+              defaultValue={valoresNaTela.pixCity}
               maxLength={15}
             />
           </div>
@@ -310,9 +332,25 @@ export default function ContentEditor({
             label="Banco (opcional)"
             hint="Só para o convidado reconhecer o destino. Não entra no código do Pix."
             placeholder="Nubank"
-            defaultValue={values.pixInstitution}
+            defaultValue={valoresNaTela.pixInstitution}
             maxLength={40}
           />
+        </div>
+
+        {/* O recado fica ACIMA dos botões: é onde o olho está depois de
+            clicar em salvar. Embaixo, numa tela longa como esta, o casal
+            clicava, não via nada acontecer e clicava de novo. */}
+        <div aria-live="polite" className="min-h-5">
+          {state && "saved" in state && (
+            <p className="text-sm text-(--c-ink)">
+              Salvo ✓ — o site já está com o conteúdo novo.
+            </p>
+          )}
+          {recusado && (
+            <p role="alert" className="text-sm text-(--c-danger)">
+              {recusado.error}
+            </p>
+          )}
         </div>
 
         <div className="flex flex-wrap items-center gap-3 border-t border-(--c-rule) pt-5">
@@ -331,16 +369,6 @@ export default function ContentEditor({
           )}
         </div>
 
-        <div aria-live="polite" className="min-h-5">
-          {state && "saved" in state && (
-            <p className="text-sm text-(--c-ink)">
-              Salvo ✓ — o site já está com o conteúdo novo.
-            </p>
-          )}
-          {state && "error" in state && (
-            <p className="text-sm text-(--c-danger)">{state.error}</p>
-          )}
-        </div>
       </form>
     </section>
   );

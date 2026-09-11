@@ -386,7 +386,7 @@ pular todas as etapas opcionais; desktop e celular.
 - **Sugestão:** validar sem descartar — devolver os valores digitados junto do erro (ou
   validar a chave Pix no cliente, antes do envio), marcar o campo com problema e levar o
   foco até ele.
-- **Status:** Aberto
+- **Status:** Em correção — feature `002-ux-nao-perder-o-que-foi-digitado`
 
 ---
 
@@ -683,7 +683,7 @@ corrigido na seção 2.
   mensagem para "site não existe" e para "site ainda não publicado".
 - **Sugestão:** separar os dois casos, escrever o segundo na voz do produto e preservar o
   que foi digitado.
-- **Status:** Aberto
+- **Status:** Em correção — feature `002-ux-nao-perder-o-que-foi-digitado`
 
 ### UX-014 — A linha de lugar da capa começa pelo número da casa
 - **Severidade:** 🟡 Médio
@@ -822,7 +822,7 @@ pública. O produto não está mal construído — está mal ligado.
 | UX-001 | 🔴 Crítico | Provisionamento / ambiente | ✅ Resolvido | 001-ux-provisionamento-e-ambiente | T001–T019 |
 | UX-002 | 🔴 Crítico | Convites / ambiente | ✅ Resolvido | 001-ux-provisionamento-e-ambiente | T001–T019 |
 | UX-003 | 🔴 Crítico | Provisionamento (rede de segurança) | ✅ Resolvido | 001-ux-provisionamento-e-ambiente | T001–T019 |
-| UX-004 | 🔴 Crítico | Painel · Conteúdo | Aberto | — | — |
+| UX-004 | 🔴 Crítico | Painel · Conteúdo | Em correção | 002-ux-nao-perder-o-que-foi-digitado | ver tasks.md |
 | UX-005 | 🟠 Alto | QR / ambiente | ✅ Resolvido | 001-ux-provisionamento-e-ambiente | T001–T019 |
 | UX-021 | 🟠 Alto | Compartilhamento / ambiente | ✅ Resolvido | 001-ux-provisionamento-e-ambiente | T001–T019 |
 | UX-006 | 🟠 Alto | Cores e tema | Aberto | — | — |
@@ -831,7 +831,7 @@ pública. O produto não está mal construído — está mal ligado.
 | UX-009 | 🟡 Médio | Questionário | Aberto | — | — |
 | UX-010 | 🟡 Médio | Painel · Fotos | Aberto | — | — |
 | UX-011 | 🟡 Médio | Questionário | Aberto | — | — |
-| UX-012 | 🟡 Médio | Mural (convidado) | Aberto | — | — |
+| UX-012 | 🟡 Médio | Mural (convidado) | Em correção | 002-ux-nao-perder-o-que-foi-digitado | ver tasks.md |
 | UX-013 | 🟡 Médio | Questionário | Aberto | — | — |
 | UX-014 | 🟡 Médio | Site do convidado · capa | Aberto | — | — |
 | UX-015 | 🟡 Médio | Site do convidado · celular | Aberto | — | — |

@@ -30,11 +30,19 @@ export default function FormularioDeRecado({
 }) {
   const [estado, acao, pendente] = useActionState(
     async (
-      _anterior: { ok?: true; error?: string } | undefined,
+      _anterior:
+        | { ok?: true; error?: string; valores?: Record<string, string>; marca?: number }
+        | undefined,
       formData: FormData
     ) => enviarRecadoAction(slug, formData),
     undefined
   );
+
+  /* O que o convidado escreveu continua na tela quando o envio é recusado.
+     `key` no formulário porque `defaultValue` só vale quando o campo monta —
+     ver a mesma nota em `ContentEditor`. */
+  const recusado = estado && "error" in estado && estado.error ? estado : null;
+  const digitado = recusado?.valores ?? {};
 
   const contorno = "1px solid color-mix(in srgb, var(--ink) 22%, transparent)";
 
@@ -50,7 +58,11 @@ export default function FormularioDeRecado({
   }
 
   return (
-    <form action={acao} className="flex flex-col gap-3 max-w-xl mx-auto w-full">
+    <form
+      key={recusado?.marca ?? "inicial"}
+      action={acao}
+      className="flex flex-col gap-3 max-w-xl mx-auto w-full"
+    >
       {convite && (
         <p
           className="text-center text-[14px] leading-[1.7] lg:text-[15px]"
@@ -67,6 +79,7 @@ export default function FormularioDeRecado({
         id="recado-nome"
         name="guestName"
         required
+        defaultValue={digitado.guestName ?? ""}
         placeholder="Seu nome"
         autoComplete="name"
         className="w-full px-4 py-3 text-[15px] outline-none"
@@ -80,6 +93,7 @@ export default function FormularioDeRecado({
         id="recado-texto"
         name="message"
         required
+        defaultValue={digitado.message ?? ""}
         rows={4}
         maxLength={LIMITE_RECADO}
         placeholder="Escreva para os noivos…"
@@ -87,13 +101,13 @@ export default function FormularioDeRecado({
         style={{ border: contorno, background: "var(--paper)", color: "var(--ink)" }}
       />
 
-      {estado && "error" in estado && estado.error && (
+      {recusado && (
         <p
           role="alert"
           className="text-[13.5px] leading-[1.5]"
           style={{ color: "var(--accent)" }}
         >
-          {estado.error}
+          {recusado.error}
         </p>
       )}
 

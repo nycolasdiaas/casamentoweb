@@ -23,25 +23,49 @@ import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 export async function enviarRecadoAction(
   slug: string,
   formData: FormData
-): Promise<{ ok: true } | { error: string }> {
+): Promise<{ ok: true } | { error: string; valores?: Record<string, string>; marca?: number }> {
+  /* O que o convidado digitou volta com a recusa.
+     Sem isto o React reinicia o formulário quando a action termina, e o
+     recado escrito some junto com a mensagem de erro — o convidado precisa
+     escrever tudo de novo para descobrir que o problema não era ele (UX-012). */
+  const digitado = () => ({
+    guestName: formData.get("guestName")?.toString() ?? "",
+    message: formData.get("message")?.toString() ?? "",
+  });
+  const recusar = (error: string) => ({
+    error,
+    valores: digitado(),
+    marca: Date.now(),
+  });
   const ip = await getClientIp();
   // Mais folgado que o RSVP (20): o mural é o lugar onde a família inteira
   // escreve da mesma casa, atrás do mesmo IP. Apertado demais, a tia não
   // consegue mandar o recado dela depois do sobrinho.
   const { allowed } = await checkRateLimit(`mural:${ip}`, 30);
   if (!allowed) {
-    return {
-      error:
-        "Chegaram muitos recados desse aparelho agora há pouco. Espere alguns minutos e mande de novo.",
-    };
+    return recusar(
+      "Chegaram muitos recados desse aparelho agora há pouco. Espere alguns minutos e mande de novo."
+    );
   }
 
   const site = await getSiteBySlug(slug);
-  /* Recado só entra em site NO AR. Numa prévia o mural existe para o casal
-     ver o desenho, e um recado gravado ali apareceria do nada no dia da
-     publicação, sem que ninguém tivesse sido convidado ainda. */
-  if (!site || site.status !== "published") {
-    return { error: "Não achamos esse casamento." };
+
+  /* Duas recusas diferentes, duas mensagens diferentes.
+     
+     A regra não mudou: recado só entra em site NO AR — numa prévia o mural
+     existe para o casal ver o desenho, e um recado gravado ali apareceria do
+     nada no dia da publicação, sem que ninguém tivesse sido convidado ainda.
+     
+     O que mudou é o texto. As duas situações dividiam a frase "Não achamos
+     esse casamento", e o casal que abria a própria prévia para testar o mural
+     lia que o casamento dele não existe — olhando para ele na tela (UX-012). */
+  if (!site) {
+    return recusar("Não achamos esse casamento.");
+  }
+  if (site.status !== "published") {
+    return recusar(
+      "O mural começa a valer quando o site estiver no ar. Aí os recados ficam guardados."
+    );
   }
   const siteId = site.id;
 
@@ -49,22 +73,22 @@ export async function enviarRecadoAction(
   const message = String(formData.get("message") ?? "");
 
   if (!guestName.trim()) {
-    return { error: "Falta o seu nome — é como o casal vai saber quem é." };
+    return recusar("Falta o seu nome — é como o casal vai saber quem é.");
   }
   if (!message.trim()) {
-    return { error: "O recado ficou vazio. Escreva alguma coisa carinhosa." };
+    return recusar("O recado ficou vazio. Escreva alguma coisa carinhosa.");
   }
   if (message.length > LIMITE_RECADO) {
-    return {
-      error: `O recado passou de ${LIMITE_RECADO} caracteres. Encurte um pouquinho.`,
-    };
+    return recusar(
+      `O recado passou de ${LIMITE_RECADO} caracteres. Encurte um pouquinho.`
+    );
   }
   if (guestName.length > LIMITE_NOME) {
-    return { error: "Esse nome é comprido demais — use o primeiro e o último." };
+    return recusar("Esse nome é comprido demais — use o primeiro e o último.");
   }
 
   const criado = await criarRecado(siteId, { guestName, message });
-  if (!criado) return { error: "Não conseguimos salvar agora. Tente de novo." };
+  if (!criado) return recusar("Não conseguimos salvar agora. Tente de novo.");
 
   // `updateTag` e não `revalidateTag`: quem acabou de escrever precisa ver o
   // próprio recado na tela, não uma versão velha do mural.
