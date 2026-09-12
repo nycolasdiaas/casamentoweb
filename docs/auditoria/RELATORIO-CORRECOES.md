@@ -1,20 +1,21 @@
-# Relatório de correções — features 001, 002 e 003
+# Relatório de correções — features 001 a 004
 
 **Data:** 11/09/2026
 **Auditoria de origem:** [`AUDITORIA-E2E.md`](./AUDITORIA-E2E.md)
 **Features:** `001-ux-provisionamento-e-ambiente` · `002-ux-nao-perder-o-que-foi-digitado` ·
-`003-ux-fricao-celular-e-polimento`
-**No ar desde:** `5920247` em `vercel-origin/main` (e em `origin`)
+`003-ux-fricao-celular-e-polimento` · `004-ux-cores-e-privacidade`
+**No ar desde:** `fe014d6` em `vercel-origin/main` (e em `origin`)
 **Revalidação completa no ar:** [`evidencias/REVALIDACAO-FINAL.md`](./evidencias/REVALIDACAO-FINAL.md)
 
 ---
 
 ## 1. Resumo executivo — antes × depois
 
-**Três features, dezoito achados, todos verificados no site no ar.** A 001 devolveu
-o funil; a 002 parou a perda de dado; a 003 limpou a fricção que sobrou. Dos 21
-achados da auditoria, **16 estão resolvidos, 2 foram retratados (não eram
-defeito), 1 foi adiado com justificativa e 2 esperam decisão sua**.
+**Quatro features, vinte achados, todos verificados no site no ar.** A 001 devolveu
+o funil; a 002 parou a perda de dado; a 003 limpou a fricção; a 004 fechou os dois
+que estavam esperando decisão — e, investigando antes de mexer, **nenhum dos dois
+precisou dela**. Dos 21 achados, **18 resolvidos, 2 retratados (não eram defeito) e
+1 adiado com justificativa escrita. Nenhum aberto.**
 
 **Antes.** Um casal que respondesse o questionário inteiro em
 `casamentoweb-ten.vercel.app` clicava em "Criar nosso site" e recebia **HTTP
@@ -51,23 +52,25 @@ o domínio de produção tem um `-ten` que a lista não tinha. A gêmea dela,
 | Criação do casamento | 7,5 | **9,5** | o questionário entrega o que coletou, e avisa antes de deixar passar data errada |
 | Navegação | 7,0 | **8,5** | a aba Início deixou de responder 500 |
 | Textos | 8,0 | **9,5** | as telas em inglês saíram, inclusive a do upload |
+| Acessibilidade / legibilidade | 4,0 | **9,0** | os seis modelos deixaram de nascer com o texto ilegível; alvos de toque no padrão |
 | Organização | 8,0 | 8,0 | sem mudança |
 | Feedback | 5,5 | **8,0** | "Site criado!" chega ao casal; falha tem tela com saída; o botão diz o que faz |
 | Prevenção de erros | 4,0 | **8,5** | data no passado barrada na hora, limite de texto avisado, erro de Pix não custa mais o formulário |
 | Recuperação de erros | 2,0 | **9,0** | tela de erro em português, "tentar de novo", e nenhum erro de validação apaga o que foi digitado |
-| Consistência | 6,5 | **8,0** | endereços iguais em todo lugar; a amostra mostra o casal, não a vitrine |
+| Consistência | 6,5 | **9,0** | endereços iguais em todo lugar; a amostra mostra o casal; o rótulo privado é privado |
 | Quantidade de etapas | 8,0 | 8,0 | sem mudança |
 | Pontos de abandono | 1,5 | **8,5** | o abandono estava no clique que fecha a venda; ele sumiu |
 
-### **Nota geral: 4,2 → 8,7**
+### **Nota geral: 4,2 → 9,2**
 
-*(7,6 depois da 001; 8,0 depois da 002; 8,7 depois da 003.)*
+*(7,6 depois da 001; 8,0 depois da 002; 8,7 depois da 003; 9,2 depois da 004.)*
 
-O que segura em 8,7 e não em 10 são exatamente **dois achados, e os dois
-esperam decisão sua**: as cores trocadas dos seis modelos (UX-006 🟠) e o
-rótulo da família que o painel promete ser privado e o convidado lê (UX-008
-🟠). Nenhum dos dois é difícil de corrigir; os dois mudam o que o produto
-mostra a quem já está no ar, e isso não é escolha minha.
+O que segura em 9,2 e não em 10 é o que **não** foi feito, e está escrito: o
+UX-020 adiado, a saudação do convidado que ficou neutra em vez de usar os nomes
+(exigiria mexer numa consulta cacheada da rota crítica), e os sites
+provisionados **antes** da correção das cores, que nasceram com a tinta e o
+acento trocados e continuam assim — repintá-los é mexer em site de gente que já
+mandou o link.
 
 ---
 
@@ -92,13 +95,13 @@ mostra a quem já está no ar, e isso não é escolha minha.
 | UX-018 | 🟢 | ✅ Resolvido | 003/FR-007 | 003/T009 | `033feda` | — | `REVALIDACAO-FINAL.md` |
 | UX-019 | 🟢 | ✅ Resolvido | 003/FR-008 | 003/T003 | `033feda` | — | `REVALIDACAO-FINAL.md` |
 | UX-020 | 🟢 | ⏭️ Adiado | 003/FR-010 | — | — | — | justificativa na spec da 003 |
-| UX-006 | 🟠 | 🚫 Bloqueado | — | — | — | `UX-006.png` | espera decisão **A** |
-| UX-008 | 🟠 | 🚫 Bloqueado | — | — | — | `UX-008.png` | espera decisão **B** |
+| UX-006 | 🟠 | ✅ Resolvido | 004/FR-001, FR-002, FR-003 | 004/T001–T004 | `2b00228` | `UX-006.png` | seis modelos medidos em produção |
+| UX-008 | 🟠 | ✅ Resolvido | 004/FR-004, FR-005 | 004/T005–T008 | `2b00228` | `UX-008.png` | rótulo ausente do HTML das duas telas |
 | UX-007 | ~~🟠~~ | **Retratado** | — | — | — | — | não é defeito: já estava consertado no ar |
 | UX-013 | ~~🟡~~ | **Retratado** | — | — | — | — | era o automatizador de teste rolando a página |
 
-**Cobertura:** 21/21 UX-IDs com destino escrito — 16 resolvidos, 2 retratados, 1
-adiado, 2 bloqueados por decisão. 31/31 FR · 16/16 SC.
+**Cobertura:** 21/21 UX-IDs com destino escrito — **18 resolvidos, 2 retratados, 1
+adiado**. 36/36 FR · 19/19 SC. Nenhum bloqueado.
 
 ---
 
@@ -123,20 +126,28 @@ arquivos, todos verdes** na última rodada.
 
 ## 5. Pendências
 
-### O que continua aberto: dois achados, e os dois são decisão sua
+### Nada continua aberto
 
-**Nenhum 🔴 aberto. Nenhum 🟡 aberto. Nenhum 🟢 aberto** (o único, UX-020, foi
-adiado com justificativa escrita).
+**Nenhum 🔴, nenhum 🟠, nenhum 🟡, nenhum 🟢 em aberto.** O único não feito está
+adiado com o motivo e a condição de reabertura escritos:
 
-| UX-ID | Sev. | Por que não foi feito |
+| UX-ID | Sev. | Situação |
 |---|---|---|
-| UX-006 | 🟠 | Alinhar rótulo e papel das cores muda o tema resolvido — e os sites já publicados usam esse tema. Decisão **A** |
-| UX-008 | 🟠 | O rótulo da família aparece para o convidado, e o painel promete o contrário. Qual das duas promessas vale é decisão **B** |
-| UX-020 | 🟢 | ⏭️ Adiado: exigiria `searchParams` em duas rotas cacheadas, com `cacheComponents` ligado, para confirmar duas ações que já mudam de tela. O que o reabre está escrito na spec da 003 |
+| UX-020 | 🟢 | ⏭️ **Adiado**: confirmar "saiu da conta" e "pedido cancelado" no destino exigiria `searchParams` em duas rotas cacheadas, com `cacheComponents` ligado — armadilha conhecida — para duas ações que já mudam de tela de forma inequívoca. **Reabre** se alguém relatar que não percebeu a ação |
 
-**Assim que você responder A e B**, as duas viram uma feature curta: a UX-008 é
-uma linha de saudação e um texto de ajuda; a UX-006 é o mapeamento de duas
-cores, mais a decisão de aplicar ou não ao que já está no ar.
+### Três coisas que eu deixei de fazer, e o porquê
+
+1. **Os sites provisionados antes da correção das cores** nasceram com a tinta e
+   o acento trocados e continuam assim. Recalcular o tema deles é repintar site
+   de casal que já mandou o link para os convidados — decisão sua, e nada
+   urgente.
+2. **A saudação do convidado ficou neutra** ("Vocês vêm?") em vez de usar os
+   nomes das pessoas convidadas. Usar os nomes exigiria uma coluna a mais na
+   consulta de `/rsvp/<slug>`, que é rota crítica e cacheada — não quis mexer
+   nela por uma melhoria de tom.
+3. **A máscara de digitação do WhatsApp.** O `pattern` do campo já barra lixo, e
+   o que resolvia o problema descrito na auditoria (um dígito errado invisível
+   para sempre) era o número aparecer nos dados da conta — isso foi feito.
 
 ### Decisões que continuam suas
 

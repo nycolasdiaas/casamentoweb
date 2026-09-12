@@ -421,13 +421,23 @@ pular todas as etapas opcionais; desktop e celular.
   — que é onde o convidado abre —, ou passa a desconfiar do produto logo na terceira
   tela. O aviso, que é um acerto de acessibilidade, vira ruído por disparar sempre.
 - **Evidência:** `docs/auditoria/evidencias/UX-006.png`
-- **Causa provável no código:** o mapeamento entre `primaryColor`/`secondaryColor` do
-  pedido e os papéis `tinta`/`acento` do `ThemeSpec` (ver `lib/theme/presets.ts` e
-  `resolveTheme`). Os rótulos do questionário dizem um papel; o preset entrega o outro.
-- **Sugestão:** alinhar rótulo e papel. **Atenção:** trocar o mapeamento pode mudar o
-  visual de sites que já existem — inclusive o casamento real no ar. Precisa de decisão do
-  dono sobre aplicar só a pedidos novos ou a todos. → `[DECISÃO NECESSÁRIA]`
-- **Status:** Aberto
+- **Causa no código — corrigida em 11/09/2026, depois de ler o código:** a primeira
+  leitura culpou o mapeamento entre `primaryColor`/`secondaryColor` e os papéis
+  `tinta`/`acento`. **Não era isso.** Esse alinhamento já tinha sido feito de propósito —
+  há comentário em `OrderWizard.tsx` explicando que os rótulos foram escritos para seguir
+  o que `resolveTheme` faz, justamente para não repintar site já provisionado.
+  O que estava trocado era o **preenchimento ao escolher o modelo**: `swatches` é
+  `[papel, tinta, acento]`, e `escolherModelo` punha a tinta na cor 1 (que vira o acento)
+  e o acento na cor 2 (que vira a tinta). Duas variáveis cruzadas.
+- **Sugestão aplicada:** a conversão saiu para `lib/theme/coresDoModelo.ts`, com teste que
+  tranca a invariante nos seis modelos. **A decisão que eu havia pedido não era
+  necessária:** o tema é resolvido e gravado uma vez, no provisionamento, e nada recalcula
+  o que está no banco — a correção muda só o ponto de partida de um pedido novo, e nenhum
+  site publicado muda de aparência.
+- **O que fica em aberto (menor):** os sites provisionados **antes** desta correção
+  nasceram com a tinta e o acento trocados e continuam assim. Recuperá-los significa
+  repintar site de gente que já mandou o link — é decisão do dono, e não é urgente.
+- **Status:** ✅ **Resolvido** — feature `004-ux-cores-e-privacidade`, verificado em produção em 11/09/2026
 
 ### UX-008 — O rótulo da família, que o painel promete ser privado, aparece para o convidado
 - **Severidade:** 🟠 Alto
@@ -450,11 +460,14 @@ pular todas as etapas opcionais; desktop e celular.
 - **Evidência:** `docs/auditoria/evidencias/UX-008.png`
 - **Causa provável no código:** o `label` do grupo é usado como saudação nas telas
   públicas (`/s/[slug]/meu-convite` e `/rsvp/[slug]`).
-- **Sugestão:** decidir entre as duas leituras e fazer a interface dizer a verdade — ou o
-  rótulo é interno (e a tela pública passa a saudar pelos nomes dos convidados), ou ele é
-  público (e o texto de ajuda muda para avisar disso). A primeira é a que respeita o que
-  já foi prometido.
-- **Status:** Aberto
+- **Sugestão aplicada:** o rótulo parou de ir para as telas públicas — é a leitura que
+  respeita o que já foi prometido a quem preencheu confiando na frase. A prop `grupo` foi
+  **removida** de `ConfirmacaoDePresenca`, não tornada opcional, e um teste estrutural
+  (`lib/site/rotulo-do-grupo-e-privado.test.ts`) tranca a fronteira.
+- **O que ficou de fora:** saudar pelos **nomes dos convidados** seria mais caloroso que
+  o "Vocês vêm?" neutro, mas exige uma coluna a mais na consulta de `/rsvp/<slug>` — rota
+  crítica e cacheada. Fica como melhoria possível.
+- **Status:** ✅ **Resolvido** — feature `004-ux-cores-e-privacidade`, verificado em produção em 11/09/2026
 
 ### UX-011 — "Salvar e sair" salva, mas não sai e não confirma
 - **Severidade:** 🟡 Médio
@@ -841,9 +854,9 @@ pública. O produto não está mal construído — está mal ligado.
 | UX-004 | 🔴 Crítico | Painel · Conteúdo | ✅ Resolvido | 002-ux-nao-perder-o-que-foi-digitado | T001–T014 |
 | UX-005 | 🟠 Alto | QR / ambiente | ✅ Resolvido | 001-ux-provisionamento-e-ambiente | T001–T019 |
 | UX-021 | 🟠 Alto | Compartilhamento / ambiente | ✅ Resolvido | 001-ux-provisionamento-e-ambiente | T001–T019 |
-| UX-006 | 🟠 Alto | Cores e tema | Aberto | — | — |
+| UX-006 | 🟠 Alto | Cores e tema | ✅ Resolvido | 004-ux-cores-e-privacidade | ver tasks.md |
 | UX-007 | ~~🟠~~ | Presentes (convidado) | **Retratado** — não reproduz em produção | — | — |
-| UX-008 | 🟠 Alto | Convidados / privacidade | Aberto | — | — |
+| UX-008 | 🟠 Alto | Convidados / privacidade | ✅ Resolvido | 004-ux-cores-e-privacidade | ver tasks.md |
 | UX-009 | 🟡 Médio | Questionário | ✅ Resolvido | 003-ux-fricao-celular-e-polimento | ver tasks.md |
 | UX-010 | 🟡 Médio | Painel · Fotos | ✅ Resolvido | 003-ux-fricao-celular-e-polimento | ver tasks.md |
 | UX-011 | 🟡 Médio | Questionário | ✅ Resolvido | 003-ux-fricao-celular-e-polimento | ver tasks.md |
