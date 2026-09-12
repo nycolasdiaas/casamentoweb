@@ -23,10 +23,13 @@ export default function AmostraDeCores({
   acento,
   tinta,
   papel,
+  nomes,
 }: {
   acento: string;
   tinta: string;
   papel: string;
+  /** Os nomes do casal. Em branco, cai no exemplo (UX-018). */
+  nomes?: string | null;
 }) {
   if (!acento && !tinta && !papel) return null;
 
@@ -50,7 +53,9 @@ export default function AmostraDeCores({
           Save the date
         </span>
 
-        <span className="text-2xl leading-tight">Ana &amp; Pedro</span>
+        <span className="text-2xl leading-tight">
+          {nomes?.trim() || "Ana & Pedro"}
+        </span>
 
         <span
           aria-hidden="true"

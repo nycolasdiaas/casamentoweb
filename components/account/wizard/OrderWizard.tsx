@@ -684,7 +684,15 @@ export default function OrderWizard({
               onChange={setCor3}
             />
           </div>
-          <AmostraDeCores acento={cor1} tinta={cor2} papel={cor3} />
+          {/* Os nomes do casal, não os da vitrine: ele acabou de digitá-los
+              na etapa 2, e a etapa das fontes já os usa. Mesmo achado da
+              UX-018, que a auditoria viu na tela Visual do painel. */}
+          <AmostraDeCores
+            acento={cor1}
+            tinta={cor2}
+            papel={cor3}
+            nomes={nomes.trim() || null}
+          />
           <AvisoDeContraste tinta={cor2} papel={cor3} />
         </div>
     ),
