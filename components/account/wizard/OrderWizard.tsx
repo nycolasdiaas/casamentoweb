@@ -286,8 +286,29 @@ export default function OrderWizard({
   // ---- as etapas -----------------------------------------------------------
   // A LISTA (ordem, titulos, quais bloqueiam o avanco) mora em
   // `lib/wizard/etapas.ts`. Aqui fica so o DESENHO de cada uma.
+  /* Data que já passou é digitação, e aqui dá para afirmar isso: o
+     questionário está montando um casamento que ainda vai acontecer.
+     
+     A trava do servidor (`parseOrderForm`) sozinha não resolvia: "Continuar"
+     é navegação do lado do cliente e não fala com o servidor, então o casal
+     digitava 01/01/2020, atravessava nove etapas e só ouvia falar da data no
+     envio — nove telas depois do erro (UX-009).
+     
+     Comparação por texto, não por `Date`: `<input type="date">` devolve
+     "AAAA-MM-DD", e nesse formato a ordem alfabética É a ordem cronológica.
+     Passar por `new Date()` traria fuso para dentro de uma conta que não tem
+     hora nenhuma — e é assim que "hoje" vira "ontem" para quem está a oeste
+     de Greenwich. */
+  const hojeISO = (() => {
+    const d = new Date();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${d.getFullYear()}-${mm}-${dd}`;
+  })();
+  const dataNoPassado = data !== "" && data < hojeISO;
+
   const regras: Record<RegraEtapa, boolean> = {
-    nomes: nomes.trim().length > 0,
+    nomes: nomes.trim().length > 0 && !dataNoPassado,
     pacote: pacote !== "",
   };
 
@@ -360,13 +381,21 @@ export default function OrderWizard({
               type="date"
               id="q-data"
               value={data}
+              min={hojeISO}
               onChange={(e) => setData(e.target.value)}
               className={campoBase}
             />
-            <span className="text-xs text-(--c-ink-2)">
-              Alimenta a contagem regressiva. Ainda não fecharam? Deixem em
-              branco.
-            </span>
+            {dataNoPassado ? (
+              <span role="alert" className="erro-do-campo">
+                Essa data já passou. Confiram o dia do casamento — ou deixem em
+                branco se ainda não fecharam.
+              </span>
+            ) : (
+              <span className="text-xs text-(--c-ink-2)">
+                Alimenta a contagem regressiva. Ainda não fecharam? Deixem em
+                branco.
+              </span>
+            )}
           </label>
         </div>
     ),
