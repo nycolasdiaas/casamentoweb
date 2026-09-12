@@ -85,7 +85,7 @@ export default function BarraDoSite({
           cabe tudo. */}
       <a
         href={`#${ANCORA_DA_SECAO.cover}`}
-        className="max-w-[30%] shrink-0 truncate text-[17px] leading-none no-underline @[700px]:max-w-none @[700px]:text-[22px]"
+        className="flex min-h-10 max-w-[30%] shrink-0 items-center truncate text-[17px] leading-none no-underline @[700px]:min-h-0 @[700px]:max-w-none @[700px]:text-[22px]"
         style={{ fontFamily: "var(--font-display)", color: "var(--ink)" }}
       >
         {nomes}
@@ -107,7 +107,7 @@ export default function BarraDoSite({
           <a
             key={k}
             href={`#${ANCORA_DA_SECAO[k] ?? k}`}
-            className="-my-3 shrink-0 py-3 text-[12px] leading-none no-underline opacity-75 transition-opacity hover:opacity-100 @[700px]:text-[13px]"
+            className="-my-3 flex min-h-10 shrink-0 items-center py-3 text-[12px] leading-none no-underline opacity-75 transition-opacity hover:opacity-100 @[700px]:text-[13px]"
             style={{ color: "var(--ink)" }}
           >
             {ROTULO_CURTO[k] ?? k}
@@ -127,7 +127,7 @@ export default function BarraDoSite({
           /* py-3.5 no celular: o botão tinha 30px de altura, e é o alvo mais
              importante da barra — é por ele que passa a confirmação de
              presença, que é o que o casal comprou (UX-015). */
-          className="shrink-0 whitespace-nowrap px-4 py-3.5 text-[10px] uppercase leading-none tracking-[0.06em] no-underline transition-opacity hover:opacity-85 @[700px]:px-6 @[700px]:py-3 @[700px]:text-[11px] @[700px]:tracking-[0.18em]"
+          className="flex min-h-11 shrink-0 items-center whitespace-nowrap px-4 text-[10px] uppercase leading-none tracking-[0.06em] no-underline transition-opacity hover:opacity-85 @[700px]:min-h-0 @[700px]:px-6 @[700px]:py-3 @[700px]:text-[11px] @[700px]:tracking-[0.18em]"
           style={{ background: "var(--ink)", color: "var(--paper)" }}
         >
           Confirmar presença
