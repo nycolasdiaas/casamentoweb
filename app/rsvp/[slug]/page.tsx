@@ -138,7 +138,20 @@ async function PortaoDoPrazo({
     <ConfirmacaoDePresenca
       slug={slug}
       nomesDoCasal={view.coupleNames}
-      grupo={view.label}
+      /* O RÓTULO DO GRUPO NÃO VEM PARA CÁ.
+       *
+       * O painel pede esse nome dizendo, embaixo do campo: "Do jeito que vocês
+       * chamam eles. Só vocês veem este nome." E ele aparecia aqui, em caixa
+       * alta, no título: "Família Souza — tios da noiva, vocês vêm?" (UX-008).
+       *
+       * Um casal que confie na frase escreve o que quiser — "os chatos do
+       * trabalho", "tios que ninguém aguenta" — e manda o link no WhatsApp da
+       * família. O constrangimento seria criado pela promessa do próprio
+       * produto.
+       *
+       * Entre mudar a promessa e cumpri-la, cumprir custa uma saudação menos
+       * pessoal; mudar custa a confiança de quem já preencheu. O convidado
+       * chegou por um link pessoal: ele sabe que o convite é dele. */
       // `Math.max(…, 1)`: grupo com zero lugares é dado incompleto, não um
       // grupo que não pode responder. Um contador travado em 0 é um beco.
       lugares={Math.max(view.seats, 1)}

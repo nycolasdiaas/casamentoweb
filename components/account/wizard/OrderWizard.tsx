@@ -24,6 +24,7 @@ import WizardShell from "@/components/account/wizard/WizardShell";
 import ColorRow from "@/components/account/wizard/ColorRow";
 import AvisoDeContraste from "@/components/account/wizard/AvisoDeContraste";
 import AmostraDeCores from "@/components/account/wizard/AmostraDeCores";
+import { coresDoModelo } from "@/lib/theme/coresDoModelo";
 import { useConfirmacaoDeEscolha } from "@/components/account/wizard/useConfirmacaoDeEscolha";
 import CelebrationScreen from "@/components/account/wizard/CelebrationScreen";
 import { FONT_PREVIEW_CLASS, CATEGORY_PREVIEW_SIZE } from "@/components/account/wizard/fontPreview";
@@ -262,10 +263,31 @@ export default function OrderWizard({
     setModelo(id);
     const estiloEscolhido = TEMPLATE_STYLES.find((s) => s.id === id);
     if (!estiloEscolhido) return;
-    const [papel, tinta, acento] = estiloEscolhido.swatches;
-    setCor1(tinta ?? "");
-    setCor2(acento ?? "");
-    setCor3(papel ?? "");
+    /* A ORDEM importa, e ela estava trocada.
+     *
+     * `swatches` é [papel, tinta, acento]. A cor 1 é o ACENTO (é o que
+     * `resolveTheme` faz com ela, e é o que o rótulo diz) e a cor 2 é a
+     * TINTA. Aqui a cor 1 recebia a tinta e a cor 2 recebia o acento — o
+     * inverso dos dois.
+     *
+     * O efeito não era cosmético: o casal escolhia Toscana, seguia sem tocar
+     * em nada, e o site nascia com o dourado do acento (#9c8654) como cor do
+     * TEXTO sobre o papel creme. A própria etapa acusava — "o texto vai ficar
+     * difícil de ler sobre esse fundo" — e estava certa. Os seis modelos
+     * faziam isso, todos na chegada (UX-006).
+     *
+     * Isto NÃO repinta site já provisionado: o tema é resolvido e gravado uma
+     * vez, no provisionamento, e ninguém recalcula o que já está no banco. O
+     * que muda aqui é só o ponto de partida de um pedido novo.
+     *
+     * A conversão mora em `lib/theme/coresDoModelo.ts`, fora do componente:
+     * uma troca de duas variáveis não aparece em revisão e não quebra teste
+     * nenhum. Lá ela é uma invariante trancada — escolher um modelo e não
+     * mexer em nada tem que devolver a paleta daquele modelo. */
+    const cores = coresDoModelo(estiloEscolhido.swatches);
+    setCor1(cores.primaryColor);
+    setCor2(cores.secondaryColor);
+    setCor3(cores.tertiaryColor);
   }, []);
 
   const primeiroNome = useMemo(

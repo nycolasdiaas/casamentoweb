@@ -36,8 +36,14 @@ type Props = {
   slug: string;
   /** Nomes do casal — o cabeçalho da tela. */
   nomesDoCasal: string | null;
-  /** Rótulo do grupo: "Família Costa". */
-  grupo: string | null;
+  /**
+   * O rótulo do grupo NÃO entra mais aqui.
+   *
+   * Ele é o nome que o casal dá à família no painel, sob a promessa "Só vocês
+   * veem este nome" — e vinha parar no título desta tela (UX-008). A prop
+   * saiu em vez de virar opcional: opcional é convite para alguém voltar a
+   * passá-la sem perceber o que ela significa.
+   */
   /** Lugares reservados para este grupo. */
   lugares: number;
   /** Resposta anterior, quando já respondeu. */
@@ -59,7 +65,6 @@ type Props = {
 export default function ConfirmacaoDePresenca({
   slug,
   nomesDoCasal,
-  grupo,
   lugares,
   jaRespondeu,
   prazo,
@@ -89,7 +94,6 @@ export default function ConfirmacaoDePresenca({
     return (
       <Sucesso
         lugares={estado.lugares}
-        grupo={grupo}
         dataDoCasamento={dataDoCasamento}
         linkDoSite={linkDoSite}
         linkDaAgenda={linkDaAgenda}
@@ -113,7 +117,7 @@ export default function ConfirmacaoDePresenca({
           <p className="meta text-(--c-mark)">Confirme até {prazo}</p>
         )}
         <h1 className="t-d1 text-(--c-ink) mt-2">
-          {grupo ? `${grupo}, vocês vêm?` : "Vocês vêm?"}
+          Vocês vêm?
         </h1>
         {jaRespondeu && (
           <p className="t-corpo-p text-(--c-ink-2) mt-1">
@@ -333,14 +337,12 @@ function BotaoDoContador({
  */
 function Sucesso({
   lugares,
-  grupo,
   dataDoCasamento,
   linkDoSite,
   linkDaAgenda,
   aoEditar,
 }: {
   lugares: number;
-  grupo: string | null;
   dataDoCasamento: string | null;
   linkDoSite: string | null;
   linkDaAgenda: string | null;
@@ -381,7 +383,7 @@ function Sucesso({
       <p className="t-corpo mt-3 max-w-[38ch] text-(--c-ink-2)">
         {vai ? (
           <>
-            Que alegria{grupo ? `, ${grupo}` : ""}. Anotamos{" "}
+            Que alegria. Anotamos{" "}
             <strong className="font-semibold text-(--c-ink)">
               {lugares} {lugares === 1 ? "lugar" : "lugares"}
             </strong>

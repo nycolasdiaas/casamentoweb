@@ -263,7 +263,9 @@ function PaginaPessoal({
           </p>
 
           <h1 className="mt-4 text-[32px] leading-tight lg:text-[42px]">
-            {convite.label ? `Olá, ${convite.label}` : "Olá!"}
+            {/* Sem o rótulo do grupo: o painel promete que só o casal o vê.
+                Ver a nota em `app/rsvp/[slug]/page.tsx` (UX-008). */}
+            Olá!
           </h1>
 
           <p className="mt-4 max-w-[52ch] text-[15px] leading-relaxed opacity-80">
