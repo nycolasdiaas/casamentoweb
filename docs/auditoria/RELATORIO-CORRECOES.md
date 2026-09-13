@@ -140,10 +140,34 @@ a versão anterior deste relatório foi zerada pela feature 005:
 | Máscara do WhatsApp | O campo formata enquanto o casal digita |
 | Sites com a paleta cruzada | **Não existia**: os dois sites publicados têm a paleta correta. Só os meus sites de teste passaram pelo preenchimento trocado |
 
-### Dado de teste deixado em produção
+### Dado de teste: apagado em 13/09/2026
 
-| O quê | Onde |
+A auditoria precisou criar contas e casamentos de verdade no ambiente publicado —
+era a única forma de testar o que o casal vive. O que sobrou foi removido, com
+`npm run backup:full` antes (`backups/full-backup-2026-09-13T20-57-39-833Z.json`)
+e um ensaio em seco antes de qualquer escrita.
+
+| Apagado | |
 |---|---|
+| Contas | 3 (`auditoria.e2e`, `revalidacao.e2e`, `revalidacao.final`, todas `@example.com`) |
+| Pedidos | 7 (3 em prévia, 4 já cancelados) |
+| Sites | 3, **todos em prévia** — nenhum jamais publicado |
+| Grupos · convidados · fotos | 3 · 3 · 3 |
+
+O script é `scripts/limpar-dados-de-teste.mjs`, e ele é deliberadamente
+desconfiado: só alcança e-mail terminado em `@example.com` (domínio reservado
+pela RFC 2606, que ninguém real usa), roda em seco por padrão, e **recusa-se a
+continuar** se encontrar um site que já esteve no ar.
+
+**O casamento real ficou intacto**, e dá para provar pela contagem: o
+`AGENTS.md` registra *23 grupos, 31 convidados*; depois da limpeza o banco tem
+exatamente `groups = 23` e `guests = 31`. As rotas públicas — `/s/isabelle-e-nycolas`,
+o QR e `/rsvp/<slug>` — continuam respondendo 200.
+
+Uma sobra conhecida: os arquivos das 3 fotos continuam no bucket do Storage. São
+3 objetos sem referência no banco, invisíveis para qualquer tela.
+
+---|---|
 | Conta `auditoria.e2e.11set@example.com` | pedido `45b47b89…`, site `ana-auditoria-e-bruno-teste` (prévia, 2 fotos, 1 família, 1 confirmação, chave Pix fictícia) |
 | Conta `revalidacao.e2e.11set@example.com` | pedido `96913612…`, site `clara-revalida-e-davi-revalida` (prévia, 1 convite, 1 família) |
 | Conta `revalidacao.final.11set@example.com` | pedido `45a4d244…`, site `bia-final-e-caio-final` (prévia, 1 foto, 1 convite, 1 família com 1 confirmação, chave Pix fictícia) |
