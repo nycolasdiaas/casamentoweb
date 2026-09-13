@@ -151,7 +151,11 @@ async function PortaoDoPrazo({
        *
        * Entre mudar a promessa e cumpri-la, cumprir custa uma saudação menos
        * pessoal; mudar custa a confiança de quem já preencheu. O convidado
-       * chegou por um link pessoal: ele sabe que o convite é dele. */
+       * chegou por um link pessoal: ele sabe que o convite é dele.
+       *
+       * No lugar dele vão os NOMES das pessoas convidadas — públicos por
+       * natureza, e mais quentes que o "Vocês vêm?" neutro. */
+      nomesDosConvidados={view.nomesDosConvidados}
       // `Math.max(…, 1)`: grupo com zero lugares é dado incompleto, não um
       // grupo que não pode responder. Um contador travado em 0 é um beco.
       lugares={Math.max(view.seats, 1)}

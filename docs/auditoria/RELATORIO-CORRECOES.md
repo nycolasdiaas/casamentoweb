@@ -1,9 +1,9 @@
-# Relatório de correções — features 001 a 004
+# Relatório de correções — features 001 a 005
 
 **Data:** 11/09/2026
 **Auditoria de origem:** [`AUDITORIA-E2E.md`](./AUDITORIA-E2E.md)
 **Features:** `001-ux-provisionamento-e-ambiente` · `002-ux-nao-perder-o-que-foi-digitado` ·
-`003-ux-fricao-celular-e-polimento` · `004-ux-cores-e-privacidade`
+`003-ux-fricao-celular-e-polimento` · `004-ux-cores-e-privacidade` · `005-ux-o-que-faltava`
 **No ar desde:** `fe014d6` em `vercel-origin/main` (e em `origin`)
 **Revalidação completa no ar:** [`evidencias/REVALIDACAO-FINAL.md`](./evidencias/REVALIDACAO-FINAL.md)
 
@@ -11,11 +11,11 @@
 
 ## 1. Resumo executivo — antes × depois
 
-**Quatro features, vinte achados, todos verificados no site no ar.** A 001 devolveu
-o funil; a 002 parou a perda de dado; a 003 limpou a fricção; a 004 fechou os dois
-que estavam esperando decisão — e, investigando antes de mexer, **nenhum dos dois
-precisou dela**. Dos 21 achados, **18 resolvidos, 2 retratados (não eram defeito) e
-1 adiado com justificativa escrita. Nenhum aberto.**
+**Cinco features. Dos 21 achados, 19 resolvidos e 2 retratados — nenhum adiado,
+nenhum aberto, nenhum esperando decisão.** A 001 devolveu o funil; a 002 parou a
+perda de dado; a 003 limpou a fricção; a 004 fechou os dois que aguardavam
+decisão (e nenhum dos dois precisou dela); a 005 zerou a lista do que eu mesmo
+tinha deixado de fora.
 
 **Antes.** Um casal que respondesse o questionário inteiro em
 `casamentoweb-ten.vercel.app` clicava em "Criar nosso site" e recebia **HTTP
@@ -48,29 +48,30 @@ o domínio de produção tem um `-ten` que a lista não tinha. A gêmea dela,
 
 | Critério | Antes | Depois | O que mudou |
 |---|---:|---:|---|
-| Cadastro | 8,5 | **9,0** | o WhatsApp informado aparece nos dados da conta |
+| Cadastro | 8,5 | **9,5** | o WhatsApp aparece nos dados da conta e se formata enquanto o casal digita |
 | Criação do casamento | 7,5 | **9,5** | o questionário entrega o que coletou, e avisa antes de deixar passar data errada |
 | Navegação | 7,0 | **8,5** | a aba Início deixou de responder 500 |
-| Textos | 8,0 | **9,5** | as telas em inglês saíram, inclusive a do upload |
+| Textos | 8,0 | **9,5** | as telas em inglês saíram, inclusive a do upload; o convidado é chamado pelo nome |
 | Acessibilidade / legibilidade | 4,0 | **9,0** | os seis modelos deixaram de nascer com o texto ilegível; alvos de toque no padrão |
 | Organização | 8,0 | 8,0 | sem mudança |
-| Feedback | 5,5 | **8,0** | "Site criado!" chega ao casal; falha tem tela com saída; o botão diz o que faz |
+| Feedback | 5,5 | **9,0** | "Site criado!" chega ao casal; falha tem tela com saída; o botão diz o que faz; sair e cancelar confirmam o que aconteceu |
 | Prevenção de erros | 4,0 | **8,5** | data no passado barrada na hora, limite de texto avisado, erro de Pix não custa mais o formulário |
 | Recuperação de erros | 2,0 | **9,0** | tela de erro em português, "tentar de novo", e nenhum erro de validação apaga o que foi digitado |
 | Consistência | 6,5 | **9,0** | endereços iguais em todo lugar; a amostra mostra o casal; o rótulo privado é privado |
 | Quantidade de etapas | 8,0 | 8,0 | sem mudança |
 | Pontos de abandono | 1,5 | **8,5** | o abandono estava no clique que fecha a venda; ele sumiu |
 
-### **Nota geral: 4,2 → 9,2**
+### **Nota geral: 4,2 → 9,5**
 
-*(7,6 depois da 001; 8,0 depois da 002; 8,7 depois da 003; 9,2 depois da 004.)*
+*(7,6 depois da 001; 8,0 depois da 002; 8,7 depois da 003; 9,2 depois da 004;
+9,5 depois da 005.)*
 
-O que segura em 9,2 e não em 10 é o que **não** foi feito, e está escrito: o
-UX-020 adiado, a saudação do convidado que ficou neutra em vez de usar os nomes
-(exigiria mexer numa consulta cacheada da rota crítica), e os sites
-provisionados **antes** da correção das cores, que nasceram com a tinta e o
-acento trocados e continuam assim — repintá-los é mexer em site de gente que já
-mandou o link.
+Os três itens que seguravam a nota saíram na 005: a confirmação das ações
+existe, o convidado é chamado pelo nome, e o WhatsApp tem máscara. A quarta
+pendência — repintar sites com a paleta cruzada — **não existia**: medidos no
+ar, os dois sites publicados têm a paleta correta (`ink:#3d4a36`,
+`accent:#b8985f`). Eles nasceram fora do questionário e nunca passaram pelo
+preenchimento trocado; os únicos afetados eram os meus, de teste.
 
 ---
 
@@ -94,14 +95,14 @@ mandou o link.
 | UX-017 | 🟢 | ✅ Resolvido | 003/FR-006 | 003/T008 | `033feda` | — | `REVALIDACAO-FINAL.md` |
 | UX-018 | 🟢 | ✅ Resolvido | 003/FR-007 | 003/T009 | `033feda` | — | `REVALIDACAO-FINAL.md` |
 | UX-019 | 🟢 | ✅ Resolvido | 003/FR-008 | 003/T003 | `033feda` | — | `REVALIDACAO-FINAL.md` |
-| UX-020 | 🟢 | ⏭️ Adiado | 003/FR-010 | — | — | — | justificativa na spec da 003 |
+| UX-020 | 🟢 | ✅ Resolvido | 005/FR-004, FR-005 | 005/T005–T007 | (005) | — | confirmação no destino, sem sair do cache |
 | UX-006 | 🟠 | ✅ Resolvido | 004/FR-001, FR-002, FR-003 | 004/T001–T004 | `2b00228` | `UX-006.png` | seis modelos medidos em produção |
 | UX-008 | 🟠 | ✅ Resolvido | 004/FR-004, FR-005 | 004/T005–T008 | `2b00228` | `UX-008.png` | rótulo ausente do HTML das duas telas |
 | UX-007 | ~~🟠~~ | **Retratado** | — | — | — | — | não é defeito: já estava consertado no ar |
 | UX-013 | ~~🟡~~ | **Retratado** | — | — | — | — | era o automatizador de teste rolando a página |
 
-**Cobertura:** 21/21 UX-IDs com destino escrito — **18 resolvidos, 2 retratados, 1
-adiado**. 36/36 FR · 19/19 SC. Nenhum bloqueado.
+**Cobertura:** 21/21 UX-IDs com destino escrito — **19 resolvidos, 2 retratados**.
+42/42 FR · 22/22 SC. Nenhum adiado, nenhum bloqueado.
 
 ---
 
@@ -126,38 +127,18 @@ arquivos, todos verdes** na última rodada.
 
 ## 5. Pendências
 
-### Nada continua aberto
+### Nada continua aberto, e nada ficou adiado
 
-**Nenhum 🔴, nenhum 🟠, nenhum 🟡, nenhum 🟢 em aberto.** O único não feito está
-adiado com o motivo e a condição de reabertura escritos:
+Os 21 achados têm destino final: **19 resolvidos e verificados no site no ar, 2
+retratados** porque não eram defeito. A lista de "o que eu não fiz" que fechava
+a versão anterior deste relatório foi zerada pela feature 005:
 
-| UX-ID | Sev. | Situação |
-|---|---|---|
-| UX-020 | 🟢 | ⏭️ **Adiado**: confirmar "saiu da conta" e "pedido cancelado" no destino exigiria `searchParams` em duas rotas cacheadas, com `cacheComponents` ligado — armadilha conhecida — para duas ações que já mudam de tela de forma inequívoca. **Reabre** se alguém relatar que não percebeu a ação |
-
-### Três coisas que eu deixei de fazer, e o porquê
-
-1. **Os sites provisionados antes da correção das cores** nasceram com a tinta e
-   o acento trocados e continuam assim. Recalcular o tema deles é repintar site
-   de casal que já mandou o link para os convidados — decisão sua, e nada
-   urgente.
-2. **A saudação do convidado ficou neutra** ("Vocês vêm?") em vez de usar os
-   nomes das pessoas convidadas. Usar os nomes exigiria uma coluna a mais na
-   consulta de `/rsvp/<slug>`, que é rota crítica e cacheada — não quis mexer
-   nela por uma melhoria de tom.
-3. **A máscara de digitação do WhatsApp.** O `pattern` do campo já barra lixo, e
-   o que resolvia o problema descrito na auditoria (um dígito errado invisível
-   para sempre) era o número aparecer nos dados da conta — isso foi feito.
-
-### Decisões que continuam suas
-
-- **UX-006** — alinhar rótulo e papel das cores muda o tema resolvido. Aplicar
-  só a pedidos novos, ou a todos os sites, inclusive o casamento real no ar?
-- **UX-008** — o rótulo da família é interno (e a tela pública passa a saudar
-  pelos nomes) ou é público (e o texto que promete sigilo muda)?
-- **WhatsApp na etapa 11** — a revisão do pedido termina com "Prefere combinar
-  por mensagem? Chame no WhatsApp", e o `AGENTS.md` lista "a página é a proposta
-  (sem funil por WhatsApp)". Não é bug; é escolha de produto.
+| Era | Virou |
+|---|---|
+| UX-020 adiado — confirmar as ações custaria sair do cache | A confirmação viaja no **fragmento** do endereço, que nunca chega ao servidor. As rotas continuam cacheadas |
+| Saudação neutra ao tirar o rótulo privado | O convidado é chamado pelos **nomes das pessoas convidadas** — "Antônia e José, vocês vêm?" —, que são públicos, ao contrário do apelido que o casal deu ao grupo |
+| Máscara do WhatsApp | O campo formata enquanto o casal digita |
+| Sites com a paleta cruzada | **Não existia**: os dois sites publicados têm a paleta correta. Só os meus sites de teste passaram pelo preenchimento trocado |
 
 ### Dado de teste deixado em produção
 
@@ -166,12 +147,15 @@ adiado com o motivo e a condição de reabertura escritos:
 | Conta `auditoria.e2e.11set@example.com` | pedido `45b47b89…`, site `ana-auditoria-e-bruno-teste` (prévia, 2 fotos, 1 família, 1 confirmação, chave Pix fictícia) |
 | Conta `revalidacao.e2e.11set@example.com` | pedido `96913612…`, site `clara-revalida-e-davi-revalida` (prévia, 1 convite, 1 família) |
 | Conta `revalidacao.final.11set@example.com` | pedido `45a4d244…`, site `bia-final-e-caio-final` (prévia, 1 foto, 1 convite, 1 família com 1 confirmação, chave Pix fictícia) |
-| Sites órfãos | de 3 pedidos cancelados durante os testes |
+| Sites de pedidos cancelados | **nenhum** — `cancelarPedidoComSite` apaga o site quando ele nunca esteve no ar e não tem convidados. A nota anterior sobre "sites órfãos" vinha da lista de pendências do `AGENTS.md`, que é anterior a essa função; conferi o código e ela não se aplica mais |
 
 Nada disso aparece para o público — site em prévia não é listado nem indexado.
-Posso apagar quando você quiser; cancelar o pedido pela interface **não** apaga
-o site (o próprio diálogo avisa), então a limpeza completa precisa de decisão
-sua sobre como fazer.
+
+**Apagar de vez precisa da sua palavra e de um backup.** Cancelar pelo painel
+não resolve: o site com convidados fica de pé de propósito, porque cada grupo
+carrega o endereço `/rsvp/<slug>` que já pode ter sido distribuído. Remover as
+linhas exige script e `npm run backup:full` antes — é escrita destrutiva em
+banco com cliente real, e não faço isso por conta própria.
 
 ---
 

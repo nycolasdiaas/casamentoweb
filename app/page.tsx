@@ -13,6 +13,7 @@ import { uiPrensa } from "@/lib/fonts/ui";
 import PaperBackdrop from "@/components/webgl/PaperBackdrop";
 import SplitReveal from "@/components/site/SplitReveal";
 import InterruptorDeMovimento from "@/components/ui/InterruptorDeMovimento";
+import { AvisoPorHash } from "@/components/ui/prensa";
 import RevealOnScroll from "@/components/ui/RevealOnScroll";
 import AccountNav, { LoggedOutLinks } from "@/components/landing/AccountNav";
 import Pacotes from "@/components/landing/Pacotes";
@@ -105,6 +106,17 @@ export default function PackagesPage() {
           `gsap.from`, então se o JS não carregar a landing aparece inteira —
           só sem animação. Ver RevealOnScroll. */}
       <RevealOnScroll raiz="#landing" />
+
+      {/* "Vocês saíram da conta." — quem clica em sair cai aqui, e a vitrine
+          não dizia nada sobre o que tinha acabado de acontecer (UX-020). O
+          recado vem no fragmento, que não chega ao servidor: esta rota
+          continua cacheada. */}
+      <div className="mx-auto w-full max-w-[1200px] px-6">
+        <AvisoPorHash
+          recados={{ saiu: "Vocês saíram da conta." }}
+          className="mt-4"
+        />
+      </div>
 
       {/* Navegação */}
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-(--c-rule)">

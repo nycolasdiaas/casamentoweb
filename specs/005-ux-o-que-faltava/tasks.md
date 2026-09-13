@@ -1,0 +1,52 @@
+# Tasks: O que eu tinha deixado de fora
+
+**Input**: [spec.md](./spec.md)
+
+---
+
+## Fase A — O convidado é chamado pelo nome
+
+- [x] **T001** `lib/site/saudacao.ts` **(novo)**: `saudacaoDeConvidados` (até três nomes) e
+  `pluralDoConvite` (você/vocês pelo número de lugares). — `[FR-001][FR-002]`
+- [x] **T002** `lib/site/saudacao.test.ts` **(novo)**: nove casos, incluindo o corte em
+  quatro nomes e o singular de um lugar. — `[FR-001][FR-002]`
+- [x] **T003** `lib/repositories/groups.ts`: a consulta do RSVP passa a devolver os nomes
+  dos convidados — segunda ida ao banco, não `join`. — `[FR-001]`
+- [x] **T004** `components/site/ConfirmacaoDePresenca.tsx` e as duas telas públicas usam a
+  saudação. O rótulo continua fora. — `[FR-001][FR-002][FR-003]`
+
+## Fase B — Toda ação diz que aconteceu
+
+- [x] **T005** `components/ui/prensa/AvisoPorHash.tsx` **(novo)**: lê o fragmento, escreve
+  o recado e limpa o endereço. Sem estado, sem `searchParams`. — `[FR-004][FR-005]`
+- [x] **T006** `signoutAction` → `/#saiu`; `cancelOrderAction` → `/conta/pedidos#cancelado`.
+  — `[FR-004]`
+- [x] **T007** A vitrine e a lista de pedidos mostram o recado. — `[FR-004]`
+
+## Fase C — O WhatsApp
+
+- [x] **T008** `lib/telefone.ts` + teste: máscara que acompanha quem digita. — `[FR-006]`
+- [x] **T009** `app/conta/criar/page.tsx`: o campo formata no `onInput`. — `[FR-006]`
+
+## Fase D — A pendência que não existia
+
+- [x] **T010** Medir, no site no ar, a paleta dos dois sites publicados. Resultado:
+  `ink:#3d4a36`, `accent:#b8985f` nos dois — **corretos**. Os sites afetados pelo
+  preenchimento trocado eram só os de teste. Registrado na auditoria e no relatório.
+
+## Fase E — Portões
+
+- [x] **T011** `npm run lint` limpo
+- [x] **T012** `npx tsc --noEmit` limpo
+- [x] **T013** `npm run build` passando
+- [x] **T014** `npm run test` verde
+- [ ] **T015** **Verificação no navegador (E2E)** no site no ar: saudação pelos nomes no
+  RSVP e no convite pessoal; "Pedido cancelado." e "Vocês saíram da conta."; máscara do
+  WhatsApp. — `[SC-001][SC-002]`
+- [x] **T016** Atualizar auditoria e relatório: UX-020 sai de "adiado" para resolvido, e a
+  lista de "o que não foi feito" encolhe. — `[constitution · princípio II]`
+
+## Estado final — 12/09/2026
+
+Portões: lint limpo, `tsc --noEmit` limpo, `next build` passando, `npm run test` com
+**833 testes em 74 arquivos, todos verdes**.

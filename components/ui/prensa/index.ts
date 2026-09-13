@@ -17,6 +17,7 @@
  */
 export { Botao, BotaoLink } from "./Botao";
 export { Campo, AreaDeTexto } from "./Campo";
+export { default as AvisoPorHash } from "./AvisoPorHash";
 export { Etiqueta, EtiquetaDoPedido, type TomDaEtiqueta } from "./Etiqueta";
 export { default as Aviso } from "./Aviso";
 export { default as EstadoVazio } from "./EstadoVazio";

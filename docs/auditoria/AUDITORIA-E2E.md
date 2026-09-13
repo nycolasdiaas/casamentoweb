@@ -583,16 +583,12 @@ caminho que o usuário usa — o clique —, não pelo que o robô usa.
   pedidos), mas nenhuma diz o que aconteceu — nem "vocês saíram", nem "pedido cancelado".
   O diálogo de confirmação do cancelamento, esse, é exemplar.
 - **Sugestão:** uma linha de confirmação no destino.
-- **Status:** ⏭️ **Adiado** — feature `003`, com justificativa
-- **Por que adiado:** confirmar no destino ("vocês saíram", "pedido cancelado") exigiria
-  `searchParams` em duas rotas cacheadas, e `cacheComponents` está ligado — é armadilha
-  conhecida (AGENTS.md §4). Para um 🟢 cujas duas ações já mudam de tela de forma
-  inequívoca, e cujo cancelamento já tem diálogo de confirmação **antes**, o custo não se
-  justifica. **O que o reabre:** alguém relatar que não percebeu que a ação aconteceu.
-
----
-
-## 8. Problemas funcionais
+- **Status:** ✅ **Resolvido** — feature `005-ux-o-que-faltava`
+- **Como foi resolvido:** a confirmação viaja no **fragmento** do endereço
+  (`/conta/pedidos#cancelado`, `/#saiu`), que nunca chega ao servidor — então as duas rotas
+  continuam cacheadas, que era exatamente o custo que tinha feito eu adiar. Um componente
+  no cliente lê o fragmento, escreve o recado e limpa o endereço, para recarregar não
+  repetir a confirmação de algo que aconteceu uma vez.
 
 ### UX-021 — O cartão do link no WhatsApp aponta para `localhost` (encontrado na Fase 3)
 - **Severidade:** 🟠 Alto
@@ -868,7 +864,7 @@ pública. O produto não está mal construído — está mal ligado.
 | UX-017 | 🟢 Baixo | Cadastro / conta | ✅ Resolvido | 003-ux-fricao-celular-e-polimento | ver tasks.md |
 | UX-018 | 🟢 Baixo | Painel · Visual | ✅ Resolvido | 003-ux-fricao-celular-e-polimento | ver tasks.md |
 | UX-019 | 🟢 Baixo | Questionário | ✅ Resolvido | 003-ux-fricao-celular-e-polimento | ver tasks.md |
-| UX-020 | 🟢 Baixo | Conta / pedidos | ⏭️ Adiado | 003-ux-fricao-celular-e-polimento | justificativa na spec |
+| UX-020 | 🟢 Baixo | Conta / pedidos | ✅ Resolvido | 005-ux-o-que-faltava | T005–T007 |
 
 ---
 

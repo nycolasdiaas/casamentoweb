@@ -132,6 +132,10 @@ export async function getRsvpViewBySlug(slug: string) {
     .select({
       groupId: groups.id,
       slug: groups.slug,
+      /* O RÓTULO continua vindo porque o painel do casal lê esta mesma função.
+         Ele NÃO pode ir para a tela do convidado: o painel promete "Só vocês
+         veem este nome" (UX-008), e `lib/site/rotulo-do-grupo-e-privado.test.ts`
+         tranca essa fronteira. */
       label: groups.label,
       seats: groups.seats,
       seatsConfirmed: groups.seatsConfirmed,
@@ -153,7 +157,25 @@ export async function getRsvpViewBySlug(slug: string) {
     .where(eq(groups.slug, slug))
     .limit(1);
 
-  return linha ?? null;
+  if (!linha) return null;
+
+  /* Os NOMES das pessoas convidadas, para a tela saudá-las pelo nome.
+   *
+   * Uma segunda ida ao banco, e não um `join`: o grupo tem de zero a meia
+   * dúzia de convidados, e um join multiplicaria a linha do cabeçalho por
+   * cada um deles — a consulta inteira passaria a devolver seis cópias dos
+   * nomes do casal, do prazo e do endereço para montar uma saudação.
+   *
+   * Custa uma ida a mais numa rota cacheada por horas. A alternativa era a
+   * saudação neutra ("Vocês vêm?"), que é o que ficou quando o rótulo privado
+   * saiu daqui — correto, e mais frio do que o produto merece. */
+  const convidados = await db
+    .select({ name: guests.name })
+    .from(guests)
+    .where(eq(guests.groupId, linha.groupId))
+    .orderBy(guests.position);
+
+  return { ...linha, nomesDosConvidados: convidados.map((c) => c.name) };
 }
 
 /**

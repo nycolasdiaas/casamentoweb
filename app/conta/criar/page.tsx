@@ -7,6 +7,7 @@ import PendingVeil from "@/components/ui/PendingVeil";
 import CascaDeConta from "@/components/account/CascaDeConta";
 import { Botao, Campo } from "@/components/ui/prensa";
 import { signupAction } from "@/app/actions/account-actions";
+import { mascaraDeWhatsapp } from "@/lib/telefone";
 
 /**
  * C2 · GET /conta/criar → POST signupAction
@@ -91,6 +92,14 @@ export default function SignupPage() {
           pattern="[\s()+\-0-9]{10,20}"
           title="Com DDD — ex: (11) 98888-7777"
           ajuda="Com DDD. Opcional — é por onde a gente avisa se algo travar."
+          /* A máscara enquanto digita: o campo mostrava "(11) 98888-7777" no
+             exemplo e aceitava 11999998888 cru. Ver `lib/telefone.ts`. */
+          onInput={(e) => {
+            const campo = e.currentTarget;
+            const fim = campo.selectionStart === campo.value.length;
+            campo.value = mascaraDeWhatsapp(campo.value);
+            if (fim) campo.setSelectionRange(campo.value.length, campo.value.length);
+          }}
         />
         <Campo
           rotulo="Senha"

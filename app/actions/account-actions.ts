@@ -135,7 +135,9 @@ export async function signinAction(formData: FormData) {
 
 export async function signoutAction() {
   await clearUserSessionCookie();
-  redirect("/");
+  /* O fragmento leva a confirmação para a tela seguinte sem tornar a rota
+     dinâmica — ele nem chega ao servidor. Ver `AvisoPorHash` (UX-020). */
+  redirect("/#saiu");
 }
 
 function parseOrderForm(formData: FormData) {
@@ -468,7 +470,7 @@ export async function cancelOrderAction(formData: FormData) {
 
   revalidatePath("/conta");
   revalidatePath("/conta/pedidos");
-  redirect("/conta/pedidos");
+  redirect("/conta/pedidos#cancelado");
 }
 
 /**

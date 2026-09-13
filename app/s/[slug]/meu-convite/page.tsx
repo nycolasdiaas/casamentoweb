@@ -8,6 +8,7 @@ import {
   listPublishedSiteSlugs,
 } from "@/lib/repositories/siteView";
 import { findGroupByGuestName } from "@/lib/repositories/findGroupByGuestName";
+import { saudacaoDeConvidados } from "@/lib/site/saudacao";
 import { getRsvpViewBySlug } from "@/lib/repositories/groups";
 import { dataPorExtenso } from "@/lib/site/dataLegivel";
 import { resolveTheme, type ThemeSpec } from "@/lib/theme/spec";
@@ -264,8 +265,11 @@ function PaginaPessoal({
 
           <h1 className="mt-4 text-[32px] leading-tight lg:text-[42px]">
             {/* Sem o rótulo do grupo: o painel promete que só o casal o vê.
-                Ver a nota em `app/rsvp/[slug]/page.tsx` (UX-008). */}
-            Olá!
+                Os NOMES dos convidados, sim — é o convidado lendo o próprio
+                nome. Ver `lib/site/saudacao.ts` (UX-008). */}
+            {saudacaoDeConvidados(convite.nomesDosConvidados)
+              ? `Olá, ${saudacaoDeConvidados(convite.nomesDosConvidados)}`
+              : "Olá!"}
           </h1>
 
           <p className="mt-4 max-w-[52ch] text-[15px] leading-relaxed opacity-80">

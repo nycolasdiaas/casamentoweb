@@ -6,7 +6,7 @@ import { listOrdersByUserId } from "@/lib/repositories/orders";
 import AccountShell from "@/components/account/AccountShell";
 import CancelOrderButton from "@/components/account/CancelOrderButton";
 import { canCancelOrder, type OrderStatus } from "@/lib/orderStatus";
-import { EtiquetaDoPedido } from "@/components/ui/prensa";
+import { EtiquetaDoPedido, AvisoPorHash } from "@/components/ui/prensa";
 import ContagemDaLinha from "@/components/account/ContagemDaLinha";
 import { diasAte } from "@/lib/site/dataLegivel";
 import { datasEfetivasPorPedido } from "@/lib/repositories/siteContent";
@@ -58,6 +58,14 @@ export default async function OrdersListPage() {
             Novo pedido
           </Link>
         </header>
+
+        {/* "Pedido cancelado." — a confirmação de uma ação que terminou nesta
+            tela, e que antes acontecia em silêncio (UX-020). Escondido, o
+            parágrafo não ocupa espaço nem carrega a margem. */}
+        <AvisoPorHash
+          recados={{ cancelado: "Pedido cancelado." }}
+          className="mt-6"
+        />
 
         <div className="mt-16">
           {orders.length === 0 ? (

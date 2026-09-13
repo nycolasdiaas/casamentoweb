@@ -6,6 +6,7 @@ import {
   responderRsvpAction,
   type EstadoDoRsvp,
 } from "@/app/actions/rsvp-actions";
+import { saudacaoDeConvidados, pluralDoConvite } from "@/lib/site/saudacao";
 
 /**
  * Prancha F4 · a tela que gente real usa.
@@ -43,7 +44,13 @@ type Props = {
    * veem este nome" — e vinha parar no título desta tela (UX-008). A prop
    * saiu em vez de virar opcional: opcional é convite para alguém voltar a
    * passá-la sem perceber o que ela significa.
+   *
+   * No lugar dele vêm os NOMES DAS PESSOAS CONVIDADAS, que o casal também
+   * digitou e que são públicos por natureza: é o convidado lendo o próprio
+   * nome no convite dele.
    */
+  /** Nomes de quem foi convidado, para a saudação. Ver `lib/site/saudacao.ts`. */
+  nomesDosConvidados?: readonly string[] | null;
   /** Lugares reservados para este grupo. */
   lugares: number;
   /** Resposta anterior, quando já respondeu. */
@@ -66,6 +73,7 @@ export default function ConfirmacaoDePresenca({
   slug,
   nomesDoCasal,
   lugares,
+  nomesDosConvidados,
   jaRespondeu,
   prazo,
   linkDoSite,
@@ -87,6 +95,9 @@ export default function ConfirmacaoDePresenca({
     jaRespondeu && jaRespondeu.lugares > 0 ? jaRespondeu.lugares : lugares
   );
   const [reabrir, setReabrir] = useState(false);
+
+  const saudacao = saudacaoDeConvidados(nomesDosConvidados);
+  const tratamento = pluralDoConvite(lugares);
 
   const respondeuAgora = estado && "ok" in estado;
 
@@ -117,11 +128,13 @@ export default function ConfirmacaoDePresenca({
           <p className="meta text-(--c-mark)">Confirme até {prazo}</p>
         )}
         <h1 className="t-d1 text-(--c-ink) mt-2">
-          Vocês vêm?
+          {saudacao ? `${saudacao}, ` : ""}
+          {tratamento.pronome} {tratamento.verbo}?
         </h1>
         {jaRespondeu && (
           <p className="t-corpo-p text-(--c-ink-2) mt-1">
-            Vocês já responderam. Dá para mudar aqui mesmo.
+            {tratamento.pronome === "você" ? "Você já respondeu" : "Vocês já responderam"}
+            . Dá para mudar aqui mesmo.
           </p>
         )}
       </header>
