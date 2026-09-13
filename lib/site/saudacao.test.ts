@@ -30,6 +30,20 @@ describe("saudacaoDeConvidados", () => {
     expect(saudacaoDeConvidados(["  "])).toBeNull();
   });
 
+  it("tratamento não é nome: mantém os dois juntos", () => {
+    // Pego na verificação em produção: "Dona Ivete" virava "Dona, você vem?".
+    expect(saudacaoDeConvidados(["Dona Ivete"])).toBe("Dona Ivete");
+    expect(saudacaoDeConvidados(["Tia Antônia Souza"])).toBe("Tia Antônia");
+    expect(saudacaoDeConvidados(["Sr. João Pedro"])).toBe("Sr. João");
+    expect(saudacaoDeConvidados(["Vó Maria", "Seu Zé"])).toBe(
+      "Vó Maria e Seu Zé"
+    );
+  });
+
+  it("tratamento sozinho continua sendo o que a pessoa escreveu", () => {
+    expect(saudacaoDeConvidados(["Dona"])).toBe("Dona");
+  });
+
   it("aguenta nome com espaço sobrando", () => {
     expect(saudacaoDeConvidados(["  Antônia   Souza  "])).toBe("Antônia");
   });

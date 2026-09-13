@@ -19,9 +19,44 @@
  * já mostra quem foi convidado logo abaixo.
  */
 
-/** O primeiro nome, que é como se chama alguém num convite. */
+/**
+ * Palavras que vêm ANTES do nome e não são o nome.
+ *
+ * "Dona Ivete" virava "Dona, você vem?" — pego na verificação em produção. No
+ * Brasil o tratamento cola no nome com naturalidade ("Tia Antônia", "Seu
+ * João", "Vó Maria"), e é assim que a pessoa é chamada: o certo é manter os
+ * dois, não escolher um.
+ */
+const TRATAMENTOS = new Set([
+  "dona",
+  "dna",
+  "dr",
+  "dra",
+  "sr",
+  "sra",
+  "seu",
+  "dom",
+  "vo",
+  "vó",
+  "vô",
+  "tia",
+  "tio",
+  "padre",
+  "pastor",
+  "prof",
+  "profa",
+]);
+
+/** Como se chama alguém num convite: o primeiro nome, com o tratamento junto. */
 function primeiroNome(nomeCompleto: string): string {
-  return nomeCompleto.trim().split(/\s+/)[0] ?? "";
+  const partes = nomeCompleto.trim().split(/\s+/).filter(Boolean);
+  if (partes.length === 0) return "";
+
+  const chave = partes[0].toLowerCase().replace(/\.$/, "");
+  if (TRATAMENTOS.has(chave) && partes.length > 1) {
+    return `${partes[0]} ${partes[1]}`;
+  }
+  return partes[0];
 }
 
 export function saudacaoDeConvidados(
