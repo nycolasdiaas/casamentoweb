@@ -491,3 +491,13 @@ perderem:
   se estiver, essa pendência morreu e a linha pode sair do documento.
 - **Um site descartável `shot-classico-*`** sobrou de uma sessão de fotos de
   molde.
+
+---
+
+> **Nota de procedência, 13/09/2026.** A revisão acima (31 → 32 specs, a
+> `site-publico/008` e a reabertura da `site-publico/002`) é trabalho do dono,
+> e estava na árvore sem commit quando a auditoria E2E começou. Ela foi
+> commitada por engano junto com `f9e2c7f`, que é um commit sobre a auditoria —
+> a mensagem daquele commit não fala dela, e não dá para separar sem reescrever
+> histórico já publicado. Fica registrado aqui: o conteúdo é dele, a mistura
+> foi minha.
