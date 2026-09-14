@@ -59,3 +59,14 @@ Portões: lint limpo, `tsc --noEmit` limpo, `next build` passando, `npm run test
 - [x] **T019** Portões + verificação no site no ar: grupo de 1 lugar mostra "Quantas
   pessoas vão?"; grupo de 2 continua "Quantos dos 2 lugares vão?". — `[UX-022]`
 
+## Fase G — Achado do 2º reteste de 14/09/2026
+
+- [x] **T020** `preload: false` nas 49 fontes de `lib/templates/*/fonts.ts`. — `[UX-023]`
+- [x] **T021** `preload: false` nas 34 prévias de `components/account/wizard/fontPreview.ts`. — `[UX-023]`
+- [x] **T022** Portões + comparar `next-font-manifest.json` antes/depois por rota. — `[UX-023]`
+  Lint, `tsc` e `next build` limpos. Arquivos pré-carregados: `/rsvp` 17→6, `/conta` 17→6,
+  `/s/[slug]` 44→6, `/preview` 44→6, `/conta/pedido/novo` 45→6, visual e convites 44→6.
+  Sobram só Italiana, Petit Formal Script (raiz) e as três da plataforma (~103 KB).
+- [ ] **T023** Verificação no site no ar: arquivos de fonte baixados no RSVP, no painel e
+  no site do casal; os seis moldes e o casamento real continuam com as fontes certas. — `[UX-023]`
+

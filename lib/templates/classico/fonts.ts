@@ -29,14 +29,19 @@ import type { FontSet } from "@/lib/fonts/types";
 //
 // Ver docs/sdd-geracao-automatica.md §4.3.
 
-const cormorant = Cormorant_Garamond({ subsets: ["latin"], weight: ["400", "500", "600"], style: ["normal", "italic"], variable: "--f-cormorant", display: "swap" });
-const ebGaramond = EB_Garamond({ subsets: ["latin"], weight: ["400", "500"], variable: "--f-eb-garamond", display: "swap" });
-const playfair = Playfair_Display({ subsets: ["latin"], weight: ["400", "600"], variable: "--f-playfair", display: "swap" });
-const marcellus = Marcellus({ subsets: ["latin"], weight: "400", variable: "--f-marcellus", display: "swap" });
-const lora = Lora({ subsets: ["latin"], weight: ["400", "500"], style: ["normal", "italic"], variable: "--f-lora", display: "swap" });
-const crimson = Crimson_Text({ subsets: ["latin"], weight: "400", variable: "--f-crimson", display: "swap" });
-const pinyon = Pinyon_Script({ subsets: ["latin"], weight: "400", variable: "--f-pinyon", display: "swap" });
-const allura = Allura({ subsets: ["latin"], weight: "400", variable: "--f-allura", display: "swap" });
+// `preload: false` em todas (UX-023, 14/09/2026). O manifesto de fontes do
+// build espalhava o pré-carregamento destas pelas rotas — o RSVP do convidado
+// baixava 17 arquivos (421 KB) e usava 3; o site do casal, 44. Sem o preload a
+// fonte continua carregando quando o CSS a usa; só deixa de ser baixada à toa.
+
+const cormorant = Cormorant_Garamond({ subsets: ["latin"], weight: ["400", "500", "600"], style: ["normal", "italic"], variable: "--f-cormorant", display: "swap", preload: false });
+const ebGaramond = EB_Garamond({ subsets: ["latin"], weight: ["400", "500"], variable: "--f-eb-garamond", display: "swap", preload: false });
+const playfair = Playfair_Display({ subsets: ["latin"], weight: ["400", "600"], variable: "--f-playfair", display: "swap", preload: false });
+const marcellus = Marcellus({ subsets: ["latin"], weight: "400", variable: "--f-marcellus", display: "swap", preload: false });
+const lora = Lora({ subsets: ["latin"], weight: ["400", "500"], style: ["normal", "italic"], variable: "--f-lora", display: "swap", preload: false });
+const crimson = Crimson_Text({ subsets: ["latin"], weight: "400", variable: "--f-crimson", display: "swap", preload: false });
+const pinyon = Pinyon_Script({ subsets: ["latin"], weight: "400", variable: "--f-pinyon", display: "swap", preload: false });
+const allura = Allura({ subsets: ["latin"], weight: "400", variable: "--f-allura", display: "swap", preload: false });
 
 export const CLASSICO_FONTS: FontSet = {
   // títulos

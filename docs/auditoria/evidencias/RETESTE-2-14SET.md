@@ -50,22 +50,46 @@ Casamento real
 
 UX-013 (retratado) não se aplica.
 
-## Observação nova — não corrigida, aguardando o dono
+## Observação nova — virou UX-023 (o dono mandou investigar e corrigir)
 
 - 🟢 **O painel do casal pré-carrega ~29 arquivos de fonte que a tela não usa.** Em
   `/conta` e `/conta/pedidos/<id>/convidados`, com a aba visível, o console avisa
   "preloaded using link preload but not used within a few seconds" para 28–29 `.woff2`
-  (e 1 CSS). As páginas públicas — `/`, `/conta/entrar`, `/s/isabelle-e-nycolas`,
-  `/rsvp/__Tzwfka` — pré-carregam **0** fontes.
-- **Suspeita, não confirmada:** `components/account/wizard/fontPreview.ts` declara as
-  34 fontes da escolha de tipografia (o próprio arquivo diz que isso é "aceito de
-  propósito" para o questionário), e o pré-carregamento parece estar vazando para as
-  outras telas do painel.
+  (e 1 CSS). ~~As páginas públicas pré-carregam 0 fontes.~~ **Errado — corrigido na
+  investigação:** a busca procurou `<link as="font">` e as dicas vêm no cabeçalho
+  `Link`. Recontado: `/rsvp/__Tzwfka` 17 arquivos (421 KB baixados, 3 famílias em uso),
+  `/conta/entrar` 17, `/s/isabelle-e-nycolas` 44. Registrado como **UX-023**.
+- **Causa, confirmada no manifesto do build:** as fontes dos seis moldes
+  (`lib/templates/*/fonts.ts`) e as 34 prévias (`fontPreview.ts`) eram declaradas com
+  `preload` padrão (`true`), e o manifesto espalhava esse pré-carregamento por rotas que
+  não as usam — inclusive o RSVP.
+- **Correção:** `preload: false` nessas 83 declarações. Build local, arquivos de fonte
+  pré-carregados por rota:
+
+  | Rota | Antes | Depois |
+  |---|---|---|
+  | `/rsvp/[slug]` | 17 | 6 |
+  | `/conta` e telas do painel | 17 | 6 |
+  | `/s/[slug]` e `/preview/[token]` | 44 | 6 |
+  | `/conta/pedido/novo` | 45 | 6 |
+
+  Sobram Italiana e Petit Formal Script (raiz, usadas em 33 arquivos) e as três da
+  plataforma, ~103 KB.
 - **Efeito:** o casal é o público no celular; baixar ~29 fontes em toda tela do painel
   gasta dados e atrasa a abertura. Não quebra nada e ninguém vê erro.
-- **Não é da auditoria de usabilidade** e mexe em carregamento de fonte, onde o projeto
-  já teve "fontes falhando em lote" (Skill `cache-e-build`). Por isso ficou registrado
-  e não foi alterado.
+- **Verificado local (`next start` do build novo) contra produção (build antigo):**
+
+  | Página | Produção antiga | Build novo | Fontes em uso |
+  |---|---|---|---|
+  | `/isabelle-e-nycolas` (casamento real) | 44 `.woff2` | 6 | Italiana nos dois — igual |
+  | `/s/isabelle-e-nycolas` | 44 | 6 | — (tela "sendo preparado" nos dois) |
+  | prévia Toscana (`/preview/<token>`) | — | 10 | Marcellus (título), Crimson Text, Allura — carregadas |
+  | vitrines dos 6 modelos | — | 7–13 | a fonte do título carregada em todas |
+
+  Sem o preload, as fontes do molde continuam chegando quando a página as usa.
+- Mexe em carregamento de fonte, onde o projeto já teve "fontes falhando em lote"
+  (Skill `cache-e-build`). Por isso foi primeiro registrado, e só corrigido depois do
+  "investigar e corrigir" do dono.
 
 ## Deixado em produção por este reteste
 Conta `reteste3.14set@example.com`, site `mia-terceira-e-tom-terceiro` em prévia

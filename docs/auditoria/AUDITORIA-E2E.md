@@ -903,3 +903,21 @@ pública. O produto não está mal construído — está mal ligado.
   abaixo já diz "de 1 reservado".
 - **Status:** ✅ **Resolvido** — feature `005-ux-o-que-faltava` (T017–T019), commit `8ea7271`, verificado em produção em 14/09/2026: grupo de 1 lugar mostra "Quantas pessoas vão?"
 
+### UX-023 — Fontes que a tela não usa são baixadas em toda página (encontrado no 2º reteste de 14/09/2026)
+
+- **Severidade:** 🟡 Média — atinge o convidado no celular, na rota que não pode falhar
+- **Onde:** todas as rotas; pior em `/s/<slug>` e no questionário
+- **O que acontece:** o manifesto de fontes do build manda pré-carregar fontes dos
+  seis moldes e das 34 prévias de tipografia em rotas que não as usam. Medido no
+  build de produção e no navegador:
+  - `/rsvp/<slug>`: **17 arquivos, 421 KB baixados; 3 famílias em uso**
+  - `/conta` e telas do painel: 17 arquivos (~416 KB)
+  - `/s/<slug>` (site do casal): 44 arquivos (~1 MB), das 27 famílias dos seis moldes
+  - `/conta/pedido/novo`: 45 arquivos (~985 KB)
+- **Evidência:** `evidencias/RETESTE-2-14SET.md`; `.next/server/next-font-manifest.json`;
+  console do Chrome ("preloaded using link preload but not used")
+- **Sugestão:** `preload: false` nas fontes dos moldes (`lib/templates/*/fonts.ts`) e
+  nas prévias (`components/account/wizard/fontPreview.ts`). A fonte continua
+  carregando quando o CSS a usa; o que some é o download antecipado.
+- **Status:** Em correção — feature `005-ux-o-que-faltava` (T020–T023)
+

@@ -24,14 +24,19 @@ import type { FontSet } from "@/lib/fonts/types";
 //
 // Ver docs/sdd-geracao-automatica.md §4.3.
 
-const playfair = Playfair_Display({ subsets: ["latin"], weight: ["400", "500", "600"], style: ["normal", "italic"], variable: "--f-playfair", display: "swap" });
-const bodoni = Bodoni_Moda({ subsets: ["latin"], weight: ["400", "500", "600"], style: ["normal", "italic"], variable: "--f-bodoni", display: "swap" });
-const italiana = Italiana({ subsets: ["latin"], weight: "400", variable: "--f-italiana", display: "swap" });
-const cormorant = Cormorant_Garamond({ subsets: ["latin"], weight: ["400", "500", "600"], style: ["normal", "italic"], variable: "--f-cormorant", display: "swap" });
-const montserrat = Montserrat({ subsets: ["latin"], weight: ["300", "400", "500", "600"], variable: "--f-montserrat", display: "swap" });
-const jost = Jost({ subsets: ["latin"], weight: ["300", "400", "500"], variable: "--f-jost", display: "swap" });
-const raleway = Raleway({ subsets: ["latin"], weight: ["300", "400", "500"], variable: "--f-raleway", display: "swap" });
-const spectral = Spectral({ subsets: ["latin"], weight: ["300", "400", "500"], style: ["normal", "italic"], variable: "--f-spectral", display: "swap" });
+// `preload: false` em todas (UX-023, 14/09/2026). O manifesto de fontes do
+// build espalhava o pré-carregamento destas pelas rotas — o RSVP do convidado
+// baixava 17 arquivos (421 KB) e usava 3; o site do casal, 44. Sem o preload a
+// fonte continua carregando quando o CSS a usa; só deixa de ser baixada à toa.
+
+const playfair = Playfair_Display({ subsets: ["latin"], weight: ["400", "500", "600"], style: ["normal", "italic"], variable: "--f-playfair", display: "swap", preload: false });
+const bodoni = Bodoni_Moda({ subsets: ["latin"], weight: ["400", "500", "600"], style: ["normal", "italic"], variable: "--f-bodoni", display: "swap", preload: false });
+const italiana = Italiana({ subsets: ["latin"], weight: "400", variable: "--f-italiana", display: "swap", preload: false });
+const cormorant = Cormorant_Garamond({ subsets: ["latin"], weight: ["400", "500", "600"], style: ["normal", "italic"], variable: "--f-cormorant", display: "swap", preload: false });
+const montserrat = Montserrat({ subsets: ["latin"], weight: ["300", "400", "500", "600"], variable: "--f-montserrat", display: "swap", preload: false });
+const jost = Jost({ subsets: ["latin"], weight: ["300", "400", "500"], variable: "--f-jost", display: "swap", preload: false });
+const raleway = Raleway({ subsets: ["latin"], weight: ["300", "400", "500"], variable: "--f-raleway", display: "swap", preload: false });
+const spectral = Spectral({ subsets: ["latin"], weight: ["300", "400", "500"], style: ["normal", "italic"], variable: "--f-spectral", display: "swap", preload: false });
 
 export const EDITORIAL_FONTS: FontSet = {
   // títulos — serifas de alto contraste
