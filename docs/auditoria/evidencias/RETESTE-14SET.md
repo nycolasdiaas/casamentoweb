@@ -100,7 +100,7 @@ site de teste apagado na limpeza de 13/09. A `REVALIDACAO-FINAL.md` o chamava de
 
 UX-013 (retratado) não se aplica: era efeito do automatizador, não do produto.
 
-## Achado novo, fora da auditoria (não corrigido)
+## Achado novo — UX-022, corrigido no mesmo dia
 
 - 🟢 **"Quantos dos 1 lugar vão?"** — no RSVP de grupo com um lugar só, depois de
   "Sim, vamos!". `components/site/ConfirmacaoDePresenca.tsx:173` flexiona
@@ -111,7 +111,29 @@ Conferido e **não** é defeito: o carimbo "Prova pronta" no Início convive com
 "Prévia pronta" no cabeçalho de propósito — é vocabulário de gráfica,
 documentado em `components/account/ProofStamp.tsx`.
 
-## Deixado em produção por este reteste
-Conta `reteste.14set@example.com`, o site `lia-reteste-e-rui-reteste` em prévia
-(o pedido foi cancelado, o site ficou órfão — pendência conhecida), 1 foto, 1
-convite, 1 grupo com 1 confirmação. Sai com `scripts/limpar-dados-de-teste.mjs`.
+## Dados de teste — apagados no mesmo dia
+Autorizado pelo dono. Backup antes: `backups/full-backup-2026-09-14T12-08-34-647Z.json`.
+`scripts/limpar-dados-de-teste.mjs --apagar`, depois da verificação da UX-022:
+1 conta (`reteste.14set@example.com`), 1 pedido cancelado, 1 site em prévia,
+1 grupo, 1 convidado, 1 foto, 7 presentes, 1 aviso de Pix. Nenhum site publicado
+na lista. Casamento real conferido em seguida: todas as rotas 200.
+
+## Depois da correção (commit `8ea7271`)
+
+Portões: lint limpo, `tsc --noEmit` limpo, `next build` passando, **837 testes em
+74 arquivos** verdes.
+
+```
+/rsvp/jOSRbQN9 (1 lugar), sessão nova sem cache, build mO3ytDjvbQsrnJ0VLvhLt
+  <h1> ................... "Dona Ivete, você vem?"
+  pergunta do contador ... "Quantas pessoas vão?"  (era "Quantos dos 1 lugar vão?")  UX-022 ✅
+  embaixo ................ "de 1 reservado"
+casamento real ........... /, /rsvp/__Tzwfka, /s/isabelle-e-nycolas, QR,
+                           /conta/entrar, /pacotes — todos 200; og:url no domínio real
+```
+
+Uma leitura enganosa no caminho: a primeira checagem depois do push pegou um build
+intermediário (`38fzSsnFFhlVxXPuRJDBX`) e ainda mostrou o texto antigo. A aba
+seguinte, já no build final, mostrou o novo. Antes de concluir que uma correção
+"não subiu", conferir o identificador do build **na própria página testada**.
+

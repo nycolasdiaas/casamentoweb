@@ -256,3 +256,25 @@ o Redeploy pelo painel.
 **Se algo der errado:** `git revert c1ca29f c85f436 746cfd3` devolve o estado anterior.
 Nenhuma migração foi criada, nenhuma coluna mudou, nenhum dado foi reescrito —
 o rollback é só de código.
+
+---
+
+## Reteste completo em produção — 14/09/2026
+
+Pedido do dono: refazer todos os testes da auditoria com o site no ar, corrigir o
+que aparecesse, subir e testar de novo.
+
+- **Os 19 resolvidos continuam resolvidos**, e os 2 retratados seguem sem
+  reproduzir. Conta nova, questionário inteiro, painel, site do convidado em
+  390×844 e 1440×900, RSVP sem login, cancelar e sair.
+- **Um achado novo, UX-022 🟢:** "Quantos dos 1 lugar vão?" no RSVP de grupo com um
+  lugar. Corrigido em `8ea7271` ("Quantas pessoas vão?"), portões verdes (837
+  testes em 74 arquivos) e verificado no site no ar.
+- **Um erro de documentação meu:** `/rsvp/yVUkmV59` estava registrado como
+  "casamento real" e deu 404 — era de um site de teste apagado em 13/09. Rótulo
+  corrigido; o casamento real respondeu 200 em todas as rotas.
+- **Dados de teste do reteste apagados**, com backup antes.
+
+Placar da auditoria: **22 achados — 20 resolvidos, 2 retratados, nenhum aberto.**
+Detalhe em `evidencias/RETESTE-14SET.md`.
+

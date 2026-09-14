@@ -901,5 +901,5 @@ pública. O produto não está mal construído — está mal ligado.
 - **Evidência:** `evidencias/RETESTE-14SET.md`
 - **Sugestão:** no singular, perguntar só "Quantas pessoas vão?" — o contador
   abaixo já diz "de 1 reservado".
-- **Status:** Em correção — feature `005-ux-o-que-faltava` (T017–T019)
+- **Status:** ✅ **Resolvido** — feature `005-ux-o-que-faltava` (T017–T019), commit `8ea7271`, verificado em produção em 14/09/2026: grupo de 1 lugar mostra "Quantas pessoas vão?"
 
