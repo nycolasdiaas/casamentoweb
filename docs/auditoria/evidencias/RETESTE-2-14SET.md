@@ -91,7 +91,30 @@ UX-013 (retratado) não se aplica.
   (Skill `cache-e-build`). Por isso foi primeiro registrado, e só corrigido depois do
   "investigar e corrigir" do dono.
 
-## Deixado em produção por este reteste
-Conta `reteste3.14set@example.com`, site `mia-terceira-e-tom-terceiro` em prévia
-(pedido cancelado), 1 foto, 1 convite, 1 grupo com 1 confirmação, 7 presentes,
-1 aviso de Pix. Sai com `scripts/limpar-dados-de-teste.mjs`, com backup antes.
+## UX-023 no site no ar (commit `e674047`, build `LuI0eyG8xk5srYvkods_F`)
+
+Portões: lint, `tsc` e `next build` limpos; **837 testes em 74 arquivos** verdes.
+
+```
+cabeçalho Link (woff2) ... /rsvp, /isabelle-e-nycolas, /s/<slug>, /conta/entrar: 34–88 → 12
+/rsvp/__Tzwfka ........... 6 arquivos, 105 KB baixados (era 17 / 421 KB);
+                           em uso: Instrument Serif, IBM Plex Sans, IBM Plex Mono — iguais
+/isabelle-e-nycolas ...... 6 arquivos, 105 KB (era 44); em uso: Italiana — igual
+prévia Toscana ........... título em Marcellus, carregado; Crimson Text e Allura carregadas
+/conta (logado) .......... 6 arquivos, 105 KB; console: 0 avisos de fonte (eram 29)
+                           resta 1 aviso de preload de CSS — fora do escopo, não mexido
+questionário, tipografia . 34 amostras, 34 famílias carregadas (sob demanda, nesta etapa)
+```
+
+## Dados de teste — apagados
+Autorizado pelo dono. Backup antes: `backups/full-backup-2026-09-14T12-46-35-326Z.json`.
+`scripts/limpar-dados-de-teste.mjs --apagar`, depois da verificação da UX-023:
+1 conta (`reteste3.14set@example.com`), 1 pedido cancelado, 1 site em prévia,
+1 grupo, 1 convidado, 1 foto, 7 presentes, 1 aviso de Pix.
+
+## Nota sobre o "casamento real"
+O casal real mora em **`/isabelle-e-nycolas`** (rota legada) e em `/rsvp/<slug>`.
+`/s/isabelle-e-nycolas` é um registro do mesmo casal que mostra "O site de vocês está
+sendo preparado" — já era assim antes desta correção. As verificações anteriores
+que citavam só `/s/isabelle-e-nycolas` como "casamento real" mediam a rota errada;
+esta usou as duas.

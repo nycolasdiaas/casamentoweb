@@ -919,5 +919,5 @@ pública. O produto não está mal construído — está mal ligado.
 - **Sugestão:** `preload: false` nas fontes dos moldes (`lib/templates/*/fonts.ts`) e
   nas prévias (`components/account/wizard/fontPreview.ts`). A fonte continua
   carregando quando o CSS a usa; o que some é o download antecipado.
-- **Status:** Em correção — feature `005-ux-o-que-faltava` (T020–T023)
+- **Status:** ✅ **Resolvido** — feature `005-ux-o-que-faltava` (T020–T023), commit `e674047`, verificado em produção em 14/09/2026: RSVP baixa 6 arquivos (105 KB, era 17 / 421 KB), casamento real 6 (era 44), painel sem aviso de fonte; prévia Toscana e as 34 prévias da tipografia carregando
 

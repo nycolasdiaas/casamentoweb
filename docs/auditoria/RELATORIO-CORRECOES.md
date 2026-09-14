@@ -275,6 +275,22 @@ que aparecesse, subir e testar de novo.
   corrigido; o casamento real respondeu 200 em todas as rotas.
 - **Dados de teste do reteste apagados**, com backup antes.
 
-Placar da auditoria: **22 achados — 20 resolvidos, 2 retratados, nenhum aberto.**
 Detalhe em `evidencias/RETESTE-14SET.md`.
+
+## Segundo reteste em produção — 14/09/2026
+
+- Conta nova, fluxo inteiro de novo: **os 22 achados continuam como estavam.**
+- **Achado novo, UX-023 🟡:** toda rota mandava o navegador baixar fontes dos seis
+  moldes e das 34 prévias de tipografia, sem usá-las. O RSVP do convidado baixava 17
+  arquivos (421 KB) e usava 3 famílias; o casamento real, 44.
+- **Correção** (`e674047`): `preload: false` nas fontes dos moldes e das prévias. No ar:
+  RSVP 6 arquivos (105 KB), casamento real 6, painel sem aviso de fonte, e as fontes
+  continuam aparecendo onde são usadas — prévia Toscana, as 34 amostras da tipografia,
+  a mesma Italiana no casamento real.
+- **Correção de medida minha:** primeiro registrei "páginas públicas: 0 fontes" — a busca
+  estava errada (as dicas vêm no cabeçalho `Link`). Refeito e corrigido na evidência.
+- Dados de teste apagados, com backup antes.
+
+Placar da auditoria: **23 achados — 21 resolvidos, 2 retratados, nenhum aberto.**
+Detalhe em `evidencias/RETESTE-2-14SET.md`.
 

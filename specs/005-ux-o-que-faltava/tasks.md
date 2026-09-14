@@ -67,6 +67,6 @@ Portões: lint limpo, `tsc --noEmit` limpo, `next build` passando, `npm run test
   Lint, `tsc` e `next build` limpos. Arquivos pré-carregados: `/rsvp` 17→6, `/conta` 17→6,
   `/s/[slug]` 44→6, `/preview` 44→6, `/conta/pedido/novo` 45→6, visual e convites 44→6.
   Sobram só Italiana, Petit Formal Script (raiz) e as três da plataforma (~103 KB).
-- [ ] **T023** Verificação no site no ar: arquivos de fonte baixados no RSVP, no painel e
+- [x] **T023** Verificação no site no ar: arquivos de fonte baixados no RSVP, no painel e
   no site do casal; os seis moldes e o casamento real continuam com as fontes certas. — `[UX-023]`
 
