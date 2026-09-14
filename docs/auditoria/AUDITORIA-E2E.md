@@ -282,7 +282,9 @@ pular todas as etapas opcionais; desktop e celular.
   **mesmo banco**, provisiona na hora e devolve 307.
 - **Sugestão:** duas frentes, e vale fazer as duas.
   1. **Ambiente (dono):** definir `NEXT_PUBLIC_SITE_URL=https://casamentoweb-ten.vercel.app`
-     no projeto da Vercel. Resolve hoje, sem deploy de código.
+     no projeto da Vercel. Resolve hoje, sem mudança de código — mas exige um novo build
+     (Redeploy): variável `NEXT_PUBLIC_*` é embutida na compilação. *(Correção de
+     14/09/2026: a versão original dizia "sem deploy". Feito e verificado nessa data.)*
   2. **Código:** acrescentar o domínio à `ALLOWED_HOSTS` e, principalmente, **parar de
      derrubar a página inteira** por causa de um link: quem chama `getBaseUrl()` para
      montar um endereço deve conseguir seguir sem ele, e o erro tem que aparecer como

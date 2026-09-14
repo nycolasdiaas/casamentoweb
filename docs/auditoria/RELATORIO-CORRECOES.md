@@ -238,10 +238,20 @@ Para conferir com os próprios olhos, em ordem de valor:
 4. **O código.** `git show 746cfd3` (o coração está em `lib/baseUrl.ts` e
    `lib/site/provision.ts`) e `git show c1ca29f`.
 
-**Uma coisa depende de você:** definir `NEXT_PUBLIC_SITE_URL=https://casamentoweb-ten.vercel.app`
-no painel da Vercel, como combinado. O código **não precisa** mais dela — ele
-descobre o domínio sozinho pelo que a Vercel informa —, mas com ela o endereço
-fica explícito e sobrevive a uma eventual mudança de plataforma.
+**Ambiente, feito em 14/09/2026:** `NEXT_PUBLIC_SITE_URL=https://casamentoweb-ten.vercel.app`
+definida pelo dono no painel da Vercel (Production) e aplicada com Redeploy. O
+código **não precisa** mais dela — ele descobre o domínio sozinho pelo que a
+Vercel informa —, mas com ela o endereço fica explícito e sobrevive a uma
+eventual mudança de plataforma. Verificado no build novo: `og:url` e
+`og:image` de `/s/isabelle-e-nycolas` em `https://casamentoweb-ten.vercel.app`,
+nenhuma ocorrência de `localhost` na página, `/rsvp/__Tzwfka`, QR e imagem de
+compartilhamento respondendo 200.
+
+Duas lições do caminho: variável `NEXT_PUBLIC_*` só vale a partir do **build**
+seguinte (o Next a embute na compilação), e o commit vazio `1f5e426`, feito
+para disparar esse build, **não gerou publicação** — o identificador do build
+em produção não mudou em 17 minutos nem na manhã seguinte. O que funcionou foi
+o Redeploy pelo painel.
 
 **Se algo der errado:** `git revert c1ca29f c85f436 746cfd3` devolve o estado anterior.
 Nenhuma migração foi criada, nenhuma coluna mudou, nenhum dado foi reescrito —
