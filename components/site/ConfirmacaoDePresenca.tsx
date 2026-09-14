@@ -6,7 +6,11 @@ import {
   responderRsvpAction,
   type EstadoDoRsvp,
 } from "@/app/actions/rsvp-actions";
-import { saudacaoDeConvidados, pluralDoConvite } from "@/lib/site/saudacao";
+import {
+  saudacaoDeConvidados,
+  pluralDoConvite,
+  perguntaDosLugares,
+} from "@/lib/site/saudacao";
 
 /**
  * Prancha F4 · a tela que gente real usa.
@@ -114,7 +118,6 @@ export default function ConfirmacaoDePresenca({
   }
 
   const erro = estado && "erro" in estado ? estado.erro : null;
-  const plural = lugares === 1 ? "lugar" : "lugares";
 
   return (
     <div className="w-full max-w-[560px] flex flex-col">
@@ -170,7 +173,7 @@ export default function ConfirmacaoDePresenca({
               <>
                 <div className="flex flex-col gap-3">
                   <label htmlFor="lugares" className="rotulo text-(--c-ink-2)">
-                    Quantos dos {lugares} {plural} vão?
+                    {perguntaDosLugares(lugares)}
                   </label>
                   <div className="flex items-center gap-4">
                     <BotaoDoContador
@@ -203,7 +206,7 @@ export default function ConfirmacaoDePresenca({
                       }
                     />
                     <span className="meta text-(--c-ink-2)">
-                      de {lugares} {plural === "lugar" ? "reservado" : "reservados"}
+                      de {lugares} {lugares === 1 ? "reservado" : "reservados"}
                     </span>
                   </div>
                 </div>

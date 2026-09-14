@@ -52,7 +52,10 @@ console .................. nenhum erro, nenhum aviso
 ```
 novo convidado ........... "Presença confirmada! Que alegria, Família do
                            Caio. Anotamos 1 lugar."
-casamento real ........... /rsvp/yVUkmV59 → 200
+grupo de teste ........... /rsvp/yVUkmV59 → 200
+                           (rótulo corrigido em 14/09: este link era do site
+                           de teste ana-auditoria-e-bruno-teste, NÃO do
+                           casamento real — apagado na limpeza de 13/09)
 QR do casamento real ..... 200
 og:url / og:image ........ domínio real, sem localhost
 ```

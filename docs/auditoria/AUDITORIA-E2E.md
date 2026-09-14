@@ -890,3 +890,16 @@ pública. O produto não está mal construído — está mal ligado.
   fictícia) e um site órfão do pedido `34ccaf41…`, que foi cancelado. Nada disso é
   visível para o público — sites em prévia não aparecem —, mas está lá para ser apagado
   quando o dono quiser.
+
+### UX-022 — "Quantos dos 1 lugar vão?" (encontrado no reteste de 14/09/2026)
+
+- **Severidade:** 🟢 Baixa
+- **Onde:** `/rsvp/<slug>` de grupo com 1 lugar, depois de "Sim, vamos!"
+- **O que acontece:** a pergunta do contador flexiona "lugar/lugares", mas não o
+  "dos": sai "Quantos dos 1 lugar vão?". O título logo acima já trata o singular
+  certo ("Dona Ivete, você vem?").
+- **Evidência:** `evidencias/RETESTE-14SET.md`
+- **Sugestão:** no singular, perguntar só "Quantas pessoas vão?" — o contador
+  abaixo já diz "de 1 reservado".
+- **Status:** Em correção — feature `005-ux-o-que-faltava` (T017–T019)
+

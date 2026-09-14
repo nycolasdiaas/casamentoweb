@@ -91,3 +91,17 @@ export function pluralDoConvite(lugares: number): {
     ? { pronome: "você", verbo: "vem" }
     : { pronome: "vocês", verbo: "vêm" };
 }
+
+/**
+ * A pergunta em cima do contador, depois do "Sim, vamos!".
+ *
+ * Flexionar só "lugar/lugares" dava "Quantos dos 1 lugar vão?" — pego no
+ * reteste em produção de 14/09/2026 (UX-022). Com um lugar só não há "dos"
+ * que caiba; o contador logo abaixo já diz "de 1 reservado", então a pergunta
+ * fica só com o que falta saber.
+ */
+export function perguntaDosLugares(lugares: number): string {
+  return lugares <= 1
+    ? "Quantas pessoas vão?"
+    : `Quantos dos ${lugares} lugares vão?`;
+}

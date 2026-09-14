@@ -35,5 +35,5 @@ e o recado some do endereço depois de lido
 ## Rotas críticas, todas 200
 ```
 /  ·  /conta/entrar  ·  /s/isabelle-e-nycolas  ·  /api/qr/isabelle-e-nycolas
-/rsvp/yVUkmV59  ·  /rsvp/p79UrPRG
+/rsvp/yVUkmV59  ·  /rsvp/p79UrPRG   (os dois eram de sites de teste, apagados em 13/09)
 ```

@@ -50,3 +50,12 @@
 
 Portões: lint limpo, `tsc --noEmit` limpo, `next build` passando, `npm run test` com
 **833 testes em 74 arquivos, todos verdes**.
+
+## Fase F — Achado do reteste de 14/09/2026
+
+- [x] **T017** `lib/site/saudacao.ts`: `perguntaDosLugares(lugares)` — singular sem
+  "dos 1 lugar"; teste em `saudacao.test.ts`. — `[UX-022]`
+- [x] **T018** `components/site/ConfirmacaoDePresenca.tsx` usa a função. — `[UX-022]`
+- [ ] **T019** Portões + verificação no site no ar: grupo de 1 lugar mostra "Quantas
+  pessoas vão?"; grupo de 2 continua "Quantos dos 2 lugares vão?". — `[UX-022]`
+

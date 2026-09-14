@@ -90,7 +90,7 @@ try {
   for (const s of locais) console.log(`  · /s/${s.slug} [${s.status}]`);
 
   console.log(
-    `\n${grupos.length} grupo(s) de convidados, ${convidados.length} convidado(s), ${fotos.length} foto(s).`
+    `\n${grupos.length} grupo(s) de convidados, ${convidados.length} convidado(s), ${fotos.length} foto(s), ${cotas.length} presente(s), ${avisosDePix.length} aviso(s) de Pix.`
   );
 
   const publicados = locais.filter(

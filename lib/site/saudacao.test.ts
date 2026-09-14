@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { saudacaoDeConvidados, pluralDoConvite } from "./saudacao";
+import {
+  saudacaoDeConvidados,
+  pluralDoConvite,
+  perguntaDosLugares,
+} from "./saudacao";
 
 describe("saudacaoDeConvidados", () => {
   it("chama uma pessoa pelo primeiro nome", () => {
@@ -61,5 +65,18 @@ describe("pluralDoConvite", () => {
 
   it("zero lugares não vira plural por acidente", () => {
     expect(pluralDoConvite(0).pronome).toBe("você");
+  });
+});
+
+describe("perguntaDosLugares", () => {
+  it("um lugar não vira 'Quantos dos 1 lugar vão?'", () => {
+    // Pego no reteste em produção de 14/09/2026 (UX-022).
+    expect(perguntaDosLugares(1)).toBe("Quantas pessoas vão?");
+    expect(perguntaDosLugares(1)).not.toMatch(/dos 1/);
+  });
+
+  it("dois ou mais continuam contando os lugares", () => {
+    expect(perguntaDosLugares(2)).toBe("Quantos dos 2 lugares vão?");
+    expect(perguntaDosLugares(7)).toBe("Quantos dos 7 lugares vão?");
   });
 });
