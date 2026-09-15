@@ -115,3 +115,9 @@ Seguem sem mudança, por decisão: `aria-label` em `span` e a falta de `<main>` 
 Daí a regra que fica: script em arquivo, e `script && git commit` — nunca um depois do
 outro sem encadear.
 
+
+## Dados de teste — apagados
+Autorizado pelo dono. Backup antes: `backups/full-backup-2026-09-15T23-31-26-065Z.json`.
+`scripts/limpar-dados-de-teste.mjs --apagar`: 1 conta (`sargento.14set@example.com`),
+1 pedido, 1 site em prévia, 2 grupos (`PHUBoPsb` e `cj8DgByQ`), 2 convidados, 7 presentes.
+Nenhum site publicado na lista. Em seguida, casal real e rotas críticas: todas 200.
