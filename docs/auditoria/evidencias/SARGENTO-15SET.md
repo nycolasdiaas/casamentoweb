@@ -75,3 +75,43 @@ do caso abandonado continuam no banco — inserem o mesmo casal enquanto o caso 
 limpa e insere, e a disputa gera travas, mais timeouts e a chave duplicada. Latência
 medida em seguida, só com operações do schema `test`: `test:setup` em 11 s (~60 comandos),
 `rsvp-actions.test.ts` 13/13 em 60 s.
+
+## Correções no ar — build `dERh1NZhkbV3YcBPStvlH` (commits `6feb97b` e `7cf04ee`)
+
+Portões: lint, `tsc` e `next build` limpos; **844 testes em 74 arquivos** verdes, com a
+suíte rodando sozinha.
+
+```
+/rsvp/cj8DgByQ (3 lugares, sem nomes)
+  título ................. "Vocês vêm?"                                    UX-025 ✅
+  responder → enviar ..... "Presença confirmada! Anotamos 3 lugares."
+  Editar resposta → Não posso → enviar
+                         ... "Resposta enviada. Avisamos o casal."          UX-024 ✅
+/conta/criar com "(81) 9"
+  navegador .............. barra: "É preciso que o formato corresponda ao exigido."
+  envio forçado .......... "Confira o WhatsApp — com DDD, são 10 ou 11 números."  UX-026 ✅
+/conta/entrar com senha errada
+  mensagem ............... role="alert", id campo-password-erro, e o campo com
+                           aria-describedby apontando para ela              UX-027 ✅
+contraste dos itens ausentes
+  home ................... rgb(90,95,102) sobre branco = 6,43:1 (era 2,66)  UX-028 ✅
+  /pacotes ............... 14 itens, todos em 6,43:1 (era 3,21)             UX-028 ✅
+  Lighthouse da home ..... acessibilidade 90 → 94
+casal real ............... /isabelle-e-nycolas, /rsvp/__Tzwfka, QR, /, /pacotes,
+                           /conta/criar — todos 200
+```
+
+Seguem sem mudança, por decisão: `aria-label` em `span` e a falta de `<main>` na home
+(as 2 reprovações restantes do Lighthouse), e o `CRON_SECRET`, que é configuração do dono.
+
+## Dois erros meus no caminho
+
+1. O commit `7119c69` subiu com a auditoria pela metade: o script que atualizava os status
+   parou num trecho que não existia (supus um separador entre a UX-027 e a UX-028), e o
+   `git commit` rodou assim mesmo porque eu não encadeei os comandos.
+2. A primeira tentativa de consertar falhou no shell: o texto continha uma linha igual ao
+   marcador de fim do bloco, e o comando foi cortado no meio. Nada chegou a ser gravado.
+
+Daí a regra que fica: script em arquivo, e `script && git commit` — nunca um depois do
+outro sem encadear.
+

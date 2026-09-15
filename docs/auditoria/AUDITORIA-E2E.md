@@ -961,7 +961,7 @@ alternativos do RSVP ("Não posso", confirmação parcial, editar a resposta). E
 - **Severidade:** 🟢 Baixa
 - **Onde:** todo campo que usa `components/ui/prensa/Campo.tsx` (ex.: "E-mail ou senha incorretos.")
 - **Causa:** a mensagem tinha `aria-describedby`, mas não `role="alert"`.
-- **Status:** Em correção — feature `005-ux-o-que-faltava` (T024–T029)
+- **Status:** ✅ **Resolvido** — commit `6feb97b`, verificado em produção em 15/09/2026: a mensagem tem `role="alert"` e o campo a referencia por `aria-describedby`
 
 ### UX-028 — Itens "não incluído" dos pacotes com contraste abaixo do mínimo
 
@@ -975,5 +975,5 @@ alternativos do RSVP ("Não posso", confirmação parcial, editar a resposta). E
 - **Correção:** tinta secundária cheia (`--c-ink-2`, `#5a5f66`) nos dois — **6,43:1** no
   tema claro e 6,75:1 no escuro. O incluído segue em 16,9:1, então a hierarquia fica de pé.
   Os símbolos `—` e `✕` continuam terciários: são decorativos e saem do leitor de tela.
-- **Status:** Em correção — feature `005-ux-o-que-faltava` (T030–T031)
+- **Status:** ✅ **Resolvido** — commit `7cf04ee`, verificado em produção em 15/09/2026: home e `/pacotes` medidos em 6,43:1 (eram 2,66 e 3,21); Lighthouse da home subiu de 90 para 94
 

@@ -78,11 +78,13 @@ Portões: lint limpo, `tsc --noEmit` limpo, `next build` passando, `npm run test
 - [x] **T026** `lib/telefone.ts`: `whatsappValido`; `signupAction` recusa número
   incompleto; `pattern` do campo escapado para a flag `v`; testes. — `[UX-026]`
 - [x] **T027** `Campo.tsx`: `role="alert"` na mensagem de erro. — `[UX-027]`
-- [ ] **T028** Portões (lint, tsc, build, testes). — `[UX-024..027]`
-- [ ] **T029** Verificação no site no ar: editar resposta confirma; família sem nomes lê
+- [x] **T028** Portões: lint, tsc e build limpos; 844 testes em 74 arquivos verdes, com a suíte rodando sozinha. — `[UX-024..027]`
+- [x] **T029** Verificação no site no ar: editar resposta confirma; família sem nomes lê
   "Vocês vêm?"; cadastro recusa "(81) 9"; casamento real intacto. — `[UX-024..027]`
 - [x] **T030** Contraste dos itens ausentes nos pacotes: `--c-ink-2` cheio na home e em
   `/pacotes` (2,66:1 e 3,21:1 → 6,43:1). — `[UX-028]`
 - [x] **T031** AGENTS.md: `CRON_SECRET` vazio vira pendência conhecida, e a linha do
   webhook passa a dizer que ele está configurado. — `[UX-028]`
+- [x] **T032** Verificação no site no ar do contraste e do erro anunciado: home e `/pacotes`
+  em 6,43:1, Lighthouse da home 90 → 94, erro do login com `role="alert"`. — `[UX-027][UX-028]`
 
