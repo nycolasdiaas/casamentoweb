@@ -65,3 +65,9 @@ Recarregada depois de salvar, o fluxo passou inteiro. Não é defeito; é ordem 
 - `/s/isabelle-e-nycolas` mostra "O site de vocês está sendo preparado" (anterior à
   auditoria; os convidados usam `/isabelle-e-nycolas`).
 - 1 aviso de preload de CSS no painel, que não é de fonte.
+
+## Dados de teste — apagados
+Autorizado pelo dono. Backup antes: `backups/full-backup-2026-09-15T01-11-23-065Z.json`.
+`scripts/limpar-dados-de-teste.mjs --apagar`: 1 conta (`reteste4.14set@example.com`),
+1 pedido cancelado, 1 site em prévia, 1 grupo, 1 convidado, 1 foto, 7 presentes,
+1 aviso de Pix. Nenhum site publicado na lista.
