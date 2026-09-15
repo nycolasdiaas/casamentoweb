@@ -149,9 +149,14 @@ tabelas e produzem falhas que não existem. Ver Skill `testes`.
 
 ## Pendências conhecidas
 
-- **`ABACATEPAY_WEBHOOK_SECRET` vazio → webhook DESLIGADO** (responde 503). A
-  confirmação depende do casal voltar do checkout: funciona, mas não é
-  instantâneo.
+- **`CRON_SECRET` vazio → agendamentos DESLIGADOS** (as duas rotas de
+  `/api/cron/*` respondem 503 antes de checar a autorização). Medido em
+  produção em 15/09/2026. O `vercel.json` agenda as duas e nenhuma roda:
+  expirar sites não tem efeito hoje (nenhum site tem prazo), mas o **resumo
+  semanal nunca é enviado**. Definir a variável é do dono.
+- **`ABACATEPAY_WEBHOOK_SECRET` está CONFIGURADO** desde antes de 15/09/2026 —
+  o webhook responde 401 a chamada sem assinatura, e o 503 de "não
+  configurado" não aparece mais. Esta linha dizia o contrário até então.
 - **Álbum pós-festa é placeholder** — as fotos só existem depois da festa.
 - **Pix de presente falho não é detectável**: o convidado auto-declara que
   pagou (`registerContributionAction`), e o dinheiro nunca passa pela Enlace

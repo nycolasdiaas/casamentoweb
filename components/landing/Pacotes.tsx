@@ -110,8 +110,12 @@ function CartaoDePacote({ tier }: { tier: PackageTier }) {
           return (
             <li
               key={chave}
+              /* O ausente era `--c-ink-2` a 60%: sobre o branco dá `#9c9fa3`,
+                 2,65:1 — o Lighthouse reprovou (UX-028). A tinta secundária
+                 cheia é 6,4:1 e mantém a hierarquia: incluído em tinta
+                 principal, ausente um degrau abaixo. */
               className={`flex items-start gap-2.5 text-sm leading-snug ${
-                tem ? "text-(--c-ink)" : "text-(--c-ink-2)/60"
+                tem ? "text-(--c-ink)" : "text-(--c-ink-2)"
               }`}
             >
               {tem ? (

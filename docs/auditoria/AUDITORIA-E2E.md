@@ -963,3 +963,17 @@ alternativos do RSVP ("Não posso", confirmação parcial, editar a resposta). E
 - **Causa:** a mensagem tinha `aria-describedby`, mas não `role="alert"`.
 - **Status:** Em correção — feature `005-ux-o-que-faltava` (T024–T029)
 
+### UX-028 — Itens "não incluído" dos pacotes com contraste abaixo do mínimo
+
+- **Severidade:** 🟡 Média — é a página que vende
+- **Onde:** home (`components/landing/Pacotes.tsx`) e `/pacotes` (`app/pacotes/page.tsx`)
+- **O que acontece:** o que **não** vem no pacote aparece em cinza claro demais. Medido:
+  `#9c9fa3` sobre branco = **2,66:1** na home (a tinta secundária a 60% de opacidade) e
+  `#8b9099` = **3,21:1** em `/pacotes`. O mínimo da WCAG AA para texto é 4,5:1.
+- **Evidência:** Lighthouse da home (acessibilidade 90, `color-contrast` reprovado) em
+  `evidencias/SARGENTO-15SET.md`
+- **Correção:** tinta secundária cheia (`--c-ink-2`, `#5a5f66`) nos dois — **6,43:1** no
+  tema claro e 6,75:1 no escuro. O incluído segue em 16,9:1, então a hierarquia fica de pé.
+  Os símbolos `—` e `✕` continuam terciários: são decorativos e saem do leitor de tela.
+- **Status:** Em correção — feature `005-ux-o-que-faltava` (T030–T031)
+

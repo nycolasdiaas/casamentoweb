@@ -215,7 +215,10 @@ function CartaoDePacote({
               >
                 {inclui ? "✓" : "✕"}
               </span>
-              <span className={inclui ? undefined : "text-(--c-ink-3)"}>
+              {/* `--c-ink-3` sobre branco é ~3:1; o rótulo é texto de verdade
+                  e precisa de 4,5:1 (UX-028). O ✕ acima continua terciário —
+                  é decorativo e sai do leitor de tela por `aria-hidden`. */}
+              <span className={inclui ? undefined : "text-(--c-ink-2)"}>
                 {rotulo}
                 <span className="sr-only">
                   {inclui ? " — incluído" : " — não incluído neste pacote"}

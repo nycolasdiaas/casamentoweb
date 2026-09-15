@@ -81,4 +81,8 @@ Portões: lint limpo, `tsc --noEmit` limpo, `next build` passando, `npm run test
 - [ ] **T028** Portões (lint, tsc, build, testes). — `[UX-024..027]`
 - [ ] **T029** Verificação no site no ar: editar resposta confirma; família sem nomes lê
   "Vocês vêm?"; cadastro recusa "(81) 9"; casamento real intacto. — `[UX-024..027]`
+- [x] **T030** Contraste dos itens ausentes nos pacotes: `--c-ink-2` cheio na home e em
+  `/pacotes` (2,66:1 e 3,21:1 → 6,43:1). — `[UX-028]`
+- [x] **T031** AGENTS.md: `CRON_SECRET` vazio vira pendência conhecida, e a linha do
+  webhook passa a dizer que ele está configurado. — `[UX-028]`
 
