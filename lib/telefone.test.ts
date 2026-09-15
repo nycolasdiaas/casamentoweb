@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mascaraDeWhatsapp } from "./telefone";
+import { mascaraDeWhatsapp, whatsappValido } from "./telefone";
 
 describe("mascaraDeWhatsapp", () => {
   it("formata celular com nove dígitos", () => {
@@ -33,3 +33,29 @@ describe("mascaraDeWhatsapp", () => {
     expect(mascaraDeWhatsapp("abc")).toBe("");
   });
 });
+
+describe("whatsappValido", () => {
+  it("aceita celular e fixo com DDD, com ou sem máscara", () => {
+    expect(whatsappValido("(81) 98765-4321")).toBe(true);
+    expect(whatsappValido("81987654321")).toBe(true);
+    expect(whatsappValido("(11) 3888-7777")).toBe(true);
+  });
+
+  it("aceita com o 55 do país", () => {
+    expect(whatsappValido("+55 81 98765-4321")).toBe(true);
+    expect(whatsappValido("551138887777")).toBe(true);
+  });
+
+  it("recusa número incompleto", () => {
+    // Pego em produção em 15/09/2026 (UX-026): "(81) 9" era gravado.
+    expect(whatsappValido("(81) 9")).toBe(false);
+    expect(whatsappValido("11")).toBe(false);
+    expect(whatsappValido("987654321")).toBe(false);
+  });
+
+  it("recusa número comprido demais ou 12 dígitos sem o 55", () => {
+    expect(whatsappValido("819876543210123")).toBe(false);
+    expect(whatsappValido("811987654321")).toBe(false);
+  });
+});
+

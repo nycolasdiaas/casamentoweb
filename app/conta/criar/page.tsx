@@ -89,7 +89,10 @@ export default function SignupPage() {
           name="whatsapp"
           autoComplete="tel"
           inputMode="tel"
-          pattern="[\s()+\-0-9]{10,20}"
+          /* Parênteses e hífen ESCAPADOS: o navegador compila `pattern` com a
+             flag `v`, e nela `[\s()+\-0-9]` é expressão inválida — o campo
+             ignorava o padrão e aceitava "(81) 9" (UX-026). */
+          pattern="[0-9 \(\)+\-]{10,20}"
           title="Com DDD — ex: (11) 98888-7777"
           ajuda="Com DDD. Opcional — é por onde a gente avisa se algo travar."
           /* A máscara enquanto digita: o campo mostrava "(11) 98888-7777" no

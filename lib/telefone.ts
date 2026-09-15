@@ -12,6 +12,20 @@
  * "(11) ____-____". Campo de convite não tem por que parecer formulário de
  * banco.
  */
+/**
+ * O número tem o tamanho de um telefone brasileiro com DDD?
+ *
+ * 10 dígitos (fixo) ou 11 (celular); 12 ou 13 quando vem com o 55 do país.
+ * Não confere se o número existe — só barra o engano óbvio. O cadastro
+ * aceitava "(81) 9" e gravava assim (UX-026, 15/09/2026): o `pattern` do
+ * campo não compilava no navegador e o servidor não conferia nada.
+ */
+export function whatsappValido(valor: string): boolean {
+  const digitos = valor.replace(/\D/g, "");
+  if (digitos.length === 10 || digitos.length === 11) return true;
+  return (digitos.length === 12 || digitos.length === 13) && digitos.startsWith("55");
+}
+
 export function mascaraDeWhatsapp(valor: string): string {
   const digitos = valor.replace(/\D/g, "").slice(0, 11);
   if (digitos.length === 0) return "";

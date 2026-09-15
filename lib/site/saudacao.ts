@@ -93,6 +93,25 @@ export function pluralDoConvite(lugares: number): {
 }
 
 /**
+ * O título da confirmação: "Carla e Davi, vocês vêm?" ou "Vocês vêm?".
+ *
+ * O título era montado no componente como saudação + pronome, e quando a
+ * família não tinha nomes cadastrados sobrava o pronome sozinho, em minúscula:
+ * "vocês vêm?" — pego no teste exploratório em produção de 15/09/2026
+ * (UX-025). Qualquer família que o casal cadastrou só com o número de lugares
+ * via o convite começar assim.
+ */
+export function tituloDoConvite(
+  nomes: readonly string[] | null | undefined,
+  lugares: number
+): string {
+  const { pronome, verbo } = pluralDoConvite(lugares);
+  const saudacao = saudacaoDeConvidados(nomes);
+  if (saudacao) return `${saudacao}, ${pronome} ${verbo}?`;
+  return `${pronome.charAt(0).toUpperCase()}${pronome.slice(1)} ${verbo}?`;
+}
+
+/**
  * A pergunta em cima do contador, depois do "Sim, vamos!".
  *
  * Flexionar só "lugar/lugares" dava "Quantos dos 1 lugar vão?" — pego no

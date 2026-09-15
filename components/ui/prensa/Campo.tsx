@@ -48,7 +48,10 @@ function Moldura({
       {ajuda && <p className="t-corpo-p text-(--c-ink-2)">{ajuda}</p>}
       {children}
       {erro && (
-        <p id={`${id}-erro`} className="erro-do-campo">
+        /* `role="alert"`: o `aria-describedby` só é lido quando o foco volta
+           ao campo; sem o alerta, "E-mail ou senha incorretos." aparecia na
+           tela e o leitor de tela ficava calado (UX-027). */
+        <p id={`${id}-erro`} role="alert" className="erro-do-campo">
           {erro}
         </p>
       )}

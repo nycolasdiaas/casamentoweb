@@ -70,3 +70,15 @@ Portões: lint limpo, `tsc --noEmit` limpo, `next build` passando, `npm run test
 - [x] **T023** Verificação no site no ar: arquivos de fonte baixados no RSVP, no painel e
   no site do casal; os seis moldes e o casamento real continuam com as fontes certas. — `[UX-023]`
 
+## Fase H — Teste exploratório em produção de 15/09/2026
+
+- [x] **T024** `ConfirmacaoDePresenca.tsx`: sucesso volta a aparecer depois de editar a
+  resposta (estado reaberto em vez de booleano). — `[UX-024]`
+- [x] **T025** `lib/site/saudacao.ts`: `tituloDoConvite` com maiúscula sem nomes; teste. — `[UX-025]`
+- [x] **T026** `lib/telefone.ts`: `whatsappValido`; `signupAction` recusa número
+  incompleto; `pattern` do campo escapado para a flag `v`; testes. — `[UX-026]`
+- [x] **T027** `Campo.tsx`: `role="alert"` na mensagem de erro. — `[UX-027]`
+- [ ] **T028** Portões (lint, tsc, build, testes). — `[UX-024..027]`
+- [ ] **T029** Verificação no site no ar: editar resposta confirma; família sem nomes lê
+  "Vocês vêm?"; cadastro recusa "(81) 9"; casamento real intacto. — `[UX-024..027]`
+

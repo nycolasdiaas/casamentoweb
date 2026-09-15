@@ -7,9 +7,9 @@ import {
   type EstadoDoRsvp,
 } from "@/app/actions/rsvp-actions";
 import {
-  saudacaoDeConvidados,
   pluralDoConvite,
   perguntaDosLugares,
+  tituloDoConvite,
 } from "@/lib/site/saudacao";
 
 /**
@@ -98,21 +98,27 @@ export default function ConfirmacaoDePresenca({
   const [quantos, setQuantos] = useState(
     jaRespondeu && jaRespondeu.lugares > 0 ? jaRespondeu.lugares : lugares
   );
-  const [reabrir, setReabrir] = useState(false);
+  /* Qual resposta o convidado reabriu para editar — não um "reabriu" booleano.
+     Com o booleano, depois de "Editar resposta" ele ficava verdadeiro para
+     sempre: o segundo envio gravava (o painel mostrava a mudança), mas a tela
+     devolvia o formulário em vez da confirmação, e o convidado não tinha como
+     saber que deu certo (UX-024, pego em produção em 15/09/2026). Guardando o
+     estado reaberto, qualquer resposta NOVA do servidor volta a mostrar o
+     sucesso. */
+  const [reabertoEm, setReabertoEm] = useState<EstadoDoRsvp>(undefined);
 
-  const saudacao = saudacaoDeConvidados(nomesDosConvidados);
   const tratamento = pluralDoConvite(lugares);
 
   const respondeuAgora = estado && "ok" in estado;
 
-  if (respondeuAgora && !reabrir) {
+  if (respondeuAgora && estado !== reabertoEm) {
     return (
       <Sucesso
         lugares={estado.lugares}
         dataDoCasamento={dataDoCasamento}
         linkDoSite={linkDoSite}
         linkDaAgenda={linkDaAgenda}
-        aoEditar={() => setReabrir(true)}
+        aoEditar={() => setReabertoEm(estado)}
       />
     );
   }
@@ -131,8 +137,7 @@ export default function ConfirmacaoDePresenca({
           <p className="meta text-(--c-mark)">Confirme até {prazo}</p>
         )}
         <h1 className="t-d1 text-(--c-ink) mt-2">
-          {saudacao ? `${saudacao}, ` : ""}
-          {tratamento.pronome} {tratamento.verbo}?
+          {tituloDoConvite(nomesDosConvidados, lugares)}
         </h1>
         {jaRespondeu && (
           <p className="t-corpo-p text-(--c-ink-2) mt-1">

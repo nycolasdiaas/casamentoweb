@@ -3,6 +3,7 @@ import {
   saudacaoDeConvidados,
   pluralDoConvite,
   perguntaDosLugares,
+  tituloDoConvite,
 } from "./saudacao";
 
 describe("saudacaoDeConvidados", () => {
@@ -80,3 +81,23 @@ describe("perguntaDosLugares", () => {
     expect(perguntaDosLugares(7)).toBe("Quantos dos 7 lugares vão?");
   });
 });
+
+describe("tituloDoConvite", () => {
+  it("sem nomes, o título começa com maiúscula", () => {
+    // Pego em produção em 15/09/2026 (UX-025): saía "vocês vêm?".
+    expect(tituloDoConvite([], 3)).toBe("Vocês vêm?");
+    expect(tituloDoConvite(null, 1)).toBe("Você vem?");
+  });
+
+  it("com nomes, a saudação abre e o pronome segue minúsculo", () => {
+    expect(tituloDoConvite(["Carla Teste", "Davi Teste"], 2)).toBe(
+      "Carla e Davi, vocês vêm?"
+    );
+    expect(tituloDoConvite(["Dona Ivete Souza"], 1)).toBe("Dona Ivete, você vem?");
+  });
+
+  it("de quatro nomes em diante, volta ao título neutro com maiúscula", () => {
+    expect(tituloDoConvite(["Ana", "Bia", "Caio", "Davi"], 4)).toBe("Vocês vêm?");
+  });
+});
+

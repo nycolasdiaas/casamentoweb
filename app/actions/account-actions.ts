@@ -37,6 +37,7 @@ import { PACKAGES, type PackageTier } from "@/lib/packages";
 import { TEMPLATE_STYLES } from "@/lib/templates";
 import { isFontStyle, isHexColor } from "@/lib/customization";
 import { checkRateLimit, getClientIp, RATE_LIMIT_MESSAGE } from "@/lib/rateLimit";
+import { whatsappValido } from "@/lib/telefone";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -54,6 +55,12 @@ export async function signupAction(formData: FormData) {
   if (!EMAIL_PATTERN.test(email)) return { error: "Confira o e-mail — falta o @ ou o domínio." };
   if (password.length < 8) {
     return { error: "A senha precisa de pelo menos 8 caracteres." };
+  }
+  /* Opcional, mas se veio tem que ter tamanho de telefone: "(81) 9" era
+     gravado assim, e é por esse número que a gente avisa quando algo trava
+     (UX-026). */
+  if (whatsapp && !whatsappValido(whatsapp)) {
+    return { error: "Confira o WhatsApp — com DDD, são 10 ou 11 números." };
   }
 
   const existing = await getUserByEmail(email);

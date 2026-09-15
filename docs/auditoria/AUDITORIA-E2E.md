@@ -921,3 +921,45 @@ pública. O produto não está mal construído — está mal ligado.
   carregando quando o CSS a usa; o que some é o download antecipado.
 - **Status:** ✅ **Resolvido** — feature `005-ux-o-que-faltava` (T020–T023), commit `e674047`, verificado em produção em 14/09/2026: RSVP baixa 6 arquivos (105 KB, era 17 / 421 KB), casamento real 6 (era 44), painel sem aviso de fonte; prévia Toscana e as 34 prévias da tipografia carregando
 
+---
+
+## Teste exploratório em produção — 15/09/2026 (método SARGENTO)
+
+Além dos 23 achados: rotas inválidas, APIs sem login, cabeçalhos de segurança, links
+internos, login/cadastro/"esqueci a senha" com dados errados, Lighthouse, e os caminhos
+alternativos do RSVP ("Não posso", confirmação parcial, editar a resposta). Evidência em
+`evidencias/SARGENTO-15SET.md`.
+
+### UX-024 — Editar a resposta do RSVP grava, mas não confirma
+
+- **Severidade:** 🟠 Alta — na rota que não pode falhar
+- **Onde:** `/rsvp/<slug>` → "Editar resposta" → nova escolha → enviar
+- **O que acontece:** a resposta é gravada (o painel mostra a mudança), mas a tela volta
+  ao formulário, sem "Resposta enviada". O convidado não tem como saber que deu certo.
+- **Causa:** `components/site/ConfirmacaoDePresenca.tsx` escondia o sucesso com um
+  booleano `reabrir` que ficava verdadeiro para sempre depois de "Editar resposta".
+- **Status:** Em correção — feature `005-ux-o-que-faltava` (T024–T029)
+
+### UX-025 — "vocês vêm?" com minúscula para família sem nomes
+
+- **Severidade:** 🟡 Média — o convidado lê
+- **Onde:** `/rsvp/<slug>` de grupo cadastrado só com o número de lugares
+- **Causa:** o título era saudação + pronome; sem nomes, sobrava o pronome minúsculo.
+- **Status:** Em correção — feature `005-ux-o-que-faltava` (T024–T029)
+
+### UX-026 — Cadastro aceita WhatsApp incompleto
+
+- **Severidade:** 🟡 Média — é o canal de socorro do casal
+- **Onde:** `/conta/criar`
+- **O que acontece:** "(81) 9" é aceito e gravado.
+- **Causa:** o `pattern` do campo (`[\s()+\-0-9]{10,20}`) é inválido na flag `v` que o
+  navegador usa, então é ignorado; e `signupAction` não conferia o número.
+- **Status:** Em correção — feature `005-ux-o-que-faltava` (T024–T029)
+
+### UX-027 — Erro de formulário não é anunciado ao leitor de tela
+
+- **Severidade:** 🟢 Baixa
+- **Onde:** todo campo que usa `components/ui/prensa/Campo.tsx` (ex.: "E-mail ou senha incorretos.")
+- **Causa:** a mensagem tinha `aria-describedby`, mas não `role="alert"`.
+- **Status:** Em correção — feature `005-ux-o-que-faltava` (T024–T029)
+
