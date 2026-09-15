@@ -938,14 +938,14 @@ alternativos do RSVP ("Não posso", confirmação parcial, editar a resposta). E
   ao formulário, sem "Resposta enviada". O convidado não tem como saber que deu certo.
 - **Causa:** `components/site/ConfirmacaoDePresenca.tsx` escondia o sucesso com um
   booleano `reabrir` que ficava verdadeiro para sempre depois de "Editar resposta".
-- **Status:** Em correção — feature `005-ux-o-que-faltava` (T024–T029)
+- **Status:** ✅ **Resolvido** — commit `6feb97b`, verificado em produção em 15/09/2026: editar a resposta e reenviar mostra "Resposta enviada"
 
 ### UX-025 — "vocês vêm?" com minúscula para família sem nomes
 
 - **Severidade:** 🟡 Média — o convidado lê
 - **Onde:** `/rsvp/<slug>` de grupo cadastrado só com o número de lugares
 - **Causa:** o título era saudação + pronome; sem nomes, sobrava o pronome minúsculo.
-- **Status:** Em correção — feature `005-ux-o-que-faltava` (T024–T029)
+- **Status:** ✅ **Resolvido** — commit `6feb97b`, verificado em produção: `/rsvp/cj8DgByQ` mostra "Vocês vêm?"
 
 ### UX-026 — Cadastro aceita WhatsApp incompleto
 
@@ -954,7 +954,7 @@ alternativos do RSVP ("Não posso", confirmação parcial, editar a resposta). E
 - **O que acontece:** "(81) 9" é aceito e gravado.
 - **Causa:** o `pattern` do campo (`[\s()+\-0-9]{10,20}`) é inválido na flag `v` que o
   navegador usa, então é ignorado; e `signupAction` não conferia o número.
-- **Status:** Em correção — feature `005-ux-o-que-faltava` (T024–T029)
+- **Status:** ✅ **Resolvido** — commit `6feb97b`, verificado em produção: o navegador barra e o servidor responde "Confira o WhatsApp — com DDD, são 10 ou 11 números."
 
 ### UX-027 — Erro de formulário não é anunciado ao leitor de tela
 
