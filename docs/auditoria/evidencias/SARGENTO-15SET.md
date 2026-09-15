@@ -121,3 +121,11 @@ Autorizado pelo dono. Backup antes: `backups/full-backup-2026-09-15T23-31-26-065
 `scripts/limpar-dados-de-teste.mjs --apagar`: 1 conta (`sargento.14set@example.com`),
 1 pedido, 1 site em prévia, 2 grupos (`PHUBoPsb` e `cj8DgByQ`), 2 convidados, 7 presentes.
 Nenhum site publicado na lista. Em seguida, casal real e rotas críticas: todas 200.
+
+## CRON_SECRET definido pelo dono — 15/09/2026
+Antes: `/api/cron/resumo-semanal` e `/api/cron/expirar-sites` respondiam **503**
+("Agendamento não configurado"), e o 503 vem antes da checagem de autorização.
+Depois do Redeploy (build `8biSK2bFFJW6QF_tg5T2Z`): as duas respondem **401**
+("Não autorizado.") a chamada sem assinatura. É a troca que prova que a variável
+está no ar — e ela é verificável sem conhecer o segredo.
+

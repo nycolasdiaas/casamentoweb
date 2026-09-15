@@ -149,11 +149,11 @@ tabelas e produzem falhas que não existem. Ver Skill `testes`.
 
 ## Pendências conhecidas
 
-- **`CRON_SECRET` vazio → agendamentos DESLIGADOS** (as duas rotas de
-  `/api/cron/*` respondem 503 antes de checar a autorização). Medido em
-  produção em 15/09/2026. O `vercel.json` agenda as duas e nenhuma roda:
-  expirar sites não tem efeito hoje (nenhum site tem prazo), mas o **resumo
-  semanal nunca é enviado**. Definir a variável é do dono.
+- **`CRON_SECRET` está CONFIGURADO** desde 15/09/2026 — as duas rotas de
+  `/api/cron/*` respondem 401 a chamada sem assinatura, e não mais o 503 de
+  "não configurado". O resumo semanal sai às segundas, 11h UTC (8h de
+  Brasília), e só para casal com movimento na semana; a expiração roda todo
+  dia e hoje não tem o que arquivar (nenhum site tem prazo).
 - **`ABACATEPAY_WEBHOOK_SECRET` está CONFIGURADO** desde antes de 15/09/2026 —
   o webhook responde 401 a chamada sem assinatura, e o 503 de "não
   configurado" não aparece mais. Esta linha dizia o contrário até então.
