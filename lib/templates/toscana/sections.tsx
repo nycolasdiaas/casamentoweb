@@ -450,13 +450,6 @@ export function Rsvp({ slug }: SectionProps) {
         >
           Recado para os noivos
         </Link>
-        <Link
-          href={`/s/${slug}/meu-convite`}
-          className="mt-4 block text-[12.5px] underline underline-offset-4 transition-opacity hover:opacity-100"
-          style={{ color: papel(70) }}
-        >
-          Não recebi meu link
-        </Link>
       </div>
     </section>
   );

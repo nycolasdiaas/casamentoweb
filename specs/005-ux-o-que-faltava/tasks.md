@@ -114,9 +114,12 @@ Portões: lint limpo, `tsc --noEmit` limpo, `next build` passando, `npm run test
 - [x] **T046** `AcoesDaFamilia`: salvar fecha o formulário e confirma na linha. — `[UX-036]`
 - [x] **T047** Recado para os noivos: migração 0027 (`guestbook_messages.privado`), o
   destino decidido pelo `tier` no servidor, rota `/s/<slug>/recado` com as guardas de
-  `/s/<slug>`, botão principal nos seis moldes (com "Não recebi meu link" como saída
-  secundária), passo do presente só no Para Sempre, aba Recados liberada no Site do
-  Casamento sem botão de esconder, e testes dos dois destinos. — `[UX-037]`
+  `/s/<slug>`, botão principal nos seis moldes, passo do presente só no Para Sempre,
+  aba Recados liberada no Site do Casamento sem botão de esconder, e testes dos dois
+  destinos. — `[UX-037]`
+- [x] **T050** "Não recebi meu link" sai por completo das seis seções de confirmação e
+  da tela do recado. A rota `/s/<slug>/meu-convite` continua — é para onde o botão
+  "Confirmar presença" do convite do casal leva. — `[UX-037]`
 - [x] **T048** Questionário: etapas 7, 8 e 9 viram `visual`; rota `/previa-do-estilo`
   com o `SiteRenderer` de verdade e o conteúdo do casal; `TemaAoVivo` troca cor e fonte
   por `postMessage` sem recarregar; lista de fontes filtrada pelo molde

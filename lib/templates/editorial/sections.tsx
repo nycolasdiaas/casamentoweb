@@ -559,13 +559,6 @@ export function Rsvp({ slug }: SectionProps) {
           >
             Escrever para o casal
           </Link>
-          <Link
-            href={`/s/${slug}/meu-convite`}
-            className="mt-4 block text-[12px] underline underline-offset-4 transition-opacity hover:opacity-100"
-            style={{ color: fade(65) }}
-          >
-            Não recebi meu link
-          </Link>
         </div>
       </div>
     </section>

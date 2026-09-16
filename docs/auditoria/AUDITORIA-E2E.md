@@ -1090,8 +1090,11 @@ alternativos do RSVP ("Não posso", confirmação parcial, editar a resposta). E
   prometia resolver um problema que a maioria não tinha. O dono em 15/09/2026: o link
   "não faz muito sentido", e o que aquela gente queria era falar com os noivos.
 - **Correção:** o botão principal passa a ser **"Recado para os noivos"**, levando a
-  `/s/<slug>/recado`. "Não recebi meu link" continua logo abaixo, como linha sublinhada —
-  quem de fato perdeu o convite ainda precisa dele.
+  `/s/<slug>/recado`. **Em 16/09/2026 o dono mandou tirar o "Não recebi meu link" por
+  completo** — a caixa passou a oferecer uma coisa só. Quem perdeu o convite continua
+  lendo, no parágrafo acima do botão, que ele foi mandado por mensagem; e a busca por
+  nome segue de pé para quem chega pelo convite que o casal manda
+  (`linkDoBotaoDoConvite` → `/s/<slug>/meu-convite`).
 - **O que o recado faz, por pacote** (decisão do dono, 15/09/2026 — "recado + Pix apenas
   no plano mais caro, nos outros planos apenas recado"):
   - **Para Sempre:** o recado entra no mural do site e, **depois de enviado**, a tela

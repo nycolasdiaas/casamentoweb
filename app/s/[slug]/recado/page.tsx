@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import type { Metadata } from "next";
 import BecoComSaida from "@/components/site/BecoComSaida";
 import SenhaDoSite from "@/components/site/SenhaDoSite";
@@ -26,9 +25,13 @@ import type { SiteView } from "@/components/site/SiteFromView";
  * O bloco da confirmação de presença oferecia "Não recebi meu link" como
  * única saída para quem chegava sem convite. O dono viu o que isso significa
  * na prática (15/09/2026): o link não faz sentido para a maioria de quem
- * clica ali, e o que aquela gente queria mesmo era falar com os noivos. O
- * link continua existindo, mais discreto — quem de fato perdeu o convite
- * precisa dele. O que mudou é qual das duas portas é a principal.
+ * clica ali, e o que aquela gente queria mesmo era falar com os noivos.
+ *
+ * Em 16/09/2026 ele mandou tirar o "não recebi meu link" por completo: a caixa
+ * da confirmação passou a oferecer uma coisa só. Quem perdeu o convite ainda
+ * lê, no parágrafo acima do botão, que ele foi mandado por mensagem — e a
+ * busca por nome continua de pé para quem chega pelo convite que o casal
+ * manda (ver `linkDoBotaoDoConvite`).
  *
  * ── Dois destinos, e o pacote decide ───────────────────────────────────────
  *
@@ -178,16 +181,6 @@ function Tela({ view, slug }: { view: SiteView; slug: string }) {
             }
           />
         </div>
-
-        {/* A saída de quem chegou aqui por engano — quem queria mesmo era o
-            convite. É o par do link secundário que a seção de confirmação
-            mostra: as duas portas continuam existindo, uma de cada lado. */}
-        <Link
-          href={`/s/${slug}/meu-convite`}
-          className="mt-10 inline-block text-[13px] underline underline-offset-4 opacity-70 transition-opacity hover:opacity-100"
-        >
-          Na verdade eu procuro meu convite
-        </Link>
       </div>
     </main>
   );

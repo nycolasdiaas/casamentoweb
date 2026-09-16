@@ -345,14 +345,6 @@ export function Rsvp({ slug }: SectionProps) {
           <Icone nome="setaDireita" tamanho={16} />
         </span>
       </Link>
-
-      <Link
-        href={`/s/${slug}/meu-convite`}
-        className="mt-4 block text-[12.5px] underline underline-offset-4 transition-opacity hover:opacity-100"
-        style={{ color: tinta(70) }}
-      >
-        Não recebi meu link
-      </Link>
     </section>
   );
 }
