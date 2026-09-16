@@ -548,15 +548,22 @@ export function Rsvp({ slug }: SectionProps) {
           className="px-4.5 py-3.5 text-[9px] tracking-[0.28em] uppercase lg:text-[9.9px]"
           style={{ borderBottom: `1px solid ${fade(20)}` }}
         >
-          Não recebi meu link
+          Recado para os noivos
         </div>
         <div className="p-4.5">
           <Link
-            href={`/s/${slug}/meu-convite`}
+            href={`/s/${slug}/recado`}
             className="block w-full text-[10px] tracking-[0.26em] uppercase py-4 transition-opacity hover:opacity-85 lg:text-[11px]"
             style={{ background: "var(--ink)", color: "var(--paper)" }}
           >
-            Falar com o casal
+            Escrever para o casal
+          </Link>
+          <Link
+            href={`/s/${slug}/meu-convite`}
+            className="mt-4 block text-[12px] underline underline-offset-4 transition-opacity hover:opacity-100"
+            style={{ color: fade(65) }}
+          >
+            Não recebi meu link
           </Link>
         </div>
       </div>

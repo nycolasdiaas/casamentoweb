@@ -1,0 +1,1 @@
+ALTER TABLE "guestbook_messages" ADD COLUMN "privado" boolean DEFAULT false NOT NULL;

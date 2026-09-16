@@ -219,6 +219,9 @@ const DDL = [
 
   // Família removida da lista sem apagar a resposta (migração 0026).
   `alter table test.groups add column if not exists removed_at timestamptz`,
+
+  // Recado privado, que não vai para o mural (migração 0027).
+  `alter table test.guestbook_messages add column if not exists privado boolean not null default false`,
   `alter table test.sites add column if not exists access_mode public.site_access_mode not null default 'public'`,
   `alter table test.sites add column if not exists access_password_hash text`,
 

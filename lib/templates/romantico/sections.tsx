@@ -473,13 +473,20 @@ export function Rsvp({ slug }: SectionProps) {
             convidado. Procure a mensagem que enviamos para confirmar.
           </p>
           <Link
-            href={`/s/${slug}/meu-convite`}
+            href={`/s/${slug}/recado`}
             className="inline-block mt-5 text-[11px] tracking-[0.22em] uppercase px-6.5 py-3.5 rounded-full transition-opacity hover:opacity-85 lg:text-[12.1px]"
             style={{
               background: "var(--ink)",
               color: "var(--paper)",
               border: `1px solid var(--ink)`,
             }}
+          >
+            Recado para os noivos
+          </Link>
+          <Link
+            href={`/s/${slug}/meu-convite`}
+            className="mt-4 block text-[12.5px] underline underline-offset-4 transition-opacity hover:opacity-100"
+            style={{ color: tinta(70) }}
           >
             Não recebi meu link
           </Link>

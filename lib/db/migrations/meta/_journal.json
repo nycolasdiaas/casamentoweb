@@ -190,6 +190,13 @@
       "when": 1789517294865,
       "tag": "0026_third_roland_deschain",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1789522444115,
+      "tag": "0027_organic_sir_ram",
+      "breakpoints": true
     }
   ]
 }

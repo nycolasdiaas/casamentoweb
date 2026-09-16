@@ -149,6 +149,7 @@ Fonte única: `lib/packages.ts`. Gating de seções: `lib/templates/contract.ts`
 | Local, mapa, traje | ✅ | ✅ | ✅ |
 | Galeria de fotos | ✅ | ✅ | ✅ |
 | Confirmação de presença | — | ✅ | ✅ |
+| Recado para os noivos | — | ✅ (privado) | ✅ (no mural, com presente) |
 | Lista de presentes com Pix | — | — | ✅ |
 | Mural de recados | — | — | ✅ |
 | Álbum pós-festa | — | — | ✅ |
@@ -165,6 +166,15 @@ Regras:
   agente.
 - **Pacote novo mexe em três lugares ao mesmo tempo:** `PACKAGES`,
   `TIER_SECTIONS` e a vitrine. Um só = produto inconsistente.
+- **Recado não é mural** (decisão do dono, 15/09/2026). O botão "Recado para
+  os noivos" sai da seção de confirmação de presença, então existe nos dois
+  pacotes que a têm. O que muda é o destino: no Para Sempre o recado vai para
+  o mural do site e a tela oferece mandar um presente junto; no Site do
+  Casamento ele nasce privado, não aparece em lugar nenhum do site e o casal o
+  lê na aba Recados do painel. **Pix junto do recado é só do Para Sempre.**
+  Quem decide é o servidor, pelo `tier`, e o mural filtra pela marca da linha
+  (`guestbook_messages.privado`) — trocar de pacote não publica o que chegou
+  sob promessa de ser privado.
 
 ---
 

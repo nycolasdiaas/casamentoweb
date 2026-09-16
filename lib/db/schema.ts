@@ -846,6 +846,16 @@ export const guestbookMessages = pgTable(
     guestName: text("guest_name").notNull(),
     message: text("message").notNull(),
     hidden: boolean("hidden").notNull().default(false),
+    /* Recado que NÃO vai para o mural — só o casal lê, no painel.
+
+       O mural é do pacote Para Sempre. O dono decidiu em 15/09/2026 que o
+       botão "Recado para os noivos" existe também no Site do Casamento, e que
+       ali o recado é privado: some do site e aparece só no painel. Uma coluna,
+       porque `hidden` já quer dizer outra coisa (o casal escondeu um recado
+       que estava público) e misturar as duas perderia a diferença entre "nunca
+       foi para o mural" e "foi e o casal tirou". Nasce `false`: todo recado
+       existente continua exatamente como está. */
+    privado: boolean("privado").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

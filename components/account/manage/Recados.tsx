@@ -17,13 +17,28 @@ import type { Recado } from "@/lib/repositories/guestbook";
  * o recado sai do site e continua aqui, com "Escondido" ao lado e um
  * "Mostrar" para desfazer. Apagar recado de convidado é decisão que não
  * volta, e um toque errado no celular custaria a mensagem da avó.
+ *
+ * ── O recado privado não tem botão ─────────────────────────────────────────
+ *
+ * No Site do Casamento não há mural, e o recado chega marcado como privado:
+ * ele nunca esteve no site. "Esconder" ali não faria nada — e um botão que
+ * não faz nada ensina o casal a desconfiar do painel inteiro.
  */
 export default function Recados({
   orderId,
   recados,
+  temMural = true,
 }: {
   orderId: string;
   recados: Recado[];
+  /**
+   * O pacote deste casal tem mural no site?
+   *
+   * Muda o texto, não a regra: quem decide se um recado é público é a marca
+   * `privado` de cada linha, gravada quando o convidado escreveu. Um casal que
+   * troque de pacote não republica nem esconde nada do que já chegou.
+   */
+  temMural?: boolean;
 }) {
   // Cópia local só para o botão responder na hora. O servidor continua sendo
   // a verdade — em caso de erro, o estado volta e a mensagem aparece.
@@ -51,22 +66,36 @@ export default function Recados({
     return (
       <EstadoVazio
         titulo="Nenhum recado ainda"
-        restricao="O mural aparece no site depois que ele está no ar"
+        restricao={
+          temMural
+            ? "O mural aparece no site depois que ele está no ar"
+            : "O botão do recado aparece no site depois que ele está no ar"
+        }
       >
-        Os recados dos convidados aparecem aqui assim que alguém escrever no
-        mural do site de vocês.
+        {temMural
+          ? "Os recados dos convidados aparecem aqui assim que alguém escrever no mural do site de vocês."
+          : "Os recados dos convidados aparecem aqui assim que alguém escrever para vocês pelo site."}
       </EstadoVazio>
     );
   }
 
-  const visiveis = estado.filter((r) => !r.hidden).length;
+  const noSite = estado.filter((r) => !r.privado && !r.hidden).length;
+  const escondidos = estado.filter((r) => !r.privado && r.hidden).length;
+  const privados = estado.filter((r) => r.privado).length;
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-baseline justify-between gap-4">
         <span className="meta text-(--c-ink-2)">
-          {visiveis} no site
-          {estado.length > visiveis && ` · ${estado.length - visiveis} escondidos`}
+          {/* A conta fala do que está VISÍVEL no site. Somar o privado a ela
+              diria ao casal que há mais gente lendo do que há. */}
+          {[
+            temMural ? `${noSite} no site` : null,
+            escondidos > 0 ? `${escondidos} escondidos` : null,
+            privados > 0 ? `${privados} só para vocês` : null,
+          ]
+            .filter(Boolean)
+            .join(" · ") || `${estado.length} recados`}
         </span>
         {erro && <span className="erro-do-campo">{erro}</span>}
       </div>
@@ -87,24 +116,31 @@ export default function Recados({
                   day: "2-digit",
                   month: "short",
                 })}
+                {/* Num painel que tem mural, dizer de qual dos dois este é
+                    evita o casal procurar no site um recado que nunca esteve
+                    lá. Num painel sem mural são todos assim, e repetir a
+                    etiqueta em toda linha seria ruído. */}
+                {recado.privado && temMural && " · só para vocês"}
                 {recado.hidden && " · escondido"}
               </p>
             </div>
-            <button
-              type="button"
-              disabled={pendente}
-              onClick={() => alternar(recado.id, !recado.hidden)}
-              className="btn btn-quiet btn-sm self-start shrink-0"
-            >
-              {recado.hidden ? (
-                "Mostrar"
-              ) : (
-                <>
-                  <Icone nome="cadeado" tamanho={16} />
-                  Esconder
-                </>
-              )}
-            </button>
+            {!recado.privado && (
+              <button
+                type="button"
+                disabled={pendente}
+                onClick={() => alternar(recado.id, !recado.hidden)}
+                className="btn btn-quiet btn-sm self-start shrink-0"
+              >
+                {recado.hidden ? (
+                  "Mostrar"
+                ) : (
+                  <>
+                    <Icone nome="cadeado" tamanho={16} />
+                    Esconder
+                  </>
+                )}
+              </button>
+            )}
           </li>
         ))}
       </ul>

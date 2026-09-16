@@ -23,7 +23,10 @@ import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 export async function enviarRecadoAction(
   slug: string,
   formData: FormData
-): Promise<{ ok: true } | { error: string; valores?: Record<string, string>; marca?: number }> {
+): Promise<
+  | { ok: true; privado: boolean }
+  | { error: string; valores?: Record<string, string>; marca?: number }
+> {
   /* O que o convidado digitou volta com a recusa.
      Sem isto o React reinicia o formulário quando a action termina, e o
      recado escrito some junto com a mensagem de erro — o convidado precisa
@@ -87,13 +90,27 @@ export async function enviarRecadoAction(
     return recusar("Esse nome é comprido demais — use o primeiro e o último.");
   }
 
-  const criado = await criarRecado(siteId, { guestName, message });
+  /* PARA ONDE O RECADO VAI — e isso depende do pacote.
+
+     O mural é do Para Sempre. O botão "Recado para os noivos" existe também
+     no Site do Casamento (decisão do dono, 15/09/2026), e ali o recado é
+     privado: não entra no mural, e o casal lê no painel. A tela avisa isso
+     ANTES de a pessoa escrever — recado que o convidado acha público e não é
+     seria uma promessa quebrada com terceiro.
+
+     A decisão é do servidor, não do formulário: um campo escondido dizendo
+     "sou público" viraria a porta para escrever no mural de quem não comprou
+     mural. */
+  const privado = site.tier !== "para-sempre";
+
+  const criado = await criarRecado(siteId, { guestName, message, privado });
   if (!criado) return recusar("Não conseguimos salvar agora. Tente de novo.");
 
   // `updateTag` e não `revalidateTag`: quem acabou de escrever precisa ver o
-  // próprio recado na tela, não uma versão velha do mural.
-  updateTag(muralTag(siteId));
-  return { ok: true };
+  // próprio recado na tela, não uma versão velha do mural. Recado privado não
+  // muda o mural — não há cache a derrubar.
+  if (!privado) updateTag(muralTag(siteId));
+  return { ok: true, privado };
 }
 
 /**

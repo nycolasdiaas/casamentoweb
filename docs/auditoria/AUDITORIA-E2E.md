@@ -1082,3 +1082,30 @@ alternativos do RSVP ("Não posso", confirmação parcial, editar a resposta). E
 - **Correção:** ao salvar, o formulário fecha e a linha mostra "Família atualizada ✓".
 - **Status:** Em correção — feature `005-ux-o-que-faltava` (T046)
 
+### UX-037 — "Não recebi meu link" era a única porta da confirmação
+
+- **Severidade:** 🟠 Alta — é o bloco que o convidado mais lê
+- **Onde:** seção "Confirme sua presença" dos seis moldes
+- **O que acontecia:** quem chegava ao site sem convite pessoal só tinha um botão, e ele
+  prometia resolver um problema que a maioria não tinha. O dono em 15/09/2026: o link
+  "não faz muito sentido", e o que aquela gente queria era falar com os noivos.
+- **Correção:** o botão principal passa a ser **"Recado para os noivos"**, levando a
+  `/s/<slug>/recado`. "Não recebi meu link" continua logo abaixo, como linha sublinhada —
+  quem de fato perdeu o convite ainda precisa dele.
+- **O que o recado faz, por pacote** (decisão do dono, 15/09/2026 — "recado + Pix apenas
+  no plano mais caro, nos outros planos apenas recado"):
+  - **Para Sempre:** o recado entra no mural do site e, **depois de enviado**, a tela
+    convida a mandar um presente junto, pela lista de presentes do casal. O convite só
+    aparece se a lista estiver mesmo de pé (pacote, molde e o interruptor da aba Páginas).
+  - **Site do Casamento:** não há mural. O recado nasce **privado**, a tela avisa isso
+    antes de a pessoa escrever ("vai direto para os noivos, ninguém mais vê"), e o casal
+    o lê na aba Recados do painel — que passa a existir neste pacote.
+  - **Convite:** não tem confirmação de presença, logo não tem recado. A rota responde
+    como site fora do ar e a aba não aparece.
+- **O que segura a promessa:** quem decide o destino é o servidor, pelo `tier` do site
+  (`enviarRecadoAction`), nunca um campo do formulário; e o mural filtra pela marca
+  `privado` **da linha**, não pelo pacote atual — um site que troque de pacote depois não
+  publica o que chegou sob a promessa de ser privado.
+- **Banco:** migração 0027, `guestbook_messages.privado boolean not null default false`.
+  Aditiva; todo recado existente continua público, como era.
+- **Status:** Em correção — feature `005-ux-o-que-faltava` (T047)

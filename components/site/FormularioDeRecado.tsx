@@ -24,14 +24,36 @@ import { LIMITE_RECADO } from "@/lib/site/muralLimites";
 export default function FormularioDeRecado({
   slug,
   convite,
+  rotuloDoBotao = "Deixar meu recado",
+  presentes,
 }: {
   slug: string;
   convite?: string;
+  /** "Deixar meu recado" no mural; "Enviar meu recado" na tela do recado. */
+  rotuloDoBotao?: string;
+  /**
+   * O convite para presentear, DEPOIS que o recado foi gravado.
+   *
+   * Só o Para Sempre tem lista de presentes, então só ele passa isto — é a
+   * decisão do dono de 15/09/2026: "recado + Pix apenas no plano mais caro,
+   * nos outros planos apenas recado".
+   *
+   * E vem depois de propósito. Pedir presente ANTES do envio faria a pessoa
+   * escolher entre escrever e pagar; o recado já está guardado quando este
+   * convite aparece, então recusá-lo não custa nada a ninguém.
+   */
+  presentes?: { href: string; rotulo: string };
 }) {
   const [estado, acao, pendente] = useActionState(
     async (
       _anterior:
-        | { ok?: true; error?: string; valores?: Record<string, string>; marca?: number }
+        | {
+            ok?: true;
+            privado?: boolean;
+            error?: string;
+            valores?: Record<string, string>;
+            marca?: number;
+          }
         | undefined,
       formData: FormData
     ) => enviarRecadoAction(slug, formData),
@@ -47,13 +69,38 @@ export default function FormularioDeRecado({
   const contorno = "1px solid color-mix(in srgb, var(--ink) 22%, transparent)";
 
   if (estado && "ok" in estado) {
+    /* Duas frases porque são dois destinos, e o convidado precisa saber em
+       qual ele caiu. Dizer "está no mural" num site sem mural seria mandar
+       alguém procurar uma página que não existe. */
     return (
-      <p
-        className="text-center text-[15px] leading-[1.7] py-6"
-        style={{ color: "color-mix(in srgb, var(--ink) 75%, transparent)" }}
-      >
-        Seu recado está no mural. Obrigado por escrever.
-      </p>
+      <div className="flex flex-col items-center gap-5 py-6 text-center">
+        <p
+          className="text-[15px] leading-[1.7]"
+          style={{ color: "color-mix(in srgb, var(--ink) 75%, transparent)" }}
+        >
+          {estado.privado
+            ? "Seu recado foi entregue. Só os noivos vão ler."
+            : "Seu recado está no mural. Obrigado por escrever."}
+        </p>
+
+        {presentes && (
+          <>
+            <p
+              className="max-w-[40ch] text-[14px] leading-[1.7]"
+              style={{ color: "color-mix(in srgb, var(--ink) 65%, transparent)" }}
+            >
+              Se quiser mandar um presente junto, os noivos montaram uma lista.
+            </p>
+            <a
+              href={presentes.href}
+              className="min-h-11 inline-flex items-center px-6 py-3 text-[15px] tracking-[0.04em] transition-opacity hover:opacity-85"
+              style={{ background: "var(--ink)", color: "var(--paper)" }}
+            >
+              {presentes.rotulo}
+            </a>
+          </>
+        )}
+      </div>
     );
   }
 
@@ -119,7 +166,7 @@ export default function FormularioDeRecado({
         className="min-h-11 px-6 py-3 text-[15px] tracking-[0.04em] transition-opacity disabled:opacity-60 cursor-pointer"
         style={{ background: "var(--ink)", color: "var(--paper)" }}
       >
-        {pendente ? "Enviando…" : "Deixar meu recado"}
+        {pendente ? "Enviando…" : rotuloDoBotao}
       </button>
     </form>
   );

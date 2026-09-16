@@ -9,7 +9,10 @@ import { listGifts } from "@/lib/repositories/gifts";
 import { listSiteSections } from "@/lib/repositories/siteSections";
 import { countSitePhotos } from "@/lib/repositories/sitePhotos";
 import { contarRecados } from "@/lib/repositories/guestbook";
-import { tierAllowsSection } from "@/lib/templates/contract";
+import {
+  tierAllowsSection,
+  tierRecebeRecados,
+} from "@/lib/templates/contract";
 import { listGroupsWithGuests } from "@/lib/repositories/groups";
 import { montarAvisos, type Aviso } from "@/lib/site/avisos";
 import { iniciaisDe } from "@/lib/iniciais";
@@ -139,12 +142,13 @@ export default async function GerenciarLayout({
     });
   }
 
-  /* A aba do mural só existe no pacote que tem mural.
-     Mostrá-la no Convite ou no Site seria oferecer uma tela que só diz "isto
-     não é seu" — e a regra é que a lista de tarefas respeita o pacote
-     (regras §2.3): cobrar atenção por recurso que o casal não comprou trava
-     o progresso dele para sempre. */
-  if (tierAllowsSection(order.packageTier, "guestbook")) {
+  /* A aba dos recados existe onde CHEGA recado — que não é só onde há mural.
+     No Site do Casamento o convidado escreve pelo botão da confirmação de
+     presença e o recado fica privado; sem esta aba, ele chegaria e ninguém
+     leria. No pacote Convite não há confirmação, logo não há recado, e a aba
+     some: cobrar atenção por recurso que o casal não comprou trava o
+     progresso dele para sempre (regras §2.3). */
+  if (tierRecebeRecados(order.packageTier)) {
     abas.push({
       href: `${base}/recados`,
       rotulo: "Recados",

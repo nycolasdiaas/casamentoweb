@@ -1,0 +1,37 @@
+-- Desfaz a 0027 (recado privado, que não vai para o mural).
+--
+-- ── O que a 0027 fez ───────────────────────────────────────────────────────
+--
+-- UMA coluna com default e NOT NULL: `guestbook_messages.privado`. Todo recado
+-- existente nasceu `false` — público, exatamente como era antes da coluna. Nada
+-- foi apagado, renomeado ou reescrito, e `hidden` continua significando o que
+-- sempre significou (o casal escondeu um recado que estava no mural).
+--
+-- ── Para que ela serve ─────────────────────────────────────────────────────
+--
+-- O botão "Recado para os noivos" existe nos dois pacotes que têm confirmação
+-- de presença, mas o mural é do Para Sempre. No Site do Casamento o recado
+-- entra marcado como privado: não aparece no site, e o casal lê no painel.
+-- Decisão do dono em 15/09/2026.
+--
+-- ── O que este rollback APAGA ──────────────────────────────────────────────
+--
+-- A marca de privado. Depois dele, TODO recado volta a ser público — inclusive
+-- os que foram escritos com a promessa de que só o casal leria. Num site do
+-- pacote Para Sempre, esses recados passariam a aparecer no mural do dia para
+-- a noite.
+--
+-- Por isso a ordem certa é: voltar o código primeiro (a tela de recado e a aba
+-- do painel), conferir que nenhum recado privado sobrou, e só então rodar isto.
+--
+-- Para conferir antes:
+--
+--   SELECT s.slug, count(*) AS privados
+--   FROM guestbook_messages m JOIN sites s ON s.id = m.site_id
+--   WHERE m.privado
+--   GROUP BY s.slug;
+--
+-- Se houver recado privado a preservar, guarde o conteúdo antes — depois do
+-- rollback não há como distinguir um do outro.
+
+ALTER TABLE "guestbook_messages" DROP COLUMN IF EXISTS "privado";

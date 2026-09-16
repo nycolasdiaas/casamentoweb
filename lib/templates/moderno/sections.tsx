@@ -335,14 +335,22 @@ export function Rsvp({ slug }: SectionProps) {
       </div>
 
       <Link
-        href={`/s/${slug}/meu-convite`}
+        href={`/s/${slug}/recado`}
         className="inline-block mt-6 font-[family-name:var(--font-script)] text-[10.5px] tracking-[0.22em] uppercase px-7 py-4 transition-opacity hover:opacity-85 lg:text-[11.6px] lg:px-24"
         style={{ background: "var(--ink)", color: "var(--paper)" }}
       >
         <span className="inline-flex items-center gap-1.5">
-          Não recebi meu link
+          Recado para os noivos
           <Icone nome="setaDireita" tamanho={16} />
         </span>
+      </Link>
+
+      <Link
+        href={`/s/${slug}/meu-convite`}
+        className="mt-4 block text-[12.5px] underline underline-offset-4 transition-opacity hover:opacity-100"
+        style={{ color: tinta(70) }}
+      >
+        Não recebi meu link
       </Link>
     </section>
   );

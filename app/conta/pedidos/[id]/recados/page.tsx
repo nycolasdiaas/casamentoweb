@@ -3,19 +3,28 @@ import { redirect } from "next/navigation";
 import Recados from "@/components/account/manage/Recados";
 import { carregarGerenciamento } from "@/lib/site/manageData";
 import { listarRecadosParaOCasal } from "@/lib/repositories/guestbook";
-import { tierAllowsSection } from "@/lib/templates/contract";
+import {
+  tierAllowsSection,
+  tierRecebeRecados,
+} from "@/lib/templates/contract";
 
 export const metadata: Metadata = {
   title: "Recados",
 };
 
 /**
- * A aba do mural. Só existe no pacote que tem mural.
+ * A caixa de entrada dos recados, do lado do casal.
  *
- * Quem chega aqui por URL num pacote menor volta para o início do pedido em
- * vez de ver uma tela vazia com um recurso que ele não comprou — cobrar
- * atenção por algo que o pacote não inclui é a mesma falha que a lista "o que
- * falta" evita ao respeitar o pacote (regras §2.3).
+ * Dois pacotes chegam aqui e a tela não é a mesma nos dois:
+ *
+ * - **Para Sempre** tem mural. O recado nasce no site, e o casal pode
+ *   escondê-lo se alguém escrever bobagem.
+ * - **Site do Casamento** não tem mural. O recado chega privado, esta aba é o
+ *   único lugar onde ele existe, e não há o que esconder — nada dele está
+ *   público.
+ *
+ * Quem chega por URL no pacote Convite volta para o início do pedido: lá não
+ * há confirmação de presença, logo não há de onde sair um recado.
  */
 export default async function RecadosPage({
   params,
@@ -25,25 +34,28 @@ export default async function RecadosPage({
   const { id } = await params;
   const { order, site } = await carregarGerenciamento(id);
 
-  if (!tierAllowsSection(order.packageTier, "guestbook")) {
+  if (!tierRecebeRecados(order.packageTier)) {
     redirect(`/conta/pedidos/${order.id}`);
   }
 
+  const temMural = tierAllowsSection(order.packageTier, "guestbook");
   const recados = site ? await listarRecadosParaOCasal(site.id) : [];
 
   return (
     <div className="flex flex-col gap-8">
       <header className="flex flex-col gap-3">
-        <span className="meta text-(--c-mark)">Mural</span>
+        <span className="meta text-(--c-mark)">
+          {temMural ? "Mural" : "Só para vocês"}
+        </span>
         <h1 className="t-d2 text-(--c-ink)">Recados dos convidados</h1>
         <p className="t-corpo text-(--c-ink-2) medida">
-          Tudo que escreverem no site aparece aqui. Se algum recado não puder
-          ficar, dá para escondê-lo — ele sai do site na hora e continua nesta
-          lista.
+          {temMural
+            ? "Tudo que escreverem no site aparece aqui. Se algum recado não puder ficar, dá para escondê-lo — ele sai do site na hora e continua nesta lista."
+            : "Os convidados escrevem pelo botão da confirmação de presença. No pacote de vocês esses recados não vão para o site: eles ficam aqui, e só vocês leem."}
         </p>
       </header>
 
-      <Recados orderId={order.id} recados={recados} />
+      <Recados orderId={order.id} recados={recados} temMural={temMural} />
     </div>
   );
 }

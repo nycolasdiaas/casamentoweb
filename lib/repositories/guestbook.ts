@@ -24,6 +24,15 @@ export type Recado = {
   guestName: string;
   message: string;
   hidden: boolean;
+  /**
+   * Recado que nunca foi para o mural — só o casal lê.
+   *
+   * Diferente de `hidden`, que é "estava no mural e o casal tirou". O privado
+   * nasce assim porque o site é do pacote Site do Casamento, que não tem
+   * mural: o botão "Recado para os noivos" existe lá, e o texto da tela avisa
+   * que o recado vai direto para o casal.
+   */
+  privado: boolean;
   createdAt: Date;
 };
 
@@ -45,13 +54,18 @@ export async function listarRecados(siteId: string): Promise<Recado[]> {
       guestName: guestbookMessages.guestName,
       message: guestbookMessages.message,
       hidden: guestbookMessages.hidden,
+      privado: guestbookMessages.privado,
       createdAt: guestbookMessages.createdAt,
     })
     .from(guestbookMessages)
     .where(
       and(
         eq(guestbookMessages.siteId, siteId),
-        eq(guestbookMessages.hidden, false)
+        eq(guestbookMessages.hidden, false),
+        /* O privado NUNCA aparece aqui. Ele foi escrito para o casal, sob o
+           aviso de que ia só para ele; um site que troque de pacote depois
+           não pode publicar no mural o que chegou com essa promessa. */
+        eq(guestbookMessages.privado, false)
       )
     )
     .orderBy(desc(guestbookMessages.createdAt));
@@ -72,6 +86,7 @@ export async function listarRecadosParaOCasal(
       guestName: guestbookMessages.guestName,
       message: guestbookMessages.message,
       hidden: guestbookMessages.hidden,
+      privado: guestbookMessages.privado,
       createdAt: guestbookMessages.createdAt,
     })
     .from(guestbookMessages)
@@ -89,7 +104,7 @@ export async function contarRecados(siteId: string): Promise<number> {
 
 export async function criarRecado(
   siteId: string,
-  entrada: { guestName: string; message: string }
+  entrada: { guestName: string; message: string; privado?: boolean }
 ): Promise<Recado | null> {
   const guestName = entrada.guestName.trim().slice(0, LIMITE_NOME);
   const message = entrada.message.trim().slice(0, LIMITE_RECADO);
@@ -97,7 +112,7 @@ export async function criarRecado(
 
   const [criado] = await db
     .insert(guestbookMessages)
-    .values({ siteId, guestName, message })
+    .values({ siteId, guestName, message, privado: entrada.privado ?? false })
     .returning();
   return criado ?? null;
 }

@@ -106,3 +106,21 @@ export function sectionsForTier(tier: PackageTier): SectionKey[] {
 export function tierAllowsSection(tier: PackageTier, key: SectionKey): boolean {
   return TIER_SECTIONS[tier].includes(key);
 }
+
+/**
+ * Este pacote RECEBE recado de convidado?
+ *
+ * Não é o mesmo que ter mural. O mural (`guestbook`) é seção do site e só o
+ * Para Sempre desenha; o botão "Recado para os noivos" sai da seção de
+ * confirmação de presença, que o Site do Casamento também tem. Nele o recado
+ * não vai para o site: fica privado, e o casal lê na aba Recados do painel.
+ * Decisão do dono em 15/09/2026.
+ *
+ * Existe como função própria porque três lugares perguntam isto — a aba do
+ * painel, a página da aba e a rota `/s/<slug>/recado` — e amarrá-los em
+ * `guestbook` deixaria a caixa de entrada do Site do Casamento fechada com
+ * recado dentro.
+ */
+export function tierRecebeRecados(tier: PackageTier): boolean {
+  return tierAllowsSection(tier, "rsvp");
+}
