@@ -123,20 +123,41 @@ export default function PreviaDoVisual({
     fonte,
   });
 
-  // Escala para o viewport virtual caber na coluna. Nunca amplia: esticar
-  // 390px de celular mostraria um site borrado que ninguém vê assim.
+  /* Escala para o viewport virtual caber na coluna. Nunca amplia: esticar
+     390px de celular mostraria um site borrado que ninguém vê assim.
+
+     No celular entra um segundo limite, o da ALTURA. Ali a prévia fica grudada
+     no topo enquanto o casal rola os controles; no modo "Celular" o quadro tem
+     700px virtuais e caberia quase inteiro na largura, ou seja, tomaria a tela
+     toda e empurraria para fora justamente os botões que ela existe para
+     acompanhar. Quarenta por cento da janela deixa os dois na tela.
+
+     O gatilho é a largura do palco, e não uma media query, porque é ela que
+     diz se a prévia está empilhada sobre os controles ou ao lado deles. */
   useEffect(() => {
     const palco = palcoRef.current;
     if (!palco) return;
     const medir = () => {
       const disponivel = palco.clientWidth;
-      if (disponivel > 0) setEscala(Math.min(1, disponivel / larguraVirtual));
+      if (disponivel <= 0) return;
+      const porLargura = disponivel / larguraVirtual;
+      const empilhado = disponivel < 640;
+      const porAltura = empilhado
+        ? (window.innerHeight * 0.4) / alturaVirtual
+        : Number.POSITIVE_INFINITY;
+      setEscala(Math.min(1, porLargura, porAltura));
     };
     medir();
     const observer = new ResizeObserver(medir);
     observer.observe(palco);
-    return () => observer.disconnect();
-  }, [larguraVirtual]);
+    // O `ResizeObserver` não vê a janela mudar de ALTURA — e é ela que manda
+    // no limite acima. Girar o celular precisa remedir.
+    window.addEventListener("resize", medir);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", medir);
+    };
+  }, [larguraVirtual, alturaVirtual]);
 
   /* Cada mudança de cor ou de fonte vira uma mensagem. Sem debounce de
      propósito: `postMessage` para um iframe de mesma origem é barato, e
