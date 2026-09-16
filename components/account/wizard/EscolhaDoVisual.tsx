@@ -113,7 +113,15 @@ export default function EscolhaDoVisual({
 
           O fundo opaco é obrigatório: sem ele os controles passam por baixo do
           quadro enquanto rolam. */}
-      <div className="order-1 min-w-0 self-start sticky top-2 z-10 bg-(--c-base) pb-2 lg:order-2 lg:top-6 lg:bg-transparent lg:pb-0">
+      {/* SEM `self-start`. Num flex em coluna, `align-self` manda no eixo
+          TRANSVERSAL, que ali é a largura: `self-start` encolhia a prévia para
+          o tamanho do conteúdo, e o conteúdo é um iframe de 1280px de layout —
+          o mesmo estouro de largura, por outra porta. Esticado (o padrão), o
+          palco mede a largura real e a escala encolhe o quadro.
+          No computador quem alinha é o `lg:items-start` do contêiner, e é ele
+          que deixa a prévia mais baixa que a área dela — o que dá folga para
+          o `sticky` correr. */}
+      <div className="order-1 min-w-0 sticky top-2 z-10 bg-(--c-base) pb-2 lg:order-2 lg:top-6 lg:bg-transparent lg:pb-0">
         <PreviaDoVisual
           modelo={modelo}
           pacote={pacote}
