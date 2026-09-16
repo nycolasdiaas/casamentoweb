@@ -332,8 +332,9 @@ export function Rsvp({ slug }: SectionProps) {
 
       <div className="px-6 py-8 text-center lg:px-20 lg:py-14" style={{ border: `1px solid ${papel(28)}` }}>
         <p className="text-[14.5px] leading-[1.7] lg:text-[17.4px]" style={{ color: papel(82) }}>
-          Cada família recebeu um link pessoal, com os nomes de quem foi
-          convidado. Procure a mensagem que enviamos para confirmar.
+          Cada família recebeu um link pessoal para confirmar — procure a
+          mensagem que enviamos. E se quiser mandar uma palavra para os noivos,
+          escreva um recado.
         </p>
         <Link
           href={`/s/${slug}/recado`}

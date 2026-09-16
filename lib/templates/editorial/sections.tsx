@@ -538,8 +538,9 @@ export function Rsvp({ slug }: SectionProps) {
           className="mt-4 mx-auto max-w-[36ch] text-[14px] leading-[1.7] lg:text-[16.8px]"
           style={{ color: fade(72) }}
         >
-          Cada família recebeu um link pessoal, com os nomes de quem foi
-          convidado. Procure a mensagem que enviamos para confirmar.
+          Cada família recebeu um link pessoal para confirmar — procure a
+          mensagem que enviamos. E se quiser mandar uma palavra para os noivos,
+          escreva um recado.
         </p>
       </div>
 

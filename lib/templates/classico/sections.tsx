@@ -400,8 +400,9 @@ export function Rsvp({ content, slug }: SectionProps) {
           }}
         >
           <p className="text-sm leading-relaxed opacity-80">
-            Cada família recebeu um link pessoal, com os nomes de quem foi
-            convidado. Procure a mensagem que enviamos para confirmar.
+            Cada família recebeu um link pessoal para confirmar — procure a
+            mensagem que enviamos. E se quiser mandar uma palavra para os
+            noivos, escreva um recado.
           </p>
           <Link
             href={`/s/${slug}/recado`}

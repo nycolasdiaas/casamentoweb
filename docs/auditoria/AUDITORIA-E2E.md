@@ -1108,4 +1108,14 @@ alternativos do RSVP ("Não posso", confirmação parcial, editar a resposta). E
   publica o que chegou sob a promessa de ser privado.
 - **Banco:** migração 0027, `guestbook_messages.privado boolean not null default false`.
   Aditiva; todo recado existente continua público, como era.
+- **Texto da caixa, corrigido junto:** o parágrafo falava só do link pessoal, e agora
+  o botão principal abaixo dele é o recado — a caixa prometia uma coisa e oferecia outra.
+  Passou a ser "Cada família recebeu um link pessoal para confirmar — procure a mensagem
+  que enviamos. E se quiser mandar uma palavra para os noivos, escreva um recado."
+- **Verificado no ar** (build `JeC3cesMgQiKDQKFpf9aJ`, 16/09/2026): em `/s/ana-e-pedro`,
+  botão sólido de 260×47 para o recado e link sublinhado de 12,5px para o convite
+  perdido, nos dois tamanhos; recado enviado de sessão de convidado chegou ao mural e a
+  tela ofereceu a lista de presentes em seguida. O caminho privado **não pôde ser
+  conferido em produção**: nenhum site do pacote Site do Casamento existe no banco hoje —
+  os 18 sites são todos Para Sempre. Ele está coberto por três testes contra o banco.
 - **Status:** Em correção — feature `005-ux-o-que-faltava` (T047)
