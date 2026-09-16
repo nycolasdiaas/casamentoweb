@@ -136,7 +136,7 @@ export default function SiteRenderer({
 
             Recebe as chaves JÁ filtradas por pacote e pela escolha do casal —
             a barra nunca inventa um destino que a página não tem. */}
-        <BarraDoSite nomes={content.coupleNames} chaves={chaves} />
+        <BarraDoSite nomes={content.coupleNames} chaves={chaves} slug={slug} />
 
         {!previa && <TrackView siteSlug={slug} />}
 

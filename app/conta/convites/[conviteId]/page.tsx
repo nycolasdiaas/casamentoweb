@@ -13,6 +13,7 @@ import type { TemplateStyleId } from "@/lib/templates";
 import { modelosDeConvite } from "@/lib/templates/modelos";
 import { uiPrensa } from "@/lib/fonts/ui";
 import { Icone } from "@/components/ui/prensa";
+import { CONVITES_LIGADOS } from "@/lib/site/convitesLigados";
 
 /**
  * O editor de convites, em tela cheia.
@@ -43,6 +44,11 @@ export default async function EditarConvitePage({
 }) {
   const { conviteId } = await params;
 
+  /* A área está desligada (`CONVITES_LIGADOS`, 16/09/2026). A guarda vem ANTES
+     de qualquer consulta: sem ela, o editor continuaria abrindo para quem
+     tivesse o endereço salvo, e a aba teria sumido só do menu. */
+  if (!CONVITES_LIGADOS) redirect("/conta/pedidos");
+
   const userId = await getSessionUserId();
   if (!userId) redirect("/conta/entrar");
 
@@ -64,7 +70,7 @@ export default async function EditarConvitePage({
     baseUrlOuNulo(),
   ]);
 
-  const voltar = orderId ? `/conta/pedidos/${orderId}/convites` : "/conta/pedidos";
+  const voltar = orderId ? `/conta/pedidos/${orderId}` : "/conta/pedidos";
 
   return (
     // `h-screen` + `overflow-hidden`: o editor é uma tela só, não uma página

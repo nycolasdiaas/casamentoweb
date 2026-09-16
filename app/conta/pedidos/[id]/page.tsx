@@ -22,6 +22,7 @@ import { countSitePhotos } from "@/lib/repositories/sitePhotos";
 import OQueFalta from "@/components/account/manage/OQueFalta";
 import AreasEditaveis from "@/components/account/manage/AreasEditaveis";
 import BaixarConvite from "@/components/account/manage/BaixarConvite";
+import { CONVITES_LIGADOS } from "@/lib/site/convitesLigados";
 import { listInvites } from "@/lib/repositories/siteInvites";
 import { getSiteContent } from "@/lib/repositories/siteContent";
 import { toEditorValues } from "@/lib/site/contentFields";
@@ -198,7 +199,13 @@ export default async function GerenciarInicioPage({
         <SiteNoAr
           endereco={enderecoDoSite}
           urlCompleta={urlDoSite}
-          linkDosConvites={`/conta/pedidos/${order.id}/convites`}
+          /* Sem a aba de convites, o botão "Enviar convites" não tem destino —
+             e um botão a menos é melhor que um que rebate. */
+          linkDosConvites={
+            CONVITES_LIGADOS
+              ? `/conta/pedidos/${order.id}/convites`
+              : undefined
+          }
         />
       )}
 
@@ -214,7 +221,6 @@ export default async function GerenciarInicioPage({
             <PrimeiraVez
               base={`/conta/pedidos/${order.id}`}
               temFoto={fotos > 0}
-              temConvite={convites > 0}
               publicado={status === "published"}
             />
           ) : (
@@ -282,7 +288,9 @@ export default async function GerenciarInicioPage({
             {valoresEditaveis && (
               <AreasEditaveis siteId={site.id} valores={valoresEditaveis} />
             )}
-            <BaixarConvite orderId={id} quantidade={convites} />
+            {CONVITES_LIGADOS && (
+              <BaixarConvite orderId={id} quantidade={convites} />
+            )}
           </div>
 
         <LivePreview

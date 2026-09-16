@@ -5,6 +5,7 @@ import type { OrderStatus } from "@/lib/orderStatus";
 import { carregarGerenciamento } from "@/lib/site/manageData";
 import { getSiteContent } from "@/lib/repositories/siteContent";
 import { listInvites } from "@/lib/repositories/siteInvites";
+import { CONVITES_LIGADOS } from "@/lib/site/convitesLigados";
 import { listGifts } from "@/lib/repositories/gifts";
 import { listSiteSections } from "@/lib/repositories/siteSections";
 import { countSitePhotos } from "@/lib/repositories/sitePhotos";
@@ -111,17 +112,24 @@ export default async function GerenciarLayout({
       contagem: fotos > 0 ? fotos : undefined,
       pendencia: fotos > 0 ? undefined : "falta",
     },
-    {
-      href: `${base}/convites`,
-      rotulo: "Convites",
-      contagem: convites > 0 ? convites : undefined,
-    },
     /* COMPARTILHAR — a última aba, e é onde ela pertence.
        A ordem das abas é a ordem do trabalho: montar o site, depois espalhar o
        link. Pôr Compartilhar antes de Presentes sugeriria mandar o link de um
        site que ainda não está pronto. */
     { href: `${base}/compartilhar`, rotulo: "Compartilhar" },
   ];
+
+  /* A aba CONVITES está desligada (`CONVITES_LIGADOS`, 16/09/2026).
+     O casal manda o convite pelo link da família, que a aba Convidados
+     entrega com um botão de copiar. Quando a área voltar, o item entra aqui
+     de novo, antes de Convidados. */
+  if (CONVITES_LIGADOS) {
+    abas.splice(5, 0, {
+      href: `${base}/convites`,
+      rotulo: "Convites",
+      contagem: convites > 0 ? convites : undefined,
+    });
+  }
 
   /* CONVIDADOS — logo depois de Convites, porque é a resposta dele.
 

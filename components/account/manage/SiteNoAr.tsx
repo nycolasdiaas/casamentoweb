@@ -27,7 +27,14 @@ export default function SiteNoAr({
   /** Sem esquema — é assim que o casal reconhece o próprio endereço. */
   endereco: string;
   urlCompleta: string;
-  linkDosConvites: string;
+  /**
+   * Para onde vai "Enviar convites" — ou `undefined`, e o botão some.
+   *
+   * Opcional desde que a aba Convites foi desligada (16/09/2026): o cartão
+   * continua sendo o lugar certo para copiar o link do site, e um segundo
+   * botão que rebate para o início do pedido seria pior que nenhum.
+   */
+  linkDosConvites?: string;
 }) {
   const brinde = useBrinde();
 
@@ -70,9 +77,11 @@ export default function SiteNoAr({
         <button type="button" onClick={copiar} className="btn btn-ink">
           Copiar link do site
         </button>
-        <Link href={linkDosConvites} className="btn btn-quiet">
-          Enviar convites
-        </Link>
+        {linkDosConvites && (
+          <Link href={linkDosConvites} className="btn btn-quiet">
+            Enviar convites
+          </Link>
+        )}
       </div>
     </div>
   );

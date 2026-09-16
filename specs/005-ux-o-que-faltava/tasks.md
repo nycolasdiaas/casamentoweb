@@ -126,3 +126,6 @@ Portões: lint limpo, `tsc --noEmit` limpo, `next build` passando, `npm run test
   (`lib/fonts/porMolde.ts` + teste contra o registry); testes da etapa nova. — `[UX-038]`
 - [x] **T049** Vitrine: linha "Recado para os noivos" na chave `rsvp`, rótulo como
   `key` do React, e teste da escada dos pacotes atualizado. — `[UX-039]`
+- [x] **T051** Botão do topo vira "Recado para os noivos" e sai da página; área de
+  Convites desligada por interruptor, com `/c/<slug>` intacto e as seis portas fechadas;
+  bloco de WhatsApp fora da aba Visual. — `[UX-040]`

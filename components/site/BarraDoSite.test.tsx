@@ -4,8 +4,8 @@
  * O que se confere aqui é a REGRA, não o desenho: quais âncoras a barra
  * mostra, em que ordem, e quando ela decide não existir. Tudo isso sai do que
  * o pacote libera e do que o casal ligou na aba Páginas — e errar significa
- * oferecer ao convidado um destino que a página não tem, ou esconder o botão
- * de confirmar presença de quem pagou por ele.
+ * oferecer ao convidado um destino que a página não tem, ou esconder de quem
+ * pagou por ele o botão que leva ao recado.
  */
 
 import { readFileSync } from "node:fs";
@@ -39,7 +39,7 @@ const TUDO: SectionKey[] = [
 function montar(chaves: SectionKey[], nomes = "Ana & Pedro") {
   document.body.innerHTML = "";
   const { container } = render(
-    <BarraDoSite nomes={nomes} chaves={chaves} />
+    <BarraDoSite nomes={nomes} chaves={chaves} slug="ana-e-pedro" />
   );
   return container;
 }
@@ -86,14 +86,33 @@ describe("quais destinos a barra oferece", () => {
   });
 });
 
-describe("o botão de confirmar presença", () => {
-  it("SC-003: fecha a barra, apontando para #confirmacao", () => {
+describe("o botão do fim da barra", () => {
+  /* Ele dizia "Confirmar presença" e apontava para `#confirmacao`. As duas
+     coisas mudaram em 16/09/2026, e por um motivo só: o site NUNCA confirmou
+     presença — quem confirma abre `/rsvp/<slug>`, o endereço pessoal que
+     chegou no WhatsApp. O botão prometia a ação e entregava uma seção que diz
+     "procure a mensagem que enviamos". O dono viu no celular e mandou trocar.
+
+     Agora ele diz o que faz e sai da página: leva ao recado, que é a única
+     coisa que um convidado sem o link pessoal consegue fazer no site. */
+  it("SC-003: fecha a barra e leva à tela do recado", () => {
     const c = montar(TUDO);
     const nav = c.querySelector("nav")!;
     const ultimo = nav.lastElementChild!;
     expect(ultimo.tagName).toBe("A");
-    expect(ultimo.getAttribute("href")).toBe("#confirmacao");
-    expect(ultimo.textContent).toBe("Confirmar presença");
+    expect(ultimo.getAttribute("href")).toBe("/s/ana-e-pedro/recado");
+    expect(ultimo.textContent).toBe("Recado para os noivos");
+  });
+
+  it("o endereço do botão acompanha o slug do site", () => {
+    // Um `/s/ana-e-pedro/recado` chumbado mandaria todo convidado de todo
+    // casamento para o mural do mesmo casal.
+    document.body.innerHTML = "";
+    const { container } = render(
+      <BarraDoSite nomes="Outro casal" chaves={TUDO} slug="outro-slug" />
+    );
+    const ultimo = container.querySelector("nav")!.lastElementChild!;
+    expect(ultimo.getAttribute("href")).toBe("/s/outro-slug/recado");
   });
 
   it("SC-003: nunca a sigla — 'RSVP' é vocabulário nosso, não do convidado", () => {
@@ -101,6 +120,8 @@ describe("o botão de confirmar presença", () => {
   });
 
   it("SC-004: no pacote Convite, que não tem confirmação, o botão não existe", () => {
+    // O recado sai de dentro da confirmação de presença; sem ela, não há
+    // recado — e `/s/<slug>/recado` recusa esse pacote do outro lado.
     const convite: SectionKey[] = [
       "cover",
       "countdown",
@@ -110,8 +131,8 @@ describe("o botão de confirmar presença", () => {
       "footer",
     ];
     const c = montar(convite);
-    expect(c.querySelector('a[href="#confirmacao"]')).toBeNull();
-    expect(c.textContent).not.toContain("Confirmar presença");
+    expect(c.querySelector('a[href$="/recado"]')).toBeNull();
+    expect(c.textContent).not.toContain("Recado para os noivos");
     // E a barra continua de pé: três destinos justificam a faixa.
     expect(c.querySelector("nav")).not.toBeNull();
   });
@@ -130,7 +151,7 @@ describe("quando a barra decide não existir", () => {
   it("um destino E o botão sustentam — o botão é o motivo da barra", () => {
     const c = montar(["cover", "details", "rsvp", "footer"]);
     expect(c.querySelector("nav")).not.toBeNull();
-    expect(c.querySelector('a[href="#confirmacao"]')).not.toBeNull();
+    expect(c.querySelector('a[href="/s/ana-e-pedro/recado"]')).not.toBeNull();
   });
 });
 

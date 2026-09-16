@@ -4,10 +4,22 @@ import type { SectionKey } from "@/lib/templates/contract";
 /**
  * F1 · a barra fixa do site do casal.
  *
- * O convidado abre `/s/<slug>` para fazer UMA coisa: confirmar presença, ou
- * ver a lista de presentes. Num casamento com sete seções, as duas estavam a
- * uma rolagem inteira de distância — e o botão de confirmar só existia no fim
- * da página, depois de tudo. A barra encurta isso para um toque.
+ * O convidado abre `/s/<slug>` para fazer UMA coisa: falar com o casal, ou ver
+ * a lista de presentes. Num casamento com sete seções, as duas estavam a uma
+ * rolagem inteira de distância — e o botão só existia no fim da página, depois
+ * de tudo. A barra encurta isso para um toque.
+ *
+ * ── Por que o botão não diz mais "Confirmar presença" ──────────────────────
+ *
+ * Porque o site não confirma presença. Quem confirma abre `/rsvp/<slug>`, o
+ * endereço pessoal que chegou no WhatsApp da família — o site nunca teve esse
+ * poder. O botão prometia a ação e entregava uma seção que diz "procure a
+ * mensagem que enviamos", e depois que o "não recebi meu link" saiu dali
+ * (16/09/2026) ele passou a levar a uma caixa cujo único botão é outro. O dono
+ * viu isso no celular e mandou trocar.
+ *
+ * Agora ele diz o que faz: leva ao recado. É a única coisa que um convidado
+ * sem o link pessoal consegue de fato fazer no site.
  *
  * ── Onde ela mora, e por quê ───────────────────────────────────────────────
  *
@@ -37,11 +49,14 @@ import type { SectionKey } from "@/lib/templates/contract";
 export default function BarraDoSite({
   nomes,
   chaves,
+  slug,
 }: {
   /** `content.coupleNames` — o mesmo texto da capa. */
   nomes: string;
   /** As seções que o `SiteRenderer` de fato renderizou, na ordem delas. */
   chaves: SectionKey[];
+  /** Endereço do site — o botão do fim da barra sai da página. */
+  slug: string;
 }) {
   /* As âncoras saem do que renderizou, nunca de uma lista fixa.
      `cover` e `countdown` estão no topo (o convidado já está nelas quando a
@@ -51,18 +66,19 @@ export default function BarraDoSite({
     (k) => k !== "cover" && k !== "countdown" && k !== "rsvp" && k !== "footer"
   );
 
-  /* O botão só existe se a seção existir. Num pacote Convite não há
-     confirmação de presença — e oferecê-la na barra seria vender pelo desenho
-     o que o pacote não entrega. */
+  /* O botão só existe se a seção existir. O recado sai de dentro da
+     confirmação de presença, que o pacote Convite não inclui — e oferecê-lo na
+     barra seria vender pelo desenho o que o pacote não entrega. É a mesma
+     condição que `/s/<slug>/recado` aplica do outro lado. */
   const temConfirmacao = chaves.includes("rsvp");
 
   /* Barra com um item é ruído: ocupa 60px do alto da tela para oferecer um
      atalho que a primeira rolagem já daria.
 
-     A spec escreve "menos de duas âncoras", e o botão de confirmar entra na
-     conta como item. Um site com uma seção e o botão ainda vale a barra — o
-     botão é o motivo de ela existir, não um enfeite ao lado das âncoras.
-     Sem ele e com menos de duas âncoras, some. */
+     A spec escreve "menos de duas âncoras", e o botão entra na conta como
+     item. Um site com uma seção e o botão ainda vale a barra — o botão é o
+     motivo de ela existir, não um enfeite ao lado das âncoras. Sem ele e com
+     menos de duas âncoras, some. */
   if (ancoras.length < 2 && !temConfirmacao) return null;
 
   return (
@@ -115,22 +131,28 @@ export default function BarraDoSite({
         ))}
       </div>
 
-      {/* "Confirmar presença", nunca "RSVP" — a sigla é vocabulário nosso, não
-          do convidado (regras de negócio §6).
+      {/* O ÚNICO item da barra que não é âncora, e por isso ele existe.
+
+          As âncoras rolam a página; este sai dela, direto para a tela do
+          recado. Rolar até a seção e obrigar a um segundo toque num botão com
+          o mesmo rótulo seria repetir o alvo duas vezes na mesma descida.
+
+          "Recado para os noivos", nunca "RSVP" — a sigla é vocabulário nosso,
+          não do convidado (regras de negócio §6).
 
           O botão não usa classe de molde porque não existe uma: cada um dos
           seis estiliza os próprios CTAs inline. O que os seis têm em comum é
           a inversão `--ink` sobre `--paper`, e é ela que a barra repete. */}
       {temConfirmacao && (
         <a
-          href={`#${ANCORA_DA_SECAO.rsvp}`}
+          href={`/s/${slug}/recado`}
           /* py-3.5 no celular: o botão tinha 30px de altura, e é o alvo mais
-             importante da barra — é por ele que passa a confirmação de
-             presença, que é o que o casal comprou (UX-015). */
+             importante da barra — é por ele que passa a única ação que o
+             convidado consegue fazer no site (UX-015). */
           className="flex min-h-11 shrink-0 items-center whitespace-nowrap px-4 text-[10px] uppercase leading-none tracking-[0.06em] no-underline transition-opacity hover:opacity-85 @[700px]:min-h-0 @[700px]:px-6 @[700px]:py-3 @[700px]:text-[11px] @[700px]:tracking-[0.18em]"
           style={{ background: "var(--ink)", color: "var(--paper)" }}
         >
-          Confirmar presença
+          Recado para os noivos
         </a>
       )}
     </nav>

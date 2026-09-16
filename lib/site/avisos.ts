@@ -337,7 +337,12 @@ function avisoDePrazo({
         ? "1 convidado ainda não respondeu"
         : `${semResposta} convidados ainda não responderam`,
     em: agora,
-    acao: { rotulo: "Ver os convites", href: `${base}/convites` },
+    /* Vai para CONVIDADOS, e não para a aba de convites: o aviso fala de
+       quem não respondeu, e é ali que estão as linhas, os nomes e o link
+       de cada família para cobrar. A aba de convites está desligada desde
+       16/09/2026 (`CONVITES_LIGADOS`), e mesmo ligada mostrava três
+       números somados e nenhuma linha. */
+    acao: { rotulo: "Ver os convidados", href: `${base}/convidados` },
     tom: "warn",
   };
 }

@@ -30,13 +30,11 @@ type Passo = {
 export default function PrimeiraVez({
   base,
   temFoto,
-  temConvite,
   publicado,
 }: {
   /** `/conta/pedidos/<id>` */
   base: string;
   temFoto: boolean;
-  temConvite: boolean;
   publicado: boolean;
 }) {
   const passos: Passo[] = [
@@ -47,14 +45,6 @@ export default function PrimeiraVez({
       href: `${base}/fotos`,
       rotulo: "Enviar foto",
       feito: temFoto,
-    },
-    {
-      titulo: "Criar o primeiro convite",
-      texto:
-        "Um grupo por vez — família da noiva, amigos, trabalho. Cada um recebe um link próprio.",
-      href: `${base}/convites`,
-      rotulo: "Criar convite",
-      feito: temConvite,
     },
     {
       titulo: "Publicar o site",

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { carregarGerenciamento } from "@/lib/site/manageData";
+import { CONVITES_LIGADOS } from "@/lib/site/convitesLigados";
 import { listInvites } from "@/lib/repositories/siteInvites";
 import { contagemDeConvidados } from "@/lib/repositories/siteMetrics";
 import { MAX_CONVITES } from "@/lib/site/inviteDoc";
@@ -30,6 +32,11 @@ export default async function ConvitesPage({
 }) {
   const { id } = await params;
   const { erro } = await searchParams;
+  /* A área está desligada (`CONVITES_LIGADOS`, 16/09/2026). Quem chega por
+     endereço digitado ou por link velho volta ao início do pedido, em vez
+     de ver uma tela que o painel não oferece mais. */
+  if (!CONVITES_LIGADOS) redirect(`/conta/pedidos/${id}`);
+
   const { site } = await carregarGerenciamento(id);
 
   /* Duas consultas, em paralelo — e nenhuma delas é `listGroupsWithGuests`,

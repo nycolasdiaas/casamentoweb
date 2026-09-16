@@ -3,7 +3,6 @@
 import { useActionState, useState } from "react";
 import { saveThemeAction } from "@/app/actions/theme-actions";
 import { avisosDeContraste } from "@/lib/site/themeInput";
-import { WHATSAPP_LINK } from "@/lib/site";
 
 export type FonteOpcao = {
   id: string;
@@ -312,24 +311,6 @@ export default function ThemeEditor({
           </p>
         </div>
         {fotoSlot}
-      </div>
-
-      {/* O escape: o editor cobre o comum, a gente cobre o resto. */}
-      <div className="flex flex-col gap-2 rounded-[3px] border border-(--c-ink)/25 bg-(--c-sunken) px-5 py-4">
-        <p className="text-sm font-medium">Querem algo que não está aqui?</p>
-        <p className="text-sm text-(--c-ink)/75 leading-relaxed">
-          Uma fonte específica, um ornamento, uma seção do jeito de vocês, uma
-          ideia que viram por aí — é só falar. A gente faz à mão, sem custo
-          extra.
-        </p>
-        <a
-          href={WHATSAPP_LINK}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn btn-quiet btn-sm self-start"
-        >
-          Falar com a gente no WhatsApp
-        </a>
       </div>
     </section>
   );

@@ -79,12 +79,25 @@ As âncoras que a barra precisa **já existem**: `lib/site/ancoras.ts` mapeia
   nenhum (`grep -rn "#guestbook" app components lib` → vazio), então a troca
   não quebra link já distribuído.
 - **FR-005:** Quando a seção `rsvp` estiver entre as renderizadas, a barra
-  DEVE terminar com um botão apontando para `#confirmacao` (o `id` que
-  `ANCORA_DA_SECAO.rsvp` já produz), escrito **"Confirmar presença"** —
-  nunca "RSVP" (regras §6).
+  DEVE terminar com um botão apontando para `/s/<slug>/recado`, escrito
+  **"Recado para os noivos"** — nunca "RSVP" (regras §6).
+
+  > **Revisto em 16/09/2026.** O texto era "Confirmar presença" e o destino,
+  > `#confirmacao`. O site nunca confirmou presença: quem confirma abre
+  > `/rsvp/<slug>`, o endereço pessoal que chegou no WhatsApp da família. O
+  > botão prometia a ação e entregava uma seção que diz "procure a mensagem
+  > que enviamos" — e depois que o "não recebi meu link" saiu dessa seção, ele
+  > passou a levar a uma caixa cujo único botão é outro. Decisão do dono,
+  > vista por ele no celular.
+  >
+  > É também o único item da barra que não é âncora, e isso é deliberado:
+  > rolar até a seção para exigir um segundo toque num botão de mesmo rótulo
+  > repetiria o alvo duas vezes na mesma descida.
 - **FR-006:** Quando `rsvp` **não** estiver entre as renderizadas (pacote
-  Convite), a barra NÃO PODE mostrar botão nenhum. Oferecer confirmação num
-  pacote que não a inclui é vender pelo desenho o que o pacote não dá.
+  Convite), a barra NÃO PODE mostrar botão nenhum. O recado sai de dentro da
+  confirmação de presença, e oferecê-lo num pacote que não a inclui é vender
+  pelo desenho o que o pacote não dá — a rota `/s/<slug>/recado` aplica a
+  mesma recusa do outro lado.
 - **FR-007:** Abaixo de 1024px, as âncoras DEVEM virar uma faixa com rolagem
   horizontal (`overflow-x: auto` + `.no-scrollbar`, que já existe em
   `app/globals.css`), e o botão DEVE continuar visível e fixo à direita.
@@ -113,11 +126,11 @@ As âncoras que a barra precisa **já existem**: `lib/site/ancoras.ts` mapeia
   `Galeria`, `Presentes`, `Recados`, `Álbum`. Atende FR-004 e FR-004b.
 - **SC-002b:** `ANCORA_DA_SECAO.guestbook === "recados"` e o invólucro da
   seção do mural em `/s/<slug>` tem `id="recados"`. Atende FR-004c.
-- **SC-003:** O último elemento da barra é um `<a href="#confirmacao">` com
-  as classes de botão do molde e o texto exato `Confirmar presença`. Atende
-  FR-005.
+- **SC-003:** O último elemento da barra é um `<a href="/s/<slug>/recado">`
+  com as classes de botão do molde e o texto exato `Recado para os noivos`, e
+  o endereço acompanha o slug do site. Atende FR-005.
 - **SC-004:** Num site de pacote **Convite**, a barra não contém nenhum
-  `<a href="#confirmacao">`. Atende FR-006.
+  `<a>` terminado em `/recado`. Atende FR-006.
 - **SC-005:** Desligar História, Galeria e Presentes na aba **Páginas** deixa
   a barra sem renderizar (menos de duas âncoras restantes num pacote Convite).
   Atende FR-009.
@@ -146,7 +159,8 @@ habilitadas, `tier`) já chegam ao `SiteRenderer`.
 - Protótipo: `Enlace - F Site Casamento.dc.html`, F1 desktop 1440 —
   `.enSiteNav` (`position:sticky; top:0; background:rgba(242,239,231,.92);
   border-bottom:1px solid #d8d0bf; padding:16px 40px`), com os quatro links e
-  o `.enBtnInk` "Confirmar presença".
+  o `.enBtnInk` "Confirmar presença" (rótulo revisto em 16/09/2026 — ver
+  FR-005).
 - Versão atual: `components/site/SiteRenderer.tsx:40-118` (o laço de seções e
   os três invólucros que já vivem lá), `lib/site/ancoras.ts`
   (`ANCORA_DA_SECAO`), `lib/site/sectionLabels.ts` (`SECTION_LABELS`).
@@ -170,9 +184,10 @@ Nenhuma.
 ## Notas de implementação
 
 **A dependência de `design-system/006` não travou.** Aquela spec está
-Bloqueada, mas o que ela carregava para cá era uma regra de voz — o rótulo
-"Confirmar presença", nunca "RSVP". A regra foi cumprida direto e virou teste
-próprio (`BarraDoSite.test.tsx`), sem esperar o varredor.
+Bloqueada, mas o que ela carregava para cá era uma regra de voz — nunca
+"RSVP", sempre o que o convidado diria. A regra foi cumprida direto e virou
+teste próprio (`BarraDoSite.test.tsx`), sem esperar o varredor. O rótulo em si
+mudou depois para "Recado para os noivos" (FR-005), sem mexer na regra.
 
 **Correções da spec, encontradas ao implementar:**
 
@@ -222,8 +237,8 @@ CSS velho — Skill `cache-e-build`), no site de demonstração `ana-e-pedro`:
 | SC-001 | `.site-canvas` tem `NAV` como primeiro filho; `position: sticky`, `top: 0px`, `z-index: 20` |
 | SC-002 | `#historia História`, `#detalhes O dia`, `#fotos Galeria`, `#presentes Presentes`, `#recados Recados`, `#album Álbum` — nessa ordem, sem `#inicio`, `#contagem`, `#confirmacao` nem `#final` |
 | SC-002b | `ANCORA_DA_SECAO.guestbook` devolve `recados`; os `id` da página são `inicio, contagem, historia, detalhes, fotos, confirmacao, presentes, recados, album, final` |
-| SC-003 | último filho: `A` · `#confirmacao` · `Confirmar presença` |
-| SC-004 | teste de unidade com as seções do pacote Convite: nenhum `a[href="#confirmacao"]` |
+| SC-003 | último filho: `A` · `/s/<slug>/recado` · `Recado para os noivos` |
+| SC-004 | teste de unidade com as seções do pacote Convite: nenhum `a[href$="/recado"]` |
 | SC-005 | teste de unidade: uma âncora e sem botão, e a barra não renderiza |
 | SC-006 | clicar em "Presentes" deixa a seção em `top: 68px` e o título em `221px` (`scroll-margin-top: 68px`) |
 | SC-007 | a 390px reais (emulação de aparelho): `scrollWidth` e `clientWidth` iguais a 390; faixa com `overflow-x: auto`, 332px de conteúdo em 96px visíveis, barra de rolagem com 0px de altura; botão inteiro na tela |

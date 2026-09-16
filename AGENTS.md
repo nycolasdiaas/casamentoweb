@@ -172,6 +172,13 @@ tabelas e produzem falhas que não existem. Ver Skill `testes`.
   `prefers-reduced-motion` do sistema sempre vence — que é o padrão acessível
   certo; o que sumiu foi a chave de virar isso por site. Reconstruir a tela em
   outro lugar é decisão do dono.
+- **A aba Convites está DESLIGADA** desde 16/09/2026, por decisão do dono, para
+  ser retomada depois. O interruptor é `lib/site/convitesLigados.ts`; religar é
+  trocar `false` por `true`. Nada foi apagado — editor, ações, repositório e
+  specs continuam de pé, e os convites seguem no banco. **`/c/<slug>` continua
+  servindo normalmente**: convite publicado é link que já circula no WhatsApp, e
+  o que saiu foi a porta de criar e editar. Quem manda convite hoje usa o link
+  por família da aba Convidados.
 - **Álbum pós-festa é placeholder** — as fotos só existem depois da festa.
 - **Pix de presente falho não é detectável**: o convidado auto-declara que
   pagou (`registerContributionAction`), e o dinheiro nunca passa pela Enlace

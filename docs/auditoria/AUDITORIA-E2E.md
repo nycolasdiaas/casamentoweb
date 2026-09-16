@@ -1187,3 +1187,34 @@ alternativos do RSVP ("Não posso", confirmação parcial, editar a resposta). E
   recados" continua só no Para Sempre, e é ela que marca a diferença de destino: uma
   tabela de ✓ e ✕ não comporta "✓, mas diferente"; duas linhas comportam.
 - **Status:** Em correção — feature `005-ux-o-que-faltava` (T049)
+
+### UX-040 — Três pedidos do dono, vistos no celular (16/09/2026)
+
+- **Severidade:** 🟠 Alta nas duas primeiras, — na terceira
+- **O botão do topo ainda dizia "Confirmar presença".** O site nunca confirmou
+  presença: quem confirma abre `/rsvp/<slug>`, o endereço pessoal que chegou no
+  WhatsApp da família. O botão prometia a ação e entregava a seção que diz "procure a
+  mensagem que enviamos" — e depois que o "não recebi meu link" saiu de lá, passou a
+  levar a uma caixa cujo único botão é outro. Agora ele diz **"Recado para os noivos"**
+  e sai da página, direto para `/s/<slug>/recado`. É o único item da barra que não é
+  âncora, de propósito: rolar até a seção para exigir um segundo toque num botão de
+  mesmo rótulo repetiria o alvo duas vezes na mesma descida. Spec `site-publico/001`
+  revista (FR-005, FR-006, SC-003, SC-004).
+- **A área de Convites foi desligada**, para ser retomada depois. É um interruptor
+  (`lib/site/convitesLigados.ts`), não uma remoção: as ~2.700 linhas do editor, as
+  ações, o repositório e as specs ficam de pé, e religar é trocar uma palavra.
+  - **`/c/<slug>` continua no ar.** Convite publicado é endereço que já foi para o
+    WhatsApp de gente real — havia um `PUBLICADO` no banco no momento da mudança.
+    Derrubar a página pública transformaria um link que circula num 404. O que saiu foi
+    a porta de **criar e editar**, não a de ler.
+  - Seis portas foram fechadas juntas, porque uma esquecida vira link que rebate: a aba
+    do painel, `/conta/pedidos/<id>/convites`, o editor `/conta/convites/<id>`, o passo
+    "Criar o primeiro convite" da primeira vez, o atalho `BaixarConvite` e o botão
+    "Enviar convites" do cartão de site no ar. O aviso de prazo do sino passou a apontar
+    para **Convidados**, que é onde estão os nomes e o link de cada família — destino
+    melhor mesmo com a aba ligada.
+  - O que fica no lugar é a aba **Convidados**: o casal digita o nome da família e as
+    pessoas, e cada linha traz o `/rsvp/<slug>` com "Copiar link".
+- **O bloco "Querem algo que não está aqui?"** saiu da aba Visual, com o botão de
+  WhatsApp junto.
+- **Status:** Em correção — feature `005-ux-o-que-faltava` (T051)
