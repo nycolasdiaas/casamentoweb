@@ -157,6 +157,21 @@ tabelas e produzem falhas que não existem. Ver Skill `testes`.
 - **`ABACATEPAY_WEBHOOK_SECRET` está CONFIGURADO** desde antes de 15/09/2026 —
   o webhook responde 401 a chamada sem assinatura, e o 503 de "não
   configurado" não aparece mais. Esta linha dizia o contrário até então.
+- **A chave do AbacatePay em produção é de SANDBOX** (`abc_dev…`, visto em
+  16/09/2026). O checkout abre, o webhook responde e o site é publicado — mas
+  **nenhum dinheiro é capturado**, e um pagamento de teste publica igual. O dono
+  sabe e vai trocar a chave depois; até lá, não conclua de um pedido `paid` que
+  houve pagamento real.
+- **O interruptor de movimento perdeu a tela, não o mecanismo.**
+  `components/ui/InterruptorDeMovimento.tsx` não é importado por ninguém desde
+  que o dono mandou tirar a linha do rodapé (15/09/2026). **Não apague o
+  arquivo nem as regras que ele liga**: `app/layout.tsx` ainda escreve
+  `data-movimento` no `<html>` a partir de `localStorage["enlace:movimento"]`,
+  ~20 regras de `globals.css` dependem desse atributo, e cinco specs de
+  `specs/design-system/` o citam. Hoje o efeito prático é que
+  `prefers-reduced-motion` do sistema sempre vence — que é o padrão acessível
+  certo; o que sumiu foi a chave de virar isso por site. Reconstruir a tela em
+  outro lugar é decisão do dono.
 - **Álbum pós-festa é placeholder** — as fotos só existem depois da festa.
 - **Pix de presente falho não é detectável**: o convidado auto-declara que
   pagou (`registerContributionAction`), e o dinheiro nunca passa pela Enlace

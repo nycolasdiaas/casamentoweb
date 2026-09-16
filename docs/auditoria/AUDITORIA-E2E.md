@@ -1150,7 +1150,30 @@ alternativos do RSVP ("Não posso", confirmação parcial, editar a resposta). E
     banco de um site que ainda não existe; o `siteId` da prévia é o UUID zero, para que
     nenhuma consulta alcance dado de outro casal.
 - **O questionário foi de 11 para 9 etapas.**
-- **Status:** Em correção — feature `005-ux-o-que-faltava` (T048)
+- **Três defeitos meus no celular, achados só olhando a tela em 390px** — nenhum deles
+  apareceu em lint, tsc, build ou suíte, e cada um precisou de um deploy e de uma
+  medição no ar:
+  1. **A prévia saía pela direita.** O palco media 1300px numa janela de 500. Com
+     `grid` sem `grid-cols`, a coluna implícita é `auto` e cresce até caber o filho mais
+     largo; o iframe tem 1280px de *layout* e só encolhe por `transform: scale()`, que
+     não mexe em layout — a escala fechava em 1 e o encolhimento nunca acontecia.
+  2. **O grudado não grudava.** `sticky` só corre dentro do bloco que o contém, e numa
+     grade de uma coluna a área da prévia acaba onde os controles começam. No celular
+     virou `flex-col`; no computador segue a grade de duas colunas, onde a linha já é
+     tão alta quanto os controles.
+  3. **Em modo "Celular" o quadro tomaria a tela.** 700px virtuais cabendo quase 1:1
+     empurrariam para fora os botões que a prévia existe para acompanhar. Empilhado, a
+     escala passou a respeitar também 40% da altura da janela.
+  A correção de (2) ainda introduziu um `self-start` que trouxe o estouro de volta por
+  outra porta — num flex em coluna, `align-self` manda na LARGURA. Só a medição pegou.
+- **Verificado no ar** (build `GRl4EDcY3XXzGJBWVBvAL`, 16/09/2026): em 390px, escala
+  0,302 no modo Computador e 0,383 no Celular, sem estouro, com a prévia grudada no
+  topo enquanto a lista de fontes rola por baixo; em 1440×900, escala 0,633 e a mesma
+  aderência. Troca de cor e de fonte repintou o quadro sem recarregar
+  (`#b8985f/#3d4a36/Cormorant` → `#c65a2e/#1f2a44/Playfair`); trocar Clássico por
+  Moderno recarregou o quadro, trocou a lista de 8 fontes para 5 e limpou sozinha a
+  escolha de Playfair, que o Moderno não desenha.
+- **Status:** Resolvida — feature `005-ux-o-que-faltava` (T048)
 
 ### UX-039 — A vitrine não contava que o Site do Casamento recebe recado
 
