@@ -50,6 +50,18 @@ export const LINHAS_DA_VITRINE: { chave: SectionKey; rotulo: string }[] = [
   { chave: "details", rotulo: "Cerimônia e festa" },
   { chave: "gallery", rotulo: "Galeria de fotos" },
   { chave: "rsvp", rotulo: "Confirmação de presença" },
+  /* DUAS linhas na mesma chave, e é de propósito.
+
+     "Recado para os noivos" não é seção: é o botão que sai de dentro da
+     confirmação de presença, e por isso existe onde ela existe. Amarrá-lo a
+     `rsvp` é o que garante que a vitrine nunca o prometa num pacote que não
+     tem para onde o recado ir.
+
+     O que muda entre os dois pacotes é o DESTINO, não a existência: no Site do
+     Casamento o recado é privado, no Para Sempre ele vai para o mural — e é a
+     linha do mural, logo abaixo, que marca essa diferença. Uma tabela de ✓ e ✕
+     não comporta "✓, mas diferente"; duas linhas comportam. */
+  { chave: "rsvp", rotulo: "Recado para os noivos" },
   { chave: "gifts", rotulo: "Lista de presentes com Pix" },
   { chave: "guestbook", rotulo: "Mural de recados" },
   { chave: "album", rotulo: "Álbum depois da festa" },

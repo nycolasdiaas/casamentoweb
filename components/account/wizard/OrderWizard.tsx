@@ -11,23 +11,15 @@ import {
 } from "@/app/actions/account-actions";
 import { PACKAGES, type PackageTier } from "@/lib/packages";
 import { TEMPLATE_STYLES } from "@/lib/templates";
-import {
-  FONT_STYLES,
-  FONT_CATEGORY_LABELS,
-  type FontStyleId,
-  type FontCategory,
-} from "@/lib/customization";
+import { FONT_STYLES, type FontStyleId } from "@/lib/customization";
+import { fontesDoMolde } from "@/lib/fonts/porMolde";
 import { WHATSAPP_LINK } from "@/lib/site";
 import type { OrderStatus } from "@/lib/orderStatus";
-import LivePreview from "@/components/account/LivePreview";
 import WizardShell from "@/components/account/wizard/WizardShell";
-import ColorRow from "@/components/account/wizard/ColorRow";
-import AvisoDeContraste from "@/components/account/wizard/AvisoDeContraste";
-import AmostraDeCores from "@/components/account/wizard/AmostraDeCores";
+import EscolhaDoVisual from "@/components/account/wizard/EscolhaDoVisual";
 import { coresDoModelo } from "@/lib/theme/coresDoModelo";
 import { useConfirmacaoDeEscolha } from "@/components/account/wizard/useConfirmacaoDeEscolha";
 import CelebrationScreen from "@/components/account/wizard/CelebrationScreen";
-import { FONT_PREVIEW_CLASS, CATEGORY_PREVIEW_SIZE } from "@/components/account/wizard/fontPreview";
 import { dataPorExtenso } from "@/lib/site/dataLegivel";
 import { Icone } from "@/components/ui/prensa";
 
@@ -80,13 +72,6 @@ function resumir(texto: string): string {
   if (limpo.length <= 80) return limpo;
   return `${limpo.slice(0, 80)}…`;
 }
-
-const FONT_CATEGORY_ORDER: FontCategory[] = [
-  "serifa",
-  "manuscrita",
-  "sans",
-  "rustica",
-];
 
 const campoBase =
   "w-full rounded-[3px] border border-(--c-rule) bg-white px-4 py-3.5 text-sm text-(--c-ink) transition-colors focus:border-(--c-ink) focus:outline-none";
@@ -288,6 +273,27 @@ export default function OrderWizard({
     setCor1(cores.primaryColor);
     setCor2(cores.secondaryColor);
     setCor3(cores.tertiaryColor);
+
+    /* A fonte que o molde novo não desenha SAI da escolha.
+       `clampThemeFonts` já a derrubava no provisionamento, calado: o casal
+       escolhia, trocava de modelo e o site nascia com outra tipografia sem
+       nada na tela avisar. Agora a lista ao lado da prévia mostra só o que o
+       molde tem — deixar a escolha velha marcada num botão que sumiu da lista
+       seria a mesma mentira, de outro jeito. */
+    setFonte((atual) =>
+      atual && fontesDoMolde(id).includes(atual as FontStyleId) ? atual : ""
+    );
+  }, []);
+
+  /* "Prefiro montar do zero" volta ao preset do Clássico, que é o que
+     `themePresetFor(null)` entrega — então a lista de fontes é a dele. Sem
+     isto, uma fonte de outro molde ficaria escolhida e o site cairia na
+     padrão. As CORES ficam: elas são do casal, não do molde. */
+  const limparModelo = useCallback(() => {
+    setModelo("");
+    setFonte((atual) =>
+      atual && fontesDoMolde(null).includes(atual as FontStyleId) ? atual : ""
+    );
   }, []);
 
   const primeiroNome = useMemo(
@@ -580,183 +586,32 @@ export default function OrderWizard({
         )}
       </div>
     ),
-    modelo: (
-        <div className="flex flex-col gap-4">
-          <div className="motion-stagger grid gap-3 sm:grid-cols-3">
-            {TEMPLATE_STYLES.map((estiloItem, i) => {
-              const ativo = modelo === estiloItem.id;
-              return (
-                <button
-                  key={estiloItem.id}
-                  type="button"
-                  onClick={() => escolherModelo(estiloItem.id)}
-                  data-escolha={ativo ? "sim" : "nao"}
-                  style={{ ["--i" as string]: i }}
-                  className={`flex flex-col gap-2.5 rounded-[3px] border-2 p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
-                    ativo
-                      ? "border-(--c-ink) bg-(--c-sunken) shadow-sm"
-                      : "border-(--c-rule) bg-white"
-                  }`}
-                >
-                  <span className="text-sm font-semibold">
-                    {estiloItem.name}
-                  </span>
-                  <span className="flex gap-1.5">
-                    {estiloItem.swatches.map((hex) => (
-                      <span
-                        key={hex}
-                        style={{ backgroundColor: hex }}
-                        className="size-5 rounded-full border border-black/10"
-                      />
-                    ))}
-                  </span>
-                  <span className="text-xs leading-relaxed text-(--c-ink-2)">
-                    {estiloItem.description}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setModelo("")}
-            className={`self-start rounded-[2px] border px-4 py-2 text-[13px] transition-colors ${
-              modelo === ""
-                ? "border-(--c-ink) bg-(--c-sunken) font-medium"
-                : "border-(--c-rule) text-(--c-ink-2) hover:border-(--c-ink) hover:text-(--c-ink)"
-            }`}
-          >
-            Prefiro montar do zero
-          </button>
-
-          {modelo && (
-            <div className="motion-fade-in">
-              <LivePreview
-                src={`/pacotes/estilos/${modelo}?pacote=${pacote}&embutido=1`}
-                titulo="Como este modelo fica"
-                /* Diz de quem são os dados ANTES de o casal reparar sozinho.
-                   O texto anterior — "depois de enviar o pedido, esta prévia
-                   passa a mostrar o site com o conteúdo de vocês" — era
-                   verdadeiro, mas falava do futuro: o casal acabou de digitar
-                   o próprio nome, a data e o endereço, e vê na tela um casal
-                   chamado Ana & Pedro casando em Fortaleza. Nomear o exemplo
-                   evita a leitura de que os dados dele se perderam. */
-                descricao="Exemplo com um casal fictício — o conteúdo de vocês entra no lugar assim que o pedido for enviado. Aqui o que importa é o desenho: as cores, as fontes e a ordem das seções."
-                fullBleed={false}
-              />
-            </div>
-          )}
-        </div>
-    ),
-    /* Os RÓTULOS aqui seguem o que `resolveTheme` realmente faz, e não o
-       contrário. A cor 1 vira o `accent` e a cor 2 vira o `ink` — está assim
-       de propósito (ver o comentário de `lib/theme/spec.ts`: o acento é o
-       detalhe que o casal percebe como "a cor do nosso casamento").
-
-       Os rótulos antigos diziam o oposto: "Cor principal — a tinta, títulos e
-       texto" e "Cor secundária — o acento". O casal escolhia a cor do texto e
-       recebia a cor dos enfeites. Trocar o mapeamento em vez do texto teria
-       repintado todo site já provisionado, inclusive os que estão no ar. */
-    cores: (
-        <div className="motion-stagger mx-auto flex max-w-2xl flex-col gap-7">
-          <div style={{ ["--i" as string]: 0 }}>
-            <ColorRow
-              label="Cor principal"
-              hint="o acento — detalhes, botões, ornamentos"
-              valor={cor1}
-              onChange={setCor1}
-            />
-          </div>
-          <div style={{ ["--i" as string]: 1 }}>
-            <ColorRow
-              label="Cor do texto"
-              hint="a tinta — títulos e parágrafos"
-              valor={cor2}
-              onChange={setCor2}
-            />
-          </div>
-          <div style={{ ["--i" as string]: 2 }}>
-            <ColorRow
-              label="Cor de fundo"
-              hint="o papel do convite"
-              valor={cor3}
-              onChange={setCor3}
-            />
-          </div>
-          {/* Os nomes do casal, não os da vitrine: ele acabou de digitá-los
-              na etapa 2, e a etapa das fontes já os usa. Mesmo achado da
-              UX-018, que a auditoria viu na tela Visual do painel. */}
-          <AmostraDeCores
-            acento={cor1}
-            tinta={cor2}
-            papel={cor3}
-            nomes={nomes.trim() || null}
-          />
-          <AvisoDeContraste tinta={cor2} papel={cor3} />
-        </div>
-    ),
-    // A rolagem PRÓPRIA da lista só existe a partir de sm. No celular, uma
-    // caixa rolável dentro de uma página rolável rouba o gesto: a pessoa
-    // arrasta querendo descer a página e desce a lista, ou fica presa no fim
-    // dela. Com a lista inteira no fluxo, o polegar faz uma coisa só.
-    fonte: (
-        <div className="flex flex-col gap-6 rounded-[3px] border border-(--c-rule) bg-(--c-base)/40 p-4 sm:max-h-[30rem] sm:overflow-y-auto">
-          {FONT_CATEGORY_ORDER.map((categoria) => {
-            const doGrupo = FONT_STYLES.filter((f) => f.category === categoria);
-            if (doGrupo.length === 0) return null;
-            return (
-              <div key={categoria} className="flex flex-col gap-3">
-                {/* Rótulo NÃO grudado.
-                    Ele era `sticky top-0`, e cabeçalho grudado sempre cobre o
-                    que passa por baixo: a primeira linha de cartões aparecia
-                    cortada ao meio ("Tradicional, de livro" sem o topo). Dar
-                    fundo opaco e z-index só trocou "texto vazando" por "texto
-                    escondido" — o cartão continuava cortado.
-                    Com 4 categorias curtas, seguir a rolagem não vale o preço. */}
-                <p className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.1em] text-(--c-mark)">
-                  {FONT_CATEGORY_LABELS[categoria]}
-                  <span
-                    aria-hidden
-                    className="h-px flex-1 bg-(--c-rule)"
-                  />
-                </p>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {doGrupo.map((f) => {
-                    const ativo = fonte === f.id;
-                    return (
-                      <button
-                        key={f.id}
-                        type="button"
-                        onClick={() => setFonte(ativo ? "" : f.id)}
-                        className={`flex items-center justify-between gap-3 rounded-[3px] border-2 bg-white px-4 py-3 text-left transition-all duration-150 hover:-translate-y-0.5 ${
-                          ativo
-                            ? "border-(--c-ink) bg-(--c-sunken)"
-                            : "border-(--c-rule)"
-                        }`}
-                      >
-                        <span className="flex min-w-0 flex-col">
-                          <span className="truncate text-sm font-semibold">
-                            {f.name}
-                          </span>
-                          <span className="truncate text-xs text-(--c-ink-2)">
-                            {f.description}
-                          </span>
-                        </span>
-                        <span
-                          aria-hidden
-                          className={`${FONT_PREVIEW_CLASS[f.id as FontStyleId]} ${CATEGORY_PREVIEW_SIZE[f.category]} shrink-0 leading-none text-(--c-ink)`}
-                        >
-                          {primeiroNome ? `${primeiroNome}` : "Ana & Pedro"}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+    visual: (
+        <EscolhaDoVisual
+          modelo={modelo}
+          escolherModelo={escolherModelo}
+          limparModelo={limparModelo}
+          pacote={pacote}
+          cor1={cor1}
+          cor2={cor2}
+          cor3={cor3}
+          setCor1={setCor1}
+          setCor2={setCor2}
+          setCor3={setCor3}
+          fonte={fonte}
+          setFonte={setFonte}
+          nomes={nomes}
+          primeiroNome={primeiroNome}
+          conteudo={{
+            nomes,
+            data,
+            hora,
+            cerimoniaLocal,
+            festaLocal,
+            traje,
+            historia,
+          }}
+        />
     ),
     observacoes: (
         <div className="motion-stagger mx-auto flex max-w-xl flex-col gap-5">

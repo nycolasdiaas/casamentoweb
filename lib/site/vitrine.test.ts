@@ -49,12 +49,13 @@ describe("o ✓ vem do gating, não de uma lista escrita à mão", () => {
     // "Mural de recados" vira ✓ no cartão do meio sem ninguém tocar em
     // `/pacotes`, porque não há segunda fonte de verdade para desatualizar.
     for (const pacote of PACKAGES) {
-      for (const { chave } of LINHAS_DA_VITRINE) {
-        expect(
-          incluidas(pacote.tier).includes(
-            LINHAS_DA_VITRINE.find((l) => l.chave === chave)!.rotulo
-          )
-        ).toBe(tierAllowsSection(pacote.tier, chave));
+      /* A linha inteira, não `find` pela chave: desde que "Recado para os
+         noivos" entrou, duas linhas dividem a chave `rsvp`, e um `find` por
+         chave conferiria a primeira delas duas vezes. */
+      for (const linha of LINHAS_DA_VITRINE) {
+        expect(incluidas(pacote.tier).includes(linha.rotulo)).toBe(
+          tierAllowsSection(pacote.tier, linha.chave)
+        );
       }
     }
   });
@@ -64,7 +65,18 @@ describe("o ✓ vem do gating, não de uma lista escrita à mão", () => {
     // tem. Listas de tamanhos diferentes viram três folhetos, não uma tabela.
     const tamanhos = PACKAGES.map(() => LINHAS_DA_VITRINE.length);
     expect(new Set(tamanhos).size).toBe(1);
-    expect(LINHAS_DA_VITRINE).toHaveLength(8);
+    expect(LINHAS_DA_VITRINE).toHaveLength(9);
+  });
+
+  it("o recado acompanha a confirmação de presença, e o mural não", () => {
+    /* A decisão do dono de 15/09/2026, presa aqui: recado nos dois pacotes que
+       têm confirmação; mural e Pix junto do recado, só no mais caro. */
+    expect(incluidas("convite")).not.toContain("Recado para os noivos");
+    expect(incluidas("site")).toContain("Recado para os noivos");
+    expect(incluidas("para-sempre")).toContain("Recado para os noivos");
+
+    expect(incluidas("site")).not.toContain("Mural de recados");
+    expect(incluidas("para-sempre")).toContain("Mural de recados");
   });
 
   it("SC-004: a lista de presentes com Pix só está no Para Sempre", () => {
@@ -87,6 +99,13 @@ describe("o ✓ vem do gating, não de uma lista escrita à mão", () => {
     for (const { chave } of LINHAS_DA_VITRINE) {
       expect(SECTION_KEYS).toContain(chave as SectionKey);
     }
+  });
+
+  it("nenhum rótulo se repete — é ele que identifica a linha na tela", () => {
+    // As duas telas usam o rótulo como `key` do React desde que a chave
+    // deixou de ser única. Rótulo repetido faria uma linha sumir.
+    const rotulos = LINHAS_DA_VITRINE.map((l) => l.rotulo);
+    expect(new Set(rotulos).size).toBe(rotulos.length);
   });
 
   it("capa e rodapé ficam de fora — estruturais nos três, e a capa tem conflito aberto", () => {

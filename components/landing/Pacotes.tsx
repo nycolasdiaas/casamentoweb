@@ -33,6 +33,11 @@ const RECURSOS: { chave: SectionKey; rotulo: string }[] = [
   { chave: "details", rotulo: "Local, mapa e traje" },
   { chave: "gallery", rotulo: "Galeria de fotos" },
   { chave: "rsvp", rotulo: "Confirmação de presença" },
+  /* Duas linhas na mesma chave — ver a nota em `lib/site/vitrine.ts`. O
+     recado sai de dentro da confirmação, então existe onde ela existe; o
+     que muda entre os pacotes é o destino, e quem marca isso é a linha do
+     mural. */
+  { chave: "rsvp", rotulo: "Recado para os noivos" },
   { chave: "gifts", rotulo: "Lista de presentes por Pix" },
   { chave: "guestbook", rotulo: "Mural de recados" },
   { chave: "album", rotulo: "Álbum depois da festa" },
@@ -109,7 +114,7 @@ function CartaoDePacote({ tier }: { tier: PackageTier }) {
           const tem = tierAllowsSection(tier, chave);
           return (
             <li
-              key={chave}
+              key={rotulo}
               /* O ausente era `--c-ink-2` a 60%: sobre o branco dá `#9c9fa3`,
                  2,65:1 — o Lighthouse reprovou (UX-028). A tinta secundária
                  cheia é 6,4:1 e mantém a hierarquia: incluído em tinta

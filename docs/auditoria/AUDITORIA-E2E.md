@@ -1119,3 +1119,45 @@ alternativos do RSVP ("Não posso", confirmação parcial, editar a resposta). E
   conferido em produção**: nenhum site do pacote Site do Casamento existe no banco hoje —
   os 18 sites são todos Para Sempre. Ele está coberto por três testes contra o banco.
 - **Status:** Em correção — feature `005-ux-o-que-faltava` (T047)
+
+### UX-038 — Modelo, cores e tipografia eram três telas e nenhuma prévia de verdade
+
+- **Severidade:** 🟠 Alta — é onde o casal decide a cara do produto
+- **Onde:** questionário, etapas 7, 8 e 9
+- **O que acontecia:** as três perguntavam a mesma coisa — com que cara o site fica —
+  e o casal decidia cada uma sem ver o resultado da anterior. A prévia da etapa do
+  modelo era `/pacotes/estilos/<id>`, uma página de vitrine escrita à mão, com hex e
+  fontes fixos: ela **nunca reagiu** à cor nem à tipografia escolhidas, e mostrava um
+  casal fictício logo depois de o casal ter digitado o próprio nome.
+- **Pedido do dono (15/09/2026):** "quero que os passos 7, 8 e 9 se transformem em 1 só
+  pq eles tratam da mesma coisa; quero que quando eu edite cada coisa mude no preview
+  do site".
+- **Correção:** uma etapa só ("A cara do site de vocês"), com modelo, cores e
+  tipografia à esquerda e o site à direita, renderizado pelo **motor de verdade**
+  (`SiteRenderer`, o mesmo de `/s/<slug>`) na rota nova `/previa-do-estilo`, com o
+  conteúdo que o casal acabou de digitar.
+  - **Cor e fonte não recarregam o quadro.** Elas são variáveis CSS do outro lado e
+    viajam por `postMessage` (`TemaAoVivo`), então a mudança é instantânea; recarregar
+    a cada pixel arrastado daria piscada branca e rolagem de volta ao topo. Modelo e
+    conteúdo recarregam, porque mudam o HTML das seções.
+  - **A lista de fontes passou a depender do modelo.** Defeito antigo que a prévia ao
+    vivo tornaria visível: `clampThemeFonts` sempre derrubou, em silêncio, a fonte que
+    o molde não desenha — escolher Amatic SC no Clássico nunca teve efeito. Agora a
+    tela mostra só as que o molde tem (`lib/fonts/porMolde.ts`, com teste que a mantém
+    igual ao registry), e trocar de modelo limpa uma escolha que o novo não desenha.
+  - **Só as seções que dependem do que foi digitado** entram na prévia (capa, contagem,
+    história, o dia, confirmação, rodapé). Galeria, presentes, mural e álbum saem do
+    banco de um site que ainda não existe; o `siteId` da prévia é o UUID zero, para que
+    nenhuma consulta alcance dado de outro casal.
+- **O questionário foi de 11 para 9 etapas.**
+- **Status:** Em correção — feature `005-ux-o-que-faltava` (T048)
+
+### UX-039 — A vitrine não contava que o Site do Casamento recebe recado
+
+- **Severidade:** 🟢 Baixa — o pacote entregava mais do que a página prometia
+- **Onde:** `/pacotes` e a tabela da home
+- **Correção:** linha "Recado para os noivos" ancorada na chave `rsvp` — existe onde a
+  confirmação de presença existe, e nunca pode ser prometida sem ela. A linha "Mural de
+  recados" continua só no Para Sempre, e é ela que marca a diferença de destino: uma
+  tabela de ✓ e ✕ não comporta "✓, mas diferente"; duas linhas comportam.
+- **Status:** Em correção — feature `005-ux-o-que-faltava` (T049)

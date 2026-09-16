@@ -63,6 +63,12 @@ export default function SiteRenderer({
 
   return (
     <div
+      /* A prévia do questionário troca `--ink`, `--paper`, `--accent` e
+         `--font-display` AQUI, sem recarregar — ver `TemaAoVivo`. É este nó
+         que carrega o tema no `style` inline, então é nele que a troca tem de
+         acontecer; escrever em `:root` perderia para o inline. No site
+         publicado o atributo não faz nada. */
+      data-tema-raiz
       className={`${themeFontClassNames(theme, template.fonts)} min-h-screen w-full flex justify-center`}
       style={{ ...themeToCssVars(theme), background: "var(--outer)" }}
     >

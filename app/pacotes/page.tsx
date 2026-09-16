@@ -203,7 +203,7 @@ function CartaoDePacote({
         {LINHAS_DA_VITRINE.map(({ chave, rotulo }) => {
           const inclui = tierAllowsSection(pacote.tier as PackageTier, chave);
           return (
-            <li key={chave} className="flex items-start gap-2.5">
+            <li key={rotulo} className="flex items-start gap-2.5">
               <span
                 aria-hidden="true"
                 className={inclui ? "text-(--c-ok)" : "text-(--c-ink-3)"}

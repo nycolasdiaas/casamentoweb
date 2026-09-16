@@ -1,5 +1,3 @@
-import { FONT_STYLES } from "@/lib/customization";
-
 /**
  * AS ETAPAS DO QUESTIONÁRIO, COMO DADO.
  *
@@ -12,7 +10,7 @@ import { FONT_STYLES } from "@/lib/customization";
  *
  * ── O que dá para fazer só mexendo aqui ─────────────────────────────────────
  *
- * - Trocar a ordem: mova o item na lista. O contador ("passo 3 de 7") e a
+ * - Trocar a ordem: mova o item na lista. O contador ("passo 3 de 9") e a
  *   animação de avançar/voltar acompanham sozinhos.
  * - Mudar título ou subtítulo: edite a string.
  * - Tirar uma etapa: apague o item. O que ela preenchia continua indo para a
@@ -44,9 +42,7 @@ export type EtapaId =
   | "festa"
   | "traje"
   | "historia"
-  | "modelo"
-  | "cores"
-  | "fonte"
+  | "visual"
   | "observacoes"
   | "revisao";
 
@@ -104,22 +100,23 @@ export const ETAPAS: Etapa[] = [
     subtitulo:
       "Como se conheceram, o pedido, o que quiserem contar. Pode ser curtinho — e pode ficar para depois.",
   },
+  /* MODELO, CORES E TIPOGRAFIA eram três etapas (7, 8 e 9), e viraram uma.
+
+     Eram três perguntas sobre a mesma coisa — a aparência —, e o casal só via
+     o resultado de cada uma na etapa seguinte, ou nem isso: a prévia do modelo
+     era uma maquete de vitrine, que não reagia nem à cor nem à fonte
+     escolhida. Decidir três vezes no escuro e conferir no fim é o oposto de
+     escolher.
+
+     Agora as três decisões ficam lado a lado com o site de verdade
+     renderizando ao lado, e cada mexida aparece na hora. Pedido do dono em
+     15/09/2026: "quero que os passos 7, 8 e 9 se transformem em 1 só, e que
+     quando eu edite cada coisa mude no preview do site". */
   {
-    id: "modelo",
-    titulo: "Por onde vocês querem começar?",
+    id: "visual",
+    titulo: "A cara do site de vocês",
     subtitulo:
-      "Escolher um modelo já preenche as cores dele na próxima tela — e vocês trocam o que quiserem.",
-  },
-  {
-    id: "cores",
-    titulo: "As cores de vocês",
-    subtitulo:
-      "Três decisões: a tinta do texto, o acento dos detalhes e o papel de fundo.",
-  },
-  {
-    id: "fonte",
-    titulo: "A tipografia",
-    subtitulo: `${FONT_STYLES.length} opções. Escolham a que soa como vocês — ou pulem, e a gente sugere.`,
+      "Comecem por um modelo e mexam no que quiserem — o que vocês escolherem aparece na hora aqui do lado.",
   },
   {
     id: "observacoes",

@@ -82,6 +82,18 @@ export function tierIncludes(tier: PackageTier, feature: PackageTier): boolean {
   return TIER_ORDER.indexOf(tier) >= TIER_ORDER.indexOf(feature);
 }
 
+/**
+ * Isto que veio de fora é um pacote de verdade?
+ *
+ * Existe para quem recebe texto cru — parâmetro de URL, campo de formulário —
+ * e precisa decidir sem chutar. Um `as PackageTier` no lugar disto entrega um
+ * tier inventado a `sectionsForTier`, que responde `undefined` e derruba a
+ * renderização por baixo.
+ */
+export function isPackageTier(valor: string): valor is PackageTier {
+  return (TIER_ORDER as string[]).includes(valor);
+}
+
 // Casal fictício usado nas telas de exemplo.
 export const DEMO_COUPLE = {
   names: "Ana & Pedro",

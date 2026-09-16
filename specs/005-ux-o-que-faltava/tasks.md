@@ -117,3 +117,9 @@ Portões: lint limpo, `tsc --noEmit` limpo, `next build` passando, `npm run test
   `/s/<slug>`, botão principal nos seis moldes (com "Não recebi meu link" como saída
   secundária), passo do presente só no Para Sempre, aba Recados liberada no Site do
   Casamento sem botão de esconder, e testes dos dois destinos. — `[UX-037]`
+- [x] **T048** Questionário: etapas 7, 8 e 9 viram `visual`; rota `/previa-do-estilo`
+  com o `SiteRenderer` de verdade e o conteúdo do casal; `TemaAoVivo` troca cor e fonte
+  por `postMessage` sem recarregar; lista de fontes filtrada pelo molde
+  (`lib/fonts/porMolde.ts` + teste contra o registry); testes da etapa nova. — `[UX-038]`
+- [x] **T049** Vitrine: linha "Recado para os noivos" na chave `rsvp`, rótulo como
+  `key` do React, e teste da escada dos pacotes atualizado. — `[UX-039]`
