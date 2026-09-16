@@ -85,14 +85,24 @@ export default function EscolhaDoVisual({
   }, [modelo]);
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,25rem)_minmax(0,1fr)] lg:items-start lg:gap-10">
+    /* `minmax(0,1fr)` TAMBÉM na coluna única do celular.
+
+       Com `grid` sem `grid-cols`, a coluna implícita é `auto` — ela cresce até
+       caber o filho mais largo. O quadro da prévia é um iframe de 1280px de
+       LAYOUT, encolhido só visualmente por `transform: scale()`, e transform
+       não muda layout: a coluna virava 1280, o palco media 1300, a escala
+       fechava em 1 e a prévia saía pela direita da tela do celular.
+
+       O `minmax(0,...)` quebra esse laço — a coluna pode ser menor que o
+       conteúdo, o palco mede a largura real e a escala encolhe o quadro. */
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,25rem)_minmax(0,1fr)] lg:items-start lg:gap-10">
       {/* A PRÉVIA vem primeiro no celular e à direita no computador.
 
           No celular ela precisa estar ACIMA dos controles: quem mexe numa cor
           com o quadro embaixo da dobra muda a cor e não vê nada acontecer — o
           contrário do que esta tela existe para fazer. Grudada no topo, ela
           acompanha a rolagem pelos três blocos. */}
-      <div className="order-1 lg:order-2 lg:sticky lg:top-6">
+      <div className="order-1 min-w-0 lg:order-2 lg:sticky lg:top-6">
         <div className="sticky top-2 z-10 bg-(--c-base) pb-2 lg:static lg:bg-transparent lg:pb-0">
           <PreviaDoVisual
             modelo={modelo}
@@ -106,7 +116,7 @@ export default function EscolhaDoVisual({
         </div>
       </div>
 
-      <div className="order-2 flex flex-col gap-10 lg:order-1">
+      <div className="order-2 min-w-0 flex flex-col gap-10 lg:order-1">
         {/* 1 · MODELO */}
         <section className="flex flex-col gap-3.5">
           <Titulo numero="1" texto="O modelo" />
