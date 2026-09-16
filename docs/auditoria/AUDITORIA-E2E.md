@@ -1051,3 +1051,34 @@ alternativos do RSVP ("Não posso", confirmação parcial, editar a resposta). E
   dentro das prévias passa a voltar para os seis cartões da home.
 - **Status:** Em correção — feature `005-ux-o-que-faltava` (T042)
 
+### UX-034 — O botão do convite levava ao site, não a quem confirma
+
+- **Severidade:** 🟠 Alta — o convite é o que chega no WhatsApp
+- **Onde:** convite criado pelo casal (`/c/<slug>`), botão "Confirmar presença"
+- **O que acontecia:** o botão levava a `/s/<slug>#confirmacao`, a seção do site que diz
+  "cada família recebeu um link pessoal, procure a mensagem" — inútil para quem acabou de
+  não achar a mensagem. Relatado pelo dono em 15/09/2026.
+- **Correção:** o destino `rsvp` do convite passa a resolver para `/s/<slug>/meu-convite`,
+  a tela onde a pessoa escreve o nome e recebe o link da família. Como o convite guarda a
+  intenção e não o endereço, os convites já criados se corrigem sozinhos.
+- **Status:** Em correção — feature `005-ux-o-que-faltava` (T044)
+
+### UX-035 — Não dava para perceber que a foto do site abre ampliada
+
+- **Severidade:** 🟢 Baixa
+- **Onde:** qualquer foto do site do casal
+- **O que acontecia:** o sinal existia (cursor de lupa, zoom de 3% e um selo pequeno), mas
+  passava despercebido — o dono não notou que dava para clicar.
+- **Correção:** zoom de 5%, um véu na cor da tinta do tema e o selo com a palavra
+  "Ampliar". Três sinais juntos, só no ponteiro: em tela de toque o gesto já é o toque.
+- **Status:** Em correção — feature `005-ux-o-que-faltava` (T045)
+
+### UX-036 — Salvar a edição da família não confirmava nada
+
+- **Severidade:** 🟡 Média — defeito meu, visto no teste da UX-030
+- **Onde:** `/conta/pedidos/<id>/convidados`, botão Editar
+- **O que acontecia:** depois de salvar, o formulário continuava aberto e mudo. A linha
+  atualizava atrás, mas quem salvou não tinha como saber.
+- **Correção:** ao salvar, o formulário fecha e a linha mostra "Família atualizada ✓".
+- **Status:** Em correção — feature `005-ux-o-que-faltava` (T046)
+

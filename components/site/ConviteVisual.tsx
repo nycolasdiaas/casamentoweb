@@ -1,6 +1,6 @@
 import { CONVITE_ALTURA, CONVITE_LARGURA, type InviteDoc } from "@/lib/site/inviteDoc";
 import BlocoVisual, { estiloDoBloco } from "@/components/account/convite/BlocoVisual";
-import { linkDaSecao } from "@/lib/site/ancoras";
+import { linkDoBotaoDoConvite } from "@/lib/site/ancoras";
 
 /**
  * O convite publicado, para o convidado.
@@ -49,7 +49,7 @@ export default function ConviteVisual({
             slug && baseUrl
               ? b.destino === "site"
                 ? `${baseUrl.replace(/\/+$/, "")}/s/${slug}`
-                : linkDaSecao(baseUrl, slug, b.destino)
+                : linkDoBotaoDoConvite(baseUrl, slug, b.destino)
               : null;
 
           return href ? (

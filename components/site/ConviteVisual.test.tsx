@@ -102,12 +102,16 @@ describe("SC-004: no `/c/<slug>`, o botão é um `<a>` de verdade", () => {
       .container;
   };
 
-  it("o href termina na âncora da confirmação", () => {
+  it("o botão de confirmar leva a quem digita o nome, não à seção do site", () => {
+    /* O convite chega pelo WhatsApp para gente que NÃO tem o link da própria
+       família. `#confirmacao` deixava essa pessoa exatamente onde ela não pode
+       agir: a seção diz "procure a mensagem que enviamos", que é o que ela
+       acabou de não achar (relatado pelo dono em 15/09/2026). */
     const c = montar(semear(true), "ana-e-pedro", "https://enlace.test");
     const a = c.querySelector("a")!;
     expect(a.tagName).toBe("A");
     expect(a.getAttribute("href")).toBe(
-      "https://enlace.test/s/ana-e-pedro#confirmacao"
+      "https://enlace.test/s/ana-e-pedro/meu-convite"
     );
     expect(a.textContent).toContain("Confirmar presença");
   });
@@ -129,8 +133,8 @@ describe("SC-004: no `/c/<slug>`, o botão é um `<a>` de verdade", () => {
     const a1 = montar(doc, "ana-e-pedro", "https://enlace.test").querySelector("a")!;
     const a2 = montar(doc, "outro-slug", "https://enlace.test").querySelector("a")!;
 
-    expect(a1.getAttribute("href")).toContain("/s/ana-e-pedro#confirmacao");
-    expect(a2.getAttribute("href")).toContain("/s/outro-slug#confirmacao");
+    expect(a1.getAttribute("href")).toContain("/s/ana-e-pedro/meu-convite");
+    expect(a2.getAttribute("href")).toContain("/s/outro-slug/meu-convite");
     expect(JSON.stringify(doc)).toBe(antes);
   });
 

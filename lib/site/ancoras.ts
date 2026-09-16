@@ -52,6 +52,32 @@ export const LINKS_DO_CONVITE = [
   { chave: "story", rotulo: "Nossa história" },
 ] as const;
 
+/**
+ * Endereço do BOTÃO do convite.
+ *
+ * Quase todo destino é uma seção do site (`#presentes`, `#fotos`). A
+ * confirmação é a exceção, e por um motivo de produto: o convite chega pelo
+ * WhatsApp para gente que não tem o link da própria família. Mandar essa
+ * pessoa para `/s/<slug>#confirmacao` a deixa exatamente onde ela não pode
+ * agir — a seção diz "procure a mensagem que enviamos", que é o que ela
+ * acabou de não achar (relatado pelo dono em 15/09/2026).
+ *
+ * `/s/<slug>/meu-convite` pergunta o nome e devolve o link da família. É um
+ * toque a mais para quem já tem o link, e a única saída para quem não tem.
+ *
+ * O convite guarda a INTENÇÃO ("leva à confirmação"), não o endereço — então
+ * os convites já criados passam a levar ao lugar certo sem ninguém reeditar.
+ */
+export function linkDoBotaoDoConvite(
+  baseUrl: string,
+  slug: string,
+  destino: string
+): string {
+  const base = baseUrl.replace(/\/+$/, "");
+  if (destino === "rsvp") return `${base}/s/${slug}/meu-convite`;
+  return linkDaSecao(baseUrl, slug, destino);
+}
+
 /** Endereço absoluto de uma seção, para o convite. */
 export function linkDaSecao(
   baseUrl: string,

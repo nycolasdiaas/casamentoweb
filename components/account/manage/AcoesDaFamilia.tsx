@@ -48,6 +48,14 @@ export default function AcoesDaFamilia({
   confirmados: number | null;
 }) {
   const [modo, setModo] = useState<"fechado" | "editar" | "remover">("fechado");
+  /* Qual resposta do servidor o casal JÁ VIU quando abriu o formulário.
+
+     Sem isto, salvar deixava o formulário aberto do mesmo jeito e sem dizer
+     nada: a linha atualizava atrás, e quem salvou ficava olhando os campos
+     sem saber se foi. É o mesmo silêncio da UX-024, em miniatura. Guardar o
+     estado visto (em vez de um booleano) é o que permite reabrir o formulário
+     depois sem a confirmação velha reaparecer. */
+  const [jaVisto, setJaVisto] = useState<unknown>(undefined);
   const [edicao, editar, editando] = useActionState(
     editarFamiliaAction,
     undefined
@@ -63,23 +71,40 @@ export default function AcoesDaFamilia({
 
   const total = pessoas.length + novas;
 
-  if (modo === "fechado") {
+  const salvouAgora =
+    edicao && "saved" in edicao && edicao !== jaVisto ? edicao.message : null;
+
+  if (modo === "fechado" || salvouAgora) {
     return (
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => setModo("editar")}
-          className="text-[12.5px] text-(--c-ink-2) underline underline-offset-4 hover:text-(--c-ink)"
-        >
-          Editar
-        </button>
-        <button
-          type="button"
-          onClick={() => setModo("remover")}
-          className="text-[12.5px] text-(--c-ink-2) underline underline-offset-4 hover:text-(--c-danger)"
-        >
-          Remover
-        </button>
+      <div className="flex flex-col items-start gap-1.5">
+        {salvouAgora && (
+          <p role="status" className="text-[12.5px] text-(--c-ink-2)">
+            {salvouAgora}
+          </p>
+        )}
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              // O que já foi visto fica para trás: o formulário reabre limpo.
+              setJaVisto(edicao);
+              setModo("editar");
+            }}
+            className="text-[12.5px] text-(--c-ink-2) underline underline-offset-4 hover:text-(--c-ink)"
+          >
+            Editar
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setJaVisto(edicao);
+              setModo("remover");
+            }}
+            className="text-[12.5px] text-(--c-ink-2) underline underline-offset-4 hover:text-(--c-danger)"
+          >
+            Remover
+          </button>
+        </div>
       </div>
     );
   }

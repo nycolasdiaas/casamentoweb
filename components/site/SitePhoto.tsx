@@ -71,25 +71,38 @@ export default function SitePhoto({
         // a capa do Editorial sangra metade de 1920 e a foto chegaria com
         // 1120 de origem para preencher 960 de moldura em tela retina.
         sizes="(max-width: 1024px) 100vw, 1920px"
-        className="object-cover transition-transform duration-500 ease-out group-hover/foto:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover/foto:scale-100"
+        className="object-cover transition-transform duration-500 ease-out group-hover/foto:scale-[1.05] motion-reduce:transition-none motion-reduce:group-hover/foto:scale-100"
         {...(photo.blurDataUrl
           ? { placeholder: "blur" as const, blurDataURL: photo.blurDataUrl }
           : {})}
         {...(priority ? { priority: true } : { loading: "lazy" as const })}
       />
 
-      {/* Só no ponteiro. Em tela de toque não existe "passar o mouse": o selo
+      {/* Só no ponteiro. Em tela de toque não existe "passar o mouse": o véu
           ficaria ou sempre visível, sujando a foto, ou nunca — e no celular a
-          foto ampliada é o próprio toque, que já é o gesto esperado. */}
+          foto ampliada é o próprio toque, que já é o gesto esperado.
+
+          O sinal era discreto demais: zoom de 3% e um selo pequeno passavam
+          despercebidos, e o dono relatou não perceber que dava para clicar
+          (15/09/2026). Agora o zoom é de 5%, entra um véu na cor da tinta do
+          tema, e o selo cresce e ganha a palavra — três sinais que aparecem
+          juntos, em vez de um que ninguém nota. O véu usa `--ink` do casal:
+          um preto fixo estouraria sobre o Film e sumiria sobre o Editorial. */}
       <span
         aria-hidden
-        className="pointer-events-none absolute bottom-3 right-3 hidden size-9 translate-y-1 items-center justify-center rounded-full opacity-0 transition-all duration-300 group-hover/foto:translate-y-0 group-hover/foto:opacity-100 [@media(hover:hover)]:flex"
+        className="pointer-events-none absolute inset-0 hidden opacity-0 transition-opacity duration-300 group-hover/foto:opacity-100 [@media(hover:hover)]:block"
+        style={{ background: "color-mix(in srgb, var(--ink) 18%, transparent)" }}
+      />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute bottom-3 right-3 hidden translate-y-1 items-center gap-1.5 rounded-full px-3 py-2 text-[11px] font-medium tracking-wide uppercase opacity-0 transition-all duration-300 group-hover/foto:translate-y-0 group-hover/foto:opacity-100 [@media(hover:hover)]:flex"
         style={{
-          background: "color-mix(in srgb, var(--paper) 88%, transparent)",
+          background: "color-mix(in srgb, var(--paper) 92%, transparent)",
           color: "var(--ink)",
         }}
       >
         <Icone nome="aproximar" tamanho={16} />
+        Ampliar
       </span>
     </div>
   );

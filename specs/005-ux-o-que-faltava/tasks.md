@@ -108,4 +108,8 @@ Portões: lint limpo, `tsc --noEmit` limpo, `next build` passando, `npm run test
 - [x] **T042** Vitrine: tela de comparação removida, rodapé limpo, volta da prévia para
   `/#estilos`, testes da galeria reescritos com o que continua existindo. — `[UX-033]`
 - [ ] **T043** Portões e verificação no site no ar de tudo desta rodada. — `[UX-029..033]`
+- [x] **T044** `linkDoBotaoDoConvite`: o destino `rsvp` do convite leva a `/meu-convite`;
+  testes do convite atualizados. — `[UX-034]`
+- [x] **T045** `SitePhoto`: véu, zoom de 5% e selo "Ampliar" no hover. — `[UX-035]`
+- [x] **T046** `AcoesDaFamilia`: salvar fecha o formulário e confirma na linha. — `[UX-036]`
 
