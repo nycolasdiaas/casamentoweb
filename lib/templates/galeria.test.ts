@@ -1,11 +1,19 @@
 /**
- * A galeria de estilos — spec `site-publico/005`.
+ * Os seis estilos — spec `site-publico/005`, sem a galeria.
  *
  * O que estes testes guardam é a regra de §4.4.1 aplicada à vitrine: a cor e a
  * fonte de cada cartão saem do `defaultTheme` do molde, nunca de uma cópia
  * guardada ao lado. Uma cópia é uma segunda verdade — e a segunda verdade é
  * sempre a que fica velha, mostrando ao casal um estilo que o site não entrega
  * mais.
+ *
+ * ── O que saiu daqui, e por quê ────────────────────────────────────────────
+ *
+ * A tela de comparação (`/pacotes/estilos`) foi removida a pedido do dono em
+ * 15/09/2026. Com ela foram os critérios que só existiam para aquela página
+ * (SC-005, SC-007, SC-008, SC-009, SC-012) e o SC-010, que exigia a porta da
+ * home para ela. As PRÉVIAS de cada estilo (`/pacotes/estilos/<id>`) ficam:
+ * são elas que a home, os pacotes e o questionário abrem.
  */
 
 import { describe, it, expect } from "vitest";
@@ -15,23 +23,16 @@ import { TEMPLATE_STYLES } from "@/lib/templates";
 import { getTemplate } from "@/lib/templates/registry";
 import { FONT_STYLES } from "@/lib/customization";
 
-const GALERIA = readFileSync(
-  resolve(process.cwd(), "app/pacotes/estilos/page.tsx"),
-  "utf-8"
-);
 const HOME = readFileSync(resolve(process.cwd(), "app/page.tsx"), "utf-8");
 const CHROME = readFileSync(
   resolve(process.cwd(), "components/templates/TemplateChrome.tsx"),
   "utf-8"
 );
 
-/* Sem comentário. Dois critérios desta spec proíbem um texto que os próprios
-   arquivos CITAM para explicar por que não o usam: a galeria comenta que não
-   diz "Usar este estilo", e o `TemplateChrome` conta que o link "← Pacotes"
-   mentia sobre o destino. `grep` não distingue a citação do uso. */
+/* Sem comentário: o `TemplateChrome` CITA o rótulo antigo para explicar por
+   que não o usa, e `grep` não distingue a citação do uso. */
 const semComentario = (t: string) =>
   t.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
-const GALERIA_CODIGO = semComentario(GALERIA);
 const CHROME_CODIGO = semComentario(CHROME);
 
 describe("os seis estilos", () => {
@@ -64,12 +65,6 @@ describe("os seis estilos", () => {
       expect(carater.endsWith("."), name).toBe(false);
     }
   });
-
-  it("SC-005: só o Editorial é a casa", () => {
-    const aCasa = TEMPLATE_STYLES.filter((e) => e.id === "editorial");
-    expect(aCasa).toHaveLength(1);
-    expect(GALERIA.split('estilo.id === "editorial"').length - 1).toBe(1);
-  });
 });
 
 describe("SC-004 e SC-006: cor e fonte saem do molde, não de cópia", () => {
@@ -79,17 +74,6 @@ describe("SC-004 e SC-006: cor e fonte saem do molde, não de cópia", () => {
       expect(molde, id).not.toBeNull();
       expect(molde!.defaultTheme.palette.paper, id).toMatch(/^#[0-9a-f]{6}$/i);
     }
-  });
-
-  it("a galeria lê `defaultTheme` e não escreve hex nenhum", () => {
-    expect(GALERIA).toContain("getTemplate(estilo.id)");
-    expect(GALERIA).toContain("themeToCssVars");
-    // Nenhuma cor literal: trocar o preset do Toscana muda o cartão sozinho.
-    const codigo = GALERIA.replace(/\/\*[\s\S]*?\*\//g, "").replace(
-      /^\s*\/\/.*$/gm,
-      ""
-    );
-    expect(codigo).not.toMatch(/#[0-9a-fA-F]{6}\b/);
   });
 
   it("SC-006: as três linhas do painel existem para todo estilo", () => {
@@ -108,10 +92,10 @@ describe("SC-004 e SC-006: cor e fonte saem do molde, não de cópia", () => {
     }
   });
 
-  it("o Film do painel: fonte de títulos e paleta do preset dele", () => {
+  it("o Film: fonte de títulos e paleta do preset dele", () => {
     const tema = getTemplate("film")!.defaultTheme;
-    // Prata nos títulos e Great Vibes na caligráfica: o painel mostra a de
-    // TÍTULOS, que é a que desenha os nomes do casal.
+    // Prata nos títulos e Great Vibes na caligráfica: o que desenha os nomes
+    // do casal é a de TÍTULOS.
     expect(FONT_STYLES.find((f) => f.id === tema.fonts.display)?.name).toBe(
       "Prata"
     );
@@ -126,48 +110,21 @@ describe("SC-004 e SC-006: cor e fonte saem do molde, não de cópia", () => {
   });
 });
 
-describe("as ligações da galeria", () => {
-  it("SC-008: o botão do painel leva à prévia e diz o que faz", () => {
-    expect(GALERIA).toContain("href={`/pacotes/estilos/${estilo.id}`}");
-    expect(GALERIA).toContain("Ver este estilo");
-    // "Usar este estilo" (o artboard) prometeria escolher, e a escolha só
-    // acontece dentro do questionário.
-    expect(GALERIA_CODIGO).not.toContain("Usar este estilo");
+describe("as ligações dos estilos", () => {
+  it("a home abre a prévia de cada estilo", () => {
+    expect(HOME).toContain("/pacotes/estilos/${style.id}");
   });
 
-  it("SC-011: o caminho de volta da prévia é a galeria, não a home", () => {
-    /* O rótulo perdeu a seta tipográfica para o `<Icone nome="setaEsquerda">`,
-       mas o que este critério trava não é o desenho da seta: é o DESTINO. O
-       caminho de volta de uma prévia é a galeria, nunca a home. */
+  it("SC-011: o caminho de volta da prévia é onde se escolhe o estilo", () => {
+    /* O que este critério trava não é o desenho da seta: é o DESTINO. Com a
+       galeria removida, o lugar onde se escolhe qual prévia abrir são os seis
+       cartões da home. */
     expect(CHROME).toContain("Estilos");
     expect(CHROME).toContain('nome="setaEsquerda"');
-    expect(CHROME).toContain('href="/pacotes/estilos"');
-    /* O rótulo antigo continua proibido pelo literal exato: ele levava para a
-       home, e é essa volta errada que o critério existe para impedir. Buscar
-       só "Pacotes" daria falso positivo — a barra tem um seletor de pacote. */
+    expect(CHROME).toContain('href="/#estilos"');
+    /* O rótulo antigo continua proibido pelo literal exato: ele levava para o
+       topo da landing, e é essa volta errada que o critério existe para
+       impedir. */
     expect(CHROME_CODIGO).not.toContain("← Pacotes");
-  });
-
-  it("SC-010: a home tem porta para a galeria", () => {
-    expect(HOME).toContain('href="/pacotes/estilos"');
-  });
-
-  it("SC-007: valor fora da lista cai no padrão em vez de quebrar", () => {
-    expect(GALERIA).toContain('TEMPLATE_STYLES.find((e) => e.id === "editorial")!');
-    expect(GALERIA).not.toContain("notFound(");
-  });
-
-  it("SC-012: server component — a seleção viaja pela URL, não por estado", () => {
-    expect(GALERIA_CODIGO).not.toContain("use client");
-    expect(GALERIA).not.toContain("useState");
-    expect(GALERIA).toContain("searchParams");
-  });
-
-  it("SC-009: o painel vem depois da grade e some no celular", () => {
-    expect(GALERIA.indexOf("data-grade-estilos")).toBeLessThan(
-      GALERIA.indexOf("PainelDeDetalhe busca=")
-    );
-    expect(GALERIA).toContain("data-painel-estilo");
-    expect(GALERIA).toContain("hidden");
   });
 });

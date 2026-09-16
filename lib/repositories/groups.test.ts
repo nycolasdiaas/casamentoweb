@@ -7,6 +7,9 @@ import {
   getGroupBySlug,
   listGroupsWithGuests,
   deleteGroup,
+  removerFamiliaDaLista,
+  atualizarFamilia,
+  getRsvpViewBySlug,
 } from "./groups";
 
 let siteId: string;
@@ -131,5 +134,78 @@ describe("deleteGroup", () => {
     // Continua lá: o escopo protegeu o dado do outro casal.
     const found = await getGroupBySlug(alheio.slug);
     expect(found).not.toBeNull();
+  });
+});
+
+describe("removerFamiliaDaLista", () => {
+  it("some da lista do casal, mas o link do convidado continua respondendo", async () => {
+    const grupo = await createGroup({
+      siteId,
+      label: "Família Teste",
+      guestNames: ["Ana"],
+    });
+
+    const removida = await removerFamiliaDaLista(siteId, grupo.id);
+    expect(removida?.slug).toBe(grupo.slug);
+
+    expect(await listGroupsWithGuests(siteId)).toHaveLength(0);
+
+    /* O 404 seria a plataforma dizendo que o convite nunca existiu para quem
+       tem o link no WhatsApp. A view continua achando, com a marca da saída —
+       é ela que a tela usa para avisar. */
+    const view = await getRsvpViewBySlug(grupo.slug);
+    expect(view).not.toBeNull();
+    expect(view!.removedAt).toBeInstanceOf(Date);
+  });
+
+  it("devolve null quando a família já tinha saído", async () => {
+    const grupo = await createGroup({ siteId, guestNames: ["Ana"] });
+    await removerFamiliaDaLista(siteId, grupo.id);
+
+    expect(await removerFamiliaDaLista(siteId, grupo.id)).toBeNull();
+  });
+});
+
+describe("atualizarFamilia", () => {
+  it("renomeia pela linha existente e preserva a resposta individual", async () => {
+    const grupo = await createGroup({ siteId, guestNames: ["Ana", "Bruno"] });
+    const [ana] = grupo.guests;
+
+    const depois = await atualizarFamilia({
+      siteId,
+      groupId: grupo.id,
+      label: "Família Nova",
+      seats: 2,
+      pessoas: [
+        { id: ana.id, nome: "Ana Maria" },
+        { nome: "Carla" },
+      ],
+    });
+
+    expect(depois!.slug).toBe(grupo.slug);
+    expect(depois!.guests.map((g) => g.name)).toEqual(["Ana Maria", "Carla"]);
+    // Mesma linha: id preservado é o que preserva `rsvp_status`.
+    expect(depois!.guests[0].id).toBe(ana.id);
+  });
+
+  it("não atualiza família de outro casamento", async () => {
+    const outroSite = await createTestSite();
+    const alheio = await createGroup({
+      siteId: outroSite.id,
+      label: "Alheia",
+      guestNames: ["Não é seu"],
+    });
+
+    const r = await atualizarFamilia({
+      siteId,
+      groupId: alheio.id,
+      label: "Invadida",
+      seats: 1,
+      pessoas: [],
+    });
+
+    expect(r).toBeNull();
+    const intacta = await getGroupBySlug(alheio.slug);
+    expect(intacta!.label).toBe("Alheia");
   });
 });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { mascaraDeWhatsapp } from "@/lib/telefone";
 import { startPaymentAction } from "@/app/actions/payment-actions";
 import { Botao, Campo, Icone } from "@/components/ui/prensa";
 
@@ -31,9 +32,12 @@ import { Botao, Campo, Icone } from "@/components/ui/prensa";
 export default function PaymentButton({
   orderId,
   amountLabel,
+  whatsappDaConta,
 }: {
   orderId: string;
   amountLabel: string;
+  /** O número que já está na conta do casal, para ele só conferir. */
+  whatsappDaConta?: string | null;
 }) {
   const [state, action, pending] = useActionState(startPaymentAction, undefined);
 
@@ -50,6 +54,29 @@ export default function PaymentButton({
         placeholder="000.000.000-00"
         ajuda="O Pix exige o CPF do pagador. A gente não guarda esse número."
         erro={state?.error}
+      />
+
+      {/* O WhatsApp é exigido pelo provedor do Pix, e o cadastro o trata como
+          opcional — quem pulou lá travava aqui, sem saber por quê. Vem
+          preenchido quando a conta tem, então na maioria das vezes é só
+          conferir. */}
+      <Campo
+        rotulo="WhatsApp de contato"
+        name="payerWhatsapp"
+        type="tel"
+        inputMode="tel"
+        autoComplete="tel"
+        required
+        defaultValue={whatsappDaConta ?? ""}
+        maxLength={20}
+        placeholder="(11) 98888-7777"
+        ajuda="O Pix pede um telefone do pagador. É por ele que a gente avisa se algo travar."
+        onInput={(e) => {
+          const campo = e.currentTarget;
+          const fim = campo.selectionStart === campo.value.length;
+          campo.value = mascaraDeWhatsapp(campo.value);
+          if (fim) campo.setSelectionRange(campo.value.length, campo.value.length);
+        }}
       />
 
       <Botao type="submit" tamanho="g" carregando={pending} larguraCheia>

@@ -21,7 +21,13 @@ import crypto from "node:crypto";
 import { db } from "@/lib/db/client";
 import { groups, guests, sites, users } from "@/lib/db/schema";
 import { listGroupsWithGuests } from "@/lib/repositories/groups";
-import { criarFamiliaAction } from "./site-actions";
+import { eq } from "drizzle-orm";
+import { listGroupsWithGuests as listar } from "@/lib/repositories/groups";
+import {
+  criarFamiliaAction,
+  apagarFamiliaAction,
+  editarFamiliaAction,
+} from "./site-actions";
 
 let siteId: string;
 let userId: string;
@@ -180,5 +186,198 @@ describe("criarFamiliaAction", () => {
 
     expect(r).toMatchObject({ error: expect.any(String) });
     expect(await listGroupsWithGuests(siteId)).toHaveLength(0);
+  });
+});
+
+/** Cadastra uma família e devolve a linha, para os testes de edição/remoção. */
+async function familiaCadastrada(nomes: string[] = ["Dona Cecília"]) {
+  await criarFamiliaAction(
+    undefined,
+    formulario({ siteId, label: "Família Nogueira", nome: nomes, lugares: "3" })
+  );
+  const [grupo] = await listar(siteId);
+  return grupo;
+}
+
+describe("apagarFamiliaAction", () => {
+  it("tira a família da lista SEM apagar a resposta do convidado", async () => {
+    const grupo = await familiaCadastrada();
+    // A família respondeu antes de o casal remover.
+    await db
+      .update(groups)
+      .set({ seatsConfirmed: 2, attendingNames: "Cecília e Antônio" })
+      .where(eq(groups.id, grupo.id));
+
+    const r = await apagarFamiliaAction(
+      undefined,
+      formulario({ siteId, groupId: grupo.id })
+    );
+
+    expect(r).toMatchObject({ saved: true });
+    // Sai da lista do casal…
+    expect(await listGroupsWithGuests(siteId)).toHaveLength(0);
+    // …e a linha continua no banco, com a resposta intacta.
+    const [linha] = await db.select().from(groups).where(eq(groups.id, grupo.id));
+    expect(linha.removedAt).toBeInstanceOf(Date);
+    expect(linha.seatsConfirmed).toBe(2);
+    expect(linha.attendingNames).toBe("Cecília e Antônio");
+    expect(linha.slug).toBe(grupo.slug);
+  });
+
+  it("remover de novo avisa em vez de reescrever a data", async () => {
+    const grupo = await familiaCadastrada();
+    await apagarFamiliaAction(undefined, formulario({ siteId, groupId: grupo.id }));
+    const [primeira] = await db.select().from(groups).where(eq(groups.id, grupo.id));
+
+    const r = await apagarFamiliaAction(
+      undefined,
+      formulario({ siteId, groupId: grupo.id })
+    );
+
+    expect(r).toMatchObject({ error: expect.any(String) });
+    const [depois] = await db.select().from(groups).where(eq(groups.id, grupo.id));
+    expect(depois.removedAt).toEqual(primeira.removedAt);
+  });
+
+  it("não remove família de outro casal", async () => {
+    const grupo = await familiaCadastrada();
+    const outro = await criarSiteDoCasal("para-sempre");
+    sessao.userId = outro.userId;
+
+    const r = await apagarFamiliaAction(
+      undefined,
+      formulario({ siteId: outro.siteId, groupId: grupo.id })
+    );
+
+    expect(r).toMatchObject({ error: expect.any(String) });
+    sessao.userId = userId;
+    expect(await listGroupsWithGuests(siteId)).toHaveLength(1);
+  });
+});
+
+describe("editarFamiliaAction", () => {
+  it("corrige o nome da pessoa sem perder a resposta dela", async () => {
+    const grupo = await familiaCadastrada(["Cecilia"]);
+    const pessoa = grupo.guests[0];
+    await db
+      .update(guests)
+      .set({ rsvpStatus: "confirmed", respondedAt: new Date() })
+      .where(eq(guests.id, pessoa.id));
+
+    const r = await editarFamiliaAction(
+      undefined,
+      formulario({
+        siteId,
+        groupId: grupo.id,
+        label: "Família Nogueira",
+        pessoaId: [pessoa.id],
+        nome: ["Dona Cecília"],
+      })
+    );
+
+    expect(r).toMatchObject({ saved: true });
+    const [linha] = await db.select().from(guests).where(eq(guests.id, pessoa.id));
+    expect(linha.name).toBe("Dona Cecília");
+    // A resposta individual sobrevive porque a linha é a MESMA.
+    expect(linha.rsvpStatus).toBe("confirmed");
+  });
+
+  it("acrescenta pessoa nova e tira quem saiu da lista", async () => {
+    const grupo = await familiaCadastrada(["Cecília", "Antônio"]);
+    const [cecilia, antonio] = grupo.guests;
+
+    await editarFamiliaAction(
+      undefined,
+      formulario({
+        siteId,
+        groupId: grupo.id,
+        label: "Família Nogueira",
+        pessoaId: [cecilia.id, ""],
+        nome: ["Cecília", "Júlia"],
+      })
+    );
+
+    const [depois] = await listGroupsWithGuests(siteId);
+    expect(depois.guests.map((g) => g.name)).toEqual(["Cecília", "Júlia"]);
+    // Os lugares acompanham a lista de nomes, como no cadastro.
+    expect(depois.seats).toBe(2);
+    const sobrouAntonio = await db
+      .select()
+      .from(guests)
+      .where(eq(guests.id, antonio.id));
+    expect(sobrouAntonio).toHaveLength(0);
+  });
+
+  it("nunca muda o endereço da família", async () => {
+    // O link já está no WhatsApp dela (AGENTS.md §2, regra 2).
+    const grupo = await familiaCadastrada();
+
+    await editarFamiliaAction(
+      undefined,
+      formulario({
+        siteId,
+        groupId: grupo.id,
+        label: "Outro nome completamente diferente",
+        lugares: "5",
+      })
+    );
+
+    const [depois] = await listGroupsWithGuests(siteId);
+    expect(depois.slug).toBe(grupo.slug);
+    expect(depois.label).toBe("Outro nome completamente diferente");
+    expect(depois.seats).toBe(5);
+  });
+
+  it("reduzir lugares não reescreve a resposta já dada", async () => {
+    const grupo = await familiaCadastrada();
+    await db
+      .update(groups)
+      .set({ seatsConfirmed: 3 })
+      .where(eq(groups.id, grupo.id));
+
+    await editarFamiliaAction(
+      undefined,
+      formulario({ siteId, groupId: grupo.id, label: "Família Nogueira", lugares: "2" })
+    );
+
+    const [depois] = await listGroupsWithGuests(siteId);
+    expect(depois.seats).toBe(2);
+    // "3 de 2 vêm" é feio e é verdade — quem muda a resposta é o convidado.
+    expect(depois.seatsConfirmed).toBe(3);
+  });
+
+  it("respeita o teto de 20 pessoas por família", async () => {
+    const grupo = await familiaCadastrada();
+    const vinteEUm = Array.from({ length: 21 }, (_, i) => `Pessoa ${i + 1}`);
+
+    const r = await editarFamiliaAction(
+      undefined,
+      formulario({
+        siteId,
+        groupId: grupo.id,
+        label: "Família Nogueira",
+        pessoaId: vinteEUm.map(() => ""),
+        nome: vinteEUm,
+      })
+    );
+
+    expect(r).toMatchObject({ error: expect.stringContaining("20 pessoas") });
+  });
+
+  it("recusa quando o pacote não inclui confirmação de presença", async () => {
+    const grupo = await familiaCadastrada();
+    const convite = await criarSiteDoCasal("convite");
+    sessao.userId = convite.userId;
+
+    const r = await editarFamiliaAction(
+      undefined,
+      formulario({
+        siteId: convite.siteId,
+        groupId: grupo.id,
+        label: "Tentativa",
+      })
+    );
+
+    expect(r).toMatchObject({ error: expect.stringContaining("Site do Casamento") });
   });
 });

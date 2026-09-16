@@ -1,0 +1,38 @@
+-- Desfaz a 0026 (família removida da lista, sem apagar a resposta).
+--
+-- ── O que a 0026 fez ───────────────────────────────────────────────────────
+--
+-- UMA coluna nullable, sem backfill e sem default: `groups.removed_at`. Toda
+-- família existente ficou com `removed_at IS NULL`, que significa "está na
+-- lista" — exatamente o comportamento que todas tinham antes da coluna
+-- existir. Nenhuma linha foi apagada, renomeada ou reescrita, e nada em
+-- `guests`, `seats_confirmed`, `attending_names` ou `message` foi tocado.
+--
+-- ── Para que ela serve ─────────────────────────────────────────────────────
+--
+-- O casal pediu para poder tirar uma família da lista. Apagar de verdade
+-- destruiria a resposta do convidado — e o backup automático NÃO a guarda:
+-- `groups_backup` tem id, slug, label e created_at, e nada da resposta. Então
+-- remover marca a data aqui: a família some da lista do casal, a resposta
+-- continua gravada, e `/rsvp/<slug>` continua respondendo (com um aviso para
+-- procurar os noivos, em vez de 404 na cara de quem foi convidado).
+--
+-- ── O que este rollback APAGA ──────────────────────────────────────────────
+--
+-- A marca de que a família foi removida. Depois do rollback, toda família
+-- removida VOLTA para a lista do casal e para as contagens de lugares — como
+-- se nunca tivesse saído. Nenhuma resposta se perde; o que se perde é a
+-- decisão do casal de tirá-las da frente.
+--
+-- Rodar isto com a aplicação nova no ar é seguro no banco, mas a aplicação
+-- passa a ler uma coluna que não existe. A ordem certa é: voltar o código
+-- primeiro (as duas ações e a leitura da lista), depois este arquivo.
+--
+-- Se houver remoção a preservar, guarde antes:
+--
+--   SELECT g.slug, g.label, g.removed_at, s.slug AS site
+--   FROM groups g LEFT JOIN sites s ON s.id = g.site_id
+--   WHERE g.removed_at IS NOT NULL
+--   ORDER BY g.removed_at;
+
+ALTER TABLE "groups" DROP COLUMN IF EXISTS "removed_at";

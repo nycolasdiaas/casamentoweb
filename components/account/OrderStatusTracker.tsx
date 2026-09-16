@@ -28,9 +28,12 @@ function formatBRL(cents: number): string {
 export default function OrderStatusTracker({
   order,
   orderId,
+  whatsappDaConta,
 }: {
   order: TrackerOrder;
   orderId: string;
+  /** Vem da conta do casal, para o campo do pagamento já nascer preenchido. */
+  whatsappDaConta?: string | null;
 }) {
   const pkg = getPackage(order.packageTier);
   const amountCents = order.priceCents ?? pkg?.priceCents ?? 0;
@@ -152,6 +155,7 @@ export default function OrderStatusTracker({
                             <PaymentButton
                               orderId={orderId}
                               amountLabel={amountLabel}
+                              whatsappDaConta={whatsappDaConta}
                             />
                           </div>
                         )}

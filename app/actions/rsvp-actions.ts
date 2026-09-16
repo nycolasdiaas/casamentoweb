@@ -58,6 +58,15 @@ export async function responderRsvpAction(
     return { erro: "Não achamos este convite. Peça o link de novo para os noivos." };
   }
 
+  /* A trava mora AQUI também, não só na tela: a tela do convite removido não
+     tem formulário, mas um POST direto continuaria gravando numa família que
+     saiu da lista do casal. */
+  if (view.removedAt) {
+    return {
+      erro: "Este convite saiu da lista dos noivos. Fale com eles para confirmar sua presença.",
+    };
+  }
+
   /* A trava do prazo mora AQUI, não só na tela.
      A tela some quando o prazo vence, mas um POST direto continuaria
      gravando — e aí a lista que o casal fechou para acertar o buffet volta a

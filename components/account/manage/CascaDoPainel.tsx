@@ -101,7 +101,12 @@ export default function CascaDoPainel({
       .sort((a, b) => b.href.length - a.href.length)[0]?.href ?? abas[0].href;
 
   return (
-    <div className="surface-flat rounded-[3px] bg-(--c-surface) overflow-hidden">
+    /* SEM `overflow-hidden` aqui: o sino mora nesta casca e abre um painel
+       `absolute` logo abaixo do botão. Com o recorte na casca, o painel era
+       cortado na borda e o casal via só a primeira linha (UX-029). O recorte
+       existia para arredondar a base, e é isso que a faixa de abas faz agora,
+       por conta própria. */
+    <div className="surface-flat rounded-[3px] bg-(--c-surface)">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-(--c-rule) px-5 py-3.5">
         <div className="flex items-center gap-3 min-w-0">
           <Image
@@ -141,7 +146,11 @@ export default function CascaDoPainel({
         </div>
       </div>
 
-      <Abas abas={abas} ativa={ativa} className="border-b-0" />
+      <Abas
+        abas={abas}
+        ativa={ativa}
+        className="border-b-0 overflow-hidden rounded-b-[3px]"
+      />
     </div>
   );
 }

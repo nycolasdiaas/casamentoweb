@@ -12,7 +12,6 @@ import {
 import { uiPrensa } from "@/lib/fonts/ui";
 import PaperBackdrop from "@/components/webgl/PaperBackdrop";
 import SplitReveal from "@/components/site/SplitReveal";
-import InterruptorDeMovimento from "@/components/ui/InterruptorDeMovimento";
 import { AvisoPorHash } from "@/components/ui/prensa";
 import RevealOnScroll from "@/components/ui/RevealOnScroll";
 import AccountNav, { LoggedOutLinks } from "@/components/landing/AccountNav";
@@ -339,19 +338,6 @@ export default function PackagesPage() {
             ))}
           </ul>
 
-          {/* A porta da galeria (`/pacotes/estilos`). Aqui os seis já estão
-              todos na tela, então "ver todos" não diria nada — o que a
-              galeria acrescenta é o painel de detalhe, com as fontes e a
-              paleta de cada estilo lado a lado. O rótulo promete isso. */}
-          <Link
-            href="/pacotes/estilos"
-            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-(--c-ink) mx-auto"
-          >
-            <span className="underline underline-offset-4">
-              Comparar fontes e paletas dos seis
-            </span>
-            <Icone nome="setaDireita" tamanho={16} />
-          </Link>
         </div>
       </section>
 
@@ -549,11 +535,6 @@ export default function PackagesPage() {
         <div className="trilho py-6 flex flex-wrap items-center justify-between gap-2 text-xs">
           <p>
             {SITE_NAME} · {SITE_TAGLINE}
-          </p>
-          <p className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
-            <span>Sem mensalidade · Pix sem taxa · Feito no Brasil</span>
-            {/* So aparece para quem tem `reduce` ligado no sistema. */}
-            <InterruptorDeMovimento />
           </p>
         </div>
       </footer>

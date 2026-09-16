@@ -9,7 +9,6 @@ import { tierAllowsSection } from "@/lib/templates/contract";
 import { LINHAS_DA_VITRINE } from "@/lib/site/vitrine";
 import AccountNav, { LoggedOutLinks } from "@/components/landing/AccountNav";
 import CtaPacote, { CtaPacoteFallback } from "@/components/landing/CtaPacote";
-import InterruptorDeMovimento from "@/components/ui/InterruptorDeMovimento";
 
 export const metadata: Metadata = {
   /* Só "Pacotes": o `template` do layout raiz (`%s | Enlace`) põe a marca.
@@ -141,10 +140,6 @@ export default function PacotesPage() {
         <div className="trilho py-6 flex flex-wrap items-center justify-between gap-2 text-xs">
           <p>
             {SITE_NAME} · {SITE_TAGLINE}
-          </p>
-          <p className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
-            <span>Sem mensalidade · Pix sem taxa · Feito no Brasil</span>
-            <InterruptorDeMovimento />
           </p>
         </div>
       </footer>

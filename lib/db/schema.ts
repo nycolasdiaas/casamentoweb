@@ -517,6 +517,20 @@ export const groups = pgTable(
     message: text("message"),
     respondedAt: timestamp("responded_at", { withTimezone: true }),
 
+    /* Quando o casal TIROU a família da lista — não quando alguém apagou.
+       A linha fica.
+
+       O casal pediu para poder remover famílias (cadastradas erradas,
+       duplicadas, desconvidadas). Apagar de verdade destruiria a resposta do
+       convidado, que é dado de terceiro: `groups_backup` guarda id, slug,
+       label e created_at, e NÃO guarda `seats_confirmed`, `attending_names`
+       nem `message` — apagada, a resposta não volta nem pelo backup
+       automático. Marcar a saída resolve os dois lados: some da lista do
+       casal, a resposta continua gravada, e `/rsvp/<slug>` continua
+       respondendo (com um aviso, em vez de 404 na cara de quem foi
+       convidado). Decisão do dono em 15/09/2026. */
+    removedAt: timestamp("removed_at", { withTimezone: true }),
+
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

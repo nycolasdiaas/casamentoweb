@@ -87,4 +87,25 @@ Portões: lint limpo, `tsc --noEmit` limpo, `next build` passando, `npm run test
   webhook passa a dizer que ele está configurado. — `[UX-028]`
 - [x] **T032** Verificação no site no ar do contraste e do erro anunciado: home e `/pacotes`
   em 6,43:1, Lighthouse da home 90 → 94, erro do login com `role="alert"`. — `[UX-027][UX-028]`
+- [x] **T033** `CascaDoPainel.tsx`: recorte sai da casca e vai para a faixa de abas, para
+  o painel do sino abrir inteiro. — `[UX-029]`
+- [x] **T034** Migração aditiva 0026: `groups.removed_at`, com rollback escrito e ensaio
+  aprovado (nenhuma contagem alterada); schema `test` sincronizado. — `[UX-030]`
+- [x] **T035** Repositório: `removerFamiliaDaLista`, `atualizarFamilia`, lista esconde
+  removidas, view do RSVP informa a saída, busca por nome ignora removidas. — `[UX-030]`
+- [x] **T036** Ações: `editarFamiliaAction` (com guarda de pacote) e `apagarFamiliaAction`
+  passa a remover sem apagar; `updateTag` do grupo nas duas. — `[UX-030]`
+- [x] **T037** Tela: botões Editar/Remover na tabela e nos cartões; aviso de lugares abaixo
+  do confirmado; tela do convidado avisa em vez de 404; action recusa POST direto. — `[UX-030]`
+- [x] **T038** `AvisoPorHash.tsx`: o recado some em sete segundos. — `[UX-031]`
+- [ ] **T039** Portões e verificação no site no ar das três correções. — `[UX-029..031]`
+- [x] **T040** Pagamento: campo de WhatsApp no formulário (preenchido pela conta), validação
+  na ação antes do gateway, telefone só com dígitos no cliente da API, e o motivo real da
+  falha no log. Mensagens de erro sem "fale no WhatsApp". — `[UX-032]`
+- [x] **T041** Testes da ação de pagamento: recusa sem telefone e com número incompleto,
+  cria com o número escrito, recusa CPF inválido, e a mensagem de falha não manda para o
+  WhatsApp. — `[UX-032]`
+- [x] **T042** Vitrine: tela de comparação removida, rodapé limpo, volta da prévia para
+  `/#estilos`, testes da galeria reescritos com o que continua existindo. — `[UX-033]`
+- [ ] **T043** Portões e verificação no site no ar de tudo desta rodada. — `[UX-029..033]`
 

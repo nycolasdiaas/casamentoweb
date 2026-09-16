@@ -60,6 +60,28 @@ export default async function RsvpPage({
   const view = await getRsvpViewBySlug(slug);
   if (!view) notFound();
 
+  /* Família que o casal tirou da lista: AVISA, não some.
+
+     O 404 aqui seria a plataforma dizendo a uma pessoa convidada que o
+     convite nunca existiu — e ela tem o link no WhatsApp para provar o
+     contrário. A resposta dela continua gravada; o que mudou é que o casal
+     reorganizou a lista, e quem sabe explicar isso é o casal. */
+  if (view.removedAt) {
+    return (
+      <main
+        className={`${uiPrensa} flex-1 flex flex-col items-center justify-center bg-(--c-paper-warm) px-6 py-16 text-center text-(--c-ink)`}
+      >
+        <div className="flex w-full max-w-[420px] flex-col gap-3">
+          <h1 className="t-d1">Este convite mudou</h1>
+          <p className="t-corpo text-(--c-ink-2)">
+            Os noivos tiraram este convite da lista. Fale com eles: se for
+            engano, eles mandam o endereço novo.
+          </p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main
       className={`${uiPrensa} flex-1 flex flex-col items-center justify-center bg-(--c-paper-warm) px-6 py-16 text-(--c-ink)`}

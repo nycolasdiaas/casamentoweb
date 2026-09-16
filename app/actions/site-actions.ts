@@ -16,7 +16,11 @@ import {
 } from "@/lib/repositories/siteSections";
 import { archiveSite, unarchiveSite } from "@/lib/site/visibility";
 import { publishedSiteTags } from "@/lib/site/publish";
-import { createGroup, deleteGroup } from "@/lib/repositories/groups";
+import {
+  createGroup,
+  removerFamiliaDaLista,
+  atualizarFamilia,
+} from "@/lib/repositories/groups";
 import { tierAllowsSection } from "@/lib/templates/contract";
 import type { PackageTier } from "@/lib/packages";
 
@@ -340,13 +344,99 @@ export async function apagarFamiliaAction(
   const groupId = formData.get("groupId")?.toString() ?? "";
   if (!groupId) return { error: "Família não informada." };
 
-  /* `deleteGroup` filtra por `siteId` — família de outro casamento não é
-     apagada por id adivinhado. */
-  await deleteGroup(site.id, groupId);
+  /* A remoção filtra por `siteId` — família de outro casamento não sai da
+     lista por id adivinhado. */
+  /* REMOVER não é apagar, e a diferença é de dado de terceiro.
+
+     A resposta do convidado (`seats_confirmed`, `attending_names`, `message`)
+     não está em backup nenhum: `groups_backup` guarda id, slug, label e
+     created_at. Apagada, some para sempre — e o link que a família já tem no
+     WhatsApp passaria a devolver 404. Marcando a saída, a família some da
+     lista do casal, a resposta fica gravada e `/rsvp/<slug>` continua
+     respondendo, avisando para procurar os noivos. Decisão do dono,
+     15/09/2026. */
+  const removida = await removerFamiliaDaLista(site.id, groupId);
+  if (!removida) return { error: "Essa família já tinha saído da lista." };
+
+  /* O link do convidado é cacheado por horas (`group:<slug>`). Sem isto, quem
+     abrisse continuaria vendo o convite de pé depois de a família sair. */
+  updateTag(`group:${removida.slug}`);
 
   revalidatePath("/conta/pedidos/[id]/convidados", "page");
   revalidatePath("/conta/pedidos/[id]/convites", "page");
   revalidatePath("/conta/pedidos/[id]", "page");
 
   return { saved: true, message: "Família removida ✓" };
+}
+
+/**
+ * Edita a família: nome, lugares e quem foi convidado.
+ *
+ * O que ela NÃO mexe: o endereço `/rsvp/<slug>` (imutável — já está no
+ * WhatsApp da família) e a resposta que o convidado deu. Reduzir os lugares
+ * para menos do que já foi confirmado é permitido — os lugares são decisão do
+ * casal —, e a resposta continua valendo como foi dada; a tela avisa antes.
+ */
+export async function editarFamiliaAction(
+  _prev: SiteActionResult,
+  formData: FormData
+): Promise<SiteActionResult> {
+  const dono = await siteDoCasal(formData);
+  if ("error" in dono) return { error: dono.error };
+  const { site } = dono;
+
+  // Mesma guarda da criação: sem o pacote, nem por POST direto.
+  if (!tierAllowsSection(site.tier as PackageTier, "rsvp")) {
+    return { error: "A confirmação de presença entra a partir do Site do Casamento." };
+  }
+
+  const groupId = formData.get("groupId")?.toString() ?? "";
+  if (!groupId) return { error: "Família não informada." };
+
+  const label = formData.get("label")?.toString().trim() ?? "";
+
+  /* Os pares vêm alinhados: `pessoaId[i]` é de quem `nome[i]` fala. Id vazio é
+     pessoa nova. Nome apagado tira a pessoa da lista — e só ela. */
+  const ids = formData.getAll("pessoaId").map((v) => v.toString());
+  const pessoas = formData
+    .getAll("nome")
+    .map((v, i) => ({ id: ids[i] || undefined, nome: v.toString().trim() }))
+    .filter((p) => p.nome.length > 0);
+
+  if (!label && pessoas.length === 0) {
+    return { error: "Escrevam ao menos o nome da família." };
+  }
+  if (pessoas.length > MAXIMO_DE_PESSOAS_POR_FAMILIA) {
+    return {
+      error: `São até ${MAXIMO_DE_PESSOAS_POR_FAMILIA} pessoas por família. Para grupos maiores, criem mais de uma.`,
+    };
+  }
+
+  /* Mesma regra do cadastro: com nomes escritos, os lugares saem da lista;
+     sem nomes, do campo de número. Duas fontes para o mesmo número é como um
+     grupo passa a "ter 3 lugares" com dois nomes dentro. */
+  const pedidos = Number(formData.get("lugares") ?? 1);
+  const lugares =
+    pessoas.length > 0
+      ? pessoas.length
+      : Number.isFinite(pedidos)
+        ? Math.min(Math.max(1, pedidos), MAXIMO_DE_PESSOAS_POR_FAMILIA)
+        : 1;
+
+  const atualizada = await atualizarFamilia({
+    siteId: site.id,
+    groupId,
+    label: label || undefined,
+    seats: lugares,
+    pessoas,
+  });
+  if (!atualizada) return { error: "Essa família não está mais na lista." };
+
+  updateTag(`group:${atualizada.slug}`);
+
+  revalidatePath("/conta/pedidos/[id]/convidados", "page");
+  revalidatePath("/conta/pedidos/[id]/convites", "page");
+  revalidatePath("/conta/pedidos/[id]", "page");
+
+  return { saved: true, message: "Família atualizada ✓" };
 }

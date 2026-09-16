@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getUserById } from "@/lib/repositories/users";
 import type { Metadata } from "next";
 import {
   setOrderPayment,
@@ -55,7 +56,7 @@ export default async function GerenciarInicioPage({
   }>;
 }) {
   const { id } = await params;
-  const { order, site } = await carregarGerenciamento(id);
+  const { order, site, userId } = await carregarGerenciamento(id);
 
   // Confirmação sem depender de webhook: ao voltar do checkout, consultamos o
   // status real da cobrança e atualizamos o pedido.
@@ -326,6 +327,7 @@ export default async function GerenciarInicioPage({
       {!(site === null && provisionamentoFalhou) && (
       <OrderStatusTracker
         orderId={order.id}
+        whatsappDaConta={(await getUserById(userId))?.whatsapp ?? null}
         order={
           {
             status,

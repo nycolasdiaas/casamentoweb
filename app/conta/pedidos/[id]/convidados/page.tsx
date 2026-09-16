@@ -7,6 +7,7 @@ import { tierAllowsSection } from "@/lib/templates/contract";
 import { EstadoVazio } from "@/components/ui/prensa";
 import CopiarLink from "@/components/ui/prensa/CopiarLink";
 import FormularioDeFamilia from "@/components/account/manage/FormularioDeFamilia";
+import AcoesDaFamilia from "@/components/account/manage/AcoesDaFamilia";
 
 export const metadata: Metadata = { title: "Convidados" };
 
@@ -132,6 +133,12 @@ export default async function ConvidadosPage({
                   <Th>Quem vem</Th>
                   <Th>Recado</Th>
                   <Th>Endereço</Th>
+                  {/* Coluna sem título visível: "Ações" escrito no cabeçalho
+                      competiria com o que a tabela veio dizer. O leitor de
+                      tela recebe o nome mesmo assim. */}
+                  <Th>
+                    <span className="sr-only">Ações</span>
+                  </Th>
                 </tr>
               </thead>
               <tbody>
@@ -175,6 +182,19 @@ export default async function ConvidadosPage({
                         {base && <CopiarLink url={`${base}/rsvp/${g.slug}`} />}
                       </span>
                     </Td>
+                    <Td>
+                      <AcoesDaFamilia
+                        siteId={site.id}
+                        groupId={g.id}
+                        nome={g.label}
+                        lugares={g.seats}
+                        pessoas={g.guests.map((c) => ({
+                          id: c.id,
+                          nome: c.name,
+                        }))}
+                        confirmados={g.seatsConfirmed}
+                      />
+                    </Td>
                   </tr>
                 ))}
               </tbody>
@@ -214,6 +234,14 @@ export default async function ConvidadosPage({
                     : `/rsvp/${g.slug}`}
                 </span>
                 {base && <CopiarLink url={`${base}/rsvp/${g.slug}`} />}
+                <AcoesDaFamilia
+                  siteId={site.id}
+                  groupId={g.id}
+                  nome={g.label}
+                  lugares={g.seats}
+                  pessoas={g.guests.map((c) => ({ id: c.id, nome: c.name }))}
+                  confirmados={g.seatsConfirmed}
+                />
               </li>
             ))}
           </ul>

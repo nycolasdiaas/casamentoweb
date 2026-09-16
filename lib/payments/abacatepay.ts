@@ -89,7 +89,15 @@ export async function createCharge(
     const customer: Record<string, string> = {};
     if (c.name) customer.name = c.name;
     if (c.email) customer.email = c.email;
-    if (c.cellphone) customer.cellphone = c.cellphone;
+    /* Telefone só com dígitos: o cadastro grava a máscara que o casal vê
+       ("(81) 98765-4321"), e o gateway quer o número. Medido em 15/09/2026:
+       ele aceita os dois formatos, mas dígitos é o que o resto da API usa.
+
+       O que ele NÃO aceita é a AUSÊNCIA — `customer.cellphone` faltando
+       devolve 422, e sem `customer` nenhum devolve 400 ("Customer not
+       found"). Por isso quem chama precisa garantir os quatro campos; ver
+       `startPaymentAction`. */
+    if (c.cellphone) customer.cellphone = c.cellphone.replace(/\D/g, "");
     if (c.taxId) customer.taxId = c.taxId;
     if (Object.keys(customer).length > 0) body.customer = customer;
   }

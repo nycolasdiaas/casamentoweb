@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull, notInArray } from "drizzle-orm";
 import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db/client";
 import { groups, guests, siteContent, sites } from "@/lib/db/schema";
@@ -142,6 +142,10 @@ export async function getRsvpViewBySlug(slug: string) {
       attendingNames: groups.attendingNames,
       message: groups.message,
       respondedAt: groups.respondedAt,
+      /* Quando o casal tirou a família da lista. A tela do convidado usa isto
+         para avisar em vez de sumir: o link já está no WhatsApp dele, e 404
+         seria a plataforma dizendo que o convite nunca existiu. */
+      removedAt: groups.removedAt,
       siteId: groups.siteId,
       siteSlug: sites.slug,
       siteStatus: sites.status,
@@ -212,9 +216,16 @@ export async function responderRsvpDoGrupo(
   return atualizado ?? null;
 }
 
+/**
+ * As famílias que o casal vê — as removidas ficam de fora.
+ *
+ * `removedAt` não é exclusão: a linha continua no banco com a resposta que o
+ * convidado deu, e `/rsvp/<slug>` continua respondendo. Aqui ela só sai da
+ * frente de quem está organizando a lista.
+ */
 export async function listGroupsWithGuests(siteId: string) {
   return db.query.groups.findMany({
-    where: eq(groups.siteId, siteId),
+    where: and(eq(groups.siteId, siteId), isNull(groups.removedAt)),
     with: {
       guests: { orderBy: (guests, { asc }) => [asc(guests.position)] },
     },
@@ -226,4 +237,110 @@ export async function deleteGroup(siteId: string, groupId: string) {
   await db
     .delete(groups)
     .where(and(eq(groups.id, groupId), eq(groups.siteId, siteId)));
+}
+
+/**
+ * Tira a família da lista do casal — sem apagar nada.
+ *
+ * Por que não `deleteGroup`: a resposta do convidado é dado de terceiro, e o
+ * backup automático NÃO a guarda (`groups_backup` tem id, slug, label e
+ * created_at, e nada de `seats_confirmed`, `attending_names` ou `message`).
+ * Apagada, ela não volta nem pelo backup. Marcando a saída, a família some da
+ * lista, a resposta fica gravada e o link continua respondendo.
+ *
+ * `isNull(removedAt)` no `where`: remover duas vezes não reescreve a data da
+ * primeira — o quando importa para o casal entender a própria lista.
+ */
+export async function removerFamiliaDaLista(siteId: string, groupId: string) {
+  const [linha] = await db
+    .update(groups)
+    .set({ removedAt: new Date() })
+    .where(
+      and(
+        eq(groups.id, groupId),
+        eq(groups.siteId, siteId),
+        isNull(groups.removedAt)
+      )
+    )
+    .returning({ id: groups.id, slug: groups.slug });
+
+  return linha ?? null;
+}
+
+/**
+ * Edita a família: rótulo, lugares e a lista de pessoas.
+ *
+ * Três coisas que esta função NÃO faz, e cada uma tem dono:
+ *
+ * 1. **Não toca no slug.** Ele é imutável — os links `/rsvp/<slug>` já estão
+ *    no WhatsApp das famílias (AGENTS.md §2, regra 2).
+ * 2. **Não toca em `seatsConfirmed`, `attendingNames` nem `message`.** É a
+ *    resposta que o convidado deu; o casal edita a lista dele, não a resposta
+ *    de terceiro. Se o casal reduzir os lugares para menos do que já foi
+ *    confirmado, o painel mostra "3 de 2 vêm" — feio e verdadeiro.
+ * 3. **Não apaga-e-recria os convidados.** `guests.rsvp_status` guarda as
+ *    confirmações do modelo original, e recriar as linhas zeraria todas para
+ *    `pending` por efeito colateral. Renomear é `update` no id existente;
+ *    nome novo nasce em linha nova; nome tirado da lista perde a linha dele,
+ *    e só essa.
+ */
+export async function atualizarFamilia({
+  siteId,
+  groupId,
+  label,
+  seats,
+  pessoas,
+}: {
+  siteId: string;
+  groupId: string;
+  label?: string;
+  seats: number;
+  /** `id` presente = pessoa que já existe (renomeia); sem `id` = pessoa nova. */
+  pessoas: { id?: string; nome: string }[];
+}) {
+  return db.transaction(async (tx) => {
+    const [grupo] = await tx
+      .update(groups)
+      .set({ label: label || null, seats })
+      .where(and(eq(groups.id, groupId), eq(groups.siteId, siteId)))
+      .returning();
+
+    // Família de outro casamento (ou id inventado): nada foi atualizado.
+    if (!grupo) return null;
+
+    const mantidos = pessoas
+      .map((p) => p.id)
+      .filter((id): id is string => Boolean(id));
+
+    /* Quem saiu da lista sai do banco. É a única perda desta função, e ela é
+       do tamanho de uma pessoa — por isso a tela avisa antes. */
+    await tx
+      .delete(guests)
+      .where(
+        mantidos.length > 0
+          ? and(eq(guests.groupId, groupId), notInArray(guests.id, mantidos))
+          : eq(guests.groupId, groupId)
+      );
+
+    for (const [posicao, pessoa] of pessoas.entries()) {
+      if (pessoa.id) {
+        await tx
+          .update(guests)
+          .set({ name: pessoa.nome, position: posicao })
+          .where(and(eq(guests.id, pessoa.id), eq(guests.groupId, groupId)));
+      } else {
+        await tx
+          .insert(guests)
+          .values({ groupId, name: pessoa.nome, position: posicao });
+      }
+    }
+
+    const lista = await tx
+      .select()
+      .from(guests)
+      .where(eq(guests.groupId, groupId))
+      .orderBy(guests.position);
+
+    return { ...grupo, guests: lista };
+  });
 }

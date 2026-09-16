@@ -977,3 +977,77 @@ alternativos do RSVP ("Não posso", confirmação parcial, editar a resposta). E
   Os símbolos `—` e `✕` continuam terciários: são decorativos e saem do leitor de tela.
 - **Status:** ✅ **Resolvido** — commit `7cf04ee`, verificado em produção em 15/09/2026: home e `/pacotes` medidos em 6,43:1 (eram 2,66 e 3,21); Lighthouse da home subiu de 90 para 94
 
+### UX-029 — O painel de avisos abre cortado
+
+- **Severidade:** 🟠 Alta — o sino é o único lugar onde o casal vê o que aconteceu
+- **Onde:** qualquer tela do painel, botão do sino (`components/account/manage/Avisos.tsx`)
+- **O que acontece:** o painel abre, mas só a primeira faixa ("AVISOS · ÚLTIMOS 30 DIAS")
+  aparece; o resto é cortado na borda da casca. Relatado pelo dono com captura de tela em
+  15/09/2026.
+- **Causa:** `components/account/manage/CascaDoPainel.tsx` tinha `overflow-hidden` na casca
+  para arredondar a base. O painel do sino é `absolute` e nasce dentro dessa casca, então
+  era recortado junto.
+- **Correção:** o recorte sai da casca e vai para a faixa de abas, que é quem precisa dele
+  (`rounded-b-[3px] overflow-hidden` na própria faixa). O painel deixa de ser cortado e os
+  cantos continuam arredondados.
+- **Status:** Em correção — feature `005-ux-o-que-faltava` (T033)
+
+### UX-030 — Não dava para editar nem tirar uma família da lista
+
+- **Severidade:** 🟠 Alta — pedido do dono em 15/09/2026
+- **Onde:** `/conta/pedidos/<id>/convidados`
+- **O que acontecia:** o casal cadastrava a família e pronto. Nome errado, lugares a mais
+  ou família duplicada ficavam na lista para sempre. `apagarFamiliaAction` existia no
+  servidor sem botão nenhum; editar não existia.
+- **Decisão do dono (consultado o agente `regras-de-negocio`):** remover **não apaga**. A
+  resposta do convidado é dado de terceiro e o backup automático não a guarda
+  (`groups_backup` tem id, slug, label e created_at, e nada de `seats_confirmed`,
+  `attending_names` ou `message`). Então a família sai da lista, a resposta fica gravada, e
+  `/rsvp/<slug>` continua respondendo com um aviso em vez de 404.
+- **Correção:** migração aditiva 0026 (`groups.removed_at`), `removerFamiliaDaLista` e
+  `atualizarFamilia` no repositório, `editarFamiliaAction` com a guarda de pacote que
+  faltava, e os botões Editar/Remover na lista (tabela e cartões). O slug nunca muda;
+  renomear pessoa é `update` na linha dela, para não zerar `guests.rsvp_status`.
+- **Status:** Em correção — feature `005-ux-o-que-faltava` (T034–T037)
+
+### UX-031 — "Vocês saíram da conta." não sai da tela
+
+- **Severidade:** 🟡 Média
+- **Onde:** `/` depois de sair da conta, e `/conta/pedidos` depois de cancelar um pedido
+- **O que acontece:** o aviso aparece e fica plantado enquanto a pessoa navega. Relatado
+  pelo dono com captura de tela em 15/09/2026.
+- **Causa:** `components/ui/prensa/AvisoPorHash.tsx` mostrava o recado e nunca o escondia —
+  ele só sumia ao trocar de página.
+- **Correção:** o recado some sozinho em sete segundos. O leitor de tela já o anunciou
+  quando entrou; o `role="status"` não depende de ele continuar visível.
+- **Status:** Em correção — feature `005-ux-o-que-faltava` (T038)
+
+### UX-032 — Pagamento não iniciava para quem não tinha WhatsApp na conta
+
+- **Severidade:** 🔴 Crítica — impede a venda
+- **Onde:** `/conta/pedidos/<id>` → "Pagar e publicar"
+- **O que acontecia:** o casal clicava e lia "Não conseguimos iniciar o pagamento agora.
+  Tente de novo em instantes ou fale no WhatsApp." Relatado pelo dono em 15/09/2026.
+- **Causa, medida contra a API do AbacatePay:** o provedor exige `customer` com nome,
+  e-mail, **telefone** e CPF. Cobrança sem `customer.cellphone` devolve **422**
+  (`Expected property 'customer.cellphone' to be string but found: undefined`) e sem
+  `customer` nenhum devolve **400** (`Customer not found`). O WhatsApp é opcional no
+  cadastro — quem não preencheu não conseguia pagar. O `catch` da ação engolia o motivo,
+  então o log não dizia nada.
+- **O que eu supus errado antes de medir:** que a máscara `(81) 98765-4321` fosse o
+  problema. O gateway aceita os dois formatos; o que ele não aceita é a ausência.
+- **Correção:** o formulário de pagamento passa a pedir o WhatsApp junto do CPF, já
+  preenchido com o número da conta quando existe; a ação valida antes de falar com o
+  gateway; o motivo real de qualquer falha vai para o log do servidor.
+- **Status:** Em correção — feature `005-ux-o-que-faltava` (T040–T041)
+
+### UX-033 — Pedidos do dono na vitrine (15/09/2026)
+
+- **Severidade:** — (mudança pedida, não defeito)
+- **O quê:** tirar a tela de comparação dos seis estilos (`/pacotes/estilos`) e a linha
+  "Sem mensalidade · Pix sem taxa · Feito no Brasil" com o botão de animações do rodapé.
+- **O que fica:** as prévias de cada estilo (`/pacotes/estilos/<id>`), que alimentam os
+  cartões da home, os exemplos dos pacotes e a prévia do questionário. O link "Estilos"
+  dentro das prévias passa a voltar para os seis cartões da home.
+- **Status:** Em correção — feature `005-ux-o-que-faltava` (T042)
+

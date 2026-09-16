@@ -55,6 +55,20 @@ export default function AvisoPorHash({
     el.hidden = false;
     // Tira o fragmento sem recarregar e sem empilhar histórico.
     window.history.replaceState(null, "", window.location.pathname);
+
+    /* E some sozinho. Sem isto, o recado ficava plantado na tela até a pessoa
+       trocar de página: quem saiu da conta continuava lendo "Vocês saíram da
+       conta" enquanto navegava pela vitrine, como se fosse um aviso que não
+       acabou (relatado pelo dono em 15/09/2026, UX-031).
+
+       Sete segundos: tempo de ler uma frase curta sem correr, e curto o
+       bastante para não virar mobília. O leitor de tela já anunciou no
+       instante em que o texto entrou — o `role="status"` não depende do
+       parágrafo continuar visível. */
+    const somem = window.setTimeout(() => {
+      el.hidden = true;
+    }, 7000);
+    return () => window.clearTimeout(somem);
   }, [recados]);
 
   return (

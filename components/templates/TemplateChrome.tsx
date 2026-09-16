@@ -253,12 +253,14 @@ export default function TemplateChrome({
               viram filhos diretos da barra de 88px e se ancoram nos cantos,
               em vez de virarem uma quarta linha empilhada. */}
           <div className="flex items-center justify-between gap-2 lg:contents">
-            {/* Para a GALERIA, não para a home. O rótulo diz "Pacotes" e
-                levava para "/" — quem clicava caía na landing inteira e
-                tinha que procurar de onde veio. O caminho de volta de uma
-                prévia é a tela onde se escolhe qual prévia abrir. */}
+            {/* Para a SEÇÃO DE ESTILOS, não para o topo da landing. O
+                rótulo já disse "Pacotes" e levava para "/" — quem clicava
+                caía na página inteira e tinha que procurar de onde veio. O
+                caminho de volta de uma prévia é o lugar onde se escolhe qual
+                prévia abrir, e desde 15/09/2026 esse lugar são os seis
+                cartões da home (a galeria separada saiu a pedido do dono). */}
             <Link
-              href="/pacotes/estilos"
+              href="/#estilos"
               className="inline-flex items-center gap-1.5 underline underline-offset-2 lg:mr-9 lg:pb-[18px] lg:text-[13px] lg:no-underline lg:opacity-60 lg:transition-opacity lg:hover:opacity-100"
             >
               <Icone nome="setaEsquerda" tamanho={16} />

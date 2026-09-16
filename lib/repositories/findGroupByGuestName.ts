@@ -1,6 +1,6 @@
 import { db } from "@/lib/db/client";
 import { groups, guests } from "@/lib/db/schema";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 
 /**
  * Acha o link de RSVP de um convidado pelo NOME COMPLETO, dentro de um site.
@@ -42,6 +42,10 @@ export async function findGroupByGuestName(
     .where(
       and(
         eq(groups.siteId, siteId),
+        /* Família removida da lista não é achável por aqui: devolver o link
+           dela mandaria o convidado para a tela de "este convite mudou" sem
+           ele ter pedido nada. */
+        isNull(groups.removedAt),
         sql`lower(regexp_replace(btrim(${guests.name}), '\s+', ' ', 'g')) = lower(${alvo})`
       )
     )

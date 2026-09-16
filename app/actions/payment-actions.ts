@@ -8,6 +8,7 @@ import { getPackage } from "@/lib/packages";
 import { createCharge, isPaymentConfigured } from "@/lib/payments/abacatepay";
 import { getBaseUrl } from "@/lib/baseUrl";
 import { isValidCPF, onlyDigits } from "@/lib/cpf";
+import { whatsappValido } from "@/lib/telefone";
 
 type PaymentResult = { error?: string } | undefined;
 
@@ -31,7 +32,7 @@ export async function startPaymentAction(
   if (!isPaymentConfigured()) {
     return {
       error:
-        "O pagamento online ainda não está ativo. Fale com a gente no WhatsApp para concluir.",
+        "O pagamento online está fora do ar neste momento. Tente de novo mais tarde.",
     };
   }
 
@@ -40,13 +41,29 @@ export async function startPaymentAction(
     return { error: "Digite um CPF válido para gerar o pagamento por Pix." };
   }
 
+  /* O TELEFONE é obrigatório para o gateway, e o cadastro o trata como
+     opcional. Medido contra a API em 15/09/2026: cobrança sem
+     `customer.cellphone` devolve 422, e sem `customer` nenhum devolve 400.
+     Quem criou a conta sem preencher o WhatsApp não conseguia pagar e lia
+     "não conseguimos iniciar o pagamento agora" — sem nenhuma pista do que
+     faltava (relatado pelo dono).
+
+     Pedir aqui, com o número da conta já preenchido, resolve os dois casos:
+     quem tem só confere, quem não tem escreve uma vez. */
+  const whatsapp = formData.get("payerWhatsapp")?.toString().trim() ?? "";
+  if (!whatsappValido(whatsapp)) {
+    return {
+      error: "Confira o WhatsApp de contato — com DDD, são 10 ou 11 números.",
+    };
+  }
+
   const user = await getUserById(userId);
   const pkg = getPackage(order.packageTier);
   const amountCents = order.priceCents ?? pkg?.priceCents ?? 0;
   if (amountCents <= 0) {
     return {
       error:
-        "O valor ainda não foi definido para este pedido. Fale com a gente no WhatsApp.",
+        "O valor deste pedido ainda não foi definido. Tente de novo mais tarde.",
     };
   }
 
@@ -56,7 +73,7 @@ export async function startPaymentAction(
   } catch {
     return {
       error:
-        "Configuração de pagamento incompleta. Fale com a gente no WhatsApp para concluir.",
+        "Não conseguimos iniciar o pagamento agora. Tente de novo em alguns instantes.",
     };
   }
 
@@ -77,14 +94,26 @@ export async function startPaymentAction(
       customer: {
         name: order.coupleNames ?? user?.name,
         email: user?.email,
-        cellphone: user?.whatsapp ?? undefined,
+        cellphone: whatsapp,
         taxId,
       },
     });
-  } catch {
+  } catch (erro) {
+    /* O motivo REAL vai para o log do servidor.
+
+       Este `catch` engolia a exceção inteira: o casal via uma frase genérica,
+       e quem mantém o site não tinha como saber se a chave expirou, se o
+       gateway recusou o telefone ou se a API estava fora. Sem isto, todo
+       diagnóstico começava do zero, com o dono clicando e ninguém vendo nada
+       (relatado em 15/09/2026). O casal continua vendo a frase curta — o
+       recado técnico é para o log, não para ele. */
+    console.error("[pagamento] falha ao criar cobrança", {
+      pedido: order.id,
+      motivo: erro instanceof Error ? erro.message : String(erro),
+    });
     return {
       error:
-        "Não conseguimos iniciar o pagamento agora. Tente de novo em instantes ou fale no WhatsApp.",
+        "Não conseguimos iniciar o pagamento agora. Tente de novo em alguns instantes.",
     };
   }
 
